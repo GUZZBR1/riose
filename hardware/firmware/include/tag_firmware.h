@@ -60,6 +60,7 @@ typedef struct {
     uint32_t active_beacon_ms;
     uint32_t alert_beacon_ms;
     uint32_t low_battery_beacon_ms;
+    uint32_t still_alert_after_ms;
     uint16_t low_battery_threshold_mv;
     uint16_t battery_mv;
 } tag_config_t;

@@ -25,6 +25,7 @@ tag_config_t tag_default_config(uint32_t tag_id)
         .active_beacon_ms = 15000u,
         .alert_beacon_ms = 5000u,
         .low_battery_beacon_ms = 900000u,
+        .still_alert_after_ms = 14400000u,
         .low_battery_threshold_mv = 2200u,
         .battery_mv = 3000u,
     };
@@ -72,7 +73,8 @@ static void sample_imu(tag_firmware_t *fw)
             fw->still_tracking = true;
             fw->still_since_ms = now_ms(fw);
         }
-        if ((uint32_t)(now_ms(fw) - fw->still_since_ms) >= 1800000u) {
+        if ((uint32_t)(now_ms(fw) - fw->still_since_ms) >=
+            fw->config.still_alert_after_ms) {
             fw->behavior = TAG_BEHAVIOR_ALERT;
             fw->state = TAG_STATE_ALERT;
         } else {
