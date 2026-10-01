@@ -24,6 +24,8 @@ tag_config_t tag_default_config(uint32_t tag_id)
         .normal_beacon_ms = TAG_DEFAULT_BEACON_MS,
         .active_beacon_ms = 15000u,
         .alert_beacon_ms = 5000u,
+        .low_battery_beacon_ms = 900000u,
+        .low_battery_threshold_mv = 2200u,
         .battery_mv = 3000u,
     };
     return cfg;
@@ -102,10 +104,12 @@ static void transmit(tag_firmware_t *fw)
     }
     fw->tx_packet_len = (uint8_t)len;
     fw->next_beacon_ms = now_ms(fw) + fw->config.normal_beacon_ms;
-    if (fw->behavior == TAG_BEHAVIOR_ACTIVE) {
-        fw->next_beacon_ms = now_ms(fw) + fw->config.active_beacon_ms;
-    } else if (fw->behavior == TAG_BEHAVIOR_ALERT) {
+    if (fw->behavior == TAG_BEHAVIOR_ALERT) {
         fw->next_beacon_ms = now_ms(fw) + fw->config.alert_beacon_ms;
+    } else if (fw->config.battery_mv < fw->config.low_battery_threshold_mv) {
+        fw->next_beacon_ms = now_ms(fw) + fw->config.low_battery_beacon_ms;
+    } else if (fw->behavior == TAG_BEHAVIOR_ACTIVE) {
+        fw->next_beacon_ms = now_ms(fw) + fw->config.active_beacon_ms;
     }
     fw->packets_sent++;
     fw->state = TAG_STATE_RF_TX;
@@ -144,6 +148,14 @@ void tag_firmware_step(tag_firmware_t *fw)
         break;
     case TAG_STATE_IMU_MONITORING:
         sample_imu(fw);
+        if (fw->config.battery_mv < fw->config.low_battery_threshold_mv &&
+            fw->behavior != TAG_BEHAVIOR_ALERT &&
+            (int32_t)(now_ms(fw) - fw->next_beacon_ms) < 0) {
+            /* Keep sensing after wake, but suppress ad-hoc transmissions
+             * until the extended low-battery beacon interval expires. */
+            fw->state = TAG_STATE_SLEEP;
+            break;
+        }
         if (fw->state == TAG_STATE_RF_TX || fw->state == TAG_STATE_ALERT) {
             transmit(fw);
         } else if (fw->state == TAG_STATE_SLEEP) {
