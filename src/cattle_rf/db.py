@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -52,6 +53,7 @@ class Store:
     def __init__(self, path: str | Path = "data/cattle_rf.sqlite3") -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.RLock()
         self.connection = sqlite3.connect(self.path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys=ON")
@@ -59,65 +61,108 @@ class Store:
         self.connection.commit()
 
     def close(self) -> None:
-        self.connection.close()
+        with self._lock:
+            self.connection.close()
 
     def save_anchors(self, anchors: Iterable[Any]) -> None:
-        self.connection.executemany(
-            "INSERT INTO anchors(anchor_id,x,y,height_m,kind,enabled) VALUES(?,?,?,?,?,?) "
-            "ON CONFLICT(anchor_id) DO UPDATE SET x=excluded.x,y=excluded.y,height_m=excluded.height_m,kind=excluded.kind,enabled=excluded.enabled",
-            [(a.anchor_id, a.x, a.y, a.height_m, a.kind, int(a.enabled)) for a in anchors],
-        )
-        self.connection.commit()
+        with self._lock:
+            self.connection.executemany(
+                "INSERT INTO anchors(anchor_id,x,y,height_m,kind,enabled) VALUES(?,?,?,?,?,?) "
+                "ON CONFLICT(anchor_id) DO UPDATE SET x=excluded.x,y=excluded.y,height_m=excluded.height_m,kind=excluded.kind,enabled=excluded.enabled",
+                [(a.anchor_id, a.x, a.y, a.height_m, a.kind, int(a.enabled)) for a in anchors],
+            )
+            self.connection.commit()
 
     def create_animal(self, animal_id: str, hardware_id: str, cryptographic_id: str,
                       **profile: Any) -> dict[str, Any]:
         import time
-        self.connection.execute(
-            "INSERT INTO animals(animal_id,hardware_id,cryptographic_id,name,sex,breed,birth_date,weight_kg,property_name,lot,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-            (animal_id, hardware_id, cryptographic_id, profile.get("name"), profile.get("sex"),
-             profile.get("breed"), profile.get("birth_date"), profile.get("weight_kg"),
-             profile.get("property_name"), profile.get("lot"), time.time()),
-        )
-        append_event(self.connection, animal_id, "ANIMAL_CREATED", {"hardware_id": hardware_id})
-        return self.get_animal(animal_id) or {}
+        with self._lock:
+            try:
+                self.connection.execute("BEGIN IMMEDIATE")
+                self.connection.execute(
+                    "INSERT INTO animals(animal_id,hardware_id,cryptographic_id,name,sex,breed,birth_date,weight_kg,property_name,lot,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                    (animal_id, hardware_id, cryptographic_id, profile.get("name"), profile.get("sex"),
+                     profile.get("breed"), profile.get("birth_date"), profile.get("weight_kg"),
+                     profile.get("property_name"), profile.get("lot"), time.time()),
+                )
+                append_event(self.connection, animal_id, "ANIMAL_CREATED", {"hardware_id": hardware_id}, commit=False)
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
+            return self.get_animal(animal_id) or {}
+
+    def append_animal_event(self, animal_id: str, event_type: str,
+                            payload: dict[str, Any], timestamp: float | None = None):
+        with self._lock:
+            return append_event(self.connection, animal_id, event_type, payload, timestamp)
+
+    def verify_animal_chain(self, animal_id: str) -> bool:
+        from .identity import verify_event_chain
+        with self._lock:
+            return verify_event_chain(self.connection, animal_id)
 
     def get_animal(self, animal_id: str) -> dict[str, Any] | None:
-        row = self.connection.execute("SELECT * FROM animals WHERE animal_id=?", (animal_id,)).fetchone()
-        if row is None:
-            return None
-        result = dict(row)
-        result["events"] = [dict(r) for r in self.connection.execute(
-            "SELECT event_id,event_type,timestamp,payload,previous_hash,hash,signature FROM animal_events WHERE animal_id=? ORDER BY event_id DESC LIMIT 100",
-            (animal_id,),
-        )]
-        return result
+        with self._lock:
+            row = self.connection.execute("SELECT * FROM animals WHERE animal_id=?", (animal_id,)).fetchone()
+            if row is None:
+                return None
+            result = dict(row)
+            result["events"] = [dict(r) for r in self.connection.execute(
+                "SELECT event_id,event_type,timestamp,payload,previous_hash,hash,signature FROM animal_events WHERE animal_id=? ORDER BY event_id DESC LIMIT 100",
+                (animal_id,),
+            )]
+            for event in result["events"]:
+                try:
+                    event["payload"] = json.loads(event["payload"])
+                except (TypeError, json.JSONDecodeError):
+                    event["payload"] = None
+            return result
 
     def list_animals(self) -> list[dict[str, Any]]:
-        return [dict(row) for row in self.connection.execute("SELECT * FROM animals ORDER BY animal_id")]
+        with self._lock:
+            return [dict(row) for row in self.connection.execute("SELECT * FROM animals ORDER BY animal_id")]
+
+    def animal_trajectory(self, animal_id: str, limit: int = 1000) -> list[dict[str, Any]] | None:
+        """Return receiver-derived positions for the tag assigned to an animal."""
+        with self._lock:
+            animal = self.connection.execute(
+                "SELECT hardware_id FROM animals WHERE animal_id=?", (animal_id,)
+            ).fetchone()
+            if animal is None:
+                return None
+            rows = self.connection.execute(
+                "SELECT timestamp,tag_id,x,y,method,quality,status FROM positions "
+                "WHERE tag_id=? ORDER BY timestamp DESC,id DESC LIMIT ?",
+                (animal["hardware_id"], limit),
+            ).fetchall()
+            return [dict(row) for row in reversed(rows)]
 
     def save_episode(self, observations: Iterable[Any], estimates: Iterable[Any],
                      truth: Iterable[Any], persist_truth: bool = True) -> None:
-        self.connection.executemany(
-            "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status) VALUES(?,?,?,?,?,?,?,?,?)",
-            [(o.timestamp_s, o.tag_id, o.anchor_id, o.rssi_dbm, o.snr_db,
-              int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value)
-             for o in observations],
-        )
-        self.connection.executemany(
-            "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status) VALUES(?,?,?,?,?,?,?)",
-            [(e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value)
-             for e in estimates],
-        )
-        if persist_truth:
+        with self._lock:
             self.connection.executemany(
-                "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
-                [(t.timestamp_s, t.tag_id, t.x, t.y) for t in truth],
+                "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status) VALUES(?,?,?,?,?,?,?,?,?)",
+                [(o.timestamp_s, o.tag_id, o.anchor_id, o.rssi_dbm, o.snr_db,
+                  int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value)
+                 for o in observations],
             )
-        self.connection.commit()
+            self.connection.executemany(
+                "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status) VALUES(?,?,?,?,?,?,?)",
+                [(e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value)
+                 for e in estimates],
+            )
+            if persist_truth:
+                self.connection.executemany(
+                    "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
+                    [(t.timestamp_s, t.tag_id, t.x, t.y) for t in truth],
+                )
+            self.connection.commit()
 
     def telemetry(self, limit: int = 1000) -> list[dict[str, Any]]:
-        return [dict(r) for r in self.connection.execute(
-            "SELECT * FROM telemetry ORDER BY id DESC LIMIT ?", (limit,))]
+        with self._lock:
+            return [dict(r) for r in self.connection.execute(
+                "SELECT * FROM telemetry ORDER BY id DESC LIMIT ?", (limit,))]
 
     def positions(self, limit: int = 1000, debug: bool = False,
                   at_s: float | None = None) -> list[dict[str, Any]]:
@@ -136,19 +181,29 @@ class Store:
             FROM positions {time_filter}
           ) SELECT {projection} FROM ranked p {join}
           WHERE p.rn=1 ORDER BY p.tag_id LIMIT ?"""
-        return [dict(r) for r in self.connection.execute(query, (*args, limit))]
+        with self._lock:
+            return [dict(r) for r in self.connection.execute(query, (*args, limit))]
 
     def events(self, limit: int = 1000) -> list[dict[str, Any]]:
-        return [dict(r) for r in self.connection.execute(
-            "SELECT * FROM animal_events ORDER BY event_id DESC LIMIT ?", (limit,))]
+        with self._lock:
+            events = [dict(r) for r in self.connection.execute(
+                "SELECT * FROM animal_events ORDER BY event_id DESC LIMIT ?", (limit,))]
+            for event in events:
+                try:
+                    event["payload"] = json.loads(event["payload"])
+                except (TypeError, json.JSONDecodeError):
+                    event["payload"] = None
+            return events
 
     def set_metrics(self, metrics: dict[str, Any]) -> None:
-        self.connection.executemany(
-            "INSERT OR REPLACE INTO run_metrics(key,value) VALUES(?,?)",
-            [(key, json.dumps(value, default=str)) for key, value in metrics.items()],
-        )
-        self.connection.commit()
+        with self._lock:
+            self.connection.executemany(
+                "INSERT OR REPLACE INTO run_metrics(key,value) VALUES(?,?)",
+                [(key, json.dumps(value, default=str)) for key, value in metrics.items()],
+            )
+            self.connection.commit()
 
     def get_metrics(self) -> dict[str, Any]:
-        return {row["key"]: json.loads(row["value"]) for row in self.connection.execute("SELECT * FROM run_metrics")}
+        with self._lock:
+            return {row["key"]: json.loads(row["value"]) for row in self.connection.execute("SELECT * FROM run_metrics")}
 

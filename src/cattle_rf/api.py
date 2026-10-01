@@ -3,35 +3,61 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import date
+import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
+import sqlite3
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .contracts import Anchor, FarmConfig
 from .db import Store
-from .identity import append_event, make_cryptographic_id, verify_event_chain
+from .identity import make_cryptographic_id
 
 
 class AnimalCreate(BaseModel):
-    animal_id: str
-    hardware_id: str
-    name: str | None = None
-    sex: str | None = None
-    breed: str | None = None
-    birth_date: str | None = None
-    weight_kg: float | None = None
-    property_name: str | None = None
-    lot: str | None = None
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    animal_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    hardware_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    name: str | None = Field(default=None, max_length=120)
+    sex: Literal["female", "male", "unknown"] | None = None
+    breed: str | None = Field(default=None, max_length=120)
+    birth_date: str | None = Field(default=None, max_length=10)
+    weight_kg: float | None = Field(default=None, gt=0, le=3000, allow_inf_nan=False)
+    property_name: str | None = Field(default=None, max_length=160)
+    lot: str | None = Field(default=None, max_length=120)
+
+    @field_validator("birth_date")
+    @classmethod
+    def validate_birth_date(cls, value: str | None) -> str | None:
+        if value is not None:
+            try:
+                date.fromisoformat(value)
+            except ValueError as exc:
+                raise ValueError("birth_date must use YYYY-MM-DD") from exc
+        return value
 
 
 class EventCreate(BaseModel):
-    animal_id: str
-    event_type: str
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    animal_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    event_type: Literal["OWNER_CHANGED", "WEIGHT_RECORDED", "VACCINATION", "HEALTH_EVENT", "TRANSFER", "SLAUGHTER"]
     payload: dict[str, Any] = Field(default_factory=dict)
-    timestamp: float | None = None
+    timestamp: float | None = Field(default=None, allow_inf_nan=False)
+
+    @field_validator("payload")
+    @classmethod
+    def validate_payload(cls, value: dict[str, Any]) -> dict[str, Any]:
+        try:
+            encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("payload must contain finite JSON-compatible values") from exc
+        if len(encoded.encode("utf-8")) > 65536:
+            raise ValueError("payload must be at most 64 KiB")
+        return value
 
 
 class SimulationRequest(BaseModel):
@@ -81,12 +107,20 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
                 body.animal_id, body.hardware_id, make_cryptographic_id(),
                 **body.model_dump(exclude={"animal_id", "hardware_id"}),
             )
-        except Exception as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="animal_id or hardware_id already exists") from exc
 
     @app.get("/api/animals/{animal_id}")
     def animal(animal_id: str) -> dict[str, Any]:
         result = app.state.store.get_animal(animal_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        result["trajectory"] = app.state.store.animal_trajectory(animal_id, limit=100)
+        return result
+
+    @app.get("/api/animals/{animal_id}/trajectory")
+    def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
+        result = app.state.store.animal_trajectory(animal_id, limit)
         if result is None:
             raise HTTPException(status_code=404, detail="animal not found")
         return result
@@ -113,9 +147,20 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     def append_animal_event(body: EventCreate) -> dict[str, Any]:
         if app.state.store.get_animal(body.animal_id) is None:
             raise HTTPException(status_code=404, detail="animal not found")
-        event = append_event(app.state.store.connection, body.animal_id,
-                             body.event_type, body.payload, body.timestamp)
-        return {**asdict(event), "chain_valid": verify_event_chain(app.state.store.connection, body.animal_id)}
+        try:
+            event = app.state.store.append_animal_event(
+                body.animal_id, body.event_type, body.payload, body.timestamp)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return {**asdict(event), "chain_valid": app.state.store.verify_animal_chain(body.animal_id)}
+
+    @app.get("/api/animals/{animal_id}/events/verify")
+    def verify_animal_events(animal_id: str) -> dict[str, Any]:
+        if app.state.store.get_animal(animal_id) is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return {"animal_id": animal_id,
+                "valid": app.state.store.verify_animal_chain(animal_id),
+                "evidence": "LOCAL_HASH_CHAIN"}
 
     @app.post("/api/simulation/run")
     def run_simulation(body: SimulationRequest) -> dict[str, Any]:
