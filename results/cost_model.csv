@@ -1,0 +1,7 @@
+record_type,component,unit_cost,currency,source_status,quantity,date,notes
+component,Tag: MCU + IMU + RFID + enclosure + battery,,BRL,PRICE_RESEARCH_REQUIRED,100,2026-10-01,No verified supplier quote; blank cost is intentional.
+component,Anchor: ESP32-C6 + sub-GHz radio + power,,BRL,PRICE_RESEARCH_REQUIRED,8,2026-10-01,No verified supplier quote; blank cost is intentional.
+component,Local gateway/computer,,BRL,PRICE_RESEARCH_REQUIRED,1,2026-10-01,No verified supplier quote; blank cost is intentional.
+component,Shared infrastructure,,BRL,PRICE_RESEARCH_REQUIRED,1,2026-10-01,No verified supplier quote; blank cost is intentional.
+derived_metric,Cost per animal (100-head reference),,BRL,PRICE_RESEARCH_REQUIRED,100,2026-10-01,No verified supplier quote; blank cost is intentional.
+derived_metric,Cost per hectare (100-ha reference),,BRL,PRICE_RESEARCH_REQUIRED,100,2026-10-01,No verified supplier quote; blank cost is intentional.

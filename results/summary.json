@@ -1,0 +1,76 @@
+{
+  "status": "SIMULATED",
+  "profile": "full",
+  "animal_counts": [
+    1,
+    10,
+    50,
+    100,
+    500,
+    1000
+  ],
+  "anchor_counts": [
+    4,
+    8,
+    12,
+    20
+  ],
+  "seeds_per_scenario": 1,
+  "duration_s": 300,
+  "sample_period_s": 60,
+  "methods": [
+    "gps_oracle_reference",
+    "strongest_anchor",
+    "weighted_centroid",
+    "path_loss",
+    "extra_trees",
+    "gradient_boosting",
+    "temporal_fusion"
+  ],
+  "scenario_count": 24,
+  "runtime_seconds": 89.24104967699895,
+  "rows": 168,
+  "error_rows": 230802,
+  "mean_error_by_method_m": {
+    "gps_oracle_reference": 0.0,
+    "strongest_anchor": 300.49770397583046,
+    "weighted_centroid": 177.48213084914337,
+    "path_loss": 277.826970331911,
+    "extra_trees": 426.34822624490033,
+    "gradient_boosting": 450.21034172640265,
+    "temporal_fusion": 168.24219339695466
+  },
+  "stress_scenario_count": 24,
+  "stress_mean_error_m": {
+    "ANCHOR_DOWN/path_loss": 264.5682604407309,
+    "ANCHOR_DOWN/strongest_anchor": 279.2858382230321,
+    "ANCHOR_DOWN/temporal_fusion": 162.27804706899227,
+    "ANCHOR_DOWN/weighted_centroid": 169.30166058031338,
+    "CLOCK_DRIFT_250ms/path_loss": 253.72982421552118,
+    "CLOCK_DRIFT_250ms/strongest_anchor": 279.2336654413274,
+    "CLOCK_DRIFT_250ms/temporal_fusion": 141.0879763021393,
+    "CLOCK_DRIFT_250ms/weighted_centroid": 148.27943606185013,
+    "CORRUPT_ANCHOR/path_loss": 255.92957655184776,
+    "CORRUPT_ANCHOR/strongest_anchor": 555.3284864717502,
+    "CORRUPT_ANCHOR/temporal_fusion": 380.1945142732427,
+    "CORRUPT_ANCHOR/weighted_centroid": 389.28538787943603,
+    "LOS/path_loss": 253.72982468405965,
+    "LOS/strongest_anchor": 279.3132562203448,
+    "LOS/temporal_fusion": 141.0879763021393,
+    "LOS/weighted_centroid": 148.27943606185013,
+    "NLOS_25pct/path_loss": 240.47566310405531,
+    "NLOS_25pct/strongest_anchor": 308.18426132709163,
+    "NLOS_25pct/temporal_fusion": 164.61639004318832,
+    "NLOS_25pct/weighted_centroid": 179.96000540948035,
+    "PACKET_LOSS_50pct/path_loss": 312.27581324796074,
+    "PACKET_LOSS_50pct/strongest_anchor": 381.89919047344245,
+    "PACKET_LOSS_50pct/temporal_fusion": 245.54069884767972,
+    "PACKET_LOSS_50pct/weighted_centroid": 290.96550840147535
+  },
+  "energy_profile_note": "STM32WLE5 reference configuration; idle/BLE/Wi-Fi/alert currents are assumptions; no battery capacity is configured, so battery life is unavailable.",
+  "limitations": [
+    "Simulation only; no physical farm validation.",
+    "Path-loss calibration is assumed and RSSI ranging may be poor.",
+    "Advanced Sionna/ns-3/Zephyr/Wokwi integrations are optional and are not claimed as executed."
+  ]
+}
