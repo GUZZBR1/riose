@@ -6,7 +6,7 @@
 enum {
     CMD_SET_SLEEP = 0x84, CMD_SET_STANDBY = 0x80, CMD_SET_TX = 0x83,
     CMD_SET_RF_FREQUENCY = 0x86, CMD_SET_PACKET_TYPE = 0x8a,
-    CMD_SET_MODULATION_PARAMS = 0x8b, CMD_SET_PACKET_PARAMS = 0x8c,
+    CMD_SET_RX = 0x82, CMD_SET_MODULATION_PARAMS = 0x8b, CMD_SET_PACKET_PARAMS = 0x8c,
     CMD_SET_TX_PARAMS = 0x8e, CMD_SET_BUFFER_BASE = 0x8f,
     CMD_GET_STATUS = 0xc0, CMD_GET_IRQ_STATUS = 0x12,
     CMD_CLEAR_IRQ_STATUS = 0x02, CMD_SET_DIO_IRQ_PARAMS = 0x08,
@@ -59,19 +59,21 @@ void sx1262_model_init(sx1262_model_t *m)
 void sx1262_model_advance(sx1262_model_t *m, uint32_t now_ms)
 {
     m->now_ms = now_ms;
-    if (!m->tx_pending)
+    if (!m->tx_pending && !m->rx_pending)
         return;
     /* Unsigned subtraction is wrap-safe for intervals shorter than 2^31 ms. */
     if (m->tx_timeout_ms && (uint32_t)(now_ms - m->tx_started_ms) >= m->tx_timeout_ms) {
         m->tx_pending = false;
+        m->rx_pending = false;
         m->mode = SX1262_MODE_STANDBY_RC;
         m->irq_status |= SX1262_IRQ_TIMEOUT;
         m->command_status = CMD_TIMEOUT;
     } else if ((int32_t)(now_ms - m->tx_due_ms) >= 0) {
         m->tx_pending = false;
+        m->rx_pending = false;
         m->mode = SX1262_MODE_STANDBY_RC;
-        m->irq_status |= SX1262_IRQ_TX_DONE;
-        m->command_status = CMD_OK;
+        m->irq_status |= m->rx_pending ? SX1262_IRQ_TIMEOUT : SX1262_IRQ_TX_DONE;
+        m->command_status = m->rx_pending ? CMD_TIMEOUT : CMD_OK;
     }
 }
 
@@ -152,8 +154,11 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         memcpy(m->modulation, tx + 1, sizeof(m->modulation));
         break;
     case CMD_SET_PACKET_PARAMS:
-        if (!need(tx, tx_len, 10)) { fault(m, CMD_INVALID); break; }
-        memcpy(m->packet, tx + 1, sizeof(m->packet));
+        /* SX126x SetPacketParams has six LoRa arguments (7 bytes with
+         * opcode); FSK uses a longer packet parameter structure. */
+        if (!need(tx, tx_len, 7)) { fault(m, CMD_INVALID); break; }
+        memset(m->packet, 0, sizeof(m->packet));
+        memcpy(m->packet, tx + 1, tx_len - 1 < sizeof(m->packet) ? tx_len - 1 : sizeof(m->packet));
         break;
     case CMD_SET_BUFFER_BASE:
         if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
@@ -192,8 +197,23 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         m->tx_started_ms = m->now_ms;
         m->tx_due_ms = m->now_ms + m->tx_latency_ms;
         m->tx_pending = true;
+        m->rx_pending = false;
         m->mode = SX1262_MODE_TX;
         m->tx_count++;
+        break;
+    case CMD_SET_RX:
+        /* Timeout is a 24-bit count in units of 15.625 us. 0 means
+         * continuous receive; this deterministic model treats it as a
+         * bounded 1 s window to avoid an unbounded host test. */
+        if (!need(tx, tx_len, 4) || m->mode == SX1262_MODE_SLEEP ||
+            m->mode == SX1262_MODE_TX) { fault(m, CMD_FAILED); break; }
+        m->tx_pending = false;
+        m->rx_pending = true;
+        m->tx_timeout_ms = (u24(tx + 1) == 0)
+            ? 1000u : (u24(tx + 1) * 15625u + 999999u) / 1000000u;
+        m->tx_started_ms = m->now_ms;
+        m->tx_due_ms = m->now_ms + m->tx_timeout_ms;
+        m->mode = SX1262_MODE_RX;
         break;
     default:
         fault(m, CMD_INVALID);

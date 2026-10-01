@@ -54,6 +54,7 @@ typedef struct sx1262_model {
     uint32_t tx_count;
     uint32_t fault_count;
     bool tx_pending;
+    bool rx_pending;
     bool fault;
 } sx1262_model_t;
 
