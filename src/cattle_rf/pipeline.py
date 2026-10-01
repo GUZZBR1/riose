@@ -5,15 +5,16 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
-from .contracts import FarmConfig
+from .contracts import Anchor, FarmConfig
 from .localization import METHODS, estimate, evaluate, train_fingerprint_model
 from .sim import simulate_episode
 
 
-def run_episode(config: FarmConfig, method: str = "weighted_centroid"):
+def run_episode(config: FarmConfig, method: str = "weighted_centroid",
+                anchors: tuple[Anchor, ...] | None = None):
     if method not in METHODS:
         raise ValueError(f"unknown method {method!r}; valid methods: {', '.join(METHODS)}")
-    episode = simulate_episode(config)
+    episode = simulate_episode(config, anchors=anchors)
     models = None
     if method in {"extra_trees", "gradient_boosting"}:
         # Supervision comes from distinct deterministic seeds; inference receives

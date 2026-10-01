@@ -60,6 +60,15 @@ class EventCreate(BaseModel):
         return value
 
 
+class AnchorInput(BaseModel):
+    anchor_id: str = Field(min_length=1, max_length=64)
+    x: float
+    y: float
+    height_m: float = Field(default=3.0, gt=0)
+    kind: str = "esp32-c6-subghz"
+    enabled: bool = True
+
+
 class SimulationRequest(BaseModel):
     width_m: float = 1000.0
     height_m: float = 1000.0
@@ -70,6 +79,7 @@ class SimulationRequest(BaseModel):
     seed: int = 7
     packet_loss_probability: float = Field(default=0.05, ge=0, le=1)
     method: str = "weighted_centroid"
+    anchors: list[AnchorInput] | None = Field(default=None, min_length=1, max_length=40)
 
 
 class CSIRequest(BaseModel):
@@ -135,9 +145,17 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         # Ground truth is joined only after an explicit debug request.
         return app.state.store.positions(limit, debug=debug, at_s=at_s)
 
+    @app.get("/api/positions/history")
+    def position_history(tag_id: str = Query(min_length=1, max_length=64),
+                         limit: int = Query(1000, ge=1, le=10000),
+                         debug: bool = False) -> list[dict[str, Any]]:
+        # Historical ground truth remains isolated behind the explicit debug flag.
+        return app.state.store.positions_history(tag_id, limit, debug=debug)
+
     @app.get("/api/telemetry")
-    def telemetry(limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
-        return app.state.store.telemetry(limit)
+    def telemetry(limit: int = Query(1000, ge=1, le=10000),
+                  tag_id: str | None = Query(None, min_length=1, max_length=64)) -> list[dict[str, Any]]:
+        return app.state.store.telemetry(limit, tag_id)
 
     @app.get("/api/events")
     def events(limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
@@ -171,8 +189,19 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             duration_s=body.duration_s, sample_period_s=body.sample_period_s,
             seed=body.seed, packet_loss_probability=body.packet_loss_probability,
         )
+        anchor_set = None
+        if body.anchors is not None:
+            ids = [anchor.anchor_id for anchor in body.anchors]
+            if len(body.anchors) != body.anchor_count:
+                raise HTTPException(status_code=422, detail="anchor_count must match the supplied anchors")
+            if len(ids) != len(set(ids)):
+                raise HTTPException(status_code=422, detail="anchor_id values must be unique")
+            if any(anchor.x < 0 or anchor.x > body.width_m or anchor.y < 0 or anchor.y > body.height_m
+                   for anchor in body.anchors):
+                raise HTTPException(status_code=422, detail="anchor coordinates must be inside the farm")
+            anchor_set = tuple(Anchor(**anchor.model_dump()) for anchor in body.anchors)
         try:
-            episode, estimates, metrics = run_episode(config, body.method)
+            episode, estimates, metrics = run_episode(config, body.method, anchors=anchor_set)
         except (ImportError, ValueError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         app.state.store.save_anchors(episode.anchors)

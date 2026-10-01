@@ -159,10 +159,15 @@ class Store:
                 )
             self.connection.commit()
 
-    def telemetry(self, limit: int = 1000) -> list[dict[str, Any]]:
+    def telemetry(self, limit: int = 1000, tag_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
-            return [dict(r) for r in self.connection.execute(
-                "SELECT * FROM telemetry ORDER BY id DESC LIMIT ?", (limit,))]
+            if tag_id is not None:
+                rows = self.connection.execute(
+                    "SELECT * FROM telemetry WHERE tag_id=? ORDER BY id DESC LIMIT ?", (tag_id, limit))
+            else:
+                rows = self.connection.execute(
+                    "SELECT * FROM telemetry ORDER BY id DESC LIMIT ?", (limit,))
+            return [dict(r) for r in rows]
 
     def positions(self, limit: int = 1000, debug: bool = False,
                   at_s: float | None = None) -> list[dict[str, Any]]:
@@ -188,6 +193,26 @@ class Store:
           WHERE p.rn=1 ORDER BY p.tag_id LIMIT ?"""
         with self._lock:
             return [dict(r) for r in self.connection.execute(query, (*args, limit))]
+
+    def positions_history(self, tag_id: str, limit: int = 1000,
+                          debug: bool = False) -> list[dict[str, Any]]:
+        """Return one tag's trajectory; truth is opt-in and joined only in debug."""
+        # Historical results are not deduplicated: the trajectory needs every
+        # estimate. Use a direct truth match CTE only for explicit debug access.
+        query = "SELECT timestamp,tag_id,x,y,method,quality,status FROM positions WHERE tag_id=? ORDER BY timestamp,id LIMIT ?"
+        args: tuple[Any, ...] = (tag_id, limit)
+        if debug:
+            query = """WITH candidates AS (
+                SELECT p.id,p.timestamp,p.tag_id,p.x,p.y,p.method,p.quality,p.status,
+                       d.x AS ground_truth_x,d.y AS ground_truth_y,
+                       ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY ABS(d.timestamp-p.timestamp),d.timestamp) AS truth_rank
+                FROM positions p LEFT JOIN debug_truth d
+                  ON d.tag_id=p.tag_id AND ABS(d.timestamp-p.timestamp)<=1.0
+                WHERE p.tag_id=?
+              ) SELECT timestamp,tag_id,x,y,method,quality,status,ground_truth_x,ground_truth_y
+                FROM candidates WHERE truth_rank=1 ORDER BY timestamp,id LIMIT ?"""
+        with self._lock:
+            return [dict(r) for r in self.connection.execute(query, args)]
 
     def events(self, limit: int = 1000) -> list[dict[str, Any]]:
         with self._lock:
