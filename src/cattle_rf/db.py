@@ -127,7 +127,10 @@ class Store:
         join = ""
         if debug:
             projection += ",t.x AS ground_truth_x,t.y AS ground_truth_y"
-            join = "LEFT JOIN debug_truth t ON p.timestamp=t.timestamp AND p.tag_id=t.tag_id"
+            join = """LEFT JOIN debug_truth t ON t.tag_id=p.tag_id AND t.timestamp=(
+                SELECT d.timestamp FROM debug_truth d WHERE d.tag_id=p.tag_id
+                  AND ABS(d.timestamp-p.timestamp)<=1.0
+                ORDER BY ABS(d.timestamp-p.timestamp), d.timestamp LIMIT 1)"""
         query = f"""WITH ranked AS (
             SELECT *, ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC,id DESC) AS rn
             FROM positions {time_filter}

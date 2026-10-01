@@ -151,13 +151,18 @@ class TagController:
         else:
             self.state = TagState.DEEP_SLEEP
 
-        self._record_state_energy(self.state, elapsed_s)
-        if self.last_beacon_s is None or self.time_s - self.last_beacon_s >= self.beacon_period_s:
+        base_state = self.state
+        should_transmit = self.last_beacon_s is None or self.time_s - self.last_beacon_s >= self.beacon_period_s
+        tx_duration = min(elapsed_s, 0.1) if should_transmit else 0.0
+        rx_duration = (min(self.config.receive_window_s, max(0.0, elapsed_s - tx_duration))
+                       if should_transmit else 0.0)
+        # Partition each elapsed wall-clock interval across mutually exclusive
+        # states. TX/RX are not added on top of the full sleep/monitor interval.
+        self._record_state_energy(base_state, max(0.0, elapsed_s - tx_duration - rx_duration))
+        if should_transmit:
             self.state = TagState.RF_TX
             self.hal.transmit_beacon(self.config.tag_id, high_rate=self.beacon_period_s != self.config.normal_beacon_period_s)
-            tx_duration = min(elapsed_s, 0.1)
             self._record_state_energy(TagState.RF_TX, tx_duration)
-            rx_duration = min(self.config.receive_window_s, max(0.0, elapsed_s - tx_duration))
             if rx_duration:
                 self.state = TagState.RF_RX
                 self.hal.receive_window()

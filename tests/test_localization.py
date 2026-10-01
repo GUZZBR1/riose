@@ -71,6 +71,20 @@ def test_temporal_fusion_handles_gaps_and_prior_without_truth():
     assert (seeded.x, seeded.y) == (12, 9)
 
 
+def test_small_anchor_clock_offsets_stay_in_one_epoch_and_align_to_truth():
+    offsets = [-0.25, 0.25, -0.10, 0.10]
+    rows = []
+    truth = [GroundTruth(10.0, "tag-1", 40.0, 35.0)]
+    for anchor, offset, source in zip(ANCHORS, offsets, make_observations(40, 35, 10), strict=True):
+        rows.append(RFObservation(10.0 + offset, source.tag_id, anchor.anchor_id,
+                                  source.rssi_dbm, source.snr_db, source.packet_received,
+                                  source.imu_accel_norm_g))
+    estimates = estimate(rows, ANCHORS, "weighted_centroid")
+    assert len(estimates) == 1
+    assert estimates[0].quality == pytest.approx(1.0)
+    assert evaluate(estimates, truth)["coverage_pct"] == pytest.approx(100.0)
+
+
 def test_fingerprint_train_and_inference_keeps_truth_out_of_predict_api():
     pytest.importorskip("sklearn")
     observations, truth = [], []
@@ -84,6 +98,20 @@ def test_fingerprint_train_and_inference_keeps_truth_out_of_predict_api():
     assert prediction.x is not None and prediction.y is not None
     unavailable = estimate(make_observations(), ANCHORS, "gradient_boosting")[0]
     assert unavailable.x is None
+
+
+def test_gradient_boosting_fingerprint_supports_two_coordinate_output():
+    pytest.importorskip("sklearn")
+    observations, truth = [], []
+    for idx, (x, y) in enumerate([(20, 30), (35, 45), (60, 70), (80, 20)]):
+        observations += make_observations(x, y, idx)
+        truth.append(GroundTruth(idx, "tag-1", x, y))
+    model = train_fingerprint_model(observations, truth, ANCHORS,
+                                    "gradient_boosting", random_state=1)
+    prediction = estimate(make_observations(35, 45, 9), ANCHORS,
+                          "gradient_boosting",
+                          fingerprint_models={"gradient_boosting": model})[0]
+    assert prediction.x is not None and prediction.y is not None
 
 
 def test_evaluate_reports_raw_errors_and_coverage():

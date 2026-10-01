@@ -7,6 +7,7 @@ entry point has no ground-truth parameter by design.
 
 from __future__ import annotations
 
+from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass
 from math import hypot, isfinite
@@ -25,6 +26,8 @@ METHODS = (
     "gradient_boosting",
     "temporal_fusion",
 )
+
+EPOCH_TOLERANCE_S = 1.0
 
 
 @dataclass(slots=True)
@@ -71,19 +74,32 @@ def train_fingerprint_model(
     if algorithm not in {"extra_trees", "gradient_boosting"}:
         raise ValueError("algorithm must be 'extra_trees' or 'gradient_boosting'")
     grouped = _group_observations(observations)
-    truth_map = {(g.tag_id, float(g.timestamp_s)): (float(g.x), float(g.y)) for g in ground_truth}
-    matched = [(key, group, truth_map[key]) for key, group in sorted(grouped.items()) if key in truth_map]
+    truth_by_tag: dict[str, list[GroundTruth]] = defaultdict(list)
+    for point in ground_truth:
+        truth_by_tag[point.tag_id].append(point)
+    for points in truth_by_tag.values():
+        points.sort(key=lambda point: point.timestamp_s)
+    matched = []
+    for key, group in sorted(grouped.items()):
+        point = _nearest_truth(key[0], key[1], truth_by_tag)
+        if point is not None:
+            matched.append((key, group, (float(point.x), float(point.y))))
     if len(matched) < 2:
         raise ValueError("at least two matching observation/ground-truth samples are required")
     try:
         from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor
+        from sklearn.multioutput import MultiOutputRegressor
     except ImportError as exc:  # pragma: no cover - environment-dependent
         raise RuntimeError("scikit-learn is required for fingerprint models") from exc
     anchor_ids = tuple(sorted(a.anchor_id for a in anchors))
     if algorithm == "extra_trees":
         model = ExtraTreesRegressor(n_estimators=100, min_samples_leaf=1, random_state=random_state, n_jobs=1)
     else:
-        model = GradientBoostingRegressor(random_state=random_state, n_estimators=100, max_depth=2)
+        # sklearn's GradientBoostingRegressor is single-output; wrap it so the
+        # same model predicts the farm's two spatial coordinates.
+        model = MultiOutputRegressor(
+            GradientBoostingRegressor(random_state=random_state, n_estimators=100, max_depth=2)
+        )
     X = np.vstack([_fingerprint_features(group, anchor_ids) for _, group, _ in matched])
     y = np.asarray([xy for _, _, xy in matched], dtype=float)
     model.fit(X, y)
@@ -164,11 +180,16 @@ def estimate(
 
 def evaluate(estimates: Sequence[Estimate], ground_truth: Sequence[GroundTruth]) -> dict[str, float | int | None]:
     """Compare estimates with truth after inference; returns honest error stats."""
-    truth = {(g.tag_id, float(g.timestamp_s)): g for g in ground_truth}
-    errors = [hypot(float(e.x) - truth[(e.tag_id, float(e.timestamp_s))].x,
-                    float(e.y) - truth[(e.tag_id, float(e.timestamp_s))].y)
-              for e in estimates if e.x is not None and e.y is not None and (e.tag_id, float(e.timestamp_s)) in truth]
-    total = len(truth)
+    truth_by_tag: dict[str, list[GroundTruth]] = defaultdict(list)
+    for point in ground_truth:
+        truth_by_tag[point.tag_id].append(point)
+    for points in truth_by_tag.values():
+        points.sort(key=lambda point: point.timestamp_s)
+    matched = [(e, _nearest_truth(e.tag_id, float(e.timestamp_s), truth_by_tag))
+               for e in estimates if e.x is not None and e.y is not None]
+    errors = [hypot(float(e.x) - point.x, float(e.y) - point.y)
+              for e, point in matched if point is not None]
+    total = len(ground_truth)
     if not errors:
         return {"samples": 0, "coverage_pct": 0.0 if total else None,
                 "mean_error_m": None, "median_error_m": None, "p90_error_m": None,
@@ -183,10 +204,42 @@ def evaluate(estimates: Sequence[Estimate], ground_truth: Sequence[GroundTruth])
 
 
 def _group_observations(observations: Sequence[RFObservation]) -> dict[tuple[str, float], list[RFObservation]]:
-    grouped: dict[tuple[str, float], list[RFObservation]] = defaultdict(list)
+    # Small anchor clock offsets are expected. Cluster observations from one
+    # beacon epoch within a bounded tolerance, anchored to the epoch's first
+    # timestamp to avoid an unbounded chaining window.
+    by_tag: dict[str, list[RFObservation]] = defaultdict(list)
     for obs in observations:
-        grouped[(obs.tag_id, float(obs.timestamp_s))].append(obs)
+        by_tag[obs.tag_id].append(obs)
+    grouped: dict[tuple[str, float], list[RFObservation]] = {}
+    for tag_id, tag_rows in by_tag.items():
+        tag_rows.sort(key=lambda row: row.timestamp_s)
+        current: list[RFObservation] = []
+        epoch_start = 0.0
+        for observation in tag_rows:
+            timestamp = float(observation.timestamp_s)
+            if current and timestamp - epoch_start > EPOCH_TOLERANCE_S:
+                epoch_time = float(np.median([row.timestamp_s for row in current]))
+                grouped[(tag_id, epoch_time)] = current
+                current = []
+            if not current:
+                epoch_start = timestamp
+            current.append(observation)
+        if current:
+            epoch_time = float(np.median([row.timestamp_s for row in current]))
+            grouped[(tag_id, epoch_time)] = current
     return grouped
+
+
+def _nearest_truth(tag_id: str, timestamp: float,
+                   truth_by_tag: Mapping[str, Sequence[GroundTruth]]) -> GroundTruth | None:
+    points = truth_by_tag.get(tag_id, ())
+    if not points:
+        return None
+    times = [point.timestamp_s for point in points]
+    index = bisect_left(times, timestamp)
+    candidates = points[max(0, index - 1):min(len(points), index + 1)]
+    nearest = min(candidates, key=lambda point: abs(point.timestamp_s - timestamp))
+    return nearest if abs(nearest.timestamp_s - timestamp) <= EPOCH_TOLERANCE_S else None
 
 
 def _weighted_centroid(usable: Sequence[tuple[RFObservation, Anchor]]) -> tuple[float, float]:

@@ -201,14 +201,16 @@ def run_benchmark(args: argparse.Namespace) -> None:
 
 def create_cost_model() -> list[dict[str, Any]]:
     today = time.strftime("%Y-%m-%d", time.gmtime())
-    components = [("Tag: MCU + IMU + RFID + enclosure + battery", 100),
-                  ("Anchor: ESP32-C6 + sub-GHz radio + power", 8),
-                  ("Local gateway/computer", 1),
-                  ("Shared infrastructure", 1)]
-    return [{"component": name, "unit_cost": "", "currency": "BRL",
+    entries = [("component", "Tag: MCU + IMU + RFID + enclosure + battery", 100),
+               ("component", "Anchor: ESP32-C6 + sub-GHz radio + power", 8),
+               ("component", "Local gateway/computer", 1),
+               ("component", "Shared infrastructure", 1),
+               ("derived_metric", "Cost per animal (100-head reference)", 100),
+               ("derived_metric", "Cost per hectare (100-ha reference)", 100)]
+    return [{"record_type": kind, "component": name, "unit_cost": "", "currency": "BRL",
              "source_status": "PRICE_RESEARCH_REQUIRED", "quantity": qty,
              "date": today, "notes": "No verified supplier quote; blank cost is intentional."}
-            for name, qty in components]
+            for kind, name, qty in entries]
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:

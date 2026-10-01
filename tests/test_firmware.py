@@ -71,3 +71,12 @@ def test_energy_rejects_invalid_values_and_optional_tools_are_reported() -> None
     capabilities = detect_optional_capabilities()
     assert {"zephyr_native_sim", "wokwi", "sionna"} <= capabilities.keys()
     assert all("available" in capability and "status" in capability for capability in capabilities.values())
+
+
+def test_tag_energy_interval_is_not_double_counted_with_tx_rx() -> None:
+    tag = TagController(TagConfig("tag-1", receive_window_s=1.0), MemoryHAL())
+    tag.step(60.0, Activity.NORMAL)
+    tag.step(30.0, Activity.RUNNING)
+    tag.set_radio_mode(TagState.WIFI_ACTIVE)
+    tag.step(5.0)
+    assert tag.ledger.report().duration_s == pytest.approx(95.0)
