@@ -28,7 +28,7 @@ The wake line is disabled for the long mixed and stationary runs so these measur
 
 ## Observed run
 
-On the current C-only model build, the 24-hour mixed profile produced 7,344 TX packets: 1,680 during the first stationary block, 360 walking, 984 running, 2,160 abnormal, and 2,160 during the final stationary block. All 7,344 were transmitted at the firmware's beacon deadline; there were no direct escalation/event transmissions with INT1 disabled. No firmware failures occurred. The classifier remained in ALERT through the final stationary block; this is a simulated behavior that merits further review.
+On the current C-only model build, the 24-hour mixed profile produced 7,341 TX packets: 1,680 during the first stationary block, 360 walking, 990 running, 2,151 abnormal, and 2,160 during the final stationary block. All 7,344 were transmitted at the firmware's beacon deadline; there were no direct escalation/event transmissions with INT1 disabled. No firmware failures occurred. The classifier remained in ALERT through the final stationary block; this is a simulated behavior that merits further review.
 
 A three-hour stationary profile below the default four-hour stillness alarm produced 180 packets at a 60-second cadence. A full 24-hour stationary profile produced 14,640 packets: the default stillness threshold is 14,400,000 ms (four hours), after which the ALERT cadence is five seconds. This is the configured simulated alarm policy, not evidence that four hours of inactivity is clinically abnormal. The higher rate is visible in the output and should inform future energy and false-alarm experiments.
 

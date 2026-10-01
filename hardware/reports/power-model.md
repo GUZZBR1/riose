@@ -28,10 +28,10 @@ provenance field for each value.
 | Brownout threshold comparison | Above configured 1.8 V threshold | SIMULATED; threshold is configurable |
 
 The nominal day consists of 23.9 h sleep, 43.2 s MCU-active work, 172.8 s TX, and
-144 s RX. The integration harness separately measured 7,344 TX for its mixed
+144 s RX. The integration harness separately measured 7,341 TX for its mixed
 24-hour motion profile and 14,640 TX for 24 hours stationary after the assumed
 4-hour stillness alarm. Re-running the same current model with those traffic
-counts estimates 12.150956 mAh/day and 24.180767 mAh/day, respectively. These
+counts estimates 12.146009 mAh/day and 24.180767 mAh/day, respectively. These
 are simulated traffic-profile extrapolations using the same conservative TX
 current proxy, not cell measurements; neither has an autonomy calculation.
 

@@ -58,8 +58,27 @@ is available only to evaluation and the explicitly enabled dashboard debug
 view. Hardware cost fields remain `PRICE_RESEARCH_REQUIRED` until supported by
 dated sources.
 
-Zephyr native_sim, Wokwi, Sionna RT, ns-3, KiCad, and ngspice are optional
-capabilities. The current environment did not have those toolchains installed;
-the prototype reports availability and does not claim to run their hardware
-or advanced RF simulations. The current tag FSM is a Python virtual HAL.
+## Virtual hardware tag
+
+The new C hardware MVP is isolated under [`hardware/`](hardware/reports/mvp-hardware-report.md)
+and does not replace the RF localization simulator above. It contains a
+portable firmware FSM, SX1262 SPI command model, LIS2DW12 register/IRQ model,
+24-byte telemetry with CRC-16, an integration harness, and a configurable
+energy profile. Run `make hardware-test` for the CTest suite or
+`make hardware-demo` for the accelerated tag scenarios.
+
+The firmware also builds and runs with Zephyr `native_sim/native/64` against
+the same C peripheral models (`make hardware-native-sim` from a configured
+Zephyr workspace). The tested Zephyr build is software simulation only.
+ngspice 42 ran the single-TX rail transient; the assumed 3.3 V/3 Ω/47 µF model
+reached 3.164086 V. Default energy estimates use explicit mixed inputs and do
+not calculate autonomy because no battery capacity is selected. Full details,
+test counts, energy scenarios, and blockers are in
+[`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md).
+
+Wokwi and KiCad remain unverified: their executables are unavailable here, so
+the virtual peripherals use local C models and the circuit topology is
+documented rather than claiming a compiled KiCad schematic or PCB. No radio
+propagation, 134.2 kHz RFID reader, physical battery/brownout, or field animal
+behavior is claimed as validated.
 
