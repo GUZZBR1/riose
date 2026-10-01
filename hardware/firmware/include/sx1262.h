@@ -9,6 +9,8 @@
 
 int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
                      int8_t tx_power_dbm);
+int sx1262_set_standby(const tag_hal_t *hal);
+int sx1262_set_sleep(const tag_hal_t *hal);
 int sx1262_write_buffer(const tag_hal_t *hal, uint8_t offset,
                         const uint8_t *data, size_t length);
 int sx1262_set_tx(const tag_hal_t *hal, uint32_t timeout_ms);

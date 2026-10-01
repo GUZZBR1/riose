@@ -86,6 +86,12 @@ static void sample_imu(tag_firmware_t *fw)
 
 static void transmit(tag_firmware_t *fw)
 {
+    /* The radio is put in hardware sleep whenever the MCU sleeps. Wake it
+     * into standby before touching the FIFO or starting a new TX. */
+    if (sx1262_set_standby(&fw->hal) != 0) {
+        fail(fw);
+        return;
+    }
     const size_t len = tag_encode_telemetry(fw->tx_packet,
         sizeof(fw->tx_packet), fw->config.tag_id, fw->sequence++, now_ms(fw),
         &fw->last_imu, fw->config.battery_mv, fw->behavior);
@@ -116,7 +122,8 @@ void tag_firmware_step(tag_firmware_t *fw)
         if (fw->hal.radio_reset(fw->hal.context) != 0 ||
             fw->hal.imu_read(fw->hal.context, &fw->last_imu) != 0 ||
             sx1262_configure(&fw->hal, fw->config.rf_frequency_hz,
-                             fw->config.tx_power_dbm) != 0) {
+                             fw->config.tx_power_dbm) != 0 ||
+            sx1262_set_sleep(&fw->hal) != 0) {
             fail(fw);
         } else {
             fw->state = TAG_STATE_SLEEP;
@@ -184,7 +191,11 @@ void tag_firmware_step(tag_firmware_t *fw)
             }
             if ((irq & (SX1262_IRQ_RX_DONE | SX1262_IRQ_TIMEOUT)) != 0u) {
                 fw->rx_started = false;
-                fw->state = TAG_STATE_SLEEP;
+                if (sx1262_set_sleep(&fw->hal) != 0) {
+                    fail(fw);
+                } else {
+                    fw->state = TAG_STATE_SLEEP;
+                }
             } else {
                 fail(fw);
             }

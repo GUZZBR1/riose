@@ -65,6 +65,18 @@ int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
     return 0;
 }
 
+int sx1262_set_standby(const tag_hal_t *hal)
+{
+    const uint8_t args[] = {0x00u}; /* STDBY_RC */
+    return command(hal, 0x80u, args, sizeof(args));
+}
+
+int sx1262_set_sleep(const tag_hal_t *hal)
+{
+    const uint8_t args[] = {0x04u}; /* warm-start retention, no RTC wake */
+    return command(hal, 0x84u, args, sizeof(args));
+}
+
 int sx1262_write_buffer(const tag_hal_t *hal, uint8_t offset,
                         const uint8_t *data, size_t length)
 {
