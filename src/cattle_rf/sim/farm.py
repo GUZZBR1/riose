@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 import math
 import random
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from cattle_rf.contracts import FarmConfig, GroundTruth
 
@@ -99,9 +99,11 @@ def segment_crosses_obstacle(ax: float, ay: float, bx: float, by: float, obstacl
 class FarmSimulator:
     """Seeded, correlated grazing/herding movement for a rectangular property."""
 
-    def __init__(self, config: FarmConfig, obstacles: Sequence[Obstacle] | None = None):
+    def __init__(self, config: FarmConfig, obstacles: Sequence[Obstacle] | None = None,
+                 escape_targets: Mapping[str, tuple[float, float]] | None = None):
         self.config = config
         self.obstacles = tuple(DEFAULT_OBSTACLES if obstacles is None else obstacles)
+        self.escape_targets = dict(escape_targets or {})
         self.rng = random.Random(config.seed)
         self.states = self._initial_states()
 
@@ -134,6 +136,11 @@ class FarmSimulator:
         return states
 
     def _choose_behavior(self, state: AnimalState, t: float) -> None:
+        if state.tag_id in self.escape_targets:
+            state.behavior = Behavior.WALKING
+            state.goal_x, state.goal_y = self.escape_targets[state.tag_id]
+            state.behavior_until_s = math.inf
+            return
         # Group movement is a shared herd-level event; other states are per animal.
         if t < state.behavior_until_s:
             return
@@ -190,8 +197,11 @@ class FarmSimulator:
                     alpha = min(1.0, dt / 20.0)
                     state.vx += alpha * (desired_vx - state.vx) + self.rng.gauss(0, 0.025)
                     state.vy += alpha * (desired_vy - state.vy) + self.rng.gauss(0, 0.025)
-            nx = max(0.0, min(self.config.width_m, state.x + state.vx * dt))
-            ny = max(0.0, min(self.config.height_m, state.y + state.vy * dt))
+            nx = state.x + state.vx * dt
+            ny = state.y + state.vy * dt
+            if state.tag_id not in self.escape_targets:
+                nx = max(0.0, min(self.config.width_m, nx))
+                ny = max(0.0, min(self.config.height_m, ny))
             if any(segment_crosses_obstacle(state.x, state.y, nx, ny, o) for o in self.obstacles):
                 # Reflect at the edge: reverse the component with the largest obstacle overlap.
                 state.vx *= -0.55

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from cattle_rf.contracts import Anchor, FarmConfig, SimulationEpisode
 from cattle_rf.sim.farm import DEFAULT_OBSTACLES, FarmSimulator, Obstacle
@@ -38,11 +38,12 @@ def generate_anchors(config: FarmConfig) -> tuple[Anchor, ...]:
 
 def simulate_episode(config: FarmConfig, anchors: Sequence[Anchor] | None = None,
                      obstacles: Sequence[Obstacle] | None = None,
-                     rf_config: RFConfig | None = None) -> SimulationEpisode:
+                     rf_config: RFConfig | None = None,
+                     escape_targets: Mapping[str, tuple[float, float]] | None = None) -> SimulationEpisode:
     """Generate a reproducible episode with inference observations and separate truth."""
     world_obstacles = tuple(DEFAULT_OBSTACLES if obstacles is None else obstacles)
     anchor_set = tuple(generate_anchors(config) if anchors is None else anchors)
-    farm = FarmSimulator(config, world_obstacles)
+    farm = FarmSimulator(config, world_obstacles, escape_targets)
     truth, motion = farm.generate()
     motion_map = {(float(m["timestamp_s"]), str(m["tag_id"])): m for m in motion}
     observations = simulate_observations(config, anchor_set, truth, motion_map,
@@ -59,6 +60,7 @@ def simulate_episode(config: FarmConfig, anchors: Sequence[Anchor] | None = None
             "animal_count": config.animal_count,
             "sample_period_s": config.sample_period_s,
             "obstacle_count": len(world_obstacles),
+            "escaped_tags": sorted((escape_targets or {}).keys()),
             "rf_model": "log-distance plus correlated shadow fading, obstacle attenuation, noise and simplified interference",
             "rf_frequency_mhz": (rf_config or RFConfig()).frequency_mhz,
         },

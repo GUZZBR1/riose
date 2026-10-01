@@ -57,3 +57,10 @@ def test_rf_packet_loss_and_nlos_are_configurable():
     ep = simulate_episode(cfg, rf_config=RFConfig(nlos_probability=1))
     assert ep.observations
     assert all(not o.packet_received and o.rssi_dbm is None for o in ep.observations)
+
+
+def test_forced_escape_scenario_can_leave_property():
+    cfg = FarmConfig(width_m=100, height_m=100, animal_count=1, anchor_count=0,
+                     duration_s=6000, sample_period_s=60, seed=4)
+    ep = simulate_episode(cfg, obstacles=[], escape_targets={"tag-0001": (-100.0, 50.0)})
+    assert any(p.x < 0 for p in ep.ground_truth)
