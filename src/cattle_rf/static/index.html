@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cattle RF · Demo local</title>
+  <style>
+    :root{font:15px/1.45 system-ui,sans-serif;color:#e9f0e8;background:#101914;--panel:#19251e;--muted:#a3b5a8;--line:#344a3b;--green:#8bd17c;--red:#ff796c;--blue:#77c7e5}
+    *{box-sizing:border-box}body{margin:0}header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px}h1{font-size:19px;margin:0}small,.muted{color:var(--muted)}main{padding:18px;display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.panel h2{font-size:15px;margin:0 0 12px}.mapwrap{height:min(68vh,680px);min-height:360px;background:#18291e;border-radius:8px;overflow:hidden}.mapwrap svg{width:100%;height:100%}.farm{fill:#1e3525;stroke:#54735b;stroke-width:2}.gridline{stroke:#294331;stroke-width:1}.anchor{fill:var(--blue);stroke:#d7f4ff;stroke-width:2}.animal{fill:var(--green);stroke:#0d170f;stroke-width:2;cursor:pointer}.truth{fill:none;stroke:var(--red);stroke-width:2}.err{stroke:var(--red);stroke-width:1.2;stroke-dasharray:5 4}.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.toggle{display:flex;align-items:center;gap:6px}.statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.stat{background:#101914;padding:9px;border-radius:8px}.stat b{display:block;font-size:18px}.stat span{font-size:12px;color:var(--muted)}button{background:#294331;color:#ecf7ec;border:1px solid #4d6d55;padding:8px 12px;border-radius:7px;cursor:pointer}button:hover{background:#385840}input{accent-color:var(--green)}.animals{max-height:65vh;overflow:auto}.animalrow{padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}.animalrow:hover{color:var(--green)}.profile{font-size:13px;white-space:pre-wrap;max-height:200px;overflow:auto}.legend{display:flex;gap:15px;font-size:12px;color:var(--muted);margin-top:10px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;background:var(--green)}.dot.blue{background:var(--blue)}.dot.red{background:var(--red)}.badge{border:1px solid #957a36;color:#f3d680;border-radius:100px;padding:4px 9px;font-size:11px;letter-spacing:.04em}
+    @media(max-width:900px){main{grid-template-columns:1fr}.animals{max-height:30vh}.mapwrap{height:50vh}.statrow{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<header><div><h1>Cattle RF <small>· protótipo local</small></h1><small id="subhead">Aguardando simulação</small></div><div class="bar"><label class="toggle"><input id="debug" type="checkbox"> DEBUG: ground truth</label><span class="badge">SIMULATED · NÃO VALIDADO EM CAMPO</span><button id="run">Executar simulação</button></div></header>
+<main>
+  <section class="panel"><h2>Mapa da propriedade</h2><div class="statrow"><div class="stat"><b id="count">—</b><span>animais visíveis</span></div><div class="stat"><b id="anchors">—</b><span>âncoras</span></div><div class="stat"><b id="error">—</b><span>erro médio simulado</span></div><div class="stat"><b id="pdr">—</b><span>entrega de pacotes</span></div></div>
+    <div class="mapwrap"><svg id="map" viewBox="0 0 1000 1000" role="img" aria-label="Mapa simulado"><rect class="farm" x="0" y="0" width="1000" height="1000"/><g id="grid"></g><g id="errors"></g><g id="truths"></g><g id="anchorsLayer"></g><g id="animalsLayer"></g></svg></div>
+    <div class="legend"><span><i class="dot"></i>posição estimada</span><span><i class="dot blue"></i>âncora</span><span><i class="dot red"></i>ground truth/erro em DEBUG</span></div>
+  </section>
+  <aside class="panel"><h2>Animais</h2><div id="animalList" class="animals muted">Carregando…</div><h2 style="margin-top:18px">Ficha digital</h2><div id="profile" class="profile muted">Selecione um animal.</div><p class="muted" id="quality" style="font-size:12px">As posições e métricas exibidas são simuladas.</p></aside>
+</main>
+<script>
+const $=id=>document.getElementById(id), svgNS='http://www.w3.org/2000/svg';let dims={w:1000,h:1000},simulationStarted=Date.now(),simulationDuration=1800;
+function node(tag,attrs={}){const n=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n}
+function xy(x,y){return [x/dims.w*1000,1000-y/dims.h*1000]}
+function initGrid(){const g=$('grid');g.replaceChildren();for(let p=100;p<1000;p+=100){g.append(node('line',{x1:p,y1:0,x2:p,y2:1000,class:'gridline'}));g.append(node('line',{x1:0,y1:p,x2:1000,y2:p,class:'gridline'}))}}
+async function json(url,opts){const r=await fetch(url,opts);if(!r.ok)throw Error(await r.text());return r.json()}
+async function refresh(){try{const debug=$('debug').checked;const at=(Date.now()-simulationStarted)/1000%simulationDuration;const [pos,anchors,metrics]=await Promise.all([json(`/api/positions?limit=10000&debug=${debug}&at_s=${at}`),json('/api/anchors'),json('/api/metrics')]);
+  if(metrics.duration_s){simulationDuration=metrics.duration_s}
+  if(metrics.farm){dims={w:metrics.farm.width_m||1000,h:metrics.farm.height_m||1000}}
+  const latest=new Map();for(const p of pos){if(!latest.has(p.tag_id))latest.set(p.tag_id,p)}
+  $('count').textContent=latest.size;$('anchors').textContent=anchors.length;$('error').textContent=metrics.mean_error_m==null?'—':`${Number(metrics.mean_error_m).toFixed(1)} m`;$('pdr').textContent=metrics.packet_delivery_ratio==null?'—':`${(Number(metrics.packet_delivery_ratio)*100).toFixed(1)}%`;
+  $('subhead').textContent=`${latest.size} animais · ${anchors.length} âncoras · atualizando a cada 2 s`;
+  const aLayer=$('anchorsLayer'),pLayer=$('animalsLayer'),tLayer=$('truths'),eLayer=$('errors');[aLayer,pLayer,tLayer,eLayer].forEach(x=>x.replaceChildren());
+  for(const a of anchors){const [x,y]=xy(a.x,a.y),c=node('circle',{cx:x,cy:y,r:9,class:'anchor'});c.append(node('title'));c.lastChild.textContent=a.anchor_id;aLayer.append(c)}
+  for(const p of latest.values()){if(p.x==null||p.y==null)continue;const [x,y]=xy(p.x,p.y);const c=node('circle',{cx:x,cy:y,r:6,class:'animal'});c.append(node('title'));c.lastChild.textContent=`${p.tag_id} · ${p.method}`;c.addEventListener('click',()=>showAnimal(p.tag_id));pLayer.append(c);if(debug&&p.ground_truth_x!=null){const [tx,ty]=xy(p.ground_truth_x,p.ground_truth_y);tLayer.append(node('circle',{cx:tx,cy:ty,r:5,class:'truth'}));eLayer.append(node('line',{x1:x,y1:y,x2:tx,y2:ty,class:'err'}))}}
+  const rows=[...latest.values()].sort((a,b)=>a.tag_id.localeCompare(b.tag_id));$('animalList').replaceChildren();for(const p of rows.slice(0,250)){const row=document.createElement('div');row.className='animalrow';row.textContent=`${p.tag_id} · ${p.method} · ${p.x==null?'sem estimativa':`${p.x.toFixed(0)}, ${p.y.toFixed(0)} m`}`;row.onclick=()=>showAnimal(p.tag_id);$('animalList').append(row)}
+  $('quality').textContent=debug?'DEBUG ativo: pontos vermelhos representam ground truth; linhas mostram o erro.':'Modo normal: somente posições estimadas são consultadas e desenhadas.';
+}catch(e){$('subhead').textContent=`API indisponível: ${e.message}`}}
+async function showAnimal(id){try{$('profile').textContent=JSON.stringify(await json(`/api/animals/${id}`),null,2)}catch(e){$('profile').textContent=e.message}}
+$('debug').onchange=refresh;$('run').onclick=async()=>{const button=$('run');button.disabled=true;button.textContent='Simulando…';try{await json('/api/simulation/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({animal_count:100,anchor_count:8,duration_s:1800,sample_period_s:30,seed:7,method:'weighted_centroid'})});simulationStarted=Date.now();await refresh()}catch(e){$('subhead').textContent=`Falha: ${e.message}`}finally{button.disabled=false;button.textContent='Executar simulação'}};initGrid();refresh();setInterval(refresh,2000);
+</script>
+</body></html>

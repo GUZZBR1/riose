@@ -1,0 +1,192 @@
+"""Local FastAPI interface and dashboard."""
+
+from __future__ import annotations
+
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
+
+from .contracts import Anchor, FarmConfig
+from .db import Store
+from .identity import append_event, make_cryptographic_id, verify_event_chain
+
+
+class AnimalCreate(BaseModel):
+    animal_id: str
+    hardware_id: str
+    name: str | None = None
+    sex: str | None = None
+    breed: str | None = None
+    birth_date: str | None = None
+    weight_kg: float | None = None
+    property_name: str | None = None
+    lot: str | None = None
+
+
+class EventCreate(BaseModel):
+    animal_id: str
+    event_type: str
+    payload: dict[str, Any] = Field(default_factory=dict)
+    timestamp: float | None = None
+
+
+class SimulationRequest(BaseModel):
+    width_m: float = 1000.0
+    height_m: float = 1000.0
+    animal_count: int = Field(default=1, ge=1, le=1000)
+    anchor_count: int = Field(default=4, ge=1, le=40)
+    duration_s: float = Field(default=600, gt=0)
+    sample_period_s: float = Field(default=30, gt=0)
+    seed: int = 7
+    packet_loss_probability: float = Field(default=0.05, ge=0, le=1)
+    method: str = "weighted_centroid"
+
+
+class CSIRequest(BaseModel):
+    timestamp_s: float = 0.0
+    tag_id: str = "tag-0001"
+    anchor_id: str = "anchor-01"
+    movement_intensity: float = Field(default=0.2, ge=0)
+    seed: int = 7
+
+
+def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
+    app = FastAPI(title="Cattle RF Local MVP", version="0.1.0")
+    app.state.store = Store(db_path)
+    app.state.anchors = []
+    app.state.last_config = None
+    app.state.last_episode = None
+    app.state.last_estimates = []
+
+    @app.get("/", response_class=HTMLResponse)
+    def dashboard() -> str:
+        return (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
+
+    @app.get("/api/health")
+    def health() -> dict[str, str]:
+        return {"status": "ok", "evidence": "SIMULATED"}
+
+    @app.get("/api/animals")
+    def animals() -> list[dict[str, Any]]:
+        return app.state.store.list_animals()
+
+    @app.post("/api/animals", status_code=201)
+    def create_animal(body: AnimalCreate) -> dict[str, Any]:
+        try:
+            return app.state.store.create_animal(
+                body.animal_id, body.hardware_id, make_cryptographic_id(),
+                **body.model_dump(exclude={"animal_id", "hardware_id"}),
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.get("/api/animals/{animal_id}")
+    def animal(animal_id: str) -> dict[str, Any]:
+        result = app.state.store.get_animal(animal_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return result
+
+    @app.get("/api/anchors")
+    def anchors() -> list[dict[str, Any]]:
+        return [asdict(a) for a in app.state.anchors]
+
+    @app.get("/api/positions")
+    def positions(limit: int = Query(1000, ge=1, le=10000), debug: bool = False,
+                  at_s: float | None = Query(None, ge=0)) -> list[dict[str, Any]]:
+        # Ground truth is joined only after an explicit debug request.
+        return app.state.store.positions(limit, debug=debug, at_s=at_s)
+
+    @app.get("/api/telemetry")
+    def telemetry(limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
+        return app.state.store.telemetry(limit)
+
+    @app.get("/api/events")
+    def events(limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
+        return app.state.store.events(limit)
+
+    @app.post("/api/events", status_code=201)
+    def append_animal_event(body: EventCreate) -> dict[str, Any]:
+        if app.state.store.get_animal(body.animal_id) is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        event = append_event(app.state.store.connection, body.animal_id,
+                             body.event_type, body.payload, body.timestamp)
+        return {**asdict(event), "chain_valid": verify_event_chain(app.state.store.connection, body.animal_id)}
+
+    @app.post("/api/simulation/run")
+    def run_simulation(body: SimulationRequest) -> dict[str, Any]:
+        from .pipeline import run_episode
+        config = FarmConfig(
+            width_m=body.width_m, height_m=body.height_m,
+            animal_count=body.animal_count, anchor_count=body.anchor_count,
+            duration_s=body.duration_s, sample_period_s=body.sample_period_s,
+            seed=body.seed, packet_loss_probability=body.packet_loss_probability,
+        )
+        try:
+            episode, estimates, metrics = run_episode(config, body.method)
+        except (ImportError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        app.state.store.save_anchors(episode.anchors)
+        app.state.store.save_episode(episode.observations, estimates, episode.ground_truth)
+        app.state.anchors = list(episode.anchors)
+        app.state.last_config = config
+        app.state.last_episode = episode
+        app.state.last_estimates = list(estimates)
+        app.state.store.set_metrics(metrics)
+        ensure_animals(app.state.store, body.animal_count)
+        return {"status": "completed", "evidence": "SIMULATED", "observations": len(episode.observations),
+                "estimates": len(estimates), "metrics": metrics}
+
+    @app.get("/api/experiments")
+    def experiments() -> dict[str, Any]:
+        return {"available_methods": ["strongest_anchor", "weighted_centroid", "path_loss", "extra_trees", "gradient_boosting", "temporal_fusion"],
+                "advanced_rf": capability_status(), "evidence": "SIMULATED"}
+
+    @app.post("/api/experiments/csi")
+    def simulated_csi(body: CSIRequest) -> dict[str, Any]:
+        from dataclasses import asdict
+        from .experimental import simulate_wifi_csi
+        return asdict(simulate_wifi_csi(body.timestamp_s, body.tag_id, body.anchor_id,
+                                        body.movement_intensity, body.seed))
+
+    @app.get("/api/capabilities")
+    def capabilities() -> dict[str, Any]:
+        from .sim.advanced import advanced_capabilities
+        return {"advanced_rf": advanced_capabilities(), "hardware": capability_status(),
+                "cellular": "FUTURE", "blockchain": "FUTURE"}
+
+    @app.get("/api/metrics")
+    def metrics() -> dict[str, Any]:
+        return app.state.store.get_metrics()
+
+    return app
+
+
+def ensure_animals(store: Store, count: int) -> None:
+    import sqlite3
+    import uuid
+    for index in range(count):
+        animal_id = f"cow-{index + 1:04d}"
+        if store.get_animal(animal_id) is None:
+            try:
+                store.create_animal(animal_id, f"tag-{index + 1:04d}", make_cryptographic_id(),
+                                    name=f"Animal {index + 1}", property_name="Demo Farm")
+            except sqlite3.IntegrityError:
+                continue
+
+
+def capability_status() -> dict[str, bool]:
+    import importlib.util
+    import shutil
+    return {
+        "sionna": importlib.util.find_spec("sionna") is not None,
+        "ns3": shutil.which("ns3") is not None or importlib.util.find_spec("ns.core") is not None,
+        "wokwi_cli": shutil.which("wokwi-cli") is not None,
+        "zephyr_west": shutil.which("west") is not None,
+        "ngspice": shutil.which("ngspice") is not None,
+    }
+

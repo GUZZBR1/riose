@@ -1,0 +1,95 @@
+"""Auditable animal event chain and future adapter interfaces."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import secrets
+import sqlite3
+import time
+from dataclasses import dataclass
+from typing import Any, Protocol
+
+
+class BlockchainAdapter(Protocol):
+    """Future optional adapter; local operation never depends on a chain."""
+
+    def publish(self, event_hash: str, payload: dict[str, Any]) -> str: ...
+
+
+class EventSigner(Protocol):
+    def sign(self, digest: bytes) -> bytes: ...
+
+
+@dataclass(frozen=True, slots=True)
+class AnimalEvent:
+    event_id: int
+    animal_id: str
+    event_type: str
+    timestamp: float
+    payload: dict[str, Any]
+    previous_hash: str
+    hash: str
+    signature: str | None = None
+
+
+def canonical_event(animal_id: str, event_type: str, timestamp: float,
+                    payload: dict[str, Any], previous_hash: str) -> bytes:
+    document = {
+        "animal_id": animal_id,
+        "event_type": event_type,
+        "timestamp": timestamp,
+        "payload": payload,
+        "previous_hash": previous_hash,
+    }
+    return json.dumps(document, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False).encode("utf-8")
+
+
+def event_digest(animal_id: str, event_type: str, timestamp: float,
+                 payload: dict[str, Any], previous_hash: str) -> str:
+    return hashlib.sha256(canonical_event(animal_id, event_type, timestamp,
+                                          payload, previous_hash)).hexdigest()
+
+
+def make_cryptographic_id() -> str:
+    """Opaque random identity; signing/key custody is a future interface."""
+    return secrets.token_hex(32)
+
+
+def append_event(connection: sqlite3.Connection, animal_id: str,
+                 event_type: str, payload: dict[str, Any],
+                 timestamp: float | None = None) -> AnimalEvent:
+    timestamp = time.time() if timestamp is None else timestamp
+    row = connection.execute(
+        "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id DESC LIMIT 1",
+        (animal_id,),
+    ).fetchone()
+    previous_hash = row[0] if row else "0" * 64
+    digest = event_digest(animal_id, event_type, timestamp, payload, previous_hash)
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    cursor = connection.execute(
+        "INSERT INTO animal_events(animal_id,event_type,timestamp,payload,previous_hash,hash,signature) VALUES(?,?,?,?,?,?,NULL)",
+        (animal_id, event_type, timestamp, encoded, previous_hash, digest),
+    )
+    connection.commit()
+    return AnimalEvent(cursor.lastrowid, animal_id, event_type, timestamp,
+                       payload, previous_hash, digest)
+
+
+def verify_event_chain(connection: sqlite3.Connection, animal_id: str) -> bool:
+    rows = connection.execute(
+        "SELECT animal_id,event_type,timestamp,payload,previous_hash,hash FROM animal_events WHERE animal_id=? ORDER BY event_id",
+        (animal_id,),
+    )
+    previous_hash = "0" * 64
+    for event_animal, event_type, timestamp, payload_json, stored_previous, stored_hash in rows:
+        payload = json.loads(payload_json)
+        if stored_previous != previous_hash:
+            return False
+        calculated = event_digest(event_animal, event_type, timestamp, payload, previous_hash)
+        if calculated != stored_hash:
+            return False
+        previous_hash = stored_hash
+    return True
+
