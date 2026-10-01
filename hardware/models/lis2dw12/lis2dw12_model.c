@@ -1,9 +1,26 @@
 #include "lis2dw12_model.h"
 
-#include <math.h>
 #include <string.h>
 
-#define PI_F 3.14159265358979323846f
+static const int16_t sine_q10[16] = {
+    0, 392, 724, 946, 1024, 946, 724, 392,
+    0, -392, -724, -946, -1024, -946, -724, -392,
+};
+
+static int32_t wave(int amplitude, uint32_t frequency_millihz,
+                    uint32_t phase_q16, uint64_t elapsed_ms)
+{
+    const uint64_t phase_scale = 16u * 65536u;
+    uint64_t phase = (elapsed_ms * frequency_millihz * phase_scale) / 1000000u;
+    phase = (phase + (uint64_t)phase_q16 * 16u) % phase_scale;
+    const unsigned index = (unsigned)(phase / 65536u);
+    const uint32_t fraction = (uint32_t)(phase % 65536u);
+    const int32_t a = sine_q10[index];
+    const int32_t b = sine_q10[(index + 1u) % 16u];
+    const int32_t sample = (a * (int32_t)(65536u - fraction) +
+                            b * (int32_t)fraction) / 65536;
+    return (sample * amplitude) / 1024;
+}
 
 static void store_axis(lis2dw12_model_t *model, unsigned axis)
 {
@@ -30,11 +47,11 @@ int16_t lis2dw12_axis_raw(const lis2dw12_model_t *model, unsigned axis)
         return 0;
     }
     /* Quantize physical mg to the signed 16-bit output range for the configured FS. */
-    const float counts_per_mg = 32768.0f / ((float)full_scale_g(model) * 1000.0f);
-    float raw = (float)model->acceleration_mg[axis] * counts_per_mg;
-    if (raw > 32767.0f) raw = 32767.0f;
-    if (raw < -32768.0f) raw = -32768.0f;
-    return (int16_t)lrintf(raw);
+    const int32_t denominator = (int32_t)(full_scale_g(model) * 1000u);
+    int32_t raw = ((int32_t)model->acceleration_mg[axis] * 32768) / denominator;
+    if (raw > 32767) raw = 32767;
+    if (raw < -32768) raw = -32768;
+    return (int16_t)raw;
 }
 
 static void update_irq(lis2dw12_model_t *model)
@@ -144,7 +161,6 @@ void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
     model->elapsed_ms += elapsed_ms;
     if (!odr_enabled(model)) return;
 
-    const float t = (float)model->elapsed_ms / 1000.0f;
     model->previous_acceleration_mg[0] = model->acceleration_mg[0];
     model->previous_acceleration_mg[1] = model->acceleration_mg[1];
     model->previous_acceleration_mg[2] = model->acceleration_mg[2];
@@ -155,19 +171,19 @@ void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
         model->acceleration_mg[2] = 1000;
         break;
     case LIS2DW12_MOTION_GRAZING:
-        model->acceleration_mg[0] = (int16_t)lrintf(70.0f * sinf(2.0f * PI_F * 0.35f * t));
-        model->acceleration_mg[1] = (int16_t)lrintf(40.0f * sinf(2.0f * PI_F * 0.21f * t));
-        model->acceleration_mg[2] = (int16_t)(1000 + 30.0f * sinf(2.0f * PI_F * 0.35f * t));
+        model->acceleration_mg[0] = (int16_t)wave(70, 350, 0, model->elapsed_ms);
+        model->acceleration_mg[1] = (int16_t)wave(40, 210, 0, model->elapsed_ms);
+        model->acceleration_mg[2] = (int16_t)(1000 + wave(30, 350, 0, model->elapsed_ms));
         break;
     case LIS2DW12_MOTION_WALKING:
-        model->acceleration_mg[0] = (int16_t)lrintf(260.0f * sinf(2.0f * PI_F * 1.8f * t));
-        model->acceleration_mg[1] = (int16_t)lrintf(110.0f * sinf(2.0f * PI_F * 1.8f * t + 1.0f));
-        model->acceleration_mg[2] = (int16_t)lrintf(1000.0f + 180.0f * sinf(2.0f * PI_F * 1.8f * t));
+        model->acceleration_mg[0] = (int16_t)wave(260, 1800, 0, model->elapsed_ms);
+        model->acceleration_mg[1] = (int16_t)wave(110, 1800, 10430, model->elapsed_ms);
+        model->acceleration_mg[2] = (int16_t)(1000 + wave(180, 1800, 0, model->elapsed_ms));
         break;
     case LIS2DW12_MOTION_RUNNING:
-        model->acceleration_mg[0] = (int16_t)lrintf(900.0f * sinf(2.0f * PI_F * 3.2f * t));
-        model->acceleration_mg[1] = (int16_t)lrintf(500.0f * sinf(2.0f * PI_F * 3.2f * t + 0.8f));
-        model->acceleration_mg[2] = (int16_t)lrintf(1000.0f + 650.0f * sinf(2.0f * PI_F * 3.2f * t));
+        model->acceleration_mg[0] = (int16_t)wave(900, 3200, 0, model->elapsed_ms);
+        model->acceleration_mg[1] = (int16_t)wave(500, 3200, 8342, model->elapsed_ms);
+        model->acceleration_mg[2] = (int16_t)(1000 + wave(650, 3200, 0, model->elapsed_ms));
         break;
     case LIS2DW12_MOTION_ABNORMAL:
         model->acceleration_mg[0] = ((model->sample_number % 4u) == 0u) ? 1800 : -1500;

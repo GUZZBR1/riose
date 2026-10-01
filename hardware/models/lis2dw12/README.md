@@ -47,3 +47,7 @@ cmake -S hardware/models/lis2dw12 -B /tmp/lis2dw12-build
 cmake --build /tmp/lis2dw12-build
 ctest --test-dir /tmp/lis2dw12-build --output-on-failure
 ```
+
+The motion profiles use an integer Q10 sine lookup table with linear
+interpolation. This makes the model portable to the Zephyr host simulation
+without `libm`; the waveform remains illustrative, not measured sensor data.
