@@ -1,0 +1,58 @@
+{
+  "model_status": "SIMULATED",
+  "notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime.",
+  "battery_capacity_mah": null,
+  "battery_voltage_v": 3.3,
+  "tx_count_per_day": 1440,
+  "tx_duration_s": 0.12,
+  "mcu_awake_s_per_beacon": 0.03,
+  "rx_window_s_per_beacon": 0.005,
+  "components": {
+    "mcu_stop": {
+      "current_ma": 0.00035,
+      "status": "DATASHEET_TYPICAL",
+      "basis": "STM32L031 STOP current 0.35 uA (datasheet typical, operating conditions matter)",
+      "source": "https://www.st.com/resource/en/datasheet/stm32l031k6.pdf"
+    },
+    "mcu_run": {
+      "current_ma": 0.304,
+      "status": "DERIVED_DATASHEET_TYPICAL",
+      "basis": "76 uA/MHz x configured 4 MHz; application-dependent peripheral/clock load omitted",
+      "source": "https://www.st.com/resource/en/datasheet/stm32l031k6.pdf",
+      "configured_clock_mhz": 4
+    },
+    "imu_low_power": {
+      "current_ma": 0.0008,
+      "status": "ASSUMED_WITH_DATASHEET_BOUND",
+      "basis": "Configured estimate 0.8 uA; LIS2DW12 product summary states active low-power below 1 uA",
+      "source": "https://www.st.com/en/mems-and-sensors/lis2dw12.html"
+    },
+    "radio_sleep": {
+      "current_ma": 0.0006,
+      "status": "ASSUMED_REQUIRES_DATASHEET_CONFIGURATION_OR_MEASUREMENT",
+      "basis": "Board-level sleep allowance, including radio/module leakage; not asserted as a validated SX1262 value",
+      "source": ""
+    },
+    "radio_tx": {
+      "current_ma": 45.0,
+      "status": "ASSUMED_CONSERVATIVE_PROXY_REQUIRES_10DBM_MEASUREMENT",
+      "basis": "Firmware default is +10 dBm; no +10 dBm current is sourced here. Uses 45 mA as a conservative proxy referenced to the Semtech +14 dBm value; this is not a +10 dBm datasheet claim and must be measured/replaced.",
+      "source": "https://www.semtech.com/amazon-sidewalk-lora",
+      "tx_power_dbm": 10,
+      "proxy_reference_tx_power_dbm": 14
+    },
+    "radio_rx": {
+      "current_ma": 4.6,
+      "status": "DATASHEET_TYPICAL",
+      "basis": "SX1262 active receive current from Semtech product information",
+      "source": "https://www.semtech.com/products/wireless-rf/lora-connect/sx1262"
+    }
+  },
+  "ngspice_pulse_model": {
+    "battery_internal_resistance_ohm": 3.0,
+    "status": "ASSUMED_REQUIRES_CELL_SELECTION_AND_MEASUREMENT",
+    "bulk_capacitance_f": 0.000047,
+    "brownout_threshold_v": 1.8,
+    "note": "Illustrative idealized cell plus series resistance and reservoir capacitor; not a selected battery datasheet model."
+  }
+}

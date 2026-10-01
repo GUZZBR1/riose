@@ -1,0 +1,99 @@
+{
+  "status": "SIMULATED",
+  "assumptions_notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime.",
+  "daily_charge_mah": 2.2299891,
+  "average_current_ma": 0.0929162125,
+  "peak_configured_current_ma": 45.3048,
+  "messages_per_day": 1440,
+  "battery_capacity_mah": null,
+  "estimated_battery_life_days": null,
+  "estimated_battery_life_years": null,
+  "autonomy_status": "NOT_CALCULATED_CAPACITY_UNCONFIGURED",
+  "states": [
+    {
+      "state": "DEEP_SLEEP",
+      "duration_s_day": 86176.8,
+      "duration_h_day": 23.938000000000002,
+      "current_ma": 0.0017499999999999998,
+      "charge_mah_day": 0.0418915,
+      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
+    },
+    {
+      "state": "MCU_ACTIVE",
+      "duration_s_day": 43.199999999999996,
+      "duration_h_day": 0.011999999999999999,
+      "current_ma": 0.3048,
+      "charge_mah_day": 0.0036575999999999996,
+      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
+    },
+    {
+      "state": "RF_TX",
+      "duration_s_day": 172.79999999999998,
+      "duration_h_day": 0.047999999999999994,
+      "current_ma": 45.3048,
+      "charge_mah_day": 2.1746304,
+      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
+    },
+    {
+      "state": "RF_RX",
+      "duration_s_day": 7.2,
+      "duration_h_day": 0.002,
+      "current_ma": 4.9048,
+      "charge_mah_day": 0.0098096,
+      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
+    }
+  ],
+  "component_inputs": {
+    "mcu_stop": {
+      "current_ma": 0.00035,
+      "status": "DATASHEET_TYPICAL",
+      "basis": "STM32L031 STOP current 0.35 uA (datasheet typical, operating conditions matter)",
+      "source": "https://www.st.com/resource/en/datasheet/stm32l031k6.pdf"
+    },
+    "mcu_run": {
+      "current_ma": 0.304,
+      "status": "DERIVED_DATASHEET_TYPICAL",
+      "basis": "76 uA/MHz x configured 4 MHz; application-dependent peripheral/clock load omitted",
+      "source": "https://www.st.com/resource/en/datasheet/stm32l031k6.pdf",
+      "configured_clock_mhz": 4
+    },
+    "imu_low_power": {
+      "current_ma": 0.0008,
+      "status": "ASSUMED_WITH_DATASHEET_BOUND",
+      "basis": "Configured estimate 0.8 uA; LIS2DW12 product summary states active low-power below 1 uA",
+      "source": "https://www.st.com/en/mems-and-sensors/lis2dw12.html"
+    },
+    "radio_sleep": {
+      "current_ma": 0.0006,
+      "status": "ASSUMED_REQUIRES_DATASHEET_CONFIGURATION_OR_MEASUREMENT",
+      "basis": "Board-level sleep allowance, including radio/module leakage; not asserted as a validated SX1262 value",
+      "source": ""
+    },
+    "radio_tx": {
+      "current_ma": 45.0,
+      "status": "ASSUMED_CONSERVATIVE_PROXY_REQUIRES_10DBM_MEASUREMENT",
+      "basis": "Firmware default is +10 dBm; no +10 dBm current is sourced here. Uses 45 mA as a conservative proxy referenced to the Semtech +14 dBm value; this is not a +10 dBm datasheet claim and must be measured/replaced.",
+      "source": "https://www.semtech.com/amazon-sidewalk-lora",
+      "tx_power_dbm": 10,
+      "proxy_reference_tx_power_dbm": 14
+    },
+    "radio_rx": {
+      "current_ma": 4.6,
+      "status": "DATASHEET_TYPICAL",
+      "basis": "SX1262 active receive current from Semtech product information",
+      "source": "https://www.semtech.com/products/wireless-rf/lora-connect/sx1262"
+    }
+  },
+  "ngspice": {
+    "status": "EXECUTED",
+    "executable": "ngspice",
+    "version": "ngspice 42",
+    "return_code": 0,
+    "netlist": "tag_power_pulse.cir",
+    "log": "ngspice.log",
+    "run_command": "ngspice -b tag_power_pulse.cir (from this results directory)",
+    "minimum_tag_voltage_v": 3.164086,
+    "brownout_threshold_v": 1.8,
+    "below_configured_brownout": false
+  }
+}
