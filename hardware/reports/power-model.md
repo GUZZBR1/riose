@@ -9,7 +9,7 @@ capture in KiCad is still pending because `kicad-cli` is unavailable here.
 ## Observed run
 
 Inputs: 1,440 beacons/day (the firmware's 60-second default), 120 ms configured
-airtime per beacon, 30 ms MCU-active time per beacon, 5 ms receive window per
+airtime per beacon, 30 ms MCU-active time per beacon, 100 ms receive window per
 beacon, firmware TX power +10 dBm, a conservative 45 mA TX current proxy,
 SX1262 RX current 4.6 mA, STM32L031 STOP 0.35 µA, MCU active current
 derived as 76 µA/MHz × 4 MHz, and an 0.8 µA low-power IMU estimate. The model
@@ -19,22 +19,29 @@ provenance field for each value.
 
 | Metric | Result | Status |
 |---|---:|---|
-| Estimated charge in 24 h | 2.229989 mAh/tag | SIMULATED, mixed inputs |
-| Average current | 92.916 µA | SIMULATED, mixed inputs |
+| Estimated charge in 24 h | 2.416305 mAh/tag | SIMULATED, mixed inputs |
+| Average current | 100.679 µA | SIMULATED, mixed inputs |
 | Configured peak during TX | 45.3048 mA | SIMULATED, conservative TX-current proxy + derived MCU + assumed IMU |
 | Messages per day | 1,440 | ASSUMED/configured, one per 60 s |
 | Battery autonomy | Not calculated | Capacity is null/unselected |
 | ngspice minimum tag rail during TX pulse | 3.164086 V | SIMULATED, assumed 3.3 V source + 3 Ω + 47 µF |
 | Brownout threshold comparison | Above configured 1.8 V threshold | SIMULATED; threshold is configurable |
 
-The day consists of 23.938 h sleep, 43.2 s MCU-active work, 172.8 s TX, and
-7.2 s RX. The 45 mA TX input is **not** sourced for the firmware's +10 dBm
+The nominal day consists of 23.9 h sleep, 43.2 s MCU-active work, 172.8 s TX, and
+144 s RX. The integration harness separately measured 7,344 TX for its mixed
+24-hour motion profile and 14,640 TX for 24 hours stationary after the assumed
+4-hour stillness alarm. Re-running the same current model with those traffic
+counts estimates 12.150956 mAh/day and 24.180767 mAh/day, respectively. These
+are simulated traffic-profile extrapolations using the same conservative TX
+current proxy, not cell measurements; neither has an autonomy calculation.
+
+The 45 mA TX input is **not** sourced for the firmware's +10 dBm
 configuration: it is a conservative proxy referencing Semtech's +14 dBm
 figure. This choice avoids pretending to know the +10 dBm current; it may
 overstate consumption. Replace it with a sourced +10 dBm value or board
 measurement before using this estimate to compare architectures. As a
 calculation-path check only, an explicit temporary `--capacity-mah 2200` run
-produced 986.552 days. That is extrapolation from configured estimates, not
+produced 910.481 days. That is extrapolation from configured estimates, not
 a selected battery or field-life prediction, and must not be used as a product
 claim. The checked-in default deliberately has no capacity, so no autonomy is
 reported.

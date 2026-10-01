@@ -1,12 +1,12 @@
 {
   "model_status": "SIMULATED",
-  "notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime.",
+  "notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime. RX window matches the firmware 100 ms bounded receive timeout; active motion/alarm profiles can transmit more often and must be modeled separately.",
   "battery_capacity_mah": null,
   "battery_voltage_v": 3.3,
   "tx_count_per_day": 1440,
   "tx_duration_s": 0.12,
   "mcu_awake_s_per_beacon": 0.03,
-  "rx_window_s_per_beacon": 0.005,
+  "rx_window_s_per_beacon": 0.1,
   "components": {
     "mcu_stop": {
       "current_ma": 0.00035,
@@ -51,7 +51,7 @@
   "ngspice_pulse_model": {
     "battery_internal_resistance_ohm": 3.0,
     "status": "ASSUMED_REQUIRES_CELL_SELECTION_AND_MEASUREMENT",
-    "bulk_capacitance_f": 0.000047,
+    "bulk_capacitance_f": 4.7e-05,
     "brownout_threshold_v": 1.8,
     "note": "Illustrative idealized cell plus series resistance and reservoir capacitor; not a selected battery datasheet model."
   }

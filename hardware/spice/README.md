@@ -29,7 +29,7 @@ and leaves both lifetime fields null. Outputs are `summary.json`,
 `energy_24h.csv`, a generated ngspice pulse deck and the ngspice log.
 
 The day profile assumes 96 beacons/day, 120 ms airtime each, 30 ms MCU awake
-per beacon and a 5 ms receive window after each beacon. These timings are
+per beacon and a 100 ms receive window after each beacon (the firmware timeout). These timings are
 configurable planning assumptions, not a measured packet airtime or firmware
 trace. The estimate adds MCU and IMU current in TX/RX periods, counts the
 IMU low-power load through the day, and treats all other time as sleep. It does

@@ -1,8 +1,8 @@
 {
   "status": "SIMULATED",
-  "assumptions_notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime.",
-  "daily_charge_mah": 2.2299891,
-  "average_current_ma": 0.0929162125,
+  "assumptions_notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime. RX window matches the firmware 100 ms bounded receive timeout; active motion/alarm profiles can transmit more often and must be modeled separately.",
+  "daily_charge_mah": 2.416305,
+  "average_current_ma": 0.100679375,
   "peak_configured_current_ma": 45.3048,
   "messages_per_day": 1440,
   "battery_capacity_mah": null,
@@ -12,10 +12,10 @@
   "states": [
     {
       "state": "DEEP_SLEEP",
-      "duration_s_day": 86176.8,
-      "duration_h_day": 23.938000000000002,
+      "duration_s_day": 86040.0,
+      "duration_h_day": 23.9,
       "current_ma": 0.0017499999999999998,
-      "charge_mah_day": 0.0418915,
+      "charge_mah_day": 0.041825,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     },
     {
@@ -36,10 +36,10 @@
     },
     {
       "state": "RF_RX",
-      "duration_s_day": 7.2,
-      "duration_h_day": 0.002,
+      "duration_s_day": 144.0,
+      "duration_h_day": 0.04,
       "current_ma": 4.9048,
-      "charge_mah_day": 0.0098096,
+      "charge_mah_day": 0.196192,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     }
   ],
