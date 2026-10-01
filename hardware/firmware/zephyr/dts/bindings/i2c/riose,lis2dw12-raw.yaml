@@ -1,2 +1,3 @@
 description: LIS2DW12 IMU accessed through the tag firmware I2C HAL
+compatible: "riose,lis2dw12-raw"
 include: i2c-device.yaml

@@ -1,34 +1,35 @@
-# Zephyr board adapter (unverified here)
+# Zephyr firmware adapter
 
-This app adapts the existing portable C firmware core to Zephyr `native_sim`
-device APIs. It uses SPI for SX1262 commands, I2C register access for a
-LIS2DW12-compatible IMU, GPIO for reset/DIO/IMU interrupt signals, and Zephyr
-kernel uptime/sleep. It does not fork or replace `../src/`.
+The app adapts the portable C firmware core to Zephyr. On `native_sim`, the HAL
+passes firmware-generated SX1262 SPI command frames to the real C peripheral
+model and reads the LIS2DW12 register model; Zephyr supplies kernel timing and
+sleep. On a physical board target, `src/main.c` binds the HAL to SPI, I2C, and
+GPIO devices. Neither path forks or replaces `../src/`.
 
-The current workspace has no `west` executable, Zephyr source tree, or Zephyr
-SDK. **No Zephyr configure, build, or run result is claimed.** The validated
-build remains the independent CMake host harness under `../CMakeLists.txt`.
+Build/run was verified against Zephyr v4.2.1 with the host toolchain on
+`native_sim/native/64`. This native path executes the C FSM and the SX1262 and
+LIS2DW12 C models. It is a software simulation, not analog bus emulation or a
+physical-board build. The production-board `src/main.c` adapter remains
+unverified in this environment.
 
-`boards/native_sim.overlay` maps the native simulator's emulated buses and GPIO
-to the HAL aliases. Native_sim supplies emulated SPI, I2C, and GPIO controllers,
-but a functioning run also requires Zephyr bus-emulator responder drivers for
-the SX1262 and LIS2DW12-compatible devices. This firmware adapter deliberately
-does not implement a second peripheral model. The overlay and responder
-integration therefore need validation when the Zephyr environment/model glue
-is available.
+`boards/native_sim_bus_emul.overlay` is an optional bus-emulator wiring template.
+The validated native_sim path uses the same standalone C peripheral models as
+the host integration harness, so it does not claim electrical bus emulation.
+The physical-board path still needs a board-specific overlay and real drivers.
 
 ## Build when Zephyr is installed
 
 From a Zephyr workspace with `ZEPHYR_BASE` exported and dependencies installed:
 
 ```sh
-west build -b native_sim -d build/tag-native \
-  /path/to/riose/hardware/firmware/zephyr -- \
-  -DDTS_ROOT=/path/to/riose/hardware/firmware/zephyr
+west build -b native_sim/native/64 -d build/tag-native \
+  /path/to/riose/hardware/firmware/zephyr
 west build -d build/tag-native -t run
 ```
-The initial start-up will fail explicitly if a sensor bus responder does not
-return LIS2DW12 `WHO_AM_I=0x44`.
+The native_sim C models provide deterministic responses. The run exits after
+one firmware TX/RX/sleep cycle with a `SIMULATED native_sim cycle PASS` log.
+A hardware-target run requires an actual LIS2DW12 responder/device returning
+`WHO_AM_I=0x44`.
 
 For a physical board, replace the DTS overlay and configure GPIO polarity/pins,
 SPI timing, I2C address, oscillator/antenna, radio regional parameters, and

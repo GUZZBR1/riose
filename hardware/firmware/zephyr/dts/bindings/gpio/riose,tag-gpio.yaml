@@ -1,4 +1,5 @@
 description: GPIO pin used by the virtual cattle tag board adapter
+compatible: "riose,tag-gpio"
 include: base.yaml
 properties:
   gpios:
