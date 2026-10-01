@@ -152,15 +152,10 @@ int main(void)
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
     };
-    const tag_config_t config = {
-        .tag_id = CONFIG_TAG_ID,
-        .rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ,
-        .tx_power_dbm = CONFIG_TAG_TX_POWER_DBM,
-        .normal_beacon_ms = TAG_DEFAULT_BEACON_MS,
-        .active_beacon_ms = 15000,
-        .alert_beacon_ms = 5000,
-        .battery_mv = CONFIG_TAG_BATTERY_MV,
-    };
+    tag_config_t config = tag_default_config(CONFIG_TAG_ID);
+    config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;
+    config.tx_power_dbm = CONFIG_TAG_TX_POWER_DBM;
+    config.battery_mv = CONFIG_TAG_BATTERY_MV;
     static tag_firmware_t firmware;
     rc = tag_firmware_init(&firmware, &hal, &config);
     if (rc != 0) return rc;
