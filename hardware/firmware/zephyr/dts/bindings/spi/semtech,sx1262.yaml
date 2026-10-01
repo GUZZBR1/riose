@@ -1,2 +1,0 @@
-description: SX1262 connected over SPI (tag firmware owns the command protocol)
-include: spi-device.yaml

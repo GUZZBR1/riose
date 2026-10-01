@@ -1,0 +1,3 @@
+description: Raw SX1262 SPI peripheral handled directly by the portable tag HAL
+compatible: "riose,sx1262-raw"
+include: spi-device.yaml
