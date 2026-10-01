@@ -27,7 +27,7 @@ int main(void)
     const uint8_t frequency[] = {0x86, 0x39, 0x30, 0x00, 0x00}; /* 915 MHz word */
     const uint8_t tx_params[] = {0x8e, 0x0a, 0x04};   /* +10 dBm, ramp */
     const uint8_t modulation[] = {0x8b, 0x07, 0x04, 0x01, 0x00};
-    const uint8_t packet_params[] = {0x8c, 0x00, 0x08, 0x00, 0x12, 0x01, 0x00, 0x00, 0x00, 0x00};
+    const uint8_t packet_params[] = {0x8c, 0x00, 0x08, 0x00, 0x12, 0x01, 0x00};
     const uint8_t base[] = {0x8f, 0x00, 0x80};
     const uint8_t dio_irq[] = {0x08, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
     const uint8_t payload[] = {0x0e, 0x00, 0xc1, 0x7a, 0x05, 0x00};
@@ -36,6 +36,7 @@ int main(void)
     const uint8_t clear_irq[] = {0x02, 0x00, 0x01};
     const uint8_t start_tx_timeout[] = {0x83, 0x00, 0x00, 0x01}; /* 15.625 us radio timeout */
     const uint8_t clear_all_irq[] = {0x02, 0x03, 0xff};
+    const uint8_t start_rx[] = {0x82, 0x00, 0x00, 0x40}; /* bounded timeout */
     const uint8_t read_back[] = {0x1e, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     sx1262_model_init(&radio);
@@ -47,6 +48,9 @@ int main(void)
     command(dio_irq, sizeof(dio_irq)); command(payload, sizeof(payload));
     assert(radio.rf_frequency_word == 0x39300000u);
     assert(radio.tx_power_dbm == 10);
+
+    /* Valid SX126x LoRa SetPacketParams carries exactly six bytes. */
+    assert(!radio.fault);
 
     assert(spi_transfer(&radio, read_back, sizeof(read_back), rx, sizeof(read_back)) == 0);
     assert(rx[3] == 0xc1 && rx[4] == 0x7a && rx[5] == 0x05);
@@ -67,6 +71,13 @@ int main(void)
     sx1262_model_advance(&radio, 8);
     assert(!radio.tx_pending && (radio.irq_status & SX1262_IRQ_TIMEOUT));
     assert(radio.command_status == 0x06);
+    assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
+
+    assert(spi_transfer(&radio, start_rx, sizeof(start_rx), rx, sizeof(start_rx)) == 0);
+    assert(radio.rx_pending && radio.mode == SX1262_MODE_RX);
+    sx1262_model_advance(&radio, radio.now_ms + 1);
+    assert(!radio.rx_pending && (radio.irq_status & SX1262_IRQ_TIMEOUT));
+    assert(!(radio.irq_status & SX1262_IRQ_TX_DONE));
     assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
 
     /* Invalid command length is surfaced in command status and diagnostics. */
