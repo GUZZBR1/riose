@@ -170,16 +170,21 @@ class Store:
         args: tuple[Any, ...] = (at_s,) if at_s is not None else ()
         projection = "p.timestamp,p.tag_id,p.x,p.y,p.method,p.quality,p.status"
         join = ""
+        truth_cte = ""
         if debug:
-            projection += ",t.x AS ground_truth_x,t.y AS ground_truth_y"
-            join = """LEFT JOIN debug_truth t ON t.tag_id=p.tag_id AND t.timestamp=(
-                SELECT d.timestamp FROM debug_truth d WHERE d.tag_id=p.tag_id
-                  AND ABS(d.timestamp-p.timestamp)<=1.0
-                ORDER BY ABS(d.timestamp-p.timestamp), d.timestamp LIMIT 1)"""
+            projection += ",truth.x AS ground_truth_x,truth.y AS ground_truth_y"
+            truth_cte = """, truth_ranked AS (
+                SELECT p.id AS position_id, d.x, d.y,
+                       ROW_NUMBER() OVER(PARTITION BY p.id
+                         ORDER BY ABS(d.timestamp-p.timestamp), d.timestamp) AS truth_rank
+                FROM ranked p JOIN debug_truth d
+                  ON d.tag_id=p.tag_id AND ABS(d.timestamp-p.timestamp)<=1.0
+            )"""
+            join = "LEFT JOIN truth_ranked truth ON truth.position_id=p.id AND truth.truth_rank=1"
         query = f"""WITH ranked AS (
             SELECT *, ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC,id DESC) AS rn
             FROM positions {time_filter}
-          ) SELECT {projection} FROM ranked p {join}
+          ){truth_cte} SELECT {projection} FROM ranked p {join}
           WHERE p.rn=1 ORDER BY p.tag_id LIMIT ?"""
         with self._lock:
             return [dict(r) for r in self.connection.execute(query, (*args, limit))]

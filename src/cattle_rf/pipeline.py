@@ -59,8 +59,7 @@ def compute_metrics(episode, estimates, config: FarmConfig) -> dict[str, Any]:
 
 def energy_metrics(episode, config: FarmConfig) -> dict[str, Any]:
     """Run the virtual tag policy over simulated behavior and report profile-derived energy."""
-    from .firmware.energy import EnergyProfile
-    from .firmware.tag import Activity, MemoryHAL, TagConfig, TagController
+    from .firmware.energy import EnergyLedger, EnergyProfile
 
     profile = EnergyProfile.reference_stm32wle5()
     states: dict[str, dict[float, str]] = {}
@@ -69,17 +68,28 @@ def energy_metrics(episode, config: FarmConfig) -> dict[str, Any]:
     daily: list[float] = []
     messages_daily: list[float] = []
     for tag_id, timeline in states.items():
-        hal = MemoryHAL()
-        controller = TagController(TagConfig(tag_id=tag_id), hal, profile)
-        controller.boot()
-        times = sorted(timeline)
-        for timestamp in times:
-            behavior = timeline[timestamp]
-            activity = Activity.RUNNING if behavior == "RUNNING" else Activity.NORMAL
-            controller.step(config.sample_period_s, activity)
-        report = controller.ledger.report()
+        # Extrapolate from observed behavior fractions over a full day and the
+        # configured cadence. Simulating only a short test window and dividing
+        # by its length would over-weight the one immediate boot beacon.
+        active_fraction = sum(state in {"RUNNING", "GROUP_MOVEMENT"}
+                              for state in timeline.values()) / max(1, len(timeline))
+        active_fraction = min(1.0, max(0.0, active_fraction))
+        day_s = 86400.0
+        active_s = day_s * active_fraction
+        normal_s = day_s - active_s
+        normal_beacons = normal_s / 900.0
+        active_beacons = active_s / 60.0
+        tx_duration_s, rx_duration_s = 0.1, 0.2
+        base_sleep_s = max(0.0, normal_s - normal_beacons * (tx_duration_s + rx_duration_s))
+        base_imu_s = max(0.0, active_s - active_beacons * (tx_duration_s + rx_duration_s))
+        ledger = EnergyLedger(profile)
+        ledger.record(profile.sleep_ma, base_sleep_s)
+        ledger.record(profile.imu_monitoring_ma, base_imu_s)
+        ledger.record(profile.rf_tx_ma, (normal_beacons + active_beacons) * tx_duration_s)
+        ledger.record(profile.rf_rx_ma, (normal_beacons + active_beacons) * rx_duration_s)
+        report = ledger.report()
         daily.append(report.energy_per_day_mah)
-        messages_daily.append(len(hal.transmissions) * 86400.0 / max(config.duration_s, 1e-9))
+        messages_daily.append(normal_beacons + active_beacons)
     return {
         "energy_per_tag_day_mah": sum(daily) / len(daily) if daily else 0.0,
         "estimated_battery_life_days": None,
