@@ -1,0 +1,171 @@
+#include <errno.h>
+#include <stdint.h>
+
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+#include "tag_firmware.h"
+
+LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
+
+#if !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio), okay) || \
+    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay)
+#error "Add tag-radio and tag-imu devicetree aliases for this board"
+#endif
+
+static const struct spi_dt_spec radio_spi = SPI_DT_SPEC_GET(
+    DT_ALIAS(tag_radio), SPI_OP_MODE_MASTER | SPI_WORD_SET(8) |
+                         SPI_TRANSFER_MSB, 0);
+static const struct i2c_dt_spec imu_i2c = I2C_DT_SPEC_GET(DT_ALIAS(tag_imu));
+static const struct gpio_dt_spec radio_reset =
+    GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_reset), gpios);
+static const struct gpio_dt_spec radio_dio1 =
+    GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_dio1), gpios);
+static const struct gpio_dt_spec imu_int =
+    GPIO_DT_SPEC_GET(DT_ALIAS(tag_imu_int), gpios);
+
+static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
+                        uint8_t *rx, size_t rx_len)
+{
+    ARG_UNUSED(context);
+    if (tx == NULL || rx == NULL || tx_len == 0 || tx_len != rx_len) {
+        return -EINVAL;
+    }
+    struct spi_buf tx_buf = {.buf = (void *)tx, .len = tx_len};
+    struct spi_buf rx_buf = {.buf = rx, .len = rx_len};
+    const struct spi_buf_set tx_set = {.buffers = &tx_buf, .count = 1};
+    const struct spi_buf_set rx_set = {.buffers = &rx_buf, .count = 1};
+    return spi_transceive_dt(&radio_spi, &tx_set, &rx_set);
+}
+
+static int radio_reset_fn(void *context)
+{
+    ARG_UNUSED(context);
+    int rc = gpio_pin_set_dt(&radio_reset, 1);
+    if (rc != 0) return rc;
+    k_msleep(2);
+    rc = gpio_pin_set_dt(&radio_reset, 0);
+    if (rc != 0) return rc;
+    k_msleep(5);
+    return 0;
+}
+
+static int imu_write_register(uint8_t reg, uint8_t value)
+{
+    const uint8_t bytes[] = {reg, value};
+    return i2c_write_dt(&imu_i2c, bytes, sizeof(bytes));
+}
+
+static int imu_configure(void)
+{
+    uint8_t reg = 0x0f; /* WHO_AM_I: LIS2DW12 returns 0x44. */
+    uint8_t identity = 0;
+    int rc = i2c_write_read_dt(&imu_i2c, &reg, sizeof(reg), &identity,
+                               sizeof(identity));
+    if (rc != 0) return rc;
+    if (identity != 0x44) return -ENODEV;
+    rc = imu_write_register(0x21, 0x08); /* block data update */
+    if (rc != 0) return rc;
+    return imu_write_register(0x20, 0x14); /* 12.5 Hz, low-power mode */
+}
+
+static int imu_read_fn(void *context, tag_imu_sample_t *sample)
+{
+    ARG_UNUSED(context);
+    if (sample == NULL) return -EINVAL;
+    uint8_t reg = 0xa8; /* OUT_X_L | auto increment */
+    uint8_t data[6] = {0};
+    int rc = i2c_write_read_dt(&imu_i2c, &reg, sizeof(reg), data, sizeof(data));
+    if (rc != 0) return rc;
+
+    for (size_t axis = 0; axis < 3; ++axis) {
+        const int16_t raw16 = (int16_t)((uint16_t)data[axis * 2] |
+                               ((uint16_t)data[axis * 2 + 1] << 8));
+        /* LIS2DW12 14-bit output is left-aligned; +/-2 g sensitivity is
+         * 0.061 mg per 12-bit sample. Return integer mg to the HAL contract. */
+        const int32_t raw12 = raw16 >> 4;
+        const int16_t mg = (int16_t)((raw12 * 61) / 1000);
+        if (axis == 0) sample->x_mg = mg;
+        else if (axis == 1) sample->y_mg = mg;
+        else sample->z_mg = mg;
+    }
+    sample->interrupt_flags = 0;
+    return 0;
+}
+
+static bool imu_irq_pending(void *context)
+{
+    ARG_UNUSED(context);
+    return gpio_pin_get_dt(&imu_int) > 0;
+}
+
+static bool radio_irq_pending(void *context)
+{
+    ARG_UNUSED(context);
+    return gpio_pin_get_dt(&radio_dio1) > 0;
+}
+
+static uint32_t clock_ms(void *context)
+{
+    ARG_UNUSED(context);
+    return k_uptime_get_32();
+}
+
+static void sleep_ms(void *context, uint32_t duration_ms)
+{
+    ARG_UNUSED(context);
+    k_sleep(K_MSEC(duration_ms));
+}
+
+int main(void)
+{
+    if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
+        !gpio_is_ready_dt(&radio_reset) || !gpio_is_ready_dt(&radio_dio1) ||
+        !gpio_is_ready_dt(&imu_int)) {
+        LOG_ERR("A required SPI, I2C, or GPIO device is not ready");
+        return -ENODEV;
+    }
+    int rc = gpio_pin_configure_dt(&radio_reset, GPIO_OUTPUT_INACTIVE);
+    if (rc != 0) return rc;
+    rc = gpio_pin_configure_dt(&radio_dio1, GPIO_INPUT);
+    if (rc != 0) return rc;
+    rc = gpio_pin_configure_dt(&imu_int, GPIO_INPUT);
+    if (rc != 0) return rc;
+    rc = imu_configure();
+    if (rc != 0) {
+        LOG_ERR("LIS2DW12 I2C setup failed (%d)", rc);
+        return rc;
+    }
+
+    const tag_hal_t hal = {
+        .context = NULL,
+        .spi_transfer = spi_transfer,
+        .radio_reset = radio_reset_fn,
+        .imu_read = imu_read_fn,
+        .imu_irq_pending = imu_irq_pending,
+        .radio_irq_pending = radio_irq_pending,
+        .clock_ms = clock_ms,
+        .sleep_ms = sleep_ms,
+    };
+    const tag_config_t config = {
+        .tag_id = CONFIG_TAG_ID,
+        .rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ,
+        .tx_power_dbm = CONFIG_TAG_TX_POWER_DBM,
+        .normal_beacon_ms = TAG_DEFAULT_BEACON_MS,
+        .active_beacon_ms = 15000,
+        .alert_beacon_ms = 5000,
+        .battery_mv = CONFIG_TAG_BATTERY_MV,
+    };
+    static tag_firmware_t firmware;
+    rc = tag_firmware_init(&firmware, &hal, &config);
+    if (rc != 0) return rc;
+    LOG_INF("C tag firmware started (tag id %u)", config.tag_id);
+
+    while (true) tag_firmware_step(&firmware);
+    return 0;
+}

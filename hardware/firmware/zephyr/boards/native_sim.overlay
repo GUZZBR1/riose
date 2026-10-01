@@ -1,0 +1,46 @@
+/* Native_sim has emulated SPI/I2C/GPIO controllers. Peripheral responders
+ * still need Zephyr bus-emulator implementations; see README.md. */
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+&spi0 {
+	status = "okay";
+	cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+	tag_radio: sx1262@0 {
+		compatible = "semtech,sx1262";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+		status = "okay";
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	tag_imu: lis2dw12@19 {
+		compatible = "riose,lis2dw12-raw";
+		reg = <0x19>;
+		status = "okay";
+	};
+};
+
+/ {
+	aliases {
+		tag-radio = &tag_radio;
+		tag-imu = &tag_imu;
+		tag-radio-reset = &tag_radio_reset;
+		tag-radio-dio1 = &tag_radio_dio1;
+		tag-imu-int = &tag_imu_int;
+	};
+
+	tag_radio_reset: radio-reset {
+		compatible = "riose,tag-gpio";
+		gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+	};
+	tag_radio_dio1: radio-dio1 {
+		compatible = "riose,tag-gpio";
+		gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+	};
+	tag_imu_int: imu-int {
+		compatible = "riose,tag-gpio";
+		gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+	};
+};

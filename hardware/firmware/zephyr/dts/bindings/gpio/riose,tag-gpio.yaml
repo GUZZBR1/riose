@@ -1,0 +1,6 @@
+description: GPIO pin used by the virtual cattle tag board adapter
+include: base.yaml
+properties:
+  gpios:
+    type: phandle-array
+    required: true

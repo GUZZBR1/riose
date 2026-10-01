@@ -1,0 +1,26 @@
+mainmenu "RIOSE virtual cattle tag"
+source "Kconfig.zephyr"
+
+menu "RIOSE virtual cattle tag"
+
+config TAG_ID
+	int "32-bit tag identity"
+	range 0 2147483647
+	default 1
+
+config TAG_BATTERY_MV
+	int "Configured battery voltage in millivolts"
+	range 0 65535
+	default 3000
+
+config TAG_RF_FREQUENCY_HZ
+	int "Sub-GHz radio frequency in Hz"
+	range 150000000 960000000
+	default 915000000
+
+config TAG_TX_POWER_DBM
+	int "SX1262 TX power in dBm"
+	range -9 22
+	default 10
+
+endmenu

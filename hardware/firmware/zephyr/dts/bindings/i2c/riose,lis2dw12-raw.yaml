@@ -1,0 +1,2 @@
+description: LIS2DW12 IMU accessed through the tag firmware I2C HAL
+include: i2c-device.yaml
