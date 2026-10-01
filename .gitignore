@@ -4,8 +4,11 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 data/
-results/**
-!results/.gitkeep
+results/quick/
+results/full/
+results/randomized/
+results/domain-test/
+results/datasets/
 *.sqlite3
 *.sqlite3-wal
 *.sqlite3-shm

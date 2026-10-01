@@ -1,0 +1,28 @@
+{
+  "split": "train",
+  "feature_fields": [
+    "timestamp_s",
+    "tag_id",
+    "anchor_id",
+    "rssi_dbm",
+    "snr_db",
+    "packet_received",
+    "imu_accel_norm_g",
+    "behavior_state",
+    "tof_ns",
+    "phase_rad",
+    "status"
+  ],
+  "feature_file": "datasets/train/features/observations.csv",
+  "ground_truth_file": "datasets/train/ground_truth/labels.csv",
+  "scenario": {
+    "seed": 7,
+    "animal_count": 20,
+    "anchor_count": 8,
+    "width_m": 1000.0,
+    "height_m": 1000.0,
+    "duration_s": 1800.0,
+    "sample_period_s": 30.0
+  },
+  "status": "SIMULATED"
+}

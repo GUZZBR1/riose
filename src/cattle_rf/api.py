@@ -90,6 +90,17 @@ class CSIRequest(BaseModel):
     seed: int = 7
 
 
+class FenceZoneInput(BaseModel):
+    zone_id: str
+    kind: str
+    polygon: list[tuple[float, float]] = Field(min_length=3)
+
+
+class FenceRequest(BaseModel):
+    zones: list[FenceZoneInput] = Field(min_length=1)
+    warning_distance_m: float = Field(default=20.0, ge=0)
+
+
 def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     app = FastAPI(title="Cattle RF Local MVP", version="0.1.0")
     app.state.store = Store(db_path)
@@ -227,6 +238,30 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return asdict(simulate_wifi_csi(body.timestamp_s, body.tag_id, body.anchor_id,
                                         body.movement_intensity, body.seed))
 
+    @app.post("/api/experiments/virtual-fence")
+    def run_virtual_fence(body: FenceRequest) -> dict[str, Any]:
+        from dataclasses import asdict
+        from .virtual_fence import FenceZone, simulate_fence
+        episode = app.state.last_episode
+        if episode is None:
+            raise HTTPException(status_code=409, detail="run a farm simulation first")
+        zones = [FenceZone(zone.zone_id, zone.kind, tuple(zone.polygon)) for zone in body.zones]
+        events = simulate_fence(episode.ground_truth, zones, body.warning_distance_m)
+        records = []
+        for event in events:
+            suffix = event.tag_id.rsplit("-", 1)[-1]
+            animal_id = f"cow-{suffix}"
+            if app.state.store.get_animal(animal_id) is None:
+                continue
+            stored = app.state.store.append_animal_event(
+                animal_id, "VIRTUAL_FENCE_SIMULATED",
+                {"zone_id": event.zone_id, "state": event.state.value,
+                 "response": event.simulated_response, "evidence": "SIMULATED"},
+                event.timestamp_s,
+            )
+            records.append(asdict(event) | {"event_hash": stored.hash})
+        return {"status": "SIMULATED", "electric_stimulus": False, "events": records}
+
     @app.get("/api/capabilities")
     def capabilities() -> dict[str, Any]:
         from .sim.advanced import advanced_capabilities
@@ -256,11 +291,16 @@ def ensure_animals(store: Store, count: int) -> None:
 def capability_status() -> dict[str, bool]:
     import importlib.util
     import shutil
+    try:
+        ns3_python = importlib.util.find_spec("ns.core") is not None
+    except (ImportError, ModuleNotFoundError, ValueError):
+        ns3_python = False
     return {
         "sionna": importlib.util.find_spec("sionna") is not None,
-        "ns3": shutil.which("ns3") is not None or importlib.util.find_spec("ns.core") is not None,
+        "ns3": shutil.which("ns3") is not None or ns3_python,
         "wokwi_cli": shutil.which("wokwi-cli") is not None,
         "zephyr_west": shutil.which("west") is not None,
         "ngspice": shutil.which("ngspice") is not None,
+        "kicad_cli": shutil.which("kicad-cli") is not None,
     }
 

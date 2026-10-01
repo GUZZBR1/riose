@@ -38,6 +38,21 @@ class VirtualTagHAL(Protocol):
     def receive_window(self) -> None: ...
 
 
+@dataclass(frozen=True, slots=True)
+class PassiveRFIDIdentity:
+    """Architecture placeholder for the passive animal ID transponder."""
+
+    identifier: str
+    air_interface: str = "134.2 kHz animal RFID (ISO 11784/11785 class)"
+    passive: bool = True
+
+
+class PassiveRFIDReader(Protocol):
+    """Replaceable reader interface; RFID is not simulated as an RF range link."""
+
+    def read_identifier(self) -> PassiveRFIDIdentity | None: ...
+
+
 @dataclass(slots=True)
 class MemoryHAL:
     """Small deterministic test/demo HAL; it does not emulate RF propagation."""

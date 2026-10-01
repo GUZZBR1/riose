@@ -12,7 +12,8 @@ from .contracts import GroundTruth, RFObservation
 
 
 def write_episode_dataset(observations: Iterable[RFObservation], truth: Iterable[GroundTruth],
-                          output_dir: str | Path, split: str) -> dict[str, str]:
+                          output_dir: str | Path, split: str,
+                          scenario: dict | None = None) -> dict[str, str]:
     """Write inference features and evaluation labels separately.
 
     CSV is the portable fallback. If PyArrow is installed, observations are
@@ -48,7 +49,8 @@ def write_episode_dataset(observations: Iterable[RFObservation], truth: Iterable
         pq.write_table(pa.Table.from_pylist(obs_rows), feature_parquet)
         outputs["features_parquet"] = str(feature_parquet)
     manifest = {"split": split, "feature_fields": list(obs_rows[0]) if obs_rows else [],
-                "ground_truth_file": str(truth_csv), "status": "SIMULATED"}
+                "feature_file": str(feature_csv), "ground_truth_file": str(truth_csv),
+                "scenario": scenario or {}, "status": "SIMULATED"}
     manifest_path = root / split / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     outputs["manifest"] = str(manifest_path)

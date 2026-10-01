@@ -10,10 +10,10 @@ import statistics
 import time
 from typing import Any
 
-from .contracts import FarmConfig
+from .contracts import Estimate, FarmConfig
 from .datasets import write_episode_dataset
 from .localization import METHODS, estimate, evaluate, train_fingerprint_model
-from .pipeline import run_episode
+from .pipeline import domain_randomized_training_data, run_episode
 from .sim import simulate_episode
 from .sim.rf import RFConfig
 
@@ -83,7 +83,12 @@ def run_dataset(args: argparse.Namespace) -> None:
                             duration_s=args.duration, sample_period_s=args.period,
                             seed=args.seed + offset)
         episode = simulate_episode(config)
-        outputs = write_episode_dataset(episode.observations, episode.ground_truth, root, split)
+        outputs = write_episode_dataset(episode.observations, episode.ground_truth, root, split,
+                                        {"seed": config.seed, "animal_count": config.animal_count,
+                                         "anchor_count": config.anchor_count,
+                                         "width_m": config.width_m, "height_m": config.height_m,
+                                         "duration_s": config.duration_s,
+                                         "sample_period_s": config.sample_period_s})
         print(json.dumps({"split": split, **outputs}))
 
 
@@ -102,7 +107,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
     rows: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
     energy_rows: list[dict[str, Any]] = []
-    cdf_values: dict[str, list[float]] = {method: [] for method in METHODS}
+    cdf_values: dict[str, list[float]] = {method: [] for method in ("gps_oracle_reference", *METHODS)}
     start = time.perf_counter()
     for anchor_count in anchor_counts:
         anchors = None
@@ -121,16 +126,11 @@ def run_benchmark(args: argparse.Namespace) -> None:
                 anchors = episode.anchors
                 for model_name in ("extra_trees", "gradient_boosting"):
                     if model_name not in model_cache:
-                        training_config = FarmConfig(
-                            animal_count=20, anchor_count=anchor_count, duration_s=duration,
-                            sample_period_s=sample_period, seed=900_000 + anchor_count * 13)
-                        train = simulate_episode(training_config, anchors=anchors,
-                                                 rf_config=RFConfig(shadow_sigma_db=4.0,
-                                                                    measurement_sigma_db=2.0,
-                                                                    nlos_probability=0.08))
                         try:
+                            training_observations, training_truth = domain_randomized_training_data(
+                                config, anchors)
                             model_cache[model_name] = train_fingerprint_model(
-                                train.observations, train.ground_truth, train.anchors,
+                                training_observations, training_truth, anchors,
                                 algorithm=model_name, random_state=17)
                         except RuntimeError as exc:
                             model_cache[model_name] = exc
@@ -168,13 +168,34 @@ def run_benchmark(args: argparse.Namespace) -> None:
                                                "timestamp_s": estimate_row.timestamp_s,
                                                "error_m": error, "evidence": "SIMULATED"})
                                 cdf_values[method].append(error)
+                # Perfect simulated GPS is an oracle/reference only. It is
+                # constructed after inference from the isolated truth stream.
+                gps_errors = [{"animal_count": animal_count, "anchor_count": anchor_count,
+                               "seed": seed, "method": "gps_oracle_reference",
+                               "tag_id": point.tag_id, "timestamp_s": point.timestamp_s,
+                               "error_m": 0.0, "evidence": "SIMULATED_REFERENCE"}
+                              for point in episode.ground_truth]
+                errors.extend(gps_errors)
+                cdf_values["gps_oracle_reference"].extend(0.0 for _ in gps_errors)
+                rows.append({"animal_count": animal_count, "anchor_count": anchor_count,
+                             "seed": seed, "method": "gps_oracle_reference",
+                             **evaluate([Estimate(point.timestamp_s, point.tag_id, point.x,
+                                                  point.y, "gps_oracle_reference")
+                                         for point in episode.ground_truth], episode.ground_truth),
+                             "packet_delivery_ratio": None, "runtime_seconds": 0.0,
+                             "evidence": "SIMULATED_REFERENCE",
+                             "note": "Ground-truth oracle; never an estimator input."})
                 from .pipeline import energy_metrics
                 energy = energy_metrics(episode, config)
                 energy_rows.append({"animal_count": animal_count, "anchor_count": anchor_count,
                                     "seed": seed, **energy, "evidence": "SIMULATED"})
                 if repeat == 0 and animal_count == animal_counts[0] and anchor_count == anchor_counts[0]:
                     write_episode_dataset(episode.observations, episode.ground_truth,
-                                          root / "datasets", "holdout")
+                                          root / "datasets", "holdout",
+                                          {"seed": seed, "animal_count": animal_count,
+                                           "anchor_count": anchor_count,
+                                           "width_m": config.width_m, "height_m": config.height_m,
+                                           "train_seed_profile": "domain_randomized training kept separate"})
     write_csv(root / "metrics.csv", rows)
     write_csv(root / "localization_errors.csv", errors)
     write_csv(root / "energy.csv", energy_rows)
@@ -185,7 +206,8 @@ def run_benchmark(args: argparse.Namespace) -> None:
         "status": "SIMULATED", "profile": args.profile,
         "animal_counts": animal_counts, "anchor_counts": anchor_counts,
         "seeds_per_scenario": seeds, "duration_s": duration,
-        "sample_period_s": sample_period, "methods": list(METHODS),
+        "sample_period_s": sample_period,
+        "methods": ["gps_oracle_reference", *METHODS],
         "scenario_count": len(animal_counts) * len(anchor_counts) * seeds,
         "runtime_seconds": time.perf_counter() - start, "rows": len(rows),
         "error_rows": len(errors), "mean_error_by_method_m": aggregate_errors(errors),

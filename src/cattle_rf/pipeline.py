@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import random
 from typing import Any
 
 from .contracts import Anchor, FarmConfig
 from .localization import METHODS, estimate, evaluate, train_fingerprint_model
 from .sim import simulate_episode
+from .sim.rf import RFConfig
 
 
 def run_episode(config: FarmConfig, method: str = "weighted_centroid",
@@ -17,19 +19,12 @@ def run_episode(config: FarmConfig, method: str = "weighted_centroid",
     episode = simulate_episode(config, anchors=anchors)
     models = None
     if method in {"extra_trees", "gradient_boosting"}:
-        # Supervision comes from distinct deterministic seeds; inference receives
-        # only the holdout episode's RFObservation records.
-        training_config = FarmConfig(
-            width_m=config.width_m, height_m=config.height_m,
-            animal_count=max(3, min(config.animal_count, 30)),
-            anchor_count=config.anchor_count, duration_s=config.duration_s,
-            sample_period_s=config.sample_period_s, seed=config.seed + 100_003,
-            packet_loss_probability=config.packet_loss_probability,
-            tx_power_dbm=config.tx_power_dbm, path_loss_exponent=config.path_loss_exponent,
-        )
-        training = simulate_episode(training_config, anchors=episode.anchors)
-        model = train_fingerprint_model(training.observations, training.ground_truth,
-                                        training.anchors, algorithm=method,
+        # Supervision comes from distinct, domain-randomized seeds; inference
+        # receives only the holdout episode's RFObservation records.
+        training_observations, training_truth = domain_randomized_training_data(
+            config, episode.anchors)
+        model = train_fingerprint_model(training_observations, training_truth,
+                                        episode.anchors, algorithm=method,
                                         random_state=config.seed)
         models = {method: model}
     estimates = estimate(episode.observations, episode.anchors, method,
@@ -56,6 +51,38 @@ def compute_metrics(episode, estimates, config: FarmConfig) -> dict[str, Any]:
     metrics.update(energy_metrics(episode, config))
     metrics["messages_per_animal_per_day"] = metrics["messages_per_tag_day"]
     return metrics
+
+
+def domain_randomized_training_data(config: FarmConfig, anchors,
+                                    episodes: int = 3):
+    """Build farm-specific training samples across configured RF nuisance ranges."""
+    rng = random.Random(config.seed + 902_103)
+    observations, truth = [], []
+    for index in range(episodes):
+        training_config = FarmConfig(
+            width_m=config.width_m, height_m=config.height_m,
+            # Broad spatial coverage matters more than matching herd size for
+            # supervised farm fingerprints. This stays local and bounded.
+            animal_count=max(300, min(config.animal_count, 1000)),
+            anchor_count=len(anchors), duration_s=max(600.0, config.duration_s),
+            sample_period_s=min(30.0, config.sample_period_s),
+            seed=config.seed + 100_003 + index * 7_919,
+            packet_loss_probability=rng.uniform(0.02, 0.20),
+            tx_power_dbm=rng.uniform(10.0, 18.0),
+            path_loss_exponent=rng.uniform(2.2, 3.4),
+        )
+        rf = RFConfig(
+            shadow_sigma_db=rng.uniform(2.0, 8.0),
+            measurement_sigma_db=rng.uniform(1.0, 4.0),
+            interference_probability=rng.uniform(0.005, 0.04),
+            nlos_probability=rng.uniform(0.0, 0.25),
+            weather_loss_db=rng.uniform(0.0, 6.0),
+            orientation_sigma_db=rng.uniform(0.5, 5.0),
+        )
+        episode = simulate_episode(training_config, anchors=anchors, rf_config=rf)
+        observations.extend(episode.observations)
+        truth.extend(episode.ground_truth)
+    return tuple(observations), tuple(truth)
 
 
 def energy_metrics(episode, config: FarmConfig) -> dict[str, Any]:

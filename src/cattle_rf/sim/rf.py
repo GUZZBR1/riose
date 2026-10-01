@@ -24,6 +24,8 @@ class RFConfig:
     nlos_probability: float = 0.0
     default_obstacle_attenuation_db: float = 6.0
     obstacle_attenuation_db: Mapping[str, float] | None = None
+    weather_loss_db: float = 0.0
+    orientation_sigma_db: float = 1.5
 
     def attenuation(self, obstacle: Obstacle) -> float:
         if obstacle.attenuation_db is not None:
@@ -83,12 +85,16 @@ def simulate_observations(
             dx, dy = point.x - anchor.x, point.y - anchor.y
             distance_3d = math.sqrt(dx * dx + dy * dy + anchor.height_m * anchor.height_m)
             attenuation, blocked = _line_attenuation(point.x, point.y, anchor.x, anchor.y, obstacles, rf)
-            forced_nlos = rng.random() < rf.nlos_probability
-            nlos_extra_db = rng.uniform(8.0, 28.0) if forced_nlos else 0.0
+            nlos_draw = rng.random()
+            nlos_severity_db = rng.uniform(8.0, 28.0)
+            forced_nlos = nlos_draw < rf.nlos_probability
+            nlos_extra_db = nlos_severity_db if forced_nlos else 0.0
             tx_power = config.tx_power_dbm + rng.gauss(0, 0.5)  # modest production tolerance
             rssi = (tx_power - log_distance_path_loss_db(distance_3d, rf.frequency_mhz,
                     config.path_loss_exponent, rf.reference_distance_m) - attenuation
-                    - nlos_extra_db + old_shadow + rng.gauss(0, rf.measurement_sigma_db))
+                    - nlos_extra_db - max(0.0, rf.weather_loss_db)
+                    - abs(rng.gauss(0, rf.orientation_sigma_db))
+                    + old_shadow + rng.gauss(0, rf.measurement_sigma_db))
             snr = rssi - rf.noise_floor_dbm
             lost = rng.random() < config.packet_loss_probability
             collision = rng.random() < rf.interference_probability
