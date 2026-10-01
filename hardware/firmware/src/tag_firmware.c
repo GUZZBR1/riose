@@ -147,21 +147,28 @@ void tag_firmware_step(tag_firmware_t *fw)
         fw->hal.sleep_ms(fw->hal.context, 10u);
         break;
     case TAG_STATE_IMU_MONITORING:
+        {
+        const bool beacon_due = (int32_t)(now_ms(fw) - fw->next_beacon_ms) >= 0;
+        const tag_behavior_t previous_behavior = fw->behavior;
         sample_imu(fw);
+        if (fw->state == TAG_STATE_ERROR_RECOVERY) break;
+        const bool escalation = fw->behavior > previous_behavior &&
+                                fw->behavior >= TAG_BEHAVIOR_ACTIVE;
         if (fw->config.battery_mv < fw->config.low_battery_threshold_mv &&
             fw->behavior != TAG_BEHAVIOR_ALERT &&
-            (int32_t)(now_ms(fw) - fw->next_beacon_ms) < 0) {
+            !beacon_due) {
             /* Keep sensing after wake, but suppress ad-hoc transmissions
              * until the extended low-battery beacon interval expires. */
             fw->state = TAG_STATE_SLEEP;
             break;
         }
-        if (fw->state == TAG_STATE_RF_TX || fw->state == TAG_STATE_ALERT) {
+        if (beacon_due || escalation) {
             transmit(fw);
-        } else if (fw->state == TAG_STATE_SLEEP) {
-            fw->next_beacon_ms = now_ms(fw) + fw->config.normal_beacon_ms;
+        } else {
+            fw->state = TAG_STATE_SLEEP;
         }
         break;
+        }
     case TAG_STATE_ALERT:
         fw->behavior = TAG_BEHAVIOR_ALERT;
         transmit(fw);
