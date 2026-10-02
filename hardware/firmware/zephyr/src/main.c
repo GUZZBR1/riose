@@ -22,6 +22,9 @@ K_SEM_DEFINE(tag_event_sem, 0, 1);
 #define TAG_RESET_FLAGS_KNOWN_MASK ((1u << 9) - 1u)
 static struct gpio_callback imu_gpio_cb;
 static struct gpio_callback radio_gpio_cb;
+static bool reset_cause_available;
+static uint32_t previous_reset_cause;
+static tag_reset_kind_t previous_reset_kind;
 
 #if defined(CONFIG_WATCHDOG)
 static const struct device *const tag_watchdog = DEVICE_DT_GET(DT_NODELABEL(iwdg));
@@ -65,6 +68,9 @@ static void report_and_clear_reset_cause(void)
         return;
     }
     const tag_reset_kind_t kind = tag_reset_cause_classify(cause);
+    reset_cause_available = cause != 0u;
+    previous_reset_cause = cause;
+    previous_reset_kind = kind;
     LOG_INF("MCU_RESET_CAUSE,flags=0x%08x,kind=%s,unknown_bits=0x%08x",
             cause, tag_reset_kind_name(kind), cause & ~TAG_RESET_FLAGS_KNOWN_MASK);
     const int clear_rc = hwinfo_clear_reset_cause();
@@ -223,6 +229,12 @@ static uint32_t clock_ms(void *context)
     return k_uptime_get_32();
 }
 
+static uint64_t clock_us(void *context)
+{
+    ARG_UNUSED(context);
+    return (uint64_t)k_uptime_get() * 1000u;
+}
+
 static void sleep_ms(void *context, uint32_t duration_ms)
 {
     ARG_UNUSED(context);
@@ -272,7 +284,8 @@ static const char *trace_event_name(tag_trace_event_t event)
     static const char *const names[] = {
         "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
         "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
-        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP"
+        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP", "WAKE", "SPI",
+        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT", "TRACE_END"
     };
     return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
 }
@@ -280,12 +293,12 @@ static const char *trace_event_name(tag_trace_event_t event)
 static void trace_event(void *context, const tag_trace_record_t *record)
 {
     ARG_UNUSED(context);
-    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u",
+    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u,%s",
             structured_trace_sequence++,
             (unsigned long long)record->timestamp_us,
             (unsigned)record->state, trace_event_name(record->event),
             (unsigned)record->event, (unsigned)record->source, (int)record->result,
-            record->value0, record->value1, record->value2);
+            record->value0, record->value1, record->value2, record->packet_hex);
 }
 
 int main(void)
@@ -344,10 +357,11 @@ int main(void)
         .imu_irq_pending = imu_irq_pending,
         .radio_irq_pending = radio_irq_pending,
         .clock_ms = clock_ms,
+        .clock_us = clock_us,
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
         .state_trace = state_trace,
-        .trace_event = trace_event,
+        .trace_event = IS_ENABLED(CONFIG_TAG_STRUCTURED_TRACE) ? trace_event : NULL,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);
     config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;
@@ -356,6 +370,12 @@ int main(void)
     static tag_firmware_t firmware;
     rc = tag_firmware_init(&firmware, &hal, &config);
     if (rc != 0) return rc;
+    if (reset_cause_available && previous_reset_kind != TAG_RESET_KIND_POWER_ON) {
+        const tag_trace_event_t event = previous_reset_kind == TAG_RESET_KIND_WATCHDOG
+            ? TAG_TRACE_WATCHDOG : TAG_TRACE_REBOOT;
+        tag_trace_emit(&firmware.hal, firmware.state, event, TAG_TRACE_SOURCE_HAL,
+                       0, previous_reset_cause, (uint32_t)previous_reset_kind, 0u);
+    }
     LOG_INF("C tag firmware started (tag id %u)", config.tag_id);
 
     while (true) {
