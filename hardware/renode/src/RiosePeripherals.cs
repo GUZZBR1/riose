@@ -2,6 +2,7 @@
 // not electrical or RF simulations. Behavior is intentionally scoped to the
 // commands/registers exercised by the RIOSE Zephyr firmware.
 using System;
+using System.Collections.Generic;
 using Antmicro.Renode.Core;
 using Antmicro.Renode.Core.Structure;
 using Antmicro.Renode.Peripherals;
@@ -27,7 +28,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         private const ulong ContinuousRxWindowTicks = 64000; // One documented virtual second.
 
         private readonly byte[] fifo = new byte[FifoSize];
-        private readonly byte[] txFrame = new byte[512];
+        private readonly List<byte> txFrame = new List<byte>();
         private readonly byte[] modulation = new byte[4];
         private readonly byte[] packetParams = new byte[9];
         private readonly byte[] paConfig = new byte[4];
@@ -100,7 +101,9 @@ namespace Antmicro.Renode.Peripherals.Riose
                 selected = true;
                 txLength = 0;
                 opcode = data;
-                txFrame[txLength++] = data;
+                txFrame.Clear();
+                txFrame.Add(data);
+                txLength++;
                 return 0;
             }
 
@@ -115,7 +118,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             else if(opcode == 0x1E && txLength >= 3)
                 result = fifo[(byte)(txFrame[1] + txLength - 3)];
 
-            if(txLength < txFrame.Length) txFrame[txLength++] = data;
+            txFrame.Add(data);
+            txLength++;
             return result;
         }
 
@@ -176,7 +180,8 @@ namespace Antmicro.Renode.Peripherals.Riose
                     {
                         if(txFrame[1] > 0x07 || txFrame[2] > 0x07 || txFrame[3] > 1 || txFrame[4] != 1)
                             Fault(CmdInvalid);
-                        else Array.Copy(txFrame, 1, paConfig, 0, paConfig.Length);
+                        else
+                            for(int i = 0; i < paConfig.Length; i++) paConfig[i] = txFrame[i + 1];
                     }
                     break;
                 case 0x8B: // SetModulationParams
@@ -184,12 +189,16 @@ namespace Antmicro.Renode.Peripherals.Riose
                     {
                         if(packetType == 1 && (txFrame[1] < 5 || txFrame[1] > 12 || !ValidLoRaBandwidth(txFrame[2]) ||
                             txFrame[3] < 1 || txFrame[3] > 4 || txFrame[4] > 1)) Fault(CmdInvalid);
-                        else Array.Copy(txFrame, 1, modulation, 0, modulation.Length);
+                        else
+                            for(int i = 0; i < modulation.Length; i++) modulation[i] = txFrame[i + 1];
                     }
                     break;
                 case 0x8C: // SetPacketParams (LoRa: six args; GFSK: nine args)
                     if(RequireLength(packetType == 1 ? 7 : 10))
-                        Array.Copy(txFrame, 1, packetParams, 0, Math.Min(9, txLength - 1));
+                    {
+                        Array.Clear(packetParams, 0, packetParams.Length);
+                        for(int i = 1; i < txLength; i++) packetParams[i - 1] = txFrame[i];
+                    }
                     break;
                 case 0x8F: // SetBufferBaseAddress
                     if(RequireLength(3)) { txBase = txFrame[1]; rxBase = txFrame[2]; }
@@ -243,6 +252,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             Array.Clear(packetParams, 0, packetParams.Length);
             Array.Clear(paConfig, 0, paConfig.Length);
             Array.Clear(imageCalibration, 0, imageCalibration.Length);
+            txFrame.Clear();
             operationTimer.Reset();
             mode = 0x20;
             commandStatus = CmdOk;

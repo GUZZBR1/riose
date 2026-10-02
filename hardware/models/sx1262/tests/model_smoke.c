@@ -22,6 +22,8 @@ static void command(const uint8_t *tx, size_t tx_len)
 int main(void)
 {
     uint8_t rx[16] = {0};
+    uint8_t long_write[513] = {0x0e, 0x00};
+    uint8_t long_rx[513] = {0};
     const uint8_t reset_cfg[] = {0x80, 0x00};          /* standby RC */
     const uint8_t packet_type[] = {0x8a, 0x01};       /* LoRa */
     const uint8_t frequency[] = {0x86, 0x39, 0x30, 0x00, 0x00}; /* 915 MHz word */
@@ -64,6 +66,10 @@ int main(void)
     command(fifo_wrap, sizeof(fifo_wrap));
     assert(spi_transfer(&radio, read_wrap, sizeof(read_wrap), rx, sizeof(read_wrap)) == 0);
     assert(rx[3] == 0xaa && rx[4] == 0xbb);
+    memset(long_write + 2, 0xaa, sizeof(long_write) - 3);
+    long_write[sizeof(long_write) - 1] = 0xbb;
+    assert(spi_transfer(&radio, long_write, sizeof(long_write), long_rx, sizeof(long_rx)) == 0);
+    assert(radio.fifo[0xfe] == 0xbb);
     assert(spi_transfer(&radio, start_tx, sizeof(start_tx), rx, sizeof(start_tx)) == 0);
     assert(radio.tx_pending && radio.mode == SX1262_MODE_TX && radio.tx_count == 1);
     sx1262_model_advance(&radio, 6);

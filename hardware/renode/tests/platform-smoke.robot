@@ -2,6 +2,7 @@
 Documentation     Headless smoke and SX1262 protocol checks for the RIOSE Renode platform.
 Library           RenodeLibrary
 Library           String
+Library           Collections
 
 *** Variables ***
 ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
@@ -43,6 +44,27 @@ SX1262 Config And FIFO Use SPI Command Bytes
     Should Be Equal As Integers    ${first_fifo_byte}    C1    base=16
     Should Be Equal As Integers    ${second_fifo_byte}    7A    base=16
     Should Be Equal As Integers    ${third_fifo_byte}    05    base=16
+    Send SX1262 Command    0x0E    0xFF    0xAA    0xBB
+    Execute Command    sysbus.spi1.radio Transmit 0x1E
+    Execute Command    sysbus.spi1.radio Transmit 0xFF
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${wrap_first}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${wrap_second}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Should Be Equal As Integers    ${wrap_first}    AA    base=16
+    Should Be Equal As Integers    ${wrap_second}    BB    base=16
+    ${long_fifo_write}=    Create List    0x0E    0x00
+    FOR    ${index}    IN RANGE    0    510
+        Append To List    ${long_fifo_write}    0xAA
+    END
+    Append To List    ${long_fifo_write}    0xBB
+    Send SX1262 Command    @{long_fifo_write}
+    Execute Command    sysbus.spi1.radio Transmit 0x1E
+    Execute Command    sysbus.spi1.radio Transmit 0xFE
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${long_fifo_tail}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Should Be Equal As Integers    ${long_fifo_tail}    BB    base=16
     [Setup]    Create RIOSE Platform
 
 SX1262 TX Completes On Virtual Time And Routes DIO1 IRQ
