@@ -29,6 +29,8 @@ METRIC_FIELDS = (
     "gain_dbi", "s11_curve_path", "radiation_pattern_path",
 )
 NUMERIC_METRICS = tuple(field for field in METRIC_FIELDS if not field.endswith("_path"))
+MAX_S11_MESH_DELTA_DB = 1.0
+MAX_RESONANCE_MESH_DELTA_FRACTION = 0.02
 SCENARIO_ASSUMPTIONS = {
     "ANTENNA_FREE_SPACE": [],
     "ANTENNA_WITH_PCB": ["PCB geometry/material approximation required"],
@@ -105,6 +107,92 @@ def _scenario_row(name: str, solver_status: str, detail: str | None,
     return row
 
 
+def _finite_number(value: Any, *, positive: bool = False) -> bool:
+    if isinstance(value, bool):
+        return False
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(number) and (number > 0 if positive else number >= 0)
+
+
+def _mesh_evidence_errors(evidence: dict[str, Any]) -> list[str]:
+    """Validate the declared two-resolution comparison, not just its presence."""
+    problems: list[str] = []
+    mesh = evidence.get("mesh")
+    if not isinstance(mesh, dict):
+        return ["evidence.mesh"]
+    resolutions: dict[str, float] = {}
+    cell_counts: dict[str, int] = {}
+    for label in ("coarse", "fine"):
+        entry = mesh.get(label)
+        if not isinstance(entry, dict):
+            problems.append(f"evidence.mesh.{label}")
+            continue
+        resolution = entry.get("resolution_mm")
+        cells = entry.get("cells")
+        if not _finite_number(resolution, positive=True):
+            problems.append(f"evidence.mesh.{label}.resolution_mm")
+        else:
+            resolutions[label] = float(resolution)
+        if isinstance(cells, bool) or not isinstance(cells, int) or cells <= 0:
+            problems.append(f"evidence.mesh.{label}.cells")
+        else:
+            cell_counts[label] = cells
+        axes = [entry.get(axis) for axis in ("x", "y", "z")]
+        if any(isinstance(count, bool) or not isinstance(count, int) or count <= 0 for count in axes):
+            problems.append(f"evidence.mesh.{label}.axis_cells")
+        elif isinstance(cells, int) and not isinstance(cells, bool) and math.prod(axes) != cells:
+            problems.append(f"evidence.mesh.{label}.cell_count_mismatch")
+    if len(resolutions) == 2 and resolutions["coarse"] <= resolutions["fine"]:
+        problems.append("evidence.mesh.resolution_order")
+    if len(cell_counts) == 2 and cell_counts["fine"] <= cell_counts["coarse"]:
+        problems.append("evidence.mesh.cell_count_order")
+
+    comparison = mesh.get("comparison")
+    if not isinstance(comparison, dict):
+        problems.append("evidence.mesh.comparison")
+        return problems
+    criteria = comparison.get("criteria")
+    if not isinstance(criteria, dict):
+        problems.append("evidence.mesh.comparison.criteria")
+        return problems
+    values = (
+        ("s11_min_delta_db", "s11_min_max_delta_db", MAX_S11_MESH_DELTA_DB),
+        ("resonant_frequency_relative_delta", "resonance_max_relative_delta",
+         MAX_RESONANCE_MESH_DELTA_FRACTION),
+    )
+    for delta_key, limit_key, declared_maximum in values:
+        delta = comparison.get(delta_key)
+        limit = criteria.get(limit_key)
+        if not _finite_number(delta) or not _finite_number(limit, positive=True):
+            problems.append(f"evidence.mesh.comparison.{delta_key}/{limit_key}")
+        else:
+            if float(limit) > declared_maximum:
+                problems.append(f"evidence.mesh.comparison.{limit_key}_exceeds_declared_maximum")
+            if float(delta) > min(float(limit), declared_maximum):
+                problems.append(f"evidence.mesh.comparison.{delta_key}_exceeds_limit")
+    if evidence.get("converged") is not True:
+        problems.append("evidence.converged")
+    return problems
+
+
+def _resolve_result_artifact(output_dir: Path, scenario: str, value: Any) -> Path | None:
+    """Resolve scenario-local adapter paths while retaining root-relative legacy paths."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    output_root = output_dir.resolve()
+    relative = Path(value)
+    candidates = ([relative] if relative.is_absolute() else
+                  [output_root / scenario / relative, output_root / relative])
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved.is_relative_to(output_root) and resolved.is_file():
+            return resolved
+    return None
+
+
 def run_experiments(spec_path: Path | None, output_dir: Path,
                     selected: list[str] | None = None) -> dict[str, Any]:
     spec, spec_provenance = _load_spec(spec_path)
@@ -177,15 +265,44 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
                     missing.append(field)
             except (TypeError, ValueError):
                 missing.append(field)
-        for field in ("solver_version", "geometry_hash", "mesh", "converged"):
+        for field in ("solver_version", "geometry_hash", "mesh", "converged", "raw_solver_files"):
             if evidence.get(field) in (None, "", False):
                 missing.append(f"evidence.{field}")
         geometry_hash = str(evidence.get("geometry_hash", ""))
         if geometry_hash and (len(geometry_hash) != 64 or any(c not in "0123456789abcdef" for c in geometry_hash.lower())):
             missing.append("evidence.geometry_hash_sha256")
+        missing.extend(_mesh_evidence_errors(evidence))
+        candidate_provenance = evidence.get("candidate_model_provenance")
+        if not isinstance(candidate_provenance, dict):
+            missing.append("evidence.candidate_model_provenance")
+        else:
+            if not isinstance(candidate_provenance.get("path"), str) or not candidate_provenance["path"]:
+                missing.append("evidence.candidate_model_provenance.path")
+            if candidate_provenance.get("status") != "ASSUMED":
+                missing.append("evidence.candidate_model_provenance.status")
+            candidate_hash = candidate_provenance.get("sha256")
+            if (not isinstance(candidate_hash, str) or len(candidate_hash) != 64
+                    or any(c not in "0123456789abcdef" for c in candidate_hash.lower())):
+                missing.append("evidence.candidate_model_provenance.sha256")
+        raw_files = evidence.get("raw_solver_files")
+        if not isinstance(raw_files, list) or not raw_files:
+            missing.append("evidence.raw_solver_files")
+        else:
+            for raw_file in raw_files:
+                if _resolve_result_artifact(output_dir, name, raw_file) is None:
+                    missing.append(f"artifact.raw.{raw_file}")
+            mesh = evidence.get("mesh", {})
+            for label in ("coarse", "fine"):
+                entry = mesh.get(label, {}) if isinstance(mesh, dict) else {}
+                resolution = entry.get("resolution_mm") if isinstance(entry, dict) else None
+                if _finite_number(resolution, positive=True):
+                    prefix = f"mesh_{float(resolution):g}mm/"
+                    if not any(isinstance(raw_file, str) and raw_file.startswith(prefix)
+                               for raw_file in raw_files):
+                        missing.append(f"evidence.raw_solver_files.{label}_mesh")
         artifact_paths = [metrics.get("s11_curve_path"), metrics.get("radiation_pattern_path")]
         for artifact in artifact_paths:
-            if artifact and not (output_dir / artifact).is_file():
+            if _resolve_result_artifact(output_dir, name, artifact) is None:
                 missing.append(f"artifact.{artifact}")
         if missing:
             detail = "incomplete openEMS result/provenance: " + ", ".join(sorted(set(missing)))
@@ -211,6 +328,11 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
         "solver": {"name": "openEMS", "python_bindings_available": available,
                    "execution_mode": "headless", "adapter": adapter if backend else None},
         "spec_provenance": spec_provenance,
+        "mesh_acceptance_criteria": {
+            "max_s11_min_delta_db": MAX_S11_MESH_DELTA_DB,
+            "max_resonance_relative_delta": MAX_RESONANCE_MESH_DELTA_FRACTION,
+            "solver_energy_stop_db": -40.0,
+        },
         "geometry_contract": {
             "mechanical_root_key": "mechanical",
             "expected_records": "{value, unit, source, status}",

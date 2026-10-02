@@ -22,10 +22,12 @@ jobs:
       - name: Install locked Python dependencies
         run: uv sync --locked --extra dev
       - name: Validate hardware spec provenance
-        run: uv run python -m riose.digital_twin validate-spec
+        run: uv run python -m riose.products.ear_tag.digital_twin validate-spec
       - name: Probe optional headless tools
-        run: uv run python -m riose.digital_twin preflight
+        run: uv run python -m riose.products.ear_tag.digital_twin preflight
       - name: Python test suite
         run: uv run pytest -q
       - name: C firmware and virtual model tests
         run: make hardware-test
+      - name: Optional Renode platform smoke
+        run: make hardware-renode-test

@@ -41,7 +41,7 @@
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python": "3.12.14",
     "status": "ENVIRONMENT_PROBE_ONLY",
-    "toolchain_manifest": "/home/lucas_coimbra/projects/riose/hardware/toolchain.json",
+    "toolchain_manifest": "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/toolchain.json",
     "versions": {
       "micromamba": {
         "expected": "2.9.0",
@@ -172,7 +172,7 @@
       }
     }
   },
-  "failure_count": 12,
+  "failure_count": 9,
   "gate": {
     "approval": {
       "antenna": "PENDING",
@@ -195,13 +195,13 @@
   "gpu_issue": "OPTIONAL_GPU_EXPERIMENT",
   "milestone": "MVP2_DIGITAL_TWIN",
   "outputs": {
-    "antenna": "results/mvp2/antenna",
-    "failures_csv": "results/mvp2/failures.csv",
-    "firmware": "results/mvp2/firmware",
-    "integration": "results/mvp2/integration",
-    "mechanical": "results/mvp2/mechanical",
-    "power": "results/mvp2/power",
-    "root": "results/mvp2"
+    "antenna": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/antenna",
+    "failures_csv": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/failures.csv",
+    "firmware": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware",
+    "integration": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/integration",
+    "mechanical": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/mechanical",
+    "power": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power",
+    "root": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2"
   },
   "parameter_statuses": {
     "ASSUMED": 77,
@@ -211,28 +211,35 @@
   "physical_measurements_used": false,
   "result_class": "SIMULATED",
   "schema_version": "riose.mvp2.digital-twin/v1",
-  "spec_path": "hardware/spec.yaml",
+  "spec_path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/spec.yaml",
   "spec_sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
   "stages": {
     "adversarial_fault_injection": {
       "completed_host_cases": [
         "one_shot_i2c_failure_recovery",
         "one_shot_spi_failure_recovery",
-        "late_tx_done_timeout_recovery"
+        "late_tx_done_timeout_recovery",
+        "digital_fault_crc_corruption",
+        "digital_fault_sx1262_busy_stuck",
+        "digital_fault_irq_missing",
+        "digital_reset_cause_flag_classification"
       ],
-      "detail": "Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models",
+      "detail": "Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, TX/RX IRQ deadlines, and deterministic reset-flag classification. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",
       "pending_cases": [
-        "sx1262_busy_stuck",
-        "irq_missing",
-        "crc_corruption",
         "battery_voltage_drop",
         "high_esr",
         "regulator_instability",
-        "watchdog_reset",
+        "watchdog_reset_executed_on_target",
         "unexpected_reboot"
       ],
       "required": true,
-      "status": "PARTIAL"
+      "status": "PARTIAL",
+      "watchdog_target_build": {
+        "detail": "The NUCLEO-L031K6 image configures the STM32 IWDG and reports/clears reset flags; no physical watchdog reset was triggered",
+        "result_class": "TARGET_FIRMWARE_BUILD_EVIDENCE",
+        "status": "CONFIGURED_AND_COMPILED",
+        "timeout_ms": 10000
+      }
     },
     "antenna": {
       "command": [
@@ -240,9 +247,9 @@
         "-m",
         "hardware.antenna.run",
         "--spec",
-        "hardware/spec.yaml",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/spec.yaml",
         "--output",
-        "results/mvp2/antenna"
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/antenna"
       ],
       "detail": "ANTENNA_FREE_SPACE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_PCB: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_BATTERY: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_ENCLOSURE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_NEAR_ANIMAL_APPROXIMATION: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured)",
       "required": true,
@@ -382,7 +389,7 @@
       ],
       "status": "PARTIAL_OR_BLOCKED",
       "stderr": "",
-      "stdout": "{\"output\": \"results/mvp2/antenna\", \"result_class\": \"NO_SIMULATION_RESULT\", \"scenarios\": 5, \"status\": \"PARTIAL_OR_BLOCKED\"}\n"
+      "stdout": "{\"output\": \"/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/antenna\", \"result_class\": \"NO_SIMULATION_RESULT\", \"scenarios\": 5, \"status\": \"PARTIAL_OR_BLOCKED\"}\n"
     },
     "firmware_scenarios": {
       "detail": "C FSM traces exported for all four requested profiles",
@@ -390,28 +397,28 @@
       "result_class": "SIMULATED_SOFTWARE_TESTS",
       "scenarios": {
         "ACTIVE": {
-          "path": "results/mvp2/firmware/scenarios/active.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/active.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "ALERT": {
-          "path": "results/mvp2/firmware/scenarios/alert.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/alert.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "NORMAL": {
-          "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/normal.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "WORST_REASONABLE_CASE": {
-          "path": "results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
@@ -472,7 +479,7 @@
           "modeled_charge_uah": 0.5163604444444445,
           "modeled_window_s": 0.16,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/active",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/active",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -524,7 +531,7 @@
           "modeled_charge_uah": 0.5163604444444445,
           "modeled_window_s": 0.16,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/alert",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/alert",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -576,7 +583,7 @@
           "modeled_charge_uah": 0.5142523611111112,
           "modeled_window_s": 1.0,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/normal",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/normal",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -628,7 +635,7 @@
           "modeled_charge_uah": 6.431239944444444,
           "modeled_window_s": 0.63,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/worst_reasonable_case",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/worst_reasonable_case",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         }
@@ -654,34 +661,34 @@
       "status": "SKIPPED_OPTIONAL"
     },
     "host_trace_export": {
-      "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+      "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/normal.jsonl",
       "required": true,
       "result_class": "SIMULATED_SOFTWARE_TRACE",
       "return_code": 0,
       "scenarios": {
         "ACTIVE": {
-          "path": "results/mvp2/firmware/scenarios/active.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/active.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "ALERT": {
-          "path": "results/mvp2/firmware/scenarios/alert.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/alert.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "NORMAL": {
-          "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/normal.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
           "stderr": ""
         },
         "WORST_REASONABLE_CASE": {
-          "path": "results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
+          "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
           "result_class": "SIMULATED_SOFTWARE_TRACE",
           "return_code": 0,
           "status": "PASSED",
@@ -864,25 +871,23 @@
           "status": "SIMULATED",
           "value": [
             "battery envelope exceeds enclosure cavity",
-            "antenna_keepout envelope exceeds enclosure cavity",
-            "antenna keepout exceeds PCB envelope",
             "unexpected envelope overlap: pcb / battery"
           ]
         }
       ],
       "command": [
         "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python",
-        "/home/lucas_coimbra/projects/riose/hardware/mechanical/model.py",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/mechanical/model.py",
         "--spec",
-        "hardware/spec.yaml",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/spec.yaml",
         "--output",
-        "results/mvp2/mechanical/geometry.json",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/mechanical/geometry.json",
         "--step",
-        "results/mvp2/mechanical/ear_tag_assumed.step",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/mechanical/ear_tag_assumed.step",
         "--stl",
-        "results/mvp2/mechanical/ear_tag_assumed.stl"
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/mechanical/ear_tag_assumed.stl"
       ],
-      "detail": "battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery",
+      "detail": "battery envelope exceeds enclosure cavity; unexpected envelope overlap: pcb / battery",
       "dimensions_status": [
         "ASSUMED"
       ],
@@ -890,8 +895,6 @@
         "fits": false,
         "issues": [
           "battery envelope exceeds enclosure cavity",
-          "antenna_keepout envelope exceeds enclosure cavity",
-          "antenna keepout exceeds PCB envelope",
           "unexpected envelope overlap: pcb / battery"
         ]
       },
@@ -900,11 +903,12 @@
       "return_code": 0,
       "status": "FAILED",
       "stderr": "",
-      "stdout": "{\"report\": \"results/mvp2/mechanical/geometry.json\", \"gate\": \"NOT_READY_FOR_PHYSICAL_PROTOTYPE\", \"fits\": false, \"cadquery_available\": true}\n"
+      "stdout": "{\"report\": \"/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/mechanical/geometry.json\", \"gate\": \"NOT_READY_FOR_PHYSICAL_PROTOTYPE\", \"fits\": false, \"cadquery_available\": true}\n"
     },
     "mvp1_c_tests": {
       "command": [
         "make",
+        "HARDWARE_TEST_BUILD_DIR=/tmp/riose-ear-tag-hardware-tests-v2",
         "hardware-test"
       ],
       "required": true,
@@ -912,7 +916,7 @@
       "return_code": 0,
       "status": "PASSED",
       "stderr": "cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by cmake)\ncmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\nctest: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by ctest)\n",
-      "stdout": "cmake -S hardware/tests -B /tmp/cattle-rf-hardware-tests\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /tmp/cattle-rf-hardware-tests\ncmake --build /tmp/cattle-rf-hardware-tests\ngmake[1]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[2]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 17%] Built target tag_firmware\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 29%] Built target lis2dw12_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 41%] Built target sx1262_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 52%] Built target hardware_integration\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 64%] Built target sx1262_driver_config\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 76%] Built target tag_host_demo\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 88%] Built target sx1262_model_smoke\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[100%] Built target test_lis2dw12\ngmake[2]: Leaving directory '/tmp/cattle-rf-hardware-tests'\ngmake[1]: Leaving directory '/tmp/cattle-rf-hardware-tests'\nctest --test-dir /tmp/cattle-rf-hardware-tests --output-on-failure\nInternal ctest changing into directory: /tmp/cattle-rf-hardware-tests\nTest project /tmp/cattle-rf-hardware-tests\n      Start  1: hardware_integration\n 1/23 Test  #1: hardware_integration ...................   Passed    0.00 sec\n      Start  2: firmware_trace_export\n 2/23 Test  #2: firmware_trace_export ..................   Passed    0.00 sec\n      Start  3: firmware_trace_normal\n 3/23 Test  #3: firmware_trace_normal ..................   Passed    0.00 sec\n      Start  4: firmware_trace_active\n 4/23 Test  #4: firmware_trace_active ..................   Passed    0.00 sec\n      Start  5: firmware_trace_alert\n 5/23 Test  #5: firmware_trace_alert ...................   Passed    0.00 sec\n      Start  6: firmware_trace_worst_reasonable_case\n 6/23 Test  #6: firmware_trace_worst_reasonable_case ...   Passed    0.00 sec\n      Start  7: firmware_trace_schema\n 7/23 Test  #7: firmware_trace_schema ..................   Passed    0.02 sec\n      Start  8: virtual_normal_1d\n 8/23 Test  #8: virtual_normal_1d ......................   Passed    0.00 sec\n      Start  9: virtual_active_1d\n 9/23 Test  #9: virtual_active_1d ......................   Passed    0.00 sec\n      Start 10: virtual_alert_1d\n10/23 Test #10: virtual_alert_1d .......................   Passed    0.00 sec\n      Start 11: virtual_worst_reasonable_case_1d\n11/23 Test #11: virtual_worst_reasonable_case_1d .......   Passed    0.00 sec\n      Start 12: virtual_normal_7d\n12/23 Test #12: virtual_normal_7d ......................   Passed    0.00 sec\n      Start 13: virtual_active_7d\n13/23 Test #13: virtual_active_7d ......................   Passed    0.00 sec\n      Start 14: virtual_alert_7d\n14/23 Test #14: virtual_alert_7d .......................   Passed    0.00 sec\n      Start 15: virtual_worst_reasonable_case_7d\n15/23 Test #15: virtual_worst_reasonable_case_7d .......   Passed    0.00 sec\n      Start 16: virtual_normal_30d\n16/23 Test #16: virtual_normal_30d .....................   Passed    0.00 sec\n      Start 17: virtual_active_30d\n17/23 Test #17: virtual_active_30d .....................   Passed    0.01 sec\n      Start 18: virtual_alert_30d\n18/23 Test #18: virtual_alert_30d ......................   Passed    0.06 sec\n      Start 19: virtual_worst_reasonable_case_30d\n19/23 Test #19: virtual_worst_reasonable_case_30d ......   Passed    0.01 sec\n      Start 20: sx1262_driver_config\n20/23 Test #20: sx1262_driver_config ...................   Passed    0.00 sec\n      Start 21: tag_host_cycle\n21/23 Test #21: tag_host_cycle .........................   Passed    0.00 sec\n      Start 22: sx1262_model_smoke\n22/23 Test #22: sx1262_model_smoke .....................   Passed    0.00 sec\n      Start 23: lis2dw12_model\n23/23 Test #23: lis2dw12_model .........................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 23\n\nTotal Test time (real) =   0.14 sec\n"
+      "stdout": "cmake -S hardware/tests -B \"/tmp/riose-ear-tag-hardware-tests-v2\"\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /tmp/riose-ear-tag-hardware-tests-v2\ncmake --build \"/tmp/riose-ear-tag-hardware-tests-v2\"\ngmake[1]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[2]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 11%] Built target sx1262_model\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 22%] Built target lis2dw12_model\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 44%] Built target tag_firmware\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 55%] Built target hardware_integration\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 66%] Built target sx1262_driver_config\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 77%] Built target tag_host_demo\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[ 88%] Built target sx1262_model_smoke\ngmake[3]: Entering directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[3]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\n[100%] Built target test_lis2dw12\ngmake[2]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\ngmake[1]: Leaving directory '/tmp/riose-ear-tag-hardware-tests-v2'\nctest --test-dir \"/tmp/riose-ear-tag-hardware-tests-v2\" --output-on-failure\nInternal ctest changing into directory: /tmp/riose-ear-tag-hardware-tests-v2\nTest project /tmp/riose-ear-tag-hardware-tests-v2\n      Start  1: hardware_integration\n 1/27 Test  #1: hardware_integration ...................   Passed    0.00 sec\n      Start  2: digital_fault_crc_corruption\n 2/27 Test  #2: digital_fault_crc_corruption ...........   Passed    0.00 sec\n      Start  3: digital_fault_sx1262_busy_stuck\n 3/27 Test  #3: digital_fault_sx1262_busy_stuck ........   Passed    0.00 sec\n      Start  4: digital_fault_irq_missing\n 4/27 Test  #4: digital_fault_irq_missing ..............   Passed    0.00 sec\n      Start  5: digital_reset_cause_reporting\n 5/27 Test  #5: digital_reset_cause_reporting ..........   Passed    0.00 sec\n      Start  6: firmware_trace_export\n 6/27 Test  #6: firmware_trace_export ..................   Passed    0.00 sec\n      Start  7: firmware_trace_normal\n 7/27 Test  #7: firmware_trace_normal ..................   Passed    0.00 sec\n      Start  8: firmware_trace_active\n 8/27 Test  #8: firmware_trace_active ..................   Passed    0.00 sec\n      Start  9: firmware_trace_alert\n 9/27 Test  #9: firmware_trace_alert ...................   Passed    0.00 sec\n      Start 10: firmware_trace_worst_reasonable_case\n10/27 Test #10: firmware_trace_worst_reasonable_case ...   Passed    0.00 sec\n      Start 11: firmware_trace_schema\n11/27 Test #11: firmware_trace_schema ..................   Passed    0.02 sec\n      Start 12: virtual_normal_1d\n12/27 Test #12: virtual_normal_1d ......................   Passed    0.00 sec\n      Start 13: virtual_active_1d\n13/27 Test #13: virtual_active_1d ......................   Passed    0.00 sec\n      Start 14: virtual_alert_1d\n14/27 Test #14: virtual_alert_1d .......................   Passed    0.00 sec\n      Start 15: virtual_worst_reasonable_case_1d\n15/27 Test #15: virtual_worst_reasonable_case_1d .......   Passed    0.00 sec\n      Start 16: virtual_normal_7d\n16/27 Test #16: virtual_normal_7d ......................   Passed    0.00 sec\n      Start 17: virtual_active_7d\n17/27 Test #17: virtual_active_7d ......................   Passed    0.00 sec\n      Start 18: virtual_alert_7d\n18/27 Test #18: virtual_alert_7d .......................   Passed    0.00 sec\n      Start 19: virtual_worst_reasonable_case_7d\n19/27 Test #19: virtual_worst_reasonable_case_7d .......   Passed    0.00 sec\n      Start 20: virtual_normal_30d\n20/27 Test #20: virtual_normal_30d .....................   Passed    0.00 sec\n      Start 21: virtual_active_30d\n21/27 Test #21: virtual_active_30d .....................   Passed    0.01 sec\n      Start 22: virtual_alert_30d\n22/27 Test #22: virtual_alert_30d ......................   Passed    0.06 sec\n      Start 23: virtual_worst_reasonable_case_30d\n23/27 Test #23: virtual_worst_reasonable_case_30d ......   Passed    0.01 sec\n      Start 24: sx1262_driver_config\n24/27 Test #24: sx1262_driver_config ...................   Passed    0.00 sec\n      Start 25: tag_host_cycle\n25/27 Test #25: tag_host_cycle .........................   Passed    0.00 sec\n      Start 26: sx1262_model_smoke\n26/27 Test #26: sx1262_model_smoke .....................   Passed    0.00 sec\n      Start 27: lis2dw12_model\n27/27 Test #27: lis2dw12_model .........................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 27\n\nTotal Test time (real) =   0.15 sec\n"
     },
     "power": {
       "detail": "Four scenario rail simulations completed",
@@ -1014,7 +1018,7 @@
           "modeled_charge_uah": 0.5163604444444445,
           "modeled_window_s": 0.16,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/active",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/active",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -1066,7 +1070,7 @@
           "modeled_charge_uah": 0.5163604444444445,
           "modeled_window_s": 0.16,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/alert",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/alert",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -1118,7 +1122,7 @@
           "modeled_charge_uah": 0.5142523611111112,
           "modeled_window_s": 1.0,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/normal",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/normal",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         },
@@ -1170,7 +1174,7 @@
           "modeled_charge_uah": 6.431239944444444,
           "modeled_window_s": 0.63,
           "ngspice_status": "EXECUTED",
-          "outputs": "results/mvp2/power/worst_reasonable_case",
+          "outputs": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/power/worst_reasonable_case",
           "result_class": "SIMULATED",
           "status": "COMPLETED"
         }
@@ -1180,20 +1184,20 @@
     "renode_firmware": {
       "command": [
         "/home/lucas_coimbra/.local/bin/renode-test",
-        "/home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot"
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot"
       ],
       "detail": "Renode platform smoke and Zephyr ELF execution completed",
-      "firmware_elf": "/home/lucas_coimbra/projects/riose/results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
+      "firmware_elf": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
       "firmware_elf_supplied": true,
-      "log_excerpt": "/platform-smoke.robot\n\nStarting suites\nRunning suite on Renode pid 150738 using port 49152: /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 1.57 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.25 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 2.04 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 150738\nRenode pid 150738 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/projects/riose/robot_output.xml\nLog:     /home/lucas_coimbra/projects/riose/log.html\nReport:  /home/lucas_coimbra/projects/riose/report.html\nTests finished successfully :)\n",
+      "log_excerpt": "d 228753 using port 49152: /home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 1.48 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.23 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 1.93 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 228753\nRenode pid 228753 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/.codex/worktrees/0208/riose/robot_output.xml\nLog:     /home/lucas_coimbra/.codex/worktrees/0208/riose/log.html\nReport:  /home/lucas_coimbra/.codex/worktrees/0208/riose/report.html\nTests finished successfully :)\n",
       "required": true,
       "return_code": 0,
       "status": "PASSED",
       "stderr": "",
-      "stdout": "Preparing suites\nWill run the following 1 test files:\n  - /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n\nStarting suites\nRunning suite on Renode pid 150738 using port 49152: /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 1.57 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.25 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 2.04 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 150738\nRenode pid 150738 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/projects/riose/robot_output.xml\nLog:     /home/lucas_coimbra/projects/riose/log.html\nReport:  /home/lucas_coimbra/projects/riose/report.html\nTests finished successfully :)\n"
+      "stdout": "Preparing suites\nWill run the following 1 test files:\n  - /home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot\n\nStarting suites\nRunning suite on Renode pid 228753 using port 49152: /home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 1.48 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.23 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 1.93 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 228753\nRenode pid 228753 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/.codex/worktrees/0208/riose/robot_output.xml\nLog:     /home/lucas_coimbra/.codex/worktrees/0208/riose/log.html\nReport:  /home/lucas_coimbra/.codex/worktrees/0208/riose/report.html\nTests finished successfully :)\n"
     },
     "synthetic_motion": {
-      "path": "results/mvp2/firmware/motion_profiles.csv",
+      "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/motion_profiles.csv",
       "physical_hardware_used": false,
       "profiles": [
         "STATIC",
@@ -1224,17 +1228,17 @@
         "build",
         "-b",
         "nucleo_l031k6",
-        "/home/lucas_coimbra/projects/riose/hardware/firmware/zephyr",
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/firmware/zephyr",
         "-d",
-        "results/mvp2/firmware/zephyr-build"
+        "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/zephyr-build"
       ],
       "detail": "Built target firmware for nucleo_l031k6",
-      "elf": "results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
+      "elf": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
       "required": true,
       "return_code": 0,
       "status": "PASSED",
-      "stderr": "/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n",
-      "stdout": "ninja: no work to do.\n"
+      "stderr": "/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\nLoading Zephyr default modules (Zephyr base (cached)).\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n",
+      "stdout": "b/libc/common/CMakeFiles/lib__libc__common.dir/source/stdlib/malloc.c.obj\n[75/161] Building C object zephyr/drivers/console/CMakeFiles/drivers__console.dir/uart_console.c.obj\n[76/161] Building C object zephyr/drivers/hwinfo/CMakeFiles/drivers__hwinfo.dir/hwinfo_weak_impl.c.obj\n[77/161] Building C object zephyr/drivers/interrupt_controller/CMakeFiles/drivers__interrupt_controller.dir/intc_exti_stm32.c.obj\n[78/161] Building C object zephyr/drivers/clock_control/CMakeFiles/drivers__clock_control.dir/clock_stm32l0_l1.c.obj\n[79/161] Building C object zephyr/drivers/gpio/CMakeFiles/drivers__gpio.dir/gpio_hogs.c.obj\n[80/161] Building C object zephyr/drivers/clock_control/CMakeFiles/drivers__clock_control.dir/clock_stm32_ll_common.c.obj\n[81/161] Building C object zephyr/drivers/i2c/CMakeFiles/drivers__i2c.dir/i2c_common.c.obj\n[82/161] Building C object zephyr/drivers/pinctrl/CMakeFiles/drivers__pinctrl.dir/pinctrl_stm32.c.obj\n[83/161] Building C object zephyr/drivers/i2c/CMakeFiles/drivers__i2c.dir/i2c_ll_stm32.c.obj\n[84/161] Building C object zephyr/drivers/hwinfo/CMakeFiles/drivers__hwinfo.dir/hwinfo_stm32.c.obj\n[85/161] Building C object zephyr/drivers/i2c/CMakeFiles/drivers__i2c.dir/i2c_ll_stm32_common.c.obj\n[86/161] Building C object zephyr/drivers/reset/CMakeFiles/drivers__reset.dir/reset_stm32.c.obj\n[87/161] Building C object zephyr/drivers/gpio/CMakeFiles/drivers__gpio.dir/gpio_stm32.c.obj\n[88/161] Building C object zephyr/drivers/counter/CMakeFiles/drivers__counter.dir/counter_ll_stm32_rtc.c.obj\n[89/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/soc/system_stm32l0xx.c.obj\n[90/161] Building C object zephyr/drivers/timer/CMakeFiles/drivers__timer.dir/sys_clock_init.c.obj\n[91/161] Building C object zephyr/drivers/i2c/CMakeFiles/drivers__i2c.dir/i2c_ll_stm32_v2.c.obj\n[92/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/drivers/src/stm32l0xx_hal_rcc_ex.c.obj\n[93/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/drivers/src/stm32l0xx_ll_utils.c.obj\n[94/161] Building C object zephyr/drivers/timer/CMakeFiles/drivers__timer.dir/cortex_m_systick.c.obj\n[95/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/device.c.obj\n[96/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/drivers/src/stm32l0xx_hal.c.obj\n[97/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/version.c.obj\n[98/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/main_weak.c.obj\n[99/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/drivers/src/stm32l0xx_ll_rtc.c.obj\n[100/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/banner.c.obj\n[101/161] Building C object modules/hal_stm32/stm32cube/CMakeFiles/..__modules__hal__stm32__stm32cube.dir/stm32l0xx/drivers/src/stm32l0xx_hal_rcc.c.obj\n[102/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/busy_wait.c.obj\n[103/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/errno.c.obj\n[104/161] Building C object zephyr/drivers/watchdog/CMakeFiles/drivers__watchdog.dir/wdt_iwdg_stm32.c.obj\n[105/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/float.c.obj\n[106/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/fatal.c.obj\n[107/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/mem_slab.c.obj\n[108/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/kheap.c.obj\n[109/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/init.c.obj\n[110/161] Building C object zephyr/drivers/serial/CMakeFiles/drivers__serial.dir/uart_stm32.c.obj\n[111/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/idle.c.obj\n[112/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/system_work_q.c.obj\n[113/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/stack.c.obj\n[114/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/sem.c.obj\n[115/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/msg_q.c.obj\n[116/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/mutex.c.obj\n[117/161] Linking C static library app/libapp.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[118/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/queue.c.obj\n[119/161] Linking C static library zephyr/arch/arch/arm/core/libarch__arm__core.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[120/161] Linking C static library zephyr/arch/common/libarch__common.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[121/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/thread.c.obj\n[122/161] Building C object zephyr/CMakeFiles/zephyr_pre0.dir/misc/empty_file.c.obj\n[123/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/condvar.c.obj\n[124/161] Linking C static library zephyr/libzephyr.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[125/161] Building C object zephyr/drivers/spi/CMakeFiles/drivers__spi.dir/spi_ll_stm32.c.obj\n[126/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/xip.c.obj\n[127/161] Linking C static library zephyr/lib/libc/picolibc/liblib__libc__picolibc.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[128/161] Linking C static library zephyr/arch/arch/arm/core/cortex_m/libarch__arm__core__cortex_m.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[129/161] Linking C static library zephyr/lib/libc/common/liblib__libc__common.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[130/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/timeslicing.c.obj\n[131/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/mailbox.c.obj\n[132/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/atomic_c.c.obj\n[133/161] Linking C static library zephyr/drivers/counter/libdrivers__counter.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[134/161] Linking C static library zephyr/drivers/clock_control/libdrivers__clock_control.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[135/161] Linking C static library zephyr/drivers/console/libdrivers__console.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[136/161] Linking C static library zephyr/drivers/gpio/libdrivers__gpio.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[137/161] Linking C static library zephyr/drivers/interrupt_controller/libdrivers__interrupt_controller.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[138/161] Linking C static library zephyr/drivers/reset/libdrivers__reset.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[139/161] Linking C static library zephyr/drivers/pinctrl/libdrivers__pinctrl.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[140/161] Linking C static library zephyr/drivers/spi/libdrivers__spi.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[141/161] Linking C static library zephyr/drivers/i2c/libdrivers__i2c.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[142/161] Linking C static library zephyr/drivers/watchdog/libdrivers__watchdog.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[143/161] Linking C static library zephyr/drivers/serial/libdrivers__serial.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[144/161] Linking C static library zephyr/drivers/timer/libdrivers__timer.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[145/161] Linking C static library zephyr/drivers/hwinfo/libdrivers__hwinfo.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[146/161] Linking C static library modules/hal_stm32/stm32cube/lib..__modules__hal__stm32__stm32cube.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[147/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/pipe.c.obj\n[148/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/dynamic_disabled.c.obj\n[149/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/mempool.c.obj\n[150/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/timeout.c.obj\n[151/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/timer.c.obj\n[152/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/work.c.obj\n[153/161] Building C object zephyr/kernel/CMakeFiles/kernel.dir/sched.c.obj\n[154/161] Linking C static library zephyr/kernel/libkernel.a\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[155/161] Linking C executable zephyr/zephyr_pre0.elf\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[156/161] Generating linker.cmd\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n[157/161] Generating isr_tables.c, isr_tables_vt.ld, isr_tables_swi.ld\n[158/161] Building C object zephyr/CMakeFiles/zephyr_final.dir/misc/empty_file.c.obj\n[159/161] Building C object zephyr/CMakeFiles/zephyr_final.dir/isr_tables.c.obj\n[160/161] Linking C executable zephyr/zephyr.elf\nMemory region         Used Size  Region Size  %age Used\n           FLASH:       30476 B        32 KB     93.01%\n             RAM:        3008 B         8 KB     36.72%\n        IDT_LIST:          0 GB        32 KB      0.00%\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\nGenerating files from /home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf for board: nucleo_l031k6\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n"
     }
   }
 }

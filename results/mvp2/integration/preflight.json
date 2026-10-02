@@ -40,7 +40,7 @@
   "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
   "python": "3.12.14",
   "status": "ENVIRONMENT_PROBE_ONLY",
-  "toolchain_manifest": "/home/lucas_coimbra/projects/riose/hardware/toolchain.json",
+  "toolchain_manifest": "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/toolchain.json",
   "versions": {
     "micromamba": {
       "expected": "2.9.0",

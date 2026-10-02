@@ -1,4 +1,5 @@
 #include "lis2dw12_model.h"
+#include "tag_reset_cause.h"
 #include "sx1262_model.h"
 #include "tag_firmware.h"
 
@@ -35,6 +36,10 @@ typedef struct {
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
     bool force_active_sample;
+    bool corrupt_next_tx_packet;
+    bool suppress_radio_irq;
+    bool radio_busy_stuck;
+    uint32_t corrupted_tx_packets;
     uint32_t trace_sequence;
     uint8_t last_packet[TAG_TELEMETRY_MAX_SIZE];
     size_t last_packet_len;
@@ -71,8 +76,18 @@ static int virtual_spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
         }
     }
     const int result = sx1262_model_transfer(&tag->radio, tx, tx_len, rx, rx_len);
-    if (result == 0 && tx != NULL && tx_len > 0u && tx[0] == 0x0eu)
+    if (result == 0 && tx != NULL && tx_len > 0u && tx[0] == 0x0eu) {
+        /* Corrupt only the model's transmitted FIFO copy, after firmware has
+         * supplied the frame. This exercises the receiver-side CRC contract;
+         * it does not model RF propagation or a physical radio fault. */
+        if (tag->corrupt_next_tx_packet && tx_len >= 2u && tx[1] == 0u &&
+            tx_len == TAG_TELEMETRY_MAX_SIZE + 2u) {
+            tag->radio.fifo[TAG_TELEMETRY_MAX_SIZE - 1u] ^= 0x01u;
+            tag->corrupt_next_tx_packet = false;
+            ++tag->corrupted_tx_packets;
+        }
         record_packet(tag);
+    }
     if (result == 0 && tx != NULL && tx_len == 4u && tx[0] == 0x12u && rx != NULL) {
         const uint16_t irq = (uint16_t)(((uint16_t)rx[2] << 8u) | rx[3]);
         tag->saw_tx_done_irq |= (irq & SX1262_IRQ_TX_DONE) != 0u;
@@ -133,7 +148,13 @@ static bool virtual_imu_irq_pending(void *context)
 
 static bool virtual_radio_irq_pending(void *context)
 {
-    return sx1262_model_irq(&((virtual_tag_t *)context)->radio);
+    virtual_tag_t *tag = (virtual_tag_t *)context;
+    return !tag->suppress_radio_irq && sx1262_model_irq(&tag->radio);
+}
+
+static int virtual_radio_busy(void *context)
+{
+    return ((virtual_tag_t *)context)->radio_busy_stuck ? 1 : 0;
 }
 
 static uint32_t virtual_clock_ms(void *context)
@@ -234,6 +255,7 @@ static tag_hal_t virtual_hal(virtual_tag_t *tag)
         .context = tag,
         .spi_transfer = virtual_spi_transfer,
         .radio_reset = virtual_radio_reset,
+        .radio_busy = virtual_radio_busy,
         .imu_read = virtual_imu_read,
         .imu_irq_pending = virtual_imu_irq_pending,
         .radio_irq_pending = virtual_radio_irq_pending,
@@ -507,6 +529,121 @@ static void test_missing_tx_done_timeout(void)
     assert(firmware.failures >= 1u);
     assert(tag.saw_timeout_irq);
     assert(!tag.saw_tx_done_irq);
+}
+
+static void test_crc_corruption_is_rejected_and_next_frame_is_valid(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(10u);
+    config.normal_beacon_ms = 100u;
+    virtual_tag_init(&tag, &firmware, &config, 5u);
+    tag_firmware_step(&firmware);
+    tag_firmware_step(&firmware);
+    assert(firmware.state == TAG_STATE_SLEEP);
+
+    tag.corrupt_next_tx_packet = true;
+    assert(step_until_packet_and_sleep(&firmware, 0u, 1000u));
+    assert(tag.corrupted_tx_packets == 1u);
+    assert(!tag.corrupt_next_tx_packet);
+    assert(tag.last_packet_len == TAG_TELEMETRY_MAX_SIZE);
+    assert(!tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len));
+    assert(firmware.packets_sent == 1u);
+    assert(tag.radio.mode == SX1262_MODE_SLEEP);
+
+    /* The injected corruption is one-shot: the next normal beacon carries a
+     * valid frame and the firmware returns to its scheduled sleep state. */
+    assert(step_until_packet_and_sleep(&firmware, 1u, 1000u));
+    assert(tag.corrupted_tx_packets == 1u);
+    assert(tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len));
+    assert(firmware.packets_sent == 2u);
+    assert(tag.radio.mode == SX1262_MODE_SLEEP);
+}
+
+static void test_busy_stuck_times_out_and_recovers_after_release(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(11u);
+    config.normal_beacon_ms = 100u;
+    virtual_tag_init(&tag, &firmware, &config, 5u);
+    tag_firmware_step(&firmware);
+    tag_firmware_step(&firmware);
+    assert(firmware.state == TAG_STATE_SLEEP);
+
+    tag.force_active_sample = true;
+    tag_firmware_step(&firmware); /* beacon due -> sample */
+    assert(firmware.state == TAG_STATE_IMU_MONITORING);
+    tag.radio_busy_stuck = true;
+    const uint32_t before = tag.now_ms;
+    tag_firmware_step(&firmware); /* BUSY remains high through bounded wait */
+    assert(firmware.state == TAG_STATE_ERROR_RECOVERY);
+    assert(firmware.failures == 1u);
+    assert(tag.now_ms - before == 100u);
+
+    /* Release the injected line before the documented one-second retry. */
+    tag.radio_busy_stuck = false;
+    assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
+    assert(tag.reset_count >= 2u);
+}
+
+static void test_missing_radio_irq_has_software_timeout_and_recovers(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(12u);
+    config.normal_beacon_ms = 100u;
+    virtual_tag_init(&tag, &firmware, &config, 5u);
+    tag_firmware_step(&firmware);
+    tag_firmware_step(&firmware);
+    assert(firmware.state == TAG_STATE_SLEEP);
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_WALKING);
+    tag.suppress_radio_irq = true;
+    assert(step_until_state(&firmware, TAG_STATE_ERROR_RECOVERY, 1500u));
+    assert(firmware.failures == 1u);
+    assert((tag.radio.irq_status & SX1262_IRQ_TX_DONE) != 0u);
+    /* Radio completed; only the IRQ pin was hidden from the MCU. */
+    assert(firmware.packets_sent == 1u);
+    assert((uint32_t)(tag.now_ms - tag.radio.tx_started_ms) ==
+           1000u + 100u);
+
+    tag.suppress_radio_irq = false;
+    assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
+    assert(tag.reset_count >= 2u);
+
+    /* The bounded RX window also needs a software deadline when DIO1 is lost. */
+    virtual_tag_init(&tag, &firmware, &config, 5u);
+    tag_firmware_step(&firmware);
+    tag_firmware_step(&firmware);
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_WALKING);
+    assert(step_until_state(&firmware, TAG_STATE_RF_RX, 100u));
+    assert(tag.saw_tx_done_irq);
+    tag.suppress_radio_irq = true;
+    assert(step_until_state(&firmware, TAG_STATE_ERROR_RECOVERY, 500u));
+    assert((tag.radio.irq_status & SX1262_IRQ_TIMEOUT) != 0u);
+    assert((uint32_t)(tag.now_ms - tag.radio.tx_started_ms) == 100u + 100u);
+    tag.suppress_radio_irq = false;
+    assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
+}
+
+static void test_reset_cause_flags_are_classified_deterministically(void)
+{
+    assert(tag_reset_cause_classify(0u) == TAG_RESET_KIND_UNKNOWN);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_POWER_ON) ==
+           TAG_RESET_KIND_POWER_ON);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_WATCHDOG) ==
+           TAG_RESET_KIND_WATCHDOG);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_PIN) == TAG_RESET_KIND_PIN);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_SOFTWARE) ==
+           TAG_RESET_KIND_SOFTWARE);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_BROWNOUT) ==
+           TAG_RESET_KIND_BROWNOUT);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_DEBUG) == TAG_RESET_KIND_OTHER);
+    assert(tag_reset_cause_classify(TAG_RESET_CAUSE_POWER_ON |
+                                    TAG_RESET_CAUSE_WATCHDOG) ==
+           TAG_RESET_KIND_WATCHDOG);
+    assert(strcmp(tag_reset_kind_name(TAG_RESET_KIND_WATCHDOG), "watchdog") == 0);
+    assert(strcmp(tag_reset_kind_name(TAG_RESET_KIND_UNKNOWN), "unknown") == 0);
 }
 
 static lis2dw12_motion_t motion_for_time(uint32_t time_ms)
@@ -900,11 +1037,12 @@ static int export_scenario_trace(const char *path, const char *scenario)
 
 static int parse_runner_arguments(int argc, char **argv, const char **trace_path,
                                  const char **trace_scenario, const char **scenario,
-                                 uint32_t *long_run_days)
+                                 const char **fault_scenario, uint32_t *long_run_days)
 {
     *trace_path = NULL;
     *trace_scenario = NULL;
     *scenario = "NORMAL";
+    *fault_scenario = NULL;
     *long_run_days = 0u;
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--trace-output") == 0 && i + 1 < argc && *trace_path == NULL) {
@@ -913,6 +1051,9 @@ static int parse_runner_arguments(int argc, char **argv, const char **trace_path
             *trace_scenario = argv[++i];
         } else if (strcmp(argv[i], "--scenario") == 0 && i + 1 < argc) {
             *scenario = argv[++i];
+        } else if (strcmp(argv[i], "--fault-scenario") == 0 && i + 1 < argc &&
+                   *fault_scenario == NULL) {
+            *fault_scenario = argv[++i];
         } else if (strcmp(argv[i], "--long-run-days") == 0 && i + 1 < argc && *long_run_days == 0u) {
             char *end = NULL;
             const unsigned long parsed = strtoul(argv[++i], &end, 10);
@@ -920,13 +1061,15 @@ static int parse_runner_arguments(int argc, char **argv, const char **trace_path
             *long_run_days = (uint32_t)parsed;
         } else {
             fprintf(stderr, "usage: %s [--trace-output PATH [--trace-scenario SCENARIO]] "
-                    "[--long-run-days 1|7|30 --scenario SCENARIO]\n", argv[0]);
+                    "[--long-run-days 1|7|30 --scenario SCENARIO] "
+                    "[--fault-scenario crc_corruption|sx1262_busy_stuck|irq_missing|reset_cause_reporting]\n", argv[0]);
             return 0;
         }
     }
     if (*trace_path == NULL) *trace_path = getenv("RIOSE_TRACE_OUTPUT");
     if ((*trace_scenario != NULL && (*trace_path == NULL || *long_run_days != 0u)) ||
-        (*trace_scenario == NULL && *long_run_days != 0u && *scenario == NULL)) return 0;
+        (*trace_scenario == NULL && *long_run_days != 0u && *scenario == NULL) ||
+        (*fault_scenario != NULL && (*trace_scenario != NULL || *long_run_days != 0u))) return 0;
     return 1;
 }
 
@@ -935,9 +1078,36 @@ int main(int argc, char **argv)
     const char *trace_path = NULL;
     const char *trace_scenario = NULL;
     const char *scenario = NULL;
+    const char *fault_scenario = NULL;
     uint32_t long_run_days = 0u;
     if (!parse_runner_arguments(argc, argv, &trace_path, &trace_scenario,
-                                &scenario, &long_run_days)) return 2;
+                                &scenario, &fault_scenario, &long_run_days)) return 2;
+    if (fault_scenario != NULL) {
+        if (strcmp(fault_scenario, "crc_corruption") == 0) {
+            test_crc_corruption_is_rejected_and_next_frame_is_valid();
+            puts("Digital fault scenario crc_corruption passed (corrupt frame rejected by CRC check; next frame valid)");
+            return 0;
+        }
+        if (strcmp(fault_scenario, "sx1262_busy_stuck") == 0) {
+            test_busy_stuck_times_out_and_recovers_after_release();
+            puts("Digital fault scenario sx1262_busy_stuck passed (100 ms BUSY bound; retry succeeds after injected line release)");
+            return 0;
+        }
+        if (strcmp(fault_scenario, "irq_missing") == 0) {
+            test_missing_radio_irq_has_software_timeout_and_recovers();
+            puts("Digital fault scenario irq_missing passed (TX IRQ hidden; software deadline enters recovery)");
+            return 0;
+        }
+        if (strcmp(fault_scenario, "reset_cause_reporting") == 0) {
+            test_reset_cause_flags_are_classified_deterministically();
+            puts("Digital reset-cause test passed (deterministic flag classification; no MCU reset simulated)");
+            return 0;
+        }
+        {
+            fprintf(stderr, "unknown digital fault scenario: %s\n", fault_scenario);
+            return 2;
+        }
+    }
     if (long_run_days != 0u) return run_long_virtual_scenario(scenario, long_run_days);
     if (trace_scenario != NULL)
         return export_scenario_trace(trace_path, trace_scenario);
@@ -951,6 +1121,7 @@ int main(int argc, char **argv)
     test_imu_failure_recovery();
     test_radio_fault_recovery();
     test_missing_tx_done_timeout();
+    test_reset_cause_flags_are_classified_deterministically();
     test_accelerated_24h();
     test_healthy_stationary_below_alarm_threshold();
     test_prolonged_active_burst_is_bounded();

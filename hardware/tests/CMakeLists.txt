@@ -10,6 +10,14 @@ target_link_libraries(hardware_integration PRIVATE tag_firmware sx1262_model lis
 target_compile_options(hardware_integration PRIVATE -Wall -Wextra -Wpedantic -Werror)
 enable_testing()
 add_test(NAME hardware_integration COMMAND hardware_integration)
+add_test(NAME digital_fault_crc_corruption
+  COMMAND hardware_integration --fault-scenario crc_corruption)
+add_test(NAME digital_fault_sx1262_busy_stuck
+  COMMAND hardware_integration --fault-scenario sx1262_busy_stuck)
+add_test(NAME digital_fault_irq_missing
+  COMMAND hardware_integration --fault-scenario irq_missing)
+add_test(NAME digital_reset_cause_reporting
+  COMMAND hardware_integration --fault-scenario reset_cause_reporting)
 add_test(NAME firmware_trace_export
   COMMAND hardware_integration --trace-output ${CMAKE_CURRENT_BINARY_DIR}/firmware-trace.jsonl)
 foreach(scenario NORMAL ACTIVE ALERT WORST_REASONABLE_CASE)

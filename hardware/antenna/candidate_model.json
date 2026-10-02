@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "candidate_model": {
+    "name": {
+      "value": "planar_four_run_monopole_v1",
+      "unit": "text",
+      "source": "Explicit simulation-only candidate definition; not a routed design",
+      "status": "ASSUMED"
+    },
+    "center_frequency_hz": {
+      "value": 915000000,
+      "unit": "Hz",
+      "source": "MVP1 firmware prototype setting; not a selected regional band",
+      "status": "ASSUMED"
+    },
+    "element_length_mm": {
+      "value": 82.0,
+      "unit": "mm",
+      "source": "Four-run trace centerline total for this simulation candidate",
+      "status": "ASSUMED"
+    },
+    "trace_width_mm": {
+      "value": 1.0,
+      "unit": "mm",
+      "source": "Initial geometry assumption; not routed-design evidence",
+      "status": "ASSUMED"
+    },
+    "trace_centerline_mm": {
+      "value": [[-9.0, -4.0], [9.0, -4.0], [9.0, -0.6666666667], [-9.0, -0.6666666667], [-9.0, 2.6666666667], [9.0, 2.6666666667], [9.0, 6.0], [-9.0, 6.0]],
+      "unit": "mm",
+      "source": "Parametric axis-aligned four-run path; simulation candidate only",
+      "status": "ASSUMED"
+    },
+    "feed_point_mm": {
+      "value": [-9.0, -4.0],
+      "unit": "mm",
+      "source": "Lumped-port connection at first trace endpoint; solver convention",
+      "status": "ASSUMED"
+    },
+    "board_mm": {
+      "value": [30.0, 48.0, 1.6],
+      "unit": "mm",
+      "source": "Provisional mechanical PCB envelope from hardware/spec.yaml",
+      "status": "ASSUMED"
+    },
+    "board_origin_mm": {
+      "value": [0.0, 0.0, 0.0],
+      "unit": "mm",
+      "source": "Simulation coordinate origin; PCB centered in XY with bottom face at z=0",
+      "status": "ASSUMED"
+    },
+    "ground_plane_mm": {
+      "value": [30.0, 48.0],
+      "unit": "mm",
+      "source": "Finite PEC reference-plane candidate matching the provisional PCB envelope",
+      "status": "ASSUMED"
+    },
+    "pcb_relative_permittivity": {
+      "value": 4.2,
+      "unit": "ratio",
+      "source": "Generic FR-4-like simulation placeholder; not a selected laminate",
+      "status": "ASSUMED"
+    },
+    "pcb_loss_tangent": {
+      "value": 0.02,
+      "unit": "ratio",
+      "source": "Generic FR-4-like simulation placeholder; not a selected laminate",
+      "status": "ASSUMED"
+    },
+    "copper_model": {
+      "value": "PEC",
+      "unit": "text",
+      "source": "Perfect-conductor numerical simplification; copper losses omitted",
+      "status": "ASSUMED"
+    },
+    "battery_model": {
+      "value": "PEC_BOX",
+      "unit": "text",
+      "source": "Solid perfect-conductor cuboid surrogate; not cell characterization",
+      "status": "ASSUMED"
+    },
+    "battery_dimensions_mm": {
+      "value": [14.7, 49.5, 14.7],
+      "unit": "mm",
+      "source": "Candidate cell envelope from hardware/spec.yaml, represented as a cuboid",
+      "status": "ASSUMED"
+    },
+    "battery_offset_mm": {
+      "value": [-7.35, -24.75, -16.3],
+      "unit": "mm",
+      "source": "Lower corner of the cuboid centered in XY and placed 1.6 mm below the ground plane",
+      "status": "ASSUMED"
+    },
+    "enclosure_shape": {
+      "value": "closed_rectangular_shell",
+      "unit": "text",
+      "source": "Six-wall dielectric box; cap seams, holes, ribs and molding details omitted",
+      "status": "ASSUMED"
+    },
+    "enclosure_dimensions_mm": {
+      "value": [38.0, 68.0, 15.0],
+      "unit": "mm",
+      "source": "Provisional commercial-envelope reference from hardware/spec.yaml",
+      "status": "ASSUMED"
+    },
+    "enclosure_offset_mm": {
+      "value": [-19.0, -34.0, -1.2],
+      "unit": "mm",
+      "source": "Centered XY six-wall enclosure; bottom wall touches the assumed ground plane",
+      "status": "ASSUMED"
+    },
+    "enclosure_wall_mm": {
+      "value": 1.2,
+      "unit": "mm",
+      "source": "Provisional shell-wall assumption from hardware/spec.yaml",
+      "status": "ASSUMED"
+    },
+    "enclosure_relative_permittivity": {
+      "value": 3.5,
+      "unit": "ratio",
+      "source": "Generic TPU placeholder from hardware/spec.yaml; not material characterization",
+      "status": "ASSUMED"
+    },
+    "enclosure_conductivity_s_m": {
+      "value": 0.01,
+      "unit": "S/m",
+      "source": "Generic TPU loss placeholder from hardware/spec.yaml; not material characterization",
+      "status": "ASSUMED"
+    },
+    "animal_shape": {
+      "value": "homogeneous_rectangular_slab",
+      "unit": "text",
+      "source": "Sensitivity phantom only; not animal anatomy or tissue validation",
+      "status": "ASSUMED"
+    },
+    "animal_relative_permittivity": {
+      "value": 50.0,
+      "unit": "ratio",
+      "source": "Homogeneous animal-proximity sensitivity placeholder from hardware/spec.yaml",
+      "status": "ASSUMED"
+    },
+    "animal_conductivity_s_m": {
+      "value": 0.8,
+      "unit": "S/m",
+      "source": "Homogeneous animal-proximity sensitivity placeholder from hardware/spec.yaml",
+      "status": "ASSUMED"
+    },
+    "animal_slab_thickness_mm": {
+      "value": 10.0,
+      "unit": "mm",
+      "source": "Sensitivity placeholder from hardware/spec.yaml; not anatomical measurement",
+      "status": "ASSUMED"
+    },
+    "animal_slab_dimensions_mm": {
+      "value": [10.0, 48.0, 10.0],
+      "unit": "mm",
+      "source": "Rectangular sensitivity phantom with height equal to assumed PCB length",
+      "status": "ASSUMED"
+    },
+    "animal_slab_offset_mm": {
+      "value": [17.0, -24.0, -5.0],
+      "unit": "mm",
+      "source": "Slab placed beside the PCB with the separately declared nominal air gap",
+      "status": "ASSUMED"
+    },
+    "animal_slab_air_gap_mm": {
+      "value": 2.0,
+      "unit": "mm",
+      "source": "Explicit side-placement assumption for the isolated sensitivity scenario",
+      "status": "ASSUMED"
+    },
+    "limitations": [
+      "ASSUMED parametric simulation candidate; not a released routed antenna design.",
+      "Perfect-conductor trace/ground and battery surrogate omit conductor and cell losses.",
+      "PCB, candidate battery, and cited enclosure dimensions have not passed fit review.",
+      "Generic dielectric placeholders are not selected or characterized materials.",
+      "The animal case is a homogeneous sensitivity slab, not tissue or anatomy validation."
+    ]
+  }
+}

@@ -14,11 +14,76 @@ metrics are null. If bindings exist without a configured adapter, status is
 
 The expected spec records are under `antenna` and each includes `value`,
 `unit`, `source`, and `status`. A `MEASURED` status is rejected for MVP 2.
-Initial defaults (915 MHz, 82 mm element length, 0 mm feed coordinate, 2 mm
+Initial defaults (915 MHz, 82 mm element length, feed coordinate, 2 mm
 clearance and meandered monopole topology) are all `ASSUMED`, not findings.
-The `mechanical` section is recognized as the geometry contract, but no mesh is
-silently inferred from dimensions. A solver adapter must disclose mesh source,
-geometry hash, materials, solver version, and convergence settings.
+
+## Explicit simulation candidate
+
+`hardware/antenna/candidate_model.json` contains
+`planar_four_run_monopole_v1`; its values carry their own `source` and
+`ASSUMED` status. Keeping this candidate outside `hardware/spec.yaml` preserves
+the spec hash used by the existing MVP2 reports. The model's serialized
+centerline defines an 82 mm four-run path, with a 1 mm PEC
+trace, a lumped feed at its first point, and a 30 by 48 mm finite PEC ground
+plane. Non-free-space cases add a generic FR-4-like dielectric substrate. The
+other cases add one isolated surrogate: the assumed cell envelope as a PEC
+cuboid, the assumed enclosure dimensions as a six-wall generic dielectric
+shell, or the existing homogeneous dielectric animal sensitivity slab.
+
+These are reproducible numerical assumptions, not a released antenna design.
+Conductor loss, cell internals, selected PCB stackup, enclosure details and
+animal anatomy are not modeled. The PCB, battery and enclosure dimensions have
+not passed a combined fit review. The animal case is not tissue validation.
+Thus a solver run can describe only this assumed candidate and cannot change
+the physical prototype gate to ready. A `COMPLETED` antenna row means the
+openEMS run completed and the declared two-mesh S11 comparison passed; it does
+not mean the geometry, materials, RF performance or product are validated.
+
+To select the adapter in an environment with the installed openEMS bindings:
+
+```sh
+source hardware/activate-mvp2-toolchain.sh
+export RIOSE_OPENEMS_ADAPTER=hardware.antenna.openems_adapter
+python -m hardware.antenna.run --spec hardware/spec.yaml --output results/mvp2/antenna
+```
+
+The adapter stores the assumed geometry description, both mesh runs, native
+solver logs, raw openEMS/NF2FF files, and derived CSVs per scenario. It reports
+`FAILED` when the field-energy stop criterion is not reached before the
+timestep limit, the frequency sweep does not bracket an S11 minimum, solver
+artifacts are missing, derived metrics are invalid, or coarse/fine S11
+comparison misses its declared tolerance. It does not substitute analytical
+estimates. A separate battery-surrogate check reached the 160,000-step limit
+before the energy criterion, so the adapter stopped before starting the fine
+mesh and returned no RF metrics. Metric and raw-file paths are relative to the
+scenario directory and are verified there before a row can be marked
+`COMPLETED`.
+
+### Free-space convergence pilot
+
+The simulation-only candidate was also run outside the five-scenario CLI at
+1 mm to inspect refinement after the 4/2 mm pair failed. The three
+free-space runs returned these solver-derived summaries:
+
+| Maximum mesh step | Cells | Resonance | Minimum S11 | Input impedance | VSWR | Efficiency | Gain |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 4 mm | 75,348 | 1.993 GHz | -0.89 dB | 60.74 + j231.00 Ω | 19.58 | 0.00226 | -24.61 dBi |
+| 2 mm | 367,500 | 2.245 GHz | -11.98 dB | 30.73 - j6.63 Ω | 1.67 | 0.00233 | -25.28 dBi |
+| 1 mm | 2,322,540 | 2.035 GHz | -1.68 dB | 284.46 + j255.65 Ω | 10.36 | 0.00032 | -29.58 dBi |
+
+Both adjacent comparisons fail the adapter limits (at most 1 dB S11 delta
+and 2% resonance delta). The 4/2 mm resonance changes by about 12.7% and S11
+by 11.1 dB; the 2/1 mm pair changes by about 9.4% and 10.3 dB. These are
+failed exploratory runs of an assumed model, not accepted antenna performance.
+The 1 mm mesh used about 2.32 million cells; this cost is why the five-case
+adapter remains opt-in rather than part of the quick integration run. All five
+scenario paths were exercised separately: free-space, PCB, enclosure, and
+animal-proximity runs reached the solver energy criterion but failed mesh
+convergence; the battery surrogate hit the timestep limit before that
+criterion, so the fine mesh did not start. No scenario produced accepted RF
+metrics. Detailed solver output was kept in temporary run directories, not
+treated as release artifacts. The summarized evidence and candidate/spec
+hashes are in `results/mvp2/antenna/openems_candidate_pilot.json`.
 
 Set `RIOSE_OPENEMS_ADAPTER=module.name` to load a Python module exposing
 `simulate(spec=..., scenario=..., output_dir=...)`. It may report `COMPLETED`

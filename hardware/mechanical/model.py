@@ -153,6 +153,8 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = [
         "Bounding-box placement and mass properties are estimates; validate clearances and retention in a reviewed design.",
         "Battery cylinder is approximated by a rectangular envelope with length along X.",
+        "PCB is placed toward the left cavity edge to reserve the assumed right-side battery location; no PCB origin is specified.",
+        "Antenna keepout may extend beyond the PCB edge into empty cavity; mounted-package intersections remain fit blockers.",
         "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface.",
     ]
     den_shell = _density(spec, "enclosure_density_g_cm3", 1.2)
@@ -165,9 +167,16 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     # Body represented as a hollow rectangular shell. Other parts are simple
     # envelopes; PCB-mounted component mass is not subtracted from the PCB.
     inner_w, inner_h, inner_t = ew.value - 2 * wall.value, eh.value - 2 * wall.value, et.value - 2 * wall.value
+    # Keep the left-aligned packing heuristic, but constrain its placement so
+    # the antenna keepout does not cross the cavity wall merely because the
+    # board was anchored flush to the left. The hardware spec does not declare
+    # an origin, so this remains an explicit placement estimate.
+    pcb_left_aligned_x = -inner_w / 2 + pw.value / 2
+    antenna_keepout_half_width = aw.value / 2 + ak.value
+    pcb_x = max(pcb_left_aligned_x, -inner_w / 2 + antenna_keepout_half_width)
     boxes: list[Box] = [
         Box("enclosure", 0, 0, 0, ew.value, eh.value, et.value, "enclosure", ew.source, ew.status),
-        Box("pcb", -inner_w / 2 + pw.value / 2, 0, wall.value, pw.value, ph.value, pt.value, "pcb", pw.source, pw.status),
+        Box("pcb", pcb_x, 0, wall.value, pw.value, ph.value, pt.value, "pcb", pw.source, pw.status),
         # Side-by-side with PCB; an overlap means the selected envelopes do not fit.
         Box("battery", inner_w / 2 - bl.value / 2, 0, wall.value, bl.value, bd.value, bd.value, "battery", bl.source, bl.status),
     ]
@@ -220,10 +229,6 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     if (ab["x"][0] < board.x - board.width / 2 - 1e-9 or ab["x"][1] > board.x + board.width / 2 + 1e-9
             or ab["y"][0] < board.y - board.height / 2 - 1e-9 or ab["y"][1] > board.y + board.height / 2 + 1e-9):
         issues.append("antenna footprint exceeds PCB envelope")
-    kb = antenna_keepout.bounds()
-    if (kb["x"][0] < board.x - board.width / 2 - 1e-9 or kb["x"][1] > board.x + board.width / 2 + 1e-9
-            or kb["y"][0] < board.y - board.height / 2 - 1e-9 or kb["y"][1] > board.y + board.height / 2 + 1e-9):
-        issues.append("antenna keepout exceeds PCB envelope")
     for box in boxes[3:6]:
         if _overlap(box, antenna_keepout):
             issues.append(f"{box.name} package violates antenna keepout")

@@ -9,6 +9,7 @@ if(CONFIG_BOARD_NATIVE_SIM)
     src/native_sim_main.c
     ../src/tag_firmware.c
     ../src/sx1262.c
+    ../src/reset_cause.c
     ../../models/sx1262/src/sx1262_model.c
     ../../models/lis2dw12/lis2dw12_model.c
   )
@@ -18,6 +19,6 @@ if(CONFIG_BOARD_NATIVE_SIM)
     ../../models/lis2dw12
   )
 else()
-  target_sources(app PRIVATE src/main.c ../src/tag_firmware.c ../src/sx1262.c)
+  target_sources(app PRIVATE src/main.c ../src/tag_firmware.c ../src/sx1262.c ../src/reset_cause.c)
   target_include_directories(app PRIVATE ../include)
 endif()

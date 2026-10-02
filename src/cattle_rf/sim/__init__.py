@@ -1,5 +1,5 @@
-"""CPU-friendly farm and radio simulation components."""
+"""Compatibility imports for canonical livestock simulation components."""
 
-from .episode import simulate_episode
+from riose.products.livestock_tracking.simulation import simulate_episode
 
 __all__ = ["simulate_episode"]

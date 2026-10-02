@@ -82,6 +82,8 @@ typedef struct {
     int (*spi_transfer)(void *context, const uint8_t *tx, size_t tx_len,
                         uint8_t *rx, size_t rx_len);
     int (*radio_reset)(void *context);
+    /* Optional active-high SX126x BUSY pin. The common driver bounds waits. */
+    int (*radio_busy)(void *context);
     int (*imu_read)(void *context, tag_imu_sample_t *sample);
     bool (*imu_irq_pending)(void *context);
     bool (*radio_irq_pending)(void *context);
@@ -129,6 +131,8 @@ typedef struct {
     bool initialized;
     bool rx_started;
     bool still_tracking;
+    uint32_t tx_irq_deadline_ms;
+    uint32_t rx_irq_deadline_ms;
 } tag_firmware_t;
 
 tag_config_t tag_default_config(uint32_t tag_id);

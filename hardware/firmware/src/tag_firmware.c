@@ -41,6 +41,8 @@ static void set_state(tag_firmware_t *fw, tag_state_t state)
 
 static void fail(tag_firmware_t *fw)
 {
+    fw->tx_irq_deadline_ms = 0u;
+    fw->rx_irq_deadline_ms = 0u;
     fw->failures++;
     tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_ERROR,
                    TAG_TRACE_SOURCE_FIRMWARE, -1, fw->failures,
@@ -197,6 +199,7 @@ static void transmit(tag_firmware_t *fw)
         fw->next_beacon_ms = now_ms(fw) + fw->config.active_beacon_ms;
     }
     fw->packets_sent++;
+    fw->tx_irq_deadline_ms = now_ms(fw) + 1000u + SX1262_TX_IRQ_GRACE_MS;
     set_state(fw, TAG_STATE_RF_TX);
     tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TX_START,
                    TAG_TRACE_SOURCE_SX1262, 0, (uint32_t)len,
@@ -283,6 +286,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             if ((irq & SX1262_IRQ_TX_DONE) != 0u) {
+                fw->tx_irq_deadline_ms = 0u;
                 tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TX_DONE,
                                TAG_TRACE_SOURCE_SX1262, 0, irq,
                                fw->tx_packet_len, 0u);
@@ -293,7 +297,14 @@ void tag_firmware_step(tag_firmware_t *fw)
                 fail(fw);
             }
         } else {
-            fw->hal.sleep_ms(fw->hal.context, 1u);
+            if (fw->tx_irq_deadline_ms != 0u &&
+                (int32_t)(now_ms(fw) - fw->tx_irq_deadline_ms) >= 0) {
+                /* DIO1 may be disconnected or suppressed even though the
+                 * radio completed its own timeout. Never wait for IRQ forever. */
+                fail(fw);
+            } else {
+                fw->hal.sleep_ms(fw->hal.context, 1u);
+            }
         }
         break;
     }
@@ -304,6 +315,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             fw->rx_started = true;
+            fw->rx_irq_deadline_ms = now_ms(fw) + 100u + SX1262_TX_IRQ_GRACE_MS;
             tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RX_START,
                            TAG_TRACE_SOURCE_SX1262, 0, 100u, 0u, 0u);
         }
@@ -318,6 +330,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RX_DONE,
                                TAG_TRACE_SOURCE_SX1262, 0, irq, 0u, 0u);
                 fw->rx_started = false;
+                fw->rx_irq_deadline_ms = 0u;
                 if (sx1262_set_sleep(&fw->hal) != 0) {
                     fail(fw);
                 } else {
@@ -329,7 +342,12 @@ void tag_firmware_step(tag_firmware_t *fw)
                 fail(fw);
             }
         } else {
-            fw->hal.sleep_ms(fw->hal.context, 1u);
+            if (fw->rx_irq_deadline_ms != 0u &&
+                (int32_t)(now_ms(fw) - fw->rx_irq_deadline_ms) >= 0) {
+                fail(fw);
+            } else {
+                fw->hal.sleep_ms(fw->hal.context, 1u);
+            }
         }
         break;
     }

@@ -2,8 +2,18 @@ from dataclasses import fields
 
 from cattle_rf.contracts import FarmConfig, RFObservation
 from cattle_rf.sim.episode import generate_anchors, simulate_episode
-from cattle_rf.sim.farm import Behavior, FarmSimulator, Obstacle, segment_crosses_obstacle
-from cattle_rf.sim.rf import RFConfig, free_space_path_loss_db, log_distance_path_loss_db
+from cattle_rf.sim.farm import Behavior, FarmSimulator, MotionFeatures, Obstacle, segment_crosses_obstacle
+from cattle_rf.sim.rf import RFConfig, free_space_path_loss_db, log_distance_path_loss_db, simulate_observations
+
+
+def test_legacy_package_modules_are_canonical_forwarders():
+    import cattle_rf.contracts as legacy_contracts
+    import cattle_rf.sim.episode as legacy_episode
+    import riose.products.livestock_tracking.domain.contracts as canonical_contracts
+    import riose.products.livestock_tracking.simulation.episode as canonical_episode
+
+    assert legacy_contracts is canonical_contracts
+    assert legacy_episode is canonical_episode
 
 
 def test_radio_path_loss_formulas_and_invalid_inputs():
@@ -49,6 +59,31 @@ def test_motion_stays_in_bounds_and_avoids_rectangular_obstacles():
     assert all(0 <= p.x <= 100 and 0 <= p.y <= 100 for p in truth)
     assert all(not obstacle.contains(p.x, p.y) for p in truth)
     assert {m["behavior_state"] for m in motion} <= {b.value for b in Behavior}
+
+
+def test_motion_features_are_compact_and_preserve_legacy_lookup_and_rf_output():
+    cfg = FarmConfig(width_m=100, height_m=100, animal_count=2, anchor_count=4,
+                     duration_s=60, sample_period_s=30, seed=101, packet_loss_probability=0)
+    farm = FarmSimulator(cfg)
+    truth, motion = farm.generate()
+    assert isinstance(motion[0], MotionFeatures)
+    assert not hasattr(motion[0], "__dict__")
+    assert motion[0]["tag_id"] == truth[0].tag_id
+    assert motion[0]["timestamp_s"] == truth[0].timestamp_s
+    assert motion[0]["behavior_state"] in {behavior.value for behavior in Behavior}
+    assert motion[0].get("tag_id") == truth[0].tag_id
+    assert dict(motion[0])["imu_accel_norm_g"] == motion[0]["imu_accel_norm_g"]
+
+    anchors = generate_anchors(cfg)
+    compact_result = simulate_observations(cfg, anchors, truth, motion, (), RFConfig())
+    legacy_map = {(sample.timestamp_s, sample.tag_id): {
+        "timestamp_s": sample.timestamp_s,
+        "tag_id": sample.tag_id,
+        "imu_accel_norm_g": sample.imu_accel_norm_g,
+        "behavior_state": sample.behavior_state,
+    } for sample in motion}
+    legacy_result = simulate_observations(cfg, anchors, truth, legacy_map, (), RFConfig())
+    assert compact_result == legacy_result
 
 
 def test_rf_packet_loss_and_nlos_are_configurable():

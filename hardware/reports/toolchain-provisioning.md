@@ -47,22 +47,23 @@ From the repository root, activate the user-local environments before running th
 ```sh
 source hardware/activate-mvp2-toolchain.sh
 python --version
-python -m riose.digital_twin preflight
-python -m riose.digital_twin validate-spec --spec hardware/spec.yaml
-python -m riose.digital_twin run --spec hardware/spec.yaml --output results/mvp2 --seed 7
+python -m riose.products.ear_tag.digital_twin preflight
+python -m riose.products.ear_tag.digital_twin validate-spec --spec hardware/spec.yaml
+python -m riose.products.ear_tag.digital_twin run --spec hardware/spec.yaml --output results/mvp2 --seed 7
 ```
 
-The activation script sources `~/.local/opt/riose-zephyr-env.sh`, activates the isolated MVP2 Python environment, and sets library/executable paths. It only activates existing installations; it does not install packages or edit shell startup files. The per-project Python selector is `.python-version` (`3.12`), and locked dependencies remain in `uv.lock`.
+The activation script sources `~/.local/opt/riose-zephyr-env.sh`, activates the isolated MVP2 Python environment, sets library/executable paths, and adds this checkout's `src/` and root to `PYTHONPATH`. It only activates existing installations; it does not install packages or edit shell startup files. The per-project Python selector is `.python-version` (`3.12`), and locked dependencies remain in `uv.lock`.
 
 Provisioning was performed without `sudo`: non-interactive sudo was unavailable in this WSL session. Python/CAD packages were installed in micromamba/venv environments; Renode was installed from its portable release; ngspice was built from its upstream 47 source; openEMS and its pinned CSXCAD submodule were built with the upstream headless build scripts into the user prefix. Build dependencies were supplied by the isolated micromamba environment and user-local build tools. These installations consume WSL disk space only. No package was installed through Windows.
 
 ### Results and limits recorded in the integrated run
 
-- Python suite: **98 passed** under project Python 3.12.13, including the hardware Python test modules. C/CMake suite: **23/23 passed**. `git diff --check` is clean.
+- Python suite: **138 passed** under project Python 3.12.13, including the hardware Python test modules. C/CMake suite: **27/27 passed**. `git diff --check` is clean.
 - The integrated command builds the Zephyr NUCLEO-L031K6 image and Renode loads it with both custom logical peripherals; those stages report `PASSED` in `results/mvp2/summary.json`.
 - The four NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE traces are converted to ngspice inputs and executed. Their modeled currents and rails retain ASSUMED/SIMULATED provenance; none are measurements.
-- CadQuery emits STEP/STL and an envelope report; a +5 mm enclosure-width change changed both STEP and STL hashes. The current provisional geometry has battery, antenna keepout, and PCB fit conflicts; the mechanical stage is **FAILED** and the gate stays `NOT_READY_FOR_PHYSICAL_PROTOTYPE`.
-- openEMS and CSXCAD are genuinely installed and the FDTD executable/bindings run headlessly. The project antenna runner still has no `RIOSE_OPENEMS_ADAPTER`; all five RF result sets remain empty with `ADAPTER_NOT_CONFIGURED`. The smoke run only demonstrates solver execution, not mesh convergence or antenna performance.
+- CadQuery emits STEP/STL and an envelope report; a +5 mm enclosure-width change changed both STEP and STL hashes. The placement model now keeps the antenna keepout inside the assumed cavity placement and allows it to extend past the PCB edge into empty space. The assumed Ø14.7 × 49.5 mm battery still exceeds the cavity depth and overlaps the PCB in the current placement; the mechanical stage is **FAILED** and the gate stays `NOT_READY_FOR_PHYSICAL_PROTOTYPE`.
+- openEMS and CSXCAD are installed, and `hardware/antenna/openems_adapter.py` now defines a real two-mesh solver path for an explicitly assumed candidate. Free-space runs at 4/2/1 mm all completed; adjacent meshes differ by 9.4–12.7% in resonance and 10.3–11.1 dB in S11, beyond the declared 2%/1 dB limits. The assumed candidate fails numerical convergence and is far from its 915 MHz target. The PCB, enclosure, and animal-approximation pairs also reached the solver energy criterion but failed convergence. The battery-surrogate run hit the FDTD timestep limit before energy decay; the adapter stopped before fine mesh and derived RF metrics. None of these runs is accepted RF performance.
+- The Zephyr image configures the NUCLEO-L031K6 STM32 IWDG with a 10 s timeout and captures reset-cause flags; the target build passed, but no physical watchdog reset was triggered. `unexpected_reboot` remains unclassified without a persistent expected-reset contract.
 - The Renode CPU remains the upstream STM32L071 surrogate for the STM32L031 target, not an exact MCU model. SX1262/LIS2DW12 are logical approximations; no analog/RF/physical sleep behavior is claimed.
 - GPU/CUDA/Sionna are unavailable and explicitly optional. No physical hardware, animal, or lab measurement was used.
 

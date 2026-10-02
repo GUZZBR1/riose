@@ -6,6 +6,8 @@
 #define SX1262_IRQ_TX_DONE 0x0001u
 #define SX1262_IRQ_RX_DONE 0x0002u
 #define SX1262_IRQ_TIMEOUT 0x0200u
+#define SX1262_BUSY_TIMEOUT_MS 100u
+#define SX1262_TX_IRQ_GRACE_MS 100u
 
 int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
                      int8_t tx_power_dbm);
