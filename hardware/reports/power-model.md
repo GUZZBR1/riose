@@ -22,19 +22,24 @@ assumida e 60 nA típicos de IQ para o buck candidato.
 
 Não convertemos capacidade nominal em autonomia: ainda faltam medições do
 conjunto, verificação de capacidade sob carga pulsada e perfil real de eventos.
-Há uma incompatibilidade potencial adicional: um buck TPS62840 ajustado a 3,3 V
-não mantém o rail quando a entrada cai abaixo da margem necessária. A
+Há um risco de compatibilidade: um buck TPS62840 ajustado a 3,3 V deixa de
+regular essa tensão quando a entrada cai abaixo da margem necessária. A
 capacidade de 1,1 Ah especificada até 2,0 V não é capacidade utilizável
-demonstrada para esse circuito. Será necessário validar cutoff sob carga ou
-rever rail/topologia.
+demonstrada para esse circuito, embora os componentes downstream possam
+continuar operando com um rail menor. É preciso medir cutoff sob carga e
+confirmar a faixa de alimentação de cada componente antes de determinar a
+capacidade efetivamente utilizável.
 
 O cálculo nominal fica abaixo do alvo de 0,5 mAh/dia. Aplicando a mesma carga
-unitária aos resultados observados no harness: 108 TX/dia (perfil estacionário
-com alerta) resultam em 0,238773 mAh/dia; 128 TX/dia (perfil misto) resultam
-em 0,274336 mAh/dia. São extrapolações de contagem de pacotes sob as mesmas
-hipóteses de duração e corrente; não incluem medidas fisiológicas nem ráfagas
-reais no campo. O cenário de atividade contínua foi testado por três horas e
-gerou 14 TX nesse intervalo; não extrapolamos esse recorte para 24 horas.
+unitária aos resultados do harness: 108 TX/dia (perfil estacionário com alerta)
+resultam em 0,238773 mAh/dia; 128 TX/dia (perfil misto) em 0,274336 mAh/dia.
+O cenário de 85 episódios ACTIVE de dois minutos em 24 h gera 255 TX e
+0,500160 mAh/dia, ligeiramente acima do alvo. Os 85 episódios são um perfil
+agressivo de teste (cerca de 3,54/h), não uma previsão de campo. São
+extrapolações de contagem de pacotes sob as mesmas hipóteses de duração e
+corrente; não incluem medidas fisiológicas nem bursts reais no campo. O cenário
+de atividade contínua por três horas gerou 14 TX nesse intervalo; não
+extrapolamos esse recorte para 24 horas.
 
 ## Premissas que mais pesam
 
@@ -56,17 +61,21 @@ gerou 14 TX nesse intervalo; não extrapolamos esse recorte para 24 horas.
 ## Célula e rail
 
 A candidata de engenharia é a Tadiran TLL-5902 Li-SOCl₂ primária de 1/2 AA,
-3,6 V nominal e 1,1 Ah. Sua ficha declara até 50 mA de corrente contínua
-recomendada e capacidade máxima de pulso de 100 mA. A candidata não está
+3,6 V nominal e 1,1 Ah sob a condição de ensaio de 1 mA até 2,0 V. Sua ficha
+declara até 50 mA de corrente contínua recomendada e capacidade máxima de
+pulso de 100 mA, mas esse bullet não valida pulsos repetidos do rádio. A candidata não está
 montada nem escolhida para o encapsulamento final do brinco. O buck TPS62840
 reduz a entrada a 3,3 V; o perfil de carga inclui uma eficiência estimada.
 
 O modelo ngspice específico de rail varre tensão terminal, ESR assumida e
 capacitor de saída. Ele é executado e documentado em
 [`spice/candidate/README.md`](../spice/candidate/README.md). O caso nominal
-3,6 V simulou mínimo de rail de 3,2909 V e pico de célula de 48,858 mA. O pior
-ponto de tensão incluído (2,0 V, diagnóstico no endpoint da capacidade da
-ficha sob 1 mA) caiu a 1,7151 V e cruzou o limite de projeto assumido de 2,7 V.
+3,6 V simulou mínimo de rail de 3,2909 V e pico de célula de 50,262 mA no deck
+médio com feedback pela tensão terminal carregada. O pior ponto de tensão
+incluído (2,0 V, diagnóstico no endpoint da capacidade da ficha sob 1 mA)
+caiu a 1,6961 V e calculou pico de célula de 97,439 mA; cruzou o limite de
+projeto assumido de 2,7 V. A estimativa de corrente depende de eficiência
+constante assumida, ESR, load e impedâncias configuradas.
 Esse limite de 2,7 V é uma linha de comparação de engenharia, não o limiar de
 brownout configurado do MCU. O modelo não simula o controlador chaveado real,
 e não prova funcionamento ou falha de uma placa física.

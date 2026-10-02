@@ -39,11 +39,8 @@ def render_deck(profile: dict, battery_voltage_v: float, esr_ohm: float, rail_ca
     tx_end = tx_start + tx_s
     rx_start = tx_end + 0.001
     rx_end = rx_start + rx_s
-    # A fixed nominal cell voltage and a constant assumed efficiency are used to
-    # map the output profile to a battery-side power-equivalent current profile.
-    # This is not a switching converter or electrochemical cell model.
-    i_bat = lambda out_a: out_a * vout / (vbat * eff) + iq
-    i_sleep_bat, i_tx_bat, i_rx_bat = map(i_bat, (sleep_a, tx_a, rx_a))
+    # The cell-side behavioral source uses instantaneous modeled cell voltage
+    # for an averaged power conversion estimate; it is not a switching model.
     step = float(sim["time_step_s"])
     stop = float(sim["stop_time_s"])
     return f"""* TLL-5902 + TPS62840 candidate transient; SIMULATED, averaged converter model.
@@ -51,6 +48,7 @@ def render_deck(profile: dict, battery_voltage_v: float, esr_ohm: float, rail_ca
 .param VBAT={vbat:.9g}
 .param RBAT={esr_ohm:.9g}
 .param VOUT={vout:.9g}
+.param EFF={eff:.9g}
 .param VDROP={float(reg['dropout_assumption_v']):.9g}
 .param RREG={float(reg['effective_output_resistance_ohm']):.9g}
 .param CBAT={float(caps['battery_side_f']):.9g}
@@ -69,11 +67,12 @@ Breg reg_target 0 V={{min(VOUT,max(0,V(raw)-VDROP))}}
 Rreg reg_target pre_rail {{RREG}}
 Resrout pre_rail rail {{ESROUT}}
 Cout rail 0 {{COUT}} IC={{VOUT}}
-* Output load: idle, 0.5 ms TX ramp, 120 ms TX, then 100 ms RX.
-Iout rail 0 PWL(0 {sleep_a:.12g} {tx_start:.9g} {sleep_a:.12g} {tx_start + rise:.9g} {tx_a:.12g} {tx_end - fall:.9g} {tx_a:.12g} {tx_end:.9g} {sleep_a:.12g} {rx_start:.9g} {rx_a:.12g} {rx_end:.9g} {rx_a:.12g} {rx_end + 0.001:.9g} {sleep_a:.12g} {stop:.9g} {sleep_a:.12g})
-* Battery-side equivalent current mirrors Pout/(Vin*assumed efficiency) + Iq.
-* The signal is an averaged power budget, not TPS62840 transistor-level behavior.
-Iconv raw 0 PWL(0 {i_sleep_bat:.12g} {tx_start:.9g} {i_sleep_bat:.12g} {tx_start + rise:.9g} {i_tx_bat:.12g} {tx_end - fall:.9g} {i_tx_bat:.12g} {tx_end:.9g} {i_sleep_bat:.12g} {rx_start:.9g} {i_rx_bat:.12g} {rx_end:.9g} {i_rx_bat:.12g} {rx_end + 0.001:.9g} {i_sleep_bat:.12g} {stop:.9g} {i_sleep_bat:.12g})
+* Output profile is represented as a behavioral voltage in amperes.
+Vprofile profile 0 PWL(0 {sleep_a:.12g} {tx_start:.9g} {sleep_a:.12g} {tx_start + rise:.9g} {tx_a:.12g} {tx_end - fall:.9g} {tx_a:.12g} {tx_end:.9g} {sleep_a:.12g} {rx_start:.9g} {rx_a:.12g} {rx_end:.9g} {rx_a:.12g} {rx_end + 0.001:.9g} {sleep_a:.12g} {stop:.9g} {sleep_a:.12g})
+Bload rail 0 I={{V(profile)}}
+* Average cell-side current from Pout/(Vcell_loaded*assumed efficiency) + Iq.
+* This is not TPS62840 transistor-level behavior and excludes current limit.
+Bconv raw 0 I={{VOUT*V(profile)/(max(V(raw),1e-6)*EFF)+{iq:.12g}}}
 .control
 set noaskquit
 tran {step:.9g} {stop:.9g} 0 {step:.9g} uic
@@ -170,7 +169,8 @@ def main() -> int:
     (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     if result_rows:
         with (args.output / "sweep.csv").open("w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=result_rows[0].keys())
+            writer = csv.DictWriter(file, fieldnames=result_rows[0].keys(),
+                                    lineterminator="\n")
             writer.writeheader()
             writer.writerows(result_rows)
     print(f"status={summary['status']}")

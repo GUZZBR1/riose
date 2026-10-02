@@ -36,12 +36,13 @@ verified on the actual implementation. See
 rail sweep and its limitations.
 
 There is an unresolved compatibility risk in this pair: a buck set to 3.3 V
-cannot regulate 3.3 V after its input falls below the required headroom. The
-cell's 2.0 V capacity-rating endpoint is therefore not usable for a 3.3 V
-system as drawn, and the rated 1.1 Ah must not be used to claim usable capacity
-or runtime. Before selecting the battery, measure the loaded cell cutoff and
-either verify a lower system rail against every component or evaluate a
-buck-boost/topology change. No such alternative is validated yet.
+cannot regulate 3.3 V after its input falls below the required headroom. It is
+not yet known how much of the cell's 2.0 V capacity-rating range a complete tag
+could use at a lower rail, or where the radio stops operating reliably. The
+rated 1.1 Ah must not be used to claim usable capacity or runtime. Before
+selecting the battery, measure loaded cutoff and confirm every component's
+minimum supply voltage; then evaluate a lower rail or buck-boost topology if
+needed. No alternative is validated yet.
 
 ## Schematic capture checklist
 
