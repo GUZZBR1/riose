@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #define TAG_TELEMETRY_MAX_SIZE 24u
-#define TAG_DEFAULT_BEACON_MS 60000u
+#define TAG_DEFAULT_BEACON_MS 900000u
 
 typedef enum {
     TAG_STATE_BOOT = 0,
@@ -58,7 +58,9 @@ typedef struct {
     int8_t tx_power_dbm;
     uint32_t normal_beacon_ms;
     uint32_t active_beacon_ms;
+    uint32_t active_burst_ms;
     uint32_t alert_beacon_ms;
+    uint32_t alert_burst_ms;
     uint32_t low_battery_beacon_ms;
     uint32_t still_alert_after_ms;
     uint16_t low_battery_threshold_mv;
@@ -79,6 +81,8 @@ typedef struct {
     uint32_t packets_sent;
     uint32_t failures;
     uint32_t still_since_ms;
+    uint32_t active_burst_until_ms;
+    uint32_t alert_burst_until_ms;
     bool initialized;
     bool rx_started;
     bool still_tracking;

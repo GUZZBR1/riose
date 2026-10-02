@@ -22,8 +22,10 @@ tag_config_t tag_default_config(uint32_t tag_id)
         .rf_frequency_hz = 915000000u,
         .tx_power_dbm = 10,
         .normal_beacon_ms = TAG_DEFAULT_BEACON_MS,
-        .active_beacon_ms = 15000u,
-        .alert_beacon_ms = 5000u,
+        .active_beacon_ms = 60000u,
+        .active_burst_ms = 120000u,
+        .alert_beacon_ms = 10000u,
+        .alert_burst_ms = 120000u,
         .low_battery_beacon_ms = 900000u,
         .still_alert_after_ms = 14400000u,
         .low_battery_threshold_mv = 2200u,
@@ -56,6 +58,7 @@ static void sample_imu(tag_firmware_t *fw)
         fail(fw);
         return;
     }
+    const tag_behavior_t previous_behavior = fw->behavior;
     const int64_t x = fw->last_imu.x_mg;
     const int64_t y = fw->last_imu.y_mg;
     const int64_t z = (int64_t)fw->last_imu.z_mg - 1000;
@@ -86,6 +89,21 @@ static void sample_imu(tag_firmware_t *fw)
         fw->behavior = TAG_BEHAVIOR_NORMAL;
         fw->state = TAG_STATE_RF_TX;
     }
+    /* Escalate quickly for a bounded window, then send sparse heartbeats
+     * while the condition persists. This prevents a latched alarm (notably
+     * the stillness alarm) from holding the radio in a high-duty-cycle loop. */
+    if (fw->behavior == TAG_BEHAVIOR_ALERT &&
+        previous_behavior != TAG_BEHAVIOR_ALERT) {
+        fw->alert_burst_until_ms = now_ms(fw) + fw->config.alert_burst_ms;
+    } else if (fw->behavior != TAG_BEHAVIOR_ALERT) {
+        fw->alert_burst_until_ms = 0u;
+    }
+    if (fw->behavior == TAG_BEHAVIOR_ACTIVE &&
+        previous_behavior != TAG_BEHAVIOR_ACTIVE) {
+        fw->active_burst_until_ms = now_ms(fw) + fw->config.active_burst_ms;
+    } else if (fw->behavior != TAG_BEHAVIOR_ACTIVE) {
+        fw->active_burst_until_ms = 0u;
+    }
 }
 
 static void transmit(tag_firmware_t *fw)
@@ -106,11 +124,18 @@ static void transmit(tag_firmware_t *fw)
     }
     fw->tx_packet_len = (uint8_t)len;
     fw->next_beacon_ms = now_ms(fw) + fw->config.normal_beacon_ms;
-    if (fw->behavior == TAG_BEHAVIOR_ALERT) {
-        fw->next_beacon_ms = now_ms(fw) + fw->config.alert_beacon_ms;
+    const uint32_t now = now_ms(fw);
+    const bool alert_burst = fw->behavior == TAG_BEHAVIOR_ALERT &&
+        fw->config.alert_burst_ms != 0u &&
+        (int32_t)(now - fw->alert_burst_until_ms) < 0;
+    const bool active_burst = fw->behavior == TAG_BEHAVIOR_ACTIVE &&
+        fw->config.active_burst_ms != 0u &&
+        (int32_t)(now - fw->active_burst_until_ms) < 0;
+    if (alert_burst) {
+        fw->next_beacon_ms = now + fw->config.alert_beacon_ms;
     } else if (fw->config.battery_mv < fw->config.low_battery_threshold_mv) {
         fw->next_beacon_ms = now_ms(fw) + fw->config.low_battery_beacon_ms;
-    } else if (fw->behavior == TAG_BEHAVIOR_ACTIVE) {
+    } else if (active_burst) {
         fw->next_beacon_ms = now_ms(fw) + fw->config.active_beacon_ms;
     }
     fw->packets_sent++;

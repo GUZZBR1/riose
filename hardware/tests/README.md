@@ -21,22 +21,20 @@ The integration executable covers:
 - LIS2DW12 IRQ wake and the alert telemetry path;
 - injected one-shot I2C and SPI failures followed by firmware recovery;
 - absent/late TX_DONE represented by a TX latency beyond the firmware timeout;
-- 24-hour mixed motion profiles and a healthy stationary period under the configured stillness alarm threshold;
+- 24-hour mixed motion profiles, stationary periods, and prolonged ACTIVE/ALERT states to validate bounded high-rate bursts;
 - configured low-battery telemetry profile (2180 mV) and its extended 900-second beacon interval.
 
 The wake line is disabled for the long mixed and stationary runs so these measurements isolate scheduled cadence and classifier behavior. A separate integration scenario enables wake routing and verifies interrupt handling. The long mixed run reports deadline versus escalation/event transmissions separately.
 
 ## Observed run
 
-On the current C-only model build, the 24-hour mixed profile produced 7,341 TX packets: 1,680 during the first stationary block, 360 walking, 990 running, 2,151 abnormal, and 2,160 during the final stationary block. All 7,344 were transmitted at the firmware's beacon deadline; there were no direct escalation/event transmissions with INT1 disabled. No firmware failures occurred. The classifier remained in ALERT through the final stationary block; this is a simulated behavior that merits further review.
-
-A three-hour stationary profile below the default four-hour stillness alarm produced 180 packets at a 60-second cadence. A full 24-hour stationary profile produced 14,640 packets: the default stillness threshold is 14,400,000 ms (four hours), after which the ALERT cadence is five seconds. This is the configured simulated alarm policy, not evidence that four hours of inactivity is clinically abnormal. The higher rate is visible in the output and should inform future energy and false-alarm experiments.
+The default normal cadence is 900 s (96 transmissions/day). ACTIVE transmits each 60 s and ALERT each 10 s, but only during a two-minute burst when each state is entered; if the state remains active, the tag returns to the 15-minute heartbeat. A three-hour stationary period below the configured four-hour stillness alarm produced 12 packets. A three-hour forced ACTIVE period produced 14 packets. A full 24-hour stationary profile crossed the assumed four-hour threshold and produced 108 packets. The mixed 24-hour movement profile produced 128 packets. These deterministic results cover the software cadence policy only; they do not establish biological alarm thresholds or actual battery use.
 
 These results are deterministic software simulation results, not measurements of a physical sensor, radio, battery, or animal.
 
 ## Limits and blockers
 
-- Battery voltage is a static `tag_config_t` input. The low-battery policy and serialized voltage can be tested, but the HAL has no ADC/fuel-gauge, power-good, brownout-reset, or low-voltage lockout interface. A real brownout/recovery test is therefore unsupported by the current firmware API; no voltage trace is fabricated here.
+- Battery voltage is a static `tag_config_t` input. The low-battery policy and serialized voltage can be tested, but the HAL has no ADC/fuel-gauge, power-good, brownout-reset, or low-voltage lockout interface. A real brownout/recovery test is therefore unsupported by the current firmware API. The separate ngspice model is an assumed circuit sensitivity model and does not change this limitation.
 - The harness advances logical sensor time and radio timers. It does not model MCU current, analog supply droop, RF propagation, SPI/I2C electrical faults, or temperature.
 - Motion waveforms and the four-hour stillness alarm threshold are software assumptions, not cattle physiology or field validation.
 - RX completion is represented by the deterministic SX1262 timeout path; no downlink packet is generated in this integration run.

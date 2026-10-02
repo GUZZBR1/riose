@@ -14,6 +14,7 @@ typedef struct {
     lis2dw12_model_t imu;
     tag_firmware_t *firmware;
     uint32_t now_ms;
+    uint32_t stop_at_ms;
     uint32_t imu_bus_failures;
     uint32_t spi_bus_failures;
     uint32_t reset_count;
@@ -23,6 +24,7 @@ typedef struct {
     uint32_t rx_commands;
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
+    bool force_active_sample;
     uint8_t last_packet[TAG_TELEMETRY_MAX_SIZE];
     size_t last_packet_len;
     uint16_t power_mv;
@@ -96,6 +98,11 @@ static int virtual_imu_read(void *context, tag_imu_sample_t *sample)
     sample->x_mg = (int16_t)(((int32_t)x * full_scale_g * 1000) / 32768);
     sample->y_mg = (int16_t)(((int32_t)y * full_scale_g * 1000) / 32768);
     sample->z_mg = (int16_t)(((int32_t)z * full_scale_g * 1000) / 32768);
+    if (tag->force_active_sample) {
+        sample->x_mg = 500;
+        sample->y_mg = 0;
+        sample->z_mg = 1000;
+    }
     sample->interrupt_flags = lis2dw12_irq_pending(&tag->imu) ? 0x02u : 0u;
     if (sample->interrupt_flags != 0u) {
         uint8_t source = 0u;
@@ -137,6 +144,10 @@ static void virtual_sleep_ms(void *context, uint32_t duration_ms)
         tag->radio.mode == SX1262_MODE_SLEEP) {
         const uint32_t until_beacon = tag->firmware->next_beacon_ms - tag->now_ms;
         if ((int32_t)until_beacon > (int32_t)delta) delta = until_beacon;
+    }
+    if (tag->stop_at_ms != 0u &&
+        (int32_t)(tag->now_ms + delta - tag->stop_at_ms) > 0) {
+        delta = tag->stop_at_ms - tag->now_ms;
     }
     tag->now_ms += delta;
     lis2dw12_tick(&tag->imu, delta);
@@ -333,10 +344,12 @@ static void test_accelerated_24h(void)
     virtual_tag_t tag;
     tag_firmware_t firmware;
     tag_config_t config = tag_default_config(1001u);
-    config.normal_beacon_ms = 60000u;
-    config.active_beacon_ms = 15000u;
-    config.alert_beacon_ms = 5000u;
+    config.normal_beacon_ms = 900000u;
+    config.active_beacon_ms = 60000u;
+    config.alert_beacon_ms = 10000u;
+    config.alert_burst_ms = 120000u;
     virtual_tag_init(&tag, &firmware, &config, 4u);
+    tag.stop_at_ms = DAY_MS;
     /* This long run validates scheduled sensing/beacons across profiles. The
      * separate wake test above exercises IRQ routing; disabling INT1 here
      * prevents every gait phase from being mislabeled as a panic alert. */
@@ -411,6 +424,7 @@ static void test_healthy_stationary_below_alarm_threshold(void)
     tag_firmware_t firmware;
     tag_config_t config = tag_default_config(1003u);
     virtual_tag_init(&tag, &firmware, &config, 4u);
+    tag.stop_at_ms = healthy_window_ms;
     const uint8_t irq_route_off = 0u;
     assert(lis2dw12_i2c_write(&tag.imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
                               &irq_route_off, 1u) == LIS2DW12_OK);
@@ -419,12 +433,38 @@ static void test_healthy_stationary_below_alarm_threshold(void)
         tag_firmware_step(&firmware);
         assert(firmware.state != TAG_STATE_ERROR_RECOVERY);
     }
-    assert(tag.now_ms >= healthy_window_ms);
+    assert(tag.now_ms == healthy_window_ms);
     assert(healthy_window_ms < config.still_alert_after_ms);
     assert(firmware.behavior == TAG_BEHAVIOR_STILL);
-    printf("3h healthy stationary: TX=%" PRIu32 " (60-s period, alert threshold=%"
+    printf("3h healthy stationary: TX=%" PRIu32 " (900-s period, alert threshold=%"
            PRIu32 " ms)\n", firmware.packets_sent, config.still_alert_after_ms);
-    assert(firmware.packets_sent >= 178u && firmware.packets_sent <= 181u);
+    assert(firmware.packets_sent >= 11u && firmware.packets_sent <= 13u);
+}
+
+static void test_prolonged_active_burst_is_bounded(void)
+{
+    const uint32_t active_window_ms = 3u * 60u * 60u * 1000u;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1004u);
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    tag.stop_at_ms = active_window_ms;
+    tag.force_active_sample = true;
+    const uint8_t irq_route_off = 0u;
+    assert(lis2dw12_i2c_write(&tag.imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
+                              &irq_route_off, 1u) == LIS2DW12_OK);
+    for (uint32_t steps = 0; tag.now_ms < active_window_ms && steps < 20000u; ++steps) {
+        tag_firmware_step(&firmware);
+        assert(firmware.state != TAG_STATE_ERROR_RECOVERY);
+    }
+    assert(tag.now_ms == active_window_ms);
+    assert(firmware.behavior == TAG_BEHAVIOR_ACTIVE);
+    printf("3h prolonged active: TX=%" PRIu32 " (burst=%" PRIu32
+           " ms, active cadence=%" PRIu32 " ms, normal=%" PRIu32 " ms)\n",
+           firmware.packets_sent, config.active_burst_ms, config.active_beacon_ms,
+           config.normal_beacon_ms);
+    /* A sustained motion classification must not keep the tag at one TX/min. */
+    assert(firmware.packets_sent >= 11u && firmware.packets_sent <= 20u);
 }
 
 static void test_stationary_24h_beacon_baseline(void)
@@ -433,6 +473,7 @@ static void test_stationary_24h_beacon_baseline(void)
     tag_firmware_t firmware;
     tag_config_t config = tag_default_config(1002u);
     virtual_tag_init(&tag, &firmware, &config, 4u);
+    tag.stop_at_ms = DAY_MS;
     const uint8_t irq_route_off = 0u;
     assert(lis2dw12_i2c_write(&tag.imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
                               &irq_route_off, 1u) == LIS2DW12_OK);
@@ -441,13 +482,13 @@ static void test_stationary_24h_beacon_baseline(void)
         tag_firmware_step(&firmware);
         assert(firmware.state != TAG_STATE_ERROR_RECOVERY);
     }
-    assert(tag.now_ms >= DAY_MS);
+    assert(tag.now_ms == DAY_MS);
     printf("24h stationary alert profile: simulated=%" PRIu32
            " ms TX=%" PRIu32 " threshold_ms=%" PRIu32
            " alert_period_ms=%" PRIu32 " final_behavior=%u\n",
            tag.now_ms, firmware.packets_sent, config.still_alert_after_ms,
            config.alert_beacon_ms, (unsigned)firmware.behavior);
-    assert(firmware.packets_sent > 1400u);
+    assert(firmware.packets_sent >= 100u && firmware.packets_sent <= 120u);
     assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
 }
 
@@ -459,8 +500,9 @@ int main(void)
     test_missing_tx_done_timeout();
     test_accelerated_24h();
     test_healthy_stationary_below_alarm_threshold();
+    test_prolonged_active_burst_is_bounded();
     test_stationary_24h_beacon_baseline();
-    puts("Hardware integration: 7 scenarios passed");
+    puts("Hardware integration: 8 scenarios passed");
     puts("Power coverage: battery voltage is a static telemetry input only; brownout is unsupported by tag_hal_t.");
     return 0;
 }
