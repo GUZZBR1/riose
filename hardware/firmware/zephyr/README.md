@@ -66,6 +66,7 @@ printed on the actual modules and confirm each board's logic voltage first.
 | SX1262 NRESET | PA12 | D2 | NRESET |
 | SX1262 BUSY | PB0 | D3 | BUSY |
 | SX1262 DIO1 | PB1 | D6 | DIO1 |
+| SX1262 antenna switch | PC15 | D8 | ANT SW (high=TX, low=RX) |
 | LIS2DW12 SCL | PB6 | A5 (CN4-7) | SCL |
 | LIS2DW12 SDA | PB7 | A4 (CN4-8) | SDA |
 | LIS2DW12 INT1 | PA8 | D9 | INT1 |
@@ -86,7 +87,11 @@ The A0/PA0 trace output assumes the board's standard LSE clock arrangement;
 check the ST-LINK clock solder bridges before using PA0 in a modified board
 configuration.
 
-The default I2C address in the overlay is `0x18` (LIS2DW12 SA0 low); set it to
+The D8 antenna-switch mapping is for the Semtech SX1262MB2xAS shield: TX is
+selected before `SetTx`, RX is restored after `TX_DONE`, and failures return
+the switch to RX. Other modules may use DIO2 or different switch logic and
+need a matching overlay/HAL implementation. The default I2C address in the
+overlay is `0x18` (LIS2DW12 SA0 low); set it to
 `0x19` if the specific module straps SA0 high. The radio SPI rate is initially
 limited to 1 MHz. BUSY must connect directly to the radio's active-high BUSY
 signal. Reset is active-low. Pull-ups, interrupt output configuration, module

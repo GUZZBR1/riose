@@ -34,6 +34,8 @@ static const struct gpio_dt_spec radio_busy =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_busy), gpios);
 static const struct gpio_dt_spec radio_dio1 =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_dio1), gpios);
+static const struct gpio_dt_spec radio_ant_switch =
+    GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_ant_switch), gpios);
 static const struct gpio_dt_spec imu_int =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_imu_int), gpios);
 static const struct gpio_dt_spec state_trace_pins[] = {
@@ -79,6 +81,13 @@ static int radio_reset_fn(void *context)
     if (rc != 0) return rc;
     k_msleep(5);
     return 0;
+}
+
+static int radio_tx_path_fn(void *context, bool transmit)
+{
+    ARG_UNUSED(context);
+    /* Semtech SX1262MB2xAS ANT SW: high selects the TX path, low selects RX. */
+    return gpio_pin_set_dt(&radio_ant_switch, transmit ? 1 : 0);
 }
 
 static int imu_write_register(uint8_t reg, uint8_t value)
@@ -205,7 +214,7 @@ int main(void)
 {
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
         !gpio_is_ready_dt(&radio_reset) || !gpio_is_ready_dt(&radio_busy) ||
-        !gpio_is_ready_dt(&radio_dio1) ||
+        !gpio_is_ready_dt(&radio_dio1) || !gpio_is_ready_dt(&radio_ant_switch) ||
         !gpio_is_ready_dt(&imu_int)) {
         LOG_ERR("A required SPI, I2C, or GPIO device is not ready");
         return -ENODEV;
@@ -215,6 +224,8 @@ int main(void)
     rc = gpio_pin_configure_dt(&radio_busy, GPIO_INPUT);
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&radio_dio1, GPIO_INPUT);
+    if (rc != 0) return rc;
+    rc = gpio_pin_configure_dt(&radio_ant_switch, GPIO_OUTPUT_INACTIVE);
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&imu_int, GPIO_INPUT);
     if (rc != 0) return rc;
@@ -249,6 +260,7 @@ int main(void)
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
+        .set_radio_tx_path = radio_tx_path_fn,
         .state_trace = state_trace,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);

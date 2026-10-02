@@ -22,6 +22,7 @@
 		tag-radio-reset = &radio_reset;
 		tag-radio-busy = &radio_busy;
 		tag-radio-dio1 = &radio_dio1;
+		tag-radio-ant-switch = &radio_ant_switch;
 		tag-imu-int = &imu_int;
 		tag-state-trace = &state_trace;
 	};
@@ -40,6 +41,12 @@
 		radio_dio1: radio-dio1 {
 			compatible = "riose,tag-gpio";
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>; /* CN3 D6 */
+		};
+
+		/* Semtech SX1262MB2xAS shield D8 ANT SW; Nucleo D8 is PC15. */
+		radio_ant_switch: radio-ant-switch {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>; /* Arduino D8 */
 		};
 
 		imu_int: imu-int {

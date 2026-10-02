@@ -10,8 +10,7 @@ not evidence. Do not copy the simulated values into its rows.
 Evaluate the present firmware against this candidate chain:
 
 - STM32L031K6 MCU platform (the existing Zephyr target is NUCLEO-L031K6);
-- SX1262 radio module configured for the chosen legal regional band and +14
-  dBm test case;
+- Semtech SX1262MB2CAS 915 MHz mbed shield as the first wired radio candidate;
 - LIS2DW12 accelerometer on I2C;
 - TPS62840 buck configured for a 3.3 V rail;
 - Tadiran TLL-5902 3.6 V primary Li-SOCl2 cell.
@@ -83,6 +82,30 @@ Analyze with:
 python3 hardware/physical/analyze_capture.py measurements.csv \
   --output results/physical-power.json
 ```
+
+To avoid manually labeling current samples, record the A0/A1/A2 state pins in
+the same acquisition clock as the battery/rail channels. Export two CSVs:
+
+- analog: `timestamp_s,battery_current_ma,rail_voltage_v,battery_voltage_v`
+- state transitions: `timestamp_s,a0,a1,a2` (binary values, transition rows)
+
+Start both captures before resetting the tag so the trace contains BOOT before
+any TX. Add the capture identity and instrument/firmware metadata to a JSON
+object with the other fields from `measurements.template.csv`, then merge:
+
+```sh
+python3 hardware/physical/merge_state_trace.py analog.csv state-trace.csv \
+  --metadata capture-metadata.json --output measurements.csv
+python3 hardware/physical/analyze_capture.py measurements.csv \
+  --output results/physical-power.json
+```
+
+The merger maps state codes from the firmware's trace pins and counts entries
+into `RF_TX`; it rejects an uncovered capture start or a trace that starts in
+TX. Timestamp synchronization and the instrument's calibration/provenance
+remain the operator's responsibility. The current analyzer reports sampled
+peaks, so use a separate high-bandwidth scope/current-probe capture for short
+transients that the current sampler may miss.
 
 The script integrates user-supplied battery current with the trapezoidal rule
 and reports elapsed charge, mean current, peak sampled current, rail minimum

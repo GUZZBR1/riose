@@ -9,11 +9,19 @@ average-load sensitivity model, not a switching-regulator model.
 Tadiran TLL-5902, 3.6 V nominal, 1/2 AA Li-SOCl2 (primary, not rechargeable)
   └── TPS62840 buck, candidate output 3.3 V
        ├── STM32L031K6 MCU (test platform candidate)
-       ├── SX1262 sub-GHz radio (test module/board)
+       ├── Semtech SX1262MB2CAS 915 MHz mbed shield (wired test candidate)
        └── LIS2DW12 IMU
 Passive 134.2 kHz animal RFID identity element: represented in architecture;
   it is not powered from this rail and has no reader/load in this prototype.
 ```
+
+The NUCLEO firmware wiring profile is written for the Semtech MB2xAS shield's
+external `ANT SW` control: shield D8 is wired to NUCLEO D8/PC15; firmware
+selects TX high and RX low. The shield and NUCLEO-32 use jumper wires, not an
+assumed mechanical stack. Use a 50-ohm load for first RF bring-up and check the
+final radio configuration against Brazilian requirements before antenna
+transmission. The +14 dBm profile is a characterization setting, not
+regulatory approval.
 
 The **TLL-5902 and TPS62840 are engineering candidates, not a released BOM**.
 Tadiran rates the cell at 1.1 Ah under its datasheet test condition (1 mA to
