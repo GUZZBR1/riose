@@ -70,6 +70,9 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                 and metrics["path_count"] >= 0
                 and type(metrics.get("tag_receiver_distance_m")) in (int, float)
                 and math.isclose(metrics["tag_receiver_distance_m"], 10.0)
+                and type(metrics.get("summed_path_coefficient_power_linear")) in (int, float)
+                and math.isfinite(metrics["summed_path_coefficient_power_linear"])
+                and metrics["summed_path_coefficient_power_linear"] >= 0
             )
             evidence_fields = ("solver", "solver_version", "mitsuba_variant", "seed",
                                "deterministic", "frequency_hz", "spec_sha256", "obstacle_sha256")
@@ -78,6 +81,7 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                 and all(field in evidence for field in evidence_fields)
                 and all(isinstance(evidence[field], str) and evidence[field]
                         for field in ("solver", "solver_version", "mitsuba_variant"))
+                and evidence["mitsuba_variant"].startswith("cuda_")
                 and evidence["seed"] == 42
                 and evidence["deterministic"] is True
                 and type(evidence["frequency_hz"]) in (int, float)

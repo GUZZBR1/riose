@@ -65,7 +65,10 @@ def detect_capabilities() -> dict[str, Any]:
         mitsuba_variant = None
     # For Sionna, the solver's Dr.Jit backend is authoritative. PyTorch CUDA
     # alone does not prove that Mitsuba/Sionna can use the GPU.
-    cuda_available = drjit_cuda_available if sionna_available else torch_cuda_available
+    cuda_available = (
+        drjit_cuda_available and bool(mitsuba_variant and mitsuba_variant.startswith("cuda_"))
+        if sionna_available else torch_cuda_available
+    )
     return {
         "GPU_AVAILABLE": gpu_type is not None or cuda_available,
         "GPU_TYPE": gpu_type or "NONE_DETECTED",

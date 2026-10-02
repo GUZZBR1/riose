@@ -11,6 +11,7 @@ import math
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 
 SCENARIO_SETTINGS = {
     "TAG_TO_RECEIVER_10M": {"obstacle": False, "orientation_rad": 0.0},
@@ -84,9 +85,9 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
                 conductivity=0.01,
                 thickness=0.1,
             ),
-            position=mi.Point3f(5.0, 0.0, 1.5),
         )
         scene.add(obstacle)
+        obstacle.position = mi.Point3f(5.0, 0.0, 1.5)
 
     tx = Transmitter(name="tag", position=[0.0, 0.0, 1.5],
                      orientation=[0.0, 0.0, settings["orientation_rad"]])
@@ -101,6 +102,11 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
     )
     interactions = paths.interactions
     path_count = int(interactions.shape[-1])
+    real = np.asarray(paths.a[0].numpy(), dtype=float)
+    imag = np.asarray(paths.a[1].numpy(), dtype=float)
+    path_coefficient_power = float(np.square(real).sum() + np.square(imag).sum())
+    if not math.isfinite(path_coefficient_power):
+        raise ValueError("Sionna RT returned non-finite path coefficients")
     variant = mi.variant()
 
     evidence = {
@@ -114,7 +120,8 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         "obstacle_sha256": obstacle_hash,
         "spec_sha256": spec_hash,
     }
-    metrics = {"path_count": path_count, "tag_receiver_distance_m": 10.0}
+    metrics = {"path_count": path_count, "tag_receiver_distance_m": 10.0,
+               "summed_path_coefficient_power_linear": path_coefficient_power}
     row = {
         "schema_version": "riose.sionna.scenario/v1",
         "scenario": scenario,

@@ -134,7 +134,9 @@ the orientation case rotates the tag model by 90 degrees. These are small
 sensitivity experiments, not a farm scene or validated ear-tag antenna model.
 Sionna RT selects its supported Mitsuba backend automatically. The manifest
 records the Sionna version, GPU/CUDA capabilities, solver variant, deterministic
-seed, path count, frequency, spec hash, and obstacle mesh hash. An optional
+seed, path count, summed path-coefficient power, frequency, spec hash, and
+obstacle mesh hash. The summed power is a solver-derived path sensitivity
+metric; it is not a calibrated RSS measurement. An optional
 `RIOSE_SIONNA_ADAPTER` can still override the built-in runner by exposing
 `simulate(scenario, spec_path, output_dir)` and returning `COMPLETED`, metrics,
 and solver evidence. Any failed scenario remains optional and does not change

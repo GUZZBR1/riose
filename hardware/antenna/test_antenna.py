@@ -144,6 +144,13 @@ def test_sionna_rt_cuda_backend_does_not_require_pytorch(monkeypatch):
     assert report["DRJIT_CUDA_AVAILABLE"] is True
     assert report["MITSUBA_VARIANT"] == "cuda_ad_mono_polarized"
 
+    monkeypatch.setattr(fake_mitsuba, "variant", lambda: "llvm_ad_mono_polarized")
+    cpu_variant_report = capabilities.detect_capabilities()
+    assert cpu_variant_report["SIONNA_AVAILABLE"] is True
+    assert cpu_variant_report["DRJIT_CUDA_AVAILABLE"] is True
+    assert cpu_variant_report["CUDA_AVAILABLE"] is False
+    assert cpu_variant_report["status"] == "SKIPPED_OPTIONAL"
+
 
 def test_openems_adapter_cannot_mark_incomplete_metrics_as_completed(tmp_path, monkeypatch):
     monkeypatch.setattr(antenna_run, "_openems_available", lambda: (True, None))
