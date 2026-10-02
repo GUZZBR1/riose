@@ -8,6 +8,7 @@ enum {
     CMD_SET_RF_FREQUENCY = 0x86, CMD_SET_PACKET_TYPE = 0x8a,
     CMD_SET_RX = 0x82, CMD_SET_MODULATION_PARAMS = 0x8b, CMD_SET_PACKET_PARAMS = 0x8c,
     CMD_SET_TX_PARAMS = 0x8e, CMD_SET_BUFFER_BASE = 0x8f,
+    CMD_CALIBRATE_IMAGE = 0x98, CMD_SET_PA_CONFIG = 0x95,
     CMD_GET_STATUS = 0xc0, CMD_GET_IRQ_STATUS = 0x12,
     CMD_CLEAR_IRQ_STATUS = 0x02, CMD_SET_DIO_IRQ_PARAMS = 0x08,
     CMD_WRITE_BUFFER = 0x0e, CMD_READ_BUFFER = 0x1e,
@@ -145,6 +146,16 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
         m->tx_power_dbm = tx[1]; /* signed 8-bit two's-complement representation */
         m->ramp_time = tx[2];
+        break;
+    case CMD_CALIBRATE_IMAGE:
+        if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
+        m->image_calibration[0] = tx[1];
+        m->image_calibration[1] = tx[2];
+        break;
+    case CMD_SET_PA_CONFIG:
+        if (!need(tx, tx_len, 5) || tx[1] > 0x07 || tx[2] > 0x07 ||
+            tx[3] > 0x01 || tx[4] != 0x01) { fault(m, CMD_INVALID); break; }
+        memcpy(m->pa_config, tx + 1, sizeof(m->pa_config));
         break;
     case CMD_SET_MODULATION_PARAMS:
         if (!need(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }

@@ -18,13 +18,17 @@ Python implementation of firmware behavior.
 ## Implemented commands
 
 `GET_STATUS (C0)`, `SET_SLEEP (84)`, `SET_STANDBY (80)`, `SET_TX (83)`,
-`SET_RF_FREQUENCY (86)`, `SET_PACKET_TYPE (8A)`,
+`CALIBRATE_IMAGE (98)`, `SET_PA_CONFIG (95)`, `SET_RF_FREQUENCY (86)`, `SET_PACKET_TYPE (8A)`,
 `SET_MODULATION_PARAMS (8B)`, `SET_PACKET_PARAMS (8C)`, `SET_TX_PARAMS (8E)`,
 `SET_BUFFER_BASE_ADDRESS (8F)`, `WRITE_BUFFER (0E)`, `READ_BUFFER (1E)`,
 `SET_DIO_IRQ_PARAMS (08)`, `GET_IRQ_STATUS (12)`, and
 `CLEAR_IRQ_STATUS (02)`. LoRa modem parameters are range checked. The model
 tracks a 256-byte FIFO, standby/sleep/TX modes, frequency synthesizer word,
-power and packet configuration.
+power, image-calibration bytes, PA configuration and packet configuration.
+For SX1262, the driver must send `SET_PA_CONFIG (95 04 07 00 01)` before
+`SET_TX_PARAMS`; model acceptance is protocol evidence only, not measured RF
+output. The separate `hardware/tests/sx1262_driver_config.c` test records and
+checks the complete 915-MHz/+14-dBm SPI command sequence byte-for-byte.
 
 `SET_TX` schedules completion using `tx_latency_ms` (30 ms default). An
 optional SX126x 24-bit timeout value is converted from 15.625-us ticks; timeout

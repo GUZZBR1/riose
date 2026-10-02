@@ -41,6 +41,8 @@ typedef struct sx1262_model {
     uint8_t packet_type;
     uint8_t modulation[4];
     uint8_t packet[9];
+    uint8_t pa_config[4];
+    uint8_t image_calibration[2];
     uint8_t tx_power_dbm;
     uint8_t ramp_time;
     uint32_t rf_frequency_word;

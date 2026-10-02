@@ -44,6 +44,24 @@ int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
         tx_power_dbm < -9 || tx_power_dbm > 22) return -1;
     const uint8_t standby[] = {0x00u};
     const uint8_t packet_type[] = {0x01u}; /* LoRa */
+    /* Semtech image-calibration bands (DS §13.1.13; reference table:
+     * github.com/Lora-net/LoRaMac-node/.../src/radio/sx126x/sx126x.c). */
+    uint8_t image_calibration[2] = {0u, 0u};
+    bool calibrate_image = true;
+    if (frequency_hz > 900000000u) {
+        image_calibration[0] = 0xe1u; image_calibration[1] = 0xe9u;
+    } else if (frequency_hz > 850000000u) {
+        image_calibration[0] = 0xd7u; image_calibration[1] = 0xdbu;
+    } else if (frequency_hz > 770000000u) {
+        image_calibration[0] = 0xc1u; image_calibration[1] = 0xc5u;
+    } else if (frequency_hz > 460000000u) {
+        image_calibration[0] = 0x75u; image_calibration[1] = 0x81u;
+    } else if (frequency_hz > 425000000u) {
+        image_calibration[0] = 0x6bu; image_calibration[1] = 0x6fu;
+    } else {
+        /* Semtech's reference band table does not define an image-cal pair here. */
+        calibrate_image = false;
+    }
     const uint32_t word = frequency_word(frequency_hz);
     const uint8_t rf_frequency[] = {
         (uint8_t)(word >> 24), (uint8_t)(word >> 16),
@@ -52,13 +70,19 @@ int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
     const uint8_t modulation[] = {0x07u, 0x04u, 0x01u, 0x00u}; /* SF7, 125kHz, CR4/5 */
     const uint8_t packet[] = {0x00u, 0x08u, 0x00u, 0x18u, 0x01u, 0x00u};
     const uint8_t tx_params[] = {(uint8_t)tx_power_dbm, 0x04u}; /* 200 us ramp */
+    /* SX1262 HP PA configuration from Semtech reference driver:
+     * SX126xSetPaConfig(0x04, 0x07, 0x00, 0x01), LoRaMac-node sx126x.c. */
+    const uint8_t pa_config[] = {0x04u, 0x07u, 0x00u, 0x01u};
     const uint8_t buffer_base[] = {0x00u, 0x80u};
     const uint8_t irq_params[] = {0x02u,0x03u, 0x02u,0x03u, 0x00u,0x00u, 0x00u,0x00u};
     if (command(hal, 0x80u, standby, sizeof(standby)) != 0 ||
+        (calibrate_image && command(hal, 0x98u, image_calibration,
+                                    sizeof(image_calibration)) != 0) ||
         command(hal, 0x8au, packet_type, sizeof(packet_type)) != 0 ||
         command(hal, 0x86u, rf_frequency, sizeof(rf_frequency)) != 0 ||
         command(hal, 0x8bu, modulation, sizeof(modulation)) != 0 ||
         command(hal, 0x8cu, packet, sizeof(packet)) != 0 ||
+        command(hal, 0x95u, pa_config, sizeof(pa_config)) != 0 ||
         command(hal, 0x8eu, tx_params, sizeof(tx_params)) != 0 ||
         command(hal, 0x8fu, buffer_base, sizeof(buffer_base)) != 0 ||
         command(hal, 0x08u, irq_params, sizeof(irq_params)) != 0) return -1;
