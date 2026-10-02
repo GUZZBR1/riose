@@ -171,6 +171,8 @@ SX1262 Rejects Malformed Frames And Reset Clears State
     Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${status_after_fault}    28    base=16
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
+    Send SX1262 Command    0x86    0x39    0x30    0x00    0x00
+    Send SX1262 Command    0x0E    0x00    0xA5
     Send SX1262 Command    0x83    0x00    0x00    0x00
     Execute Command    sysbus.spi1.radio OnGPIO 0 false
     Execute Command    emulation RunFor "0.030"
@@ -180,6 +182,30 @@ SX1262 Rejects Malformed Frames And Reset Clears State
     ${mode_after_reset}=    Execute Command    sysbus.spi1.radio CurrentMode
     Should Be Equal As Integers    ${faults_after_reset}    0    base=16
     Should Be Equal As Integers    ${mode_after_reset}    20    base=16
+    ${frequency_after_reset}=    Execute Command    sysbus.spi1.radio RfFrequencyWord
+    ${busy_after_reset}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy_after_reset}=    Strip String    ${busy_after_reset}
+    Should Be Equal As Integers    ${frequency_after_reset}    00000000    base=16
+    Should Be Equal    ${busy_after_reset}    False
+    Execute Command    sysbus.spi1.radio Transmit 0x1E
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${fifo_after_reset}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Should Be Equal As Integers    ${fifo_after_reset}    00    base=16
+    Execute Command    sysbus.spi1.radio Transmit 0x83
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Execute Command    emulation RunFor "0.030"
+    ${irq_before_pending_reset}=    Execute Command    sysbus.spi1.radio IRQStatus
+    Should Be Equal As Integers    ${irq_before_pending_reset}    0001    base=16
+    Execute Command    sysbus.spi1.radio OnGPIO 0 false
+    ${irq_pending_reset}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${mode_pending_reset}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${irq_pending_reset}    0000    base=16
+    Should Be Equal As Integers    ${mode_pending_reset}    20    base=16
 
 SX1262 Sleep And Standby Transitions Cancel Pending RX
     [Setup]    Create RIOSE Platform
