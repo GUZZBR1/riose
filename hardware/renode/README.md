@@ -30,7 +30,8 @@ The SX1262 responder implements the SPI command subset used by the current
 firmware: status, standby/sleep, LoRa configuration, buffer bases, FIFO,
 IRQ-mask routing, TX completion, and bounded RX timeout. It rejects unsupported
 commands and fixed-length command frames with a fault counter/status. `HoldBusy`,
-`SuppressIRQ`, and `DropSPI` are fault hooks. TX completion and RX timeout use
+`SuppressIRQ`, and `DropSPI` are fault hooks. While `HoldBusy` is active, TX/RX
+starts fail with `CMD_FAILED` and schedule no operation. TX completion and RX timeout use
 Renode's virtual clock (64 kHz, matching the SX126x 15.625-us timeout tick), so
 firmware polling does not advance radio time by an arbitrary amount per byte.
 TX completion is a deterministic logical event; no RF waveform or peer is

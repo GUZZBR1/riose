@@ -299,7 +299,7 @@ namespace Antmicro.Renode.Peripherals.Riose
 
         private void StartOperation(bool isRx)
         {
-            if(txLength != 4 || mode == 0x00 || mode == 0x60)
+            if(txLength != 4 || mode == 0x00 || mode == 0x60 || HoldBusy)
             {
                 Fault(txLength == 4 ? CmdFailed : CmdInvalid);
                 return;

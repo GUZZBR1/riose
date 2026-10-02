@@ -241,6 +241,16 @@ SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     ${busy_stuck}=    Execute Command    sysbus.spi1.radio BusyAsserted
     ${busy_stuck}=    Strip String    ${busy_stuck}
     Should Be Equal    ${busy_stuck}    True
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    emulation RunFor "0.030"
+    ${stuck_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${stuck_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${stuck_tx_count}=    Execute Command    sysbus.spi1.radio TxCount
+    ${stuck_fault_count}=    Execute Command    sysbus.spi1.radio FaultCount
+    Should Be Equal As Integers    ${stuck_mode}    20    base=16
+    Should Be Equal As Integers    ${stuck_irq}    0000    base=16
+    Should Be Equal As Integers    ${stuck_tx_count}    0
+    Should Be Equal As Integers    ${stuck_fault_count}    1
     Execute Command    sysbus.spi1.radio HoldBusy false
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
