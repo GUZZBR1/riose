@@ -31,7 +31,7 @@
       "value": "meandered_quarter_wave_monopole"
     }
   },
-  "created_utc": "2026-10-02T14:29:37.896889+00:00",
+  "created_utc": "2026-10-02T14:56:09.191075+00:00",
   "experiment": "RIOSE_MVP2_OPENEMS_ANTENNA",
   "geometry_contract": {
     "consumed_geometry": "Adapter may consume mechanical PCB, battery, and enclosure records or a validated mesh export.",

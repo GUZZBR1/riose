@@ -301,6 +301,12 @@ def _run_command(name: str, command: list[str], cwd: Path, timeout_s: int = 120,
             "stderr": result.stderr[-12000:], "command": command, "required": True}
 
 
+def _clear_previous_outputs(*paths: Path) -> None:
+    """Prevent failed reruns from promoting a stale report or metrics artifact."""
+    for path in paths:
+        path.unlink(missing_ok=True)
+
+
 def _write_empty_csv(path: Path, fields: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as stream:
@@ -371,7 +377,7 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
               f"4. Estabilidade do rail: ngspice `{power.get('ngspice_status', 'NOT_RUN')}`; sem medição física ou resultado de rail quando não executado.",
               f"5. Evento com maior carga integrada: {largest_answer}",
               f"6. A antena cabe: análise geométrica `{mechanical.get('status', 'NOT_RUN')}`; {('; '.join(failed_checks) if failed_checks else 'sem conflito de envelope reportado')}.",
-              f"7. Frequência de ressonância/S11: openEMS `{antenna.get('status', 'NOT_RUN')}`; os campos permanecem nulos sem solver.",
+              f"7. Frequência de ressonância/S11: openEMS `{antenna.get('status', 'NOT_RUN')}`; métricas permanecem nulas sem adaptador configurado e simulação concluída.",
               f"8. Degradação por PCB/bateria/carcaça/animal: {len(antenna_rows)} cenários listados; resultados exigem openEMS; aproximação animal é experimental.",
               f"9. Encaixe físico digital: `{'PASS' if mechanical.get('fit', {}).get('fits') else 'BLOCKED'}`; CadQuery disponível `{mechanical.get('cadquery_available', False)}`.",
               f"10. Falhas encontradas: {summary.get('failure_count', 'ver failures.csv')} entradas; falhas de host cobertas `{', '.join(fault_stage.get('completed_host_cases', []))}`; pendentes `{', '.join(fault_stage.get('pending_cases', []))}`.",
@@ -418,12 +424,14 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "-b", "nucleo_l031k6", str(ROOT / "hardware" / "firmware" / "zephyr"),
             "-d", str(dirs["firmware"] / "zephyr-build")], ROOT, timeout_s=1800)
         elf = dirs["firmware"] / "zephyr-build" / "zephyr" / "zephyr.elf"
-        if elf.is_file():
+        elf_built = zephyr_build["status"] == "PASSED" and elf.is_file()
+        if elf_built:
             zephyr_elf = elf
         stages["zephyr_firmware"] = {**zephyr_build,
-            "status": "PASSED" if zephyr_build["status"] == "PASSED" and elf.is_file() else "FAILED",
-            "required": True, "elf": str(elf), "detail": "Built target firmware for nucleo_l031k6" if elf.is_file()
-            else "west build did not produce the expected Zephyr ELF"}
+            "status": "PASSED" if elf_built else "FAILED",
+            "required": True, "elf": str(elf) if elf_built else None,
+            "detail": "Built target firmware for nucleo_l031k6" if elf_built
+            else "west build failed or did not produce the expected Zephyr ELF"}
     else:
         stages["zephyr_firmware"] = {"status": "NOT_AVAILABLE", "required": True,
             "detail": "west/Zephyr workspace is not configured; set ZEPHYR_BASE and install the pinned SDK/workspace"}
@@ -533,11 +541,13 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"
+    cad_step = dirs["mechanical"] / "ear_tag_assumed.step"
+    cad_stl = dirs["mechanical"] / "ear_tag_assumed.stl"
+    _clear_previous_outputs(mechanical_report, cad_step, cad_stl)
     mechanical_cmd = [sys.executable, str(ROOT / "hardware" / "mechanical" / "model.py"),
                       "--spec", str(spec_path), "--output", str(mechanical_report)]
     if env["modules"].get("cadquery"):
-        mechanical_cmd += ["--step", str(dirs["mechanical"] / "ear_tag_assumed.step"),
-                           "--stl", str(dirs["mechanical"] / "ear_tag_assumed.stl")]
+        mechanical_cmd += ["--step", str(cad_step), "--stl", str(cad_stl)]
     if (ROOT / "hardware" / "mechanical" / "model.py").exists():
         mech = _run_command("mechanical", mechanical_cmd, ROOT, timeout_s=120)
         if mechanical_report.exists():
@@ -548,11 +558,16 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             mech["fit"] = geometry.get("fit", {})
             mech["cadquery_available"] = geometry.get("cadquery_available", False)
             mech["dimensions_status"] = geometry.get("specification_statuses", [])
-            mech["status"] = "COMPLETED" if geometry.get("fit", {}).get("fits") else "FAILED"
             mech["result_class"] = "SIMULATED_GEOMETRY_ESTIMATE"
             if not geometry.get("cadquery_available"):
                 mech["status"] = "NOT_AVAILABLE"
                 mech["detail"] += "; CadQuery STEP export unavailable"
+            elif mech.get("status") != "PASSED":
+                mech["status"] = "FAILED"
+                command_error = mech.get("stderr") or mech.get("stdout") or "CAD command failed"
+                mech["detail"] = f"Mechanical report/export command failed: {command_error[-1000:]}"
+            else:
+                mech["status"] = "COMPLETED" if geometry.get("fit", {}).get("fits") else "FAILED"
         stages["mechanical"] = mech
     else:
         stages["mechanical"] = {"status": "NOT_AVAILABLE", "required": True,
@@ -560,17 +575,33 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     antenna_cmd = [sys.executable, "-m", "hardware.antenna.run", "--spec", str(spec_path),
                    "--output", str(dirs["antenna"])]
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
     antenna_manifest = dirs["antenna"] / "antenna_experiments.json"
+    antenna_csv = dirs["antenna"] / "antenna.csv"
+    _clear_previous_outputs(antenna_manifest, antenna_csv)
+    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
         ant["result_class"] = ant_json.get("result_class")
-        ant["detail"] = ant_json.get("limitations", [""])[0]
         ant["scenarios"] = ant_json.get("scenarios", [])
+        incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
+        if incomplete:
+            ant["detail"] = "; ".join(
+                f"{row.get('scenario', 'scenario')}: {row.get('status', 'UNKNOWN')} ({row.get('detail', '')})"
+                for row in incomplete
+            )
+        else:
+            ant["detail"] = ant_json.get("limitations", [""])[0]
+        if ant.get("return_code") not in (None, 0) and ant_json.get("status") == "COMPLETED":
+            ant["status"] = "FAILED"
+            ant["detail"] = "Antenna runner returned an error despite a completed manifest"
+    elif ant.get("status") == "PASSED":
+        ant["status"] = "FAILED"
+        ant["detail"] = "Antenna runner exited successfully without producing a manifest"
     stages["antenna"] = ant
 
     power_scenarios: dict[str, dict[str, Any]] = {}
+    schedule_statuses: dict[str, str] = {}
     if scenario_traces and (ROOT / "hardware" / "spice" / "trace_adapter.py").exists():
         loads_path = dirs["power"] / "assumed_load_profile.json"
         dump_json(loads_path, _power_load_profile(spec))
@@ -583,8 +614,10 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                        str(input_trace), "--loads", str(loads_path), "--output", str(schedule_path)]
             adapted = _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
             if adapted["status"] != "PASSED" or not schedule_path.is_file():
+                schedule_statuses[scenario] = "FAILED"
                 power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": "Trace conversion failed"}
                 continue
+            schedule_statuses[scenario] = "PASSED"
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
                          "--output", str(scenario_dir)]
@@ -627,8 +660,11 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "scenarios": power_scenarios,
             "detail": "NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed",
         }
-        stages["trace_schedule"] = {"status": "PASSED" if len(power_scenarios) == 4 else "FAILED",
-                                     "required": True, "scenarios": list(power_scenarios)}
+        schedules_complete = len(schedule_statuses) == len(SCENARIOS) and all(
+            status == "PASSED" for status in schedule_statuses.values()
+        )
+        stages["trace_schedule"] = {"status": "PASSED" if schedules_complete else "FAILED",
+                                     "required": True, "scenarios": schedule_statuses}
     else:
         stages["power"] = {"status": "NOT_AVAILABLE", "required": True,
                             "detail": "Firmware traces and the trace-to-power adapter are required"}

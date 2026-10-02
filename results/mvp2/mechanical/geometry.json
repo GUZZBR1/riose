@@ -437,16 +437,10 @@
     "status": "ASSUMED"
   },
   "warnings": [
-    "A",
     "Battery cylinder is approximated by a rectangular envelope with length along X.",
     "Bounding-box placement and mass properties are estimates; validate clearances and retention in a reviewed design.",
     "Component placement gap of 0.5 mm is an ASSUMED layout heuristic.",
-    "D",
-    "E",
-    "M",
-    "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface.",
-    "S",
-    "U"
+    "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface."
   ],
   "cadquery_available": true
 }

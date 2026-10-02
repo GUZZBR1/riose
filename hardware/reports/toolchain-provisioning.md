@@ -58,7 +58,7 @@ Provisioning was performed without `sudo`: non-interactive sudo was unavailable 
 
 ### Results and limits recorded in the integrated run
 
-- Python suite: **55 passed** under project Python 3.12.13. C/CMake suite: **23/23 passed**. `git diff --check` is clean.
+- Python suite: **98 passed** under project Python 3.12.13, including the hardware Python test modules. C/CMake suite: **23/23 passed**. `git diff --check` is clean.
 - The integrated command builds the Zephyr NUCLEO-L031K6 image and Renode loads it with both custom logical peripherals; those stages report `PASSED` in `results/mvp2/summary.json`.
 - The four NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE traces are converted to ngspice inputs and executed. Their modeled currents and rails retain ASSUMED/SIMULATED provenance; none are measurements.
 - CadQuery emits STEP/STL and an envelope report; a +5 mm enclosure-width change changed both STEP and STL hashes. The current provisional geometry has battery, antenna keepout, and PCB fit conflicts; the mechanical stage is **FAILED** and the gate stays `NOT_READY_FOR_PHYSICAL_PROTOTYPE`.

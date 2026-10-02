@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from riose.digital_twin.cli import (_power_assumptions, _power_load_profile, _version_matches,
+                                    _clear_previous_outputs, _report,
                                     generate_motion_profiles, preflight)
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
 
@@ -106,3 +107,23 @@ def test_preflight_version_comparison_handles_prereleases_and_minor_pins():
     assert _version_matches("0.37.0-rc3", "openEMS 0.37.0rc3") is True
     assert _version_matches("3.12.x", "Python 3.12.14") is True
     assert _version_matches("3.12.x", "Python 3.13.0") is False
+
+
+def test_rerun_discards_old_stage_outputs_before_invoking_tools(tmp_path):
+    stale = [tmp_path / name for name in ("geometry.json", "antenna.csv", "antenna_experiments.json")]
+    for path in stale:
+        path.write_text("stale success")
+    _clear_previous_outputs(*stale)
+    assert all(not path.exists() for path in stale)
+
+
+def test_report_explains_missing_antenna_adapter_without_claiming_solver_absence():
+    summary = {
+        "gate": {"state": "NOT_READY_FOR_PHYSICAL_PROTOTYPE", "blockers": []},
+        "stages": {"antenna": {"status": "PARTIAL_OR_BLOCKED"}},
+        "spec_sha256": "test",
+        "environment": {"platform": "test", "gpu": {}},
+        "parameter_statuses": {},
+    }
+    report = _report({}, summary)
+    assert "sem adaptador configurado e simulação concluída" in report
