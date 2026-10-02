@@ -1,4 +1,6 @@
+import contextlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -111,6 +113,24 @@ class TraceDrivenPowerTests(unittest.TestCase):
                 result = power._run_ngspice(deck, None, self.rows)
         self.assertEqual(result["status"], "FAILED")
         self.assertIn("waveform output is missing", result["detail"])
+
+    def test_cli_requires_and_records_repeat_period_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            schedule = Path(tmp) / "schedule.jsonl"
+            schedule.write_text("\n".join(json.dumps(row) for row in self.rows) + "\n")
+            with contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as missing_source:
+                    power.main([str(schedule), "--period-s", "10", "--output", str(Path(tmp) / "missing")])
+            self.assertEqual(missing_source.exception.code, 2)
+            output = Path(tmp) / "output"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(power.main([
+                    str(schedule), "--period-s", "10", "--period-source", "test fixture",
+                    "--output", str(output)]), 0)
+            summary = json.loads((output / "summary.json").read_text())
+            self.assertEqual(summary["repeat_period_provenance"], "test fixture")
+            self.assertEqual(summary["ngspice"]["status"], "NOT_AVAILABLE")
+            self.assertFalse((output / "electrical_trace.csv").exists())
 
 
 if __name__ == "__main__":

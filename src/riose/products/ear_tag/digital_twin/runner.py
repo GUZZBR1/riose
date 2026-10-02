@@ -13,7 +13,7 @@ from typing import Any
 from .execution import _clear_previous_outputs, _run_command, _write_empty_csv
 from .motion import generate_motion_profiles
 from .paths import ROOT, SCENARIOS, resolve_user_path
-from .power import _power_assumptions, _power_load_profile
+from .power import _power_assumptions, _power_load_profile, _repeat_period_arguments
 from .preflight import preflight
 from .reporting import _metrics_csv, _report
 from .spec import dump_json, evaluate_gate, load_spec, parameter_statuses
@@ -277,6 +277,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
                          "--output", str(scenario_dir)]
+            power_cmd += _repeat_period_arguments(spec)
             powered = _run_command("power", power_cmd, ROOT, timeout_s=1800)
             result_path = scenario_dir / "summary.json"
             if powered["status"] == "PASSED" and result_path.is_file():

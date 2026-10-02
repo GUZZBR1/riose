@@ -12,6 +12,21 @@ def _record(spec: dict[str, Any], dotted: str, fallback: float = 0.0) -> float:
         return float(node["value"])
     return fallback
 
+
+def _repeat_period_arguments(spec: dict[str, Any]) -> list[str]:
+    """Return a daily-extrapolation period only with its spec provenance."""
+    parameter = spec.get("power_profiles", {}).get("normal_beacon_interval_s", {})
+    if (not isinstance(parameter, dict) or not {"value", "status", "source"} <= parameter.keys()
+            or parameter["status"] not in {"DATASHEET", "ASSUMED", "SIMULATED"}
+            or not parameter["source"]):
+        return []
+    period_s = float(parameter["value"])
+    if period_s <= 0:
+        return []
+    source = ("hardware/spec.yaml:power_profiles.normal_beacon_interval_s "
+              f"({parameter['status']}: {parameter['source']})")
+    return ["--period-s", str(period_s), "--period-source", source]
+
 def _power_load_profile(spec: dict[str, Any]) -> dict[str, Any]:
     """Build explicit ASSUMED loads from the single hardware specification."""
     awake = _record(spec, "components.mcu.run_current_ma")

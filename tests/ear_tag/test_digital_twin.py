@@ -8,10 +8,22 @@ from riose.digital_twin.cli import (_power_assumptions, _power_load_profile, _ve
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
 from riose.products.ear_tag.digital_twin import cli as canonical_cli
 from riose.products.ear_tag.digital_twin.paths import resolve_user_path
+from riose.products.ear_tag.digital_twin.power import _repeat_period_arguments
 from riose.products.ear_tag.digital_twin import spec as canonical_spec
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_power_repeat_period_argument_preserves_spec_provenance():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+
+    args = _repeat_period_arguments(spec)
+
+    assert args[:2] == ["--period-s", "900.0"]
+    assert args[2] == "--period-source"
+    assert "hardware/spec.yaml:power_profiles.normal_beacon_interval_s" in args[3]
+    assert "SIMULATED" in args[3]
 
 
 def test_legacy_modules_forward_to_canonical_objects():
