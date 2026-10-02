@@ -80,8 +80,10 @@ def generate_datasets(output_dir: Path, sample_rate_hz: float = 12.5, samples: i
         datasets.append({
             "name": profile,
             "file": filename,
+            "axes": ["x", "y", "z"],
             "samples": samples,
             "sample_rate_hz": sample_rate_hz,
+            "duration_s": samples / sample_rate_hz,
             "unit": "g",
             "seed": seed,
             "status": "SIMULATED",

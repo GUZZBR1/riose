@@ -21,6 +21,8 @@ def test_generates_all_profiles_with_explicit_metadata_and_deterministic_rows(tm
     assert [item["name"] for item in manifest["datasets"]] == list(generator.PROFILES)
     assert all(item["status"] == "SIMULATED" and item["unit"] == "g" for item in manifest["datasets"])
     assert all(item["sample_rate_hz"] == 25 and item["seed"] == 42 for item in manifest["datasets"])
+    assert all(item["axes"] == ["x", "y", "z"] for item in manifest["datasets"])
+    assert all(item["duration_s"] == pytest.approx(16 / 25) for item in manifest["datasets"])
     assert manifest["provenance"] == "SIMULATED"
     for item in manifest["datasets"]:
         left = first / item["file"]
@@ -40,6 +42,8 @@ def test_seed_changes_random_profile_but_not_profile_inventory(tmp_path):
     generator.generate_datasets(a, samples=20, seed=10)
     generator.generate_datasets(b, samples=20, seed=11)
     assert (a / "random_movement.csv").read_bytes() != (b / "random_movement.csv").read_bytes()
+    for profile in ("static", "walk", "run", "impact"):
+        assert (a / f"{profile}.csv").read_bytes() != (b / f"{profile}.csv").read_bytes()
 
 
 def test_profile_shapes_are_distinguishable_and_impact_is_transient(tmp_path):

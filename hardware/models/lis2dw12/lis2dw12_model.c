@@ -46,9 +46,19 @@ static uint32_t odr_period_ms(const lis2dw12_model_t *model)
     };
     const unsigned odr = (model->registers[LIS2DW12_REG_CTRL1] >> 4u) & 0x0fu;
     if (odr >= 10u) return 0u;
-    const bool high_performance =
-        ((model->registers[LIS2DW12_REG_CTRL1] >> 2u) & 0x03u) == 0x01u;
-    return high_performance ? high_performance_period_ms[odr] : low_power_period_ms[odr];
+    const unsigned mode = (model->registers[LIS2DW12_REG_CTRL1] >> 2u) & 0x03u;
+    if (mode == 0x01u) return high_performance_period_ms[odr];
+    if (mode != 0x00u) return 0u; /* on-demand and reserved modes are not free-running */
+    if (odr == 1u && (model->registers[LIS2DW12_REG_CTRL1] & 0x03u) != 0u) return 80u;
+    return low_power_period_ms[odr];
+}
+
+static unsigned output_resolution_bits(const lis2dw12_model_t *model)
+{
+    const unsigned ctrl1 = model->registers[LIS2DW12_REG_CTRL1];
+    const unsigned mode = (ctrl1 >> 2u) & 0x03u;
+    const unsigned lp_mode = ctrl1 & 0x03u;
+    return (mode == 0x00u || mode == 0x02u) && lp_mode == 0u ? 12u : 14u;
 }
 
 static unsigned full_scale_g(const lis2dw12_model_t *model)
@@ -67,6 +77,8 @@ int16_t lis2dw12_axis_raw(const lis2dw12_model_t *model, unsigned axis)
     int32_t raw = ((int32_t)model->acceleration_mg[axis] * 32768) / denominator;
     if (raw > 32767) raw = 32767;
     if (raw < -32768) raw = -32768;
+    const int32_t quantum = 1 << (16u - output_resolution_bits(model));
+    raw = (raw / quantum) * quantum; /* output words are left-aligned 12/14-bit values */
     return (int16_t)raw;
 }
 
@@ -136,6 +148,7 @@ void lis2dw12_init(lis2dw12_model_t *model,
     if (model == NULL) return;
     memset(model, 0, sizeof(*model));
     model->registers[LIS2DW12_REG_WHO_AM_I] = LIS2DW12_WHO_AM_I_VALUE;
+    model->registers[LIS2DW12_REG_CTRL2] = LIS2DW12_CTRL2_IF_ADD_INC;
     model->acceleration_mg[2] = 1000;
     model->previous_acceleration_mg[2] = 1000;
     model->motion = LIS2DW12_MOTION_STATIONARY;
@@ -196,6 +209,12 @@ lis2dw12_result_t lis2dw12_i2c_write(lis2dw12_model_t *model,
         if (reg == LIS2DW12_REG_WHO_AM_I || reg == LIS2DW12_REG_STATUS ||
             (reg >= LIS2DW12_REG_OUT_X_L && reg <= LIS2DW12_REG_OUT_Z_H) ||
             reg == LIS2DW12_REG_WAKE_UP_SRC || reg == LIS2DW12_REG_ALL_INT_SRC) {
+            continue;
+        }
+        if (reg == LIS2DW12_REG_CTRL2 && (source[i] & LIS2DW12_CTRL2_SOFT_RESET) != 0u) {
+            const lis2dw12_irq_callback_t callback = model->irq_callback;
+            void *user_data = model->irq_user_data;
+            lis2dw12_init(model, callback, user_data);
             continue;
         }
         model->registers[reg] = source[i];

@@ -37,7 +37,10 @@ saídas X/Y/Z (`0x28`–`0x2D`) e fontes de interrupção. Saídas são signed
 little-endian no formato de 16 bits do sensor. A unidade interna dos perfis é
 mg; a faixa selecionável é ±2/4/8/16 g. `CTRL1.ODR` agenda atualizações em
 tempo virtual, com resolução de relógio de 1 ms; atrasos longos avançam a
-sequência e disponibilizam a amostra mais recente. A IRQ de wake requer
+sequência e disponibilizam a amostra mais recente. LP mode 1 gera saída de 12
+bits; os demais modos contínuos cobertos geram saída de 14 bits, alinhada à
+esquerda em palavras de 16 bits. O modo on-demand e valores reservados não
+geram amostras contínuas. A IRQ de wake requer
 `CTRL4.INT1_WU` (`0x20`) e `CTRL7.INTERRUPTS_ENABLE` (`0x20`). Sono/repouso é
 modelado pelo subconjunto `WAKE_UP_THS.SLEEP_ON`, `WAKE_UP_DUR` e rota de
 mudança de sono em `CTRL5`.
@@ -45,26 +48,30 @@ mudança de sono em `CTRL5`.
 ## Datasets sintéticos
 
 O gerador grava `STATIC`, `WALK`, `RUN`, `IMPACT` e `RANDOM_MOVEMENT` como CSV
-mais um `manifest.json`. Cada conjunto registra seed, taxa em Hz, unidade `g`
-e status `SIMULATED`. Os sinais são fixtures ilustrativas de firmware, não
-medições ou padrões de comportamento bovino.
+mais um `manifest.json`. Cada conjunto registra seed, taxa em Hz, duração,
+eixos X/Y/Z, unidade `g`, origem e status `SIMULATED`. WALK e RUN são padrões
+sintéticos de aceleração, não marcha medida, biometria validada ou dados de
+animais reais.
 
 ```sh
 python3 hardware/models/lis2dw12/generate_datasets.py \
   --output hardware/models/lis2dw12/datasets --samples 128 \
-  --sample-rate-hz 12.5 --seed 20261002
+  --sample-rate-hz 25 --seed 20261002
 python3 -m pytest hardware/models/lis2dw12/tests/test_datasets.py -q
 ```
 
-Renode upstream inclui `Sensors.LIS2DW12` desde a release 1.13.3. O arquivo
-`hardware/renode/riose_stm32l0.repl` usa esse periférico nativo; converta uma
-das CSVs para RESD com a ferramenta `csv2resd.py` da instalação Renode e
-alimente-a por `imu FeedAccelerationSamplesFromRESD @<arquivo.resd>`. Isso
-evita manter outro driver de periférico Renode no repositório.
+Renode upstream inclui `Sensors.LIS2DW12` desde a release 1.13.3. O helper
+converte de `g` para micro-g e chama o `csv2resd.py` da instalação Renode para
+criar uma entrada compatível com `sysbus.i2c1.imu FeedAccelerationSamplesFromRESD`.
+
+```sh
+RENODE_HOME=/path/to/renode \
+  python3 hardware/renode/scripts/dataset_to_resd.py WALK --output /tmp/walk.resd
+```
 
 ## Referência do formato físico
 
-A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038](https://www.st.com/resource/en/application_note/dm00401877-lis2dw12-alwayson-3d-accelerometer-stmicroelectronics.pdf), seção 4.5. O exemplo de wake-up da seção 5.4 configura `CTRL1=0x14` (12,5 Hz, high-performance), `WAKE_UP_DUR=0x00`, `WAKE_UP_THS=0x02` (62,5 mg a ±2 g), `CTRL4=0x20` e `CTRL7=0x20`. AN5038 descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo gera aceleração em mg e quantiza para esse formato. O limiar representa 1/64 da escala total por código.
+A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038](https://www.st.com/resource/en/application_note/dm00401877-lis2dw12-alwayson-3d-accelerometer-stmicroelectronics.pdf), seção 4.5. O exemplo de wake-up da seção 5.4 configura `CTRL1=0x14` (12,5 Hz, high-performance), `WAKE_UP_DUR=0x00`, `WAKE_UP_THS=0x02` (62,5 mg a ±2 g), `CTRL4=0x20` e `CTRL7=0x20`. AN5038 descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo gera aceleração em mg e quantiza à resolução selecionada. O limiar representa 1/64 da escala total por código.
 
 ## Limitações conhecidas
 

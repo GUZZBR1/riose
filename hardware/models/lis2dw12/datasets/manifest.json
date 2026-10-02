@@ -1,6 +1,12 @@
 {
   "datasets": [
     {
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "duration_s": 10.24,
       "file": "static.csv",
       "name": "STATIC",
       "sample_rate_hz": 12.5,
@@ -11,6 +17,12 @@
       "unit": "g"
     },
     {
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "duration_s": 10.24,
       "file": "walk.csv",
       "name": "WALK",
       "sample_rate_hz": 12.5,
@@ -21,6 +33,12 @@
       "unit": "g"
     },
     {
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "duration_s": 10.24,
       "file": "run.csv",
       "name": "RUN",
       "sample_rate_hz": 12.5,
@@ -31,6 +49,12 @@
       "unit": "g"
     },
     {
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "duration_s": 10.24,
       "file": "impact.csv",
       "name": "IMPACT",
       "sample_rate_hz": 12.5,
@@ -41,6 +65,12 @@
       "unit": "g"
     },
     {
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "duration_s": 10.24,
       "file": "random_movement.csv",
       "name": "RANDOM_MOVEMENT",
       "sample_rate_hz": 12.5,

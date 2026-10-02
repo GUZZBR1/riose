@@ -26,8 +26,6 @@ imu: Sensors.LIS2DW12 @ i2c1 0x2d
 radio:
     Busy -> gpioPortB@0
     IRQ -> gpioPortB@1
-imu:
-    INT1 -> gpioPortA@8
 
 gpioPortA:
     12 -> radio@0
