@@ -11,6 +11,20 @@ from hardware.mechanical.model import SpecError, apply_overrides, build_report, 
 ROOT = Path(__file__).parent
 
 
+@pytest.fixture
+def cadquery_module():
+    import hardware.mechanical.model as model
+
+    if not model._cadquery_available():
+        if os.environ.get("RIOSE_REQUIRE_CADQUERY") == "1":
+            pytest.fail("CadQuery is required for the dedicated CAD export CI job")
+        pytest.skip("CadQuery unavailable; dedicated CI CAD job installs requirements-cad.txt")
+
+    import cadquery as cq
+
+    return cq
+
+
 def test_fitting_assumed_spec_reports_mass_and_center_of_mass():
     spec = load_spec(ROOT / "fixtures/fitting_spec.yaml")
     report = build_report(spec)
@@ -278,13 +292,8 @@ def test_export_unavailable_is_explicit(tmp_path):
         export_cad(report, tmp_path / "tag.step")
 
 
-def test_headless_step_stl_export_and_provenance(tmp_path):
-    import hardware.mechanical.model as model
-
-    if not model._cadquery_available():
-        if os.environ.get("RIOSE_REQUIRE_CADQUERY") == "1":
-            pytest.fail("CadQuery is required for the dedicated CAD export CI job")
-        pytest.skip("CadQuery unavailable; dedicated CI CAD job installs requirements-cad.txt")
+def test_headless_step_stl_export_and_provenance(tmp_path, cadquery_module):
+    cq = cadquery_module
     step = tmp_path / "tag.step"
     spec = ROOT / "fixtures/fitting_spec.yaml"
     baseline_report = tmp_path / "baseline.json"
@@ -371,8 +380,8 @@ def test_headless_step_stl_export_and_provenance(tmp_path):
         assert geometry_signature(variant_step) != baseline_signature, override
 
 
-def test_current_candidate_step_stl_uses_spec_positions_and_provenance(tmp_path):
-    import cadquery as cq
+def test_current_candidate_step_stl_uses_spec_positions_and_provenance(tmp_path, cadquery_module):
+    cq = cadquery_module
 
     spec = ROOT.parent.parent / "spec.yaml"
     report_path, step_path = tmp_path / "candidate.json", tmp_path / "candidate.step"
@@ -450,8 +459,10 @@ def test_current_candidate_step_stl_uses_spec_positions_and_provenance(tmp_path)
     ("mechanical.layout_candidate.battery_center_y_mm", "24.75", "battery", "y"),
     ("mechanical.enclosure.mounting_hole_center_x_mm", "14.5", "enclosure_shell", "hole_x"),
 ])
-def test_current_candidate_coordinate_overrides_change_real_step(tmp_path, parameter, value, part, axis):
-    import cadquery as cq
+def test_current_candidate_coordinate_overrides_change_real_step(
+    tmp_path, parameter, value, part, axis, cadquery_module
+):
+    cq = cadquery_module
 
     spec = ROOT.parent.parent / "spec.yaml"
     base_step = tmp_path / "base.step"
