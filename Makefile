@@ -28,8 +28,5 @@ hardware-native-sim:
 # platform and custom peripheral models; it does not claim STM32L031 fidelity.
 hardware-renode-test:
 	python3 hardware/renode/scripts/check_tools.py
-	@if command -v renode >/dev/null 2>&1 && command -v renode-test >/dev/null 2>&1; then \
-		renode-test hardware/renode/tests/platform-smoke.robot; \
-	else \
-		echo "SKIPPED: install renode and renode-test to run the optional platform smoke test"; \
-	fi
+	@command -v renode >/dev/null 2>&1 && command -v renode-test >/dev/null 2>&1 || { echo "SKIPPED: install renode and renode-test to run the optional platform smoke test"; exit 0; }
+	renode-test hardware/renode/tests/platform-smoke.robot
