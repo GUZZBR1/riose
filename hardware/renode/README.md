@@ -59,3 +59,28 @@ skipped unless an ELF path is provided. A valid firmware ELF must be compiled
 for a compatible STM32L0 memory map and peripheral base addresses. The current
 board profile and Renode surrogate mismatch must be reviewed before wiring this
 into required CI.
+
+## Firmware wake-up scenario
+
+The Robot smoke test loads the platform without firmware. Its firmware case is
+skipped unless RIOSE_ZEPHYR_ELF points to an ELF compiled for the NUCLEO-L031K6
+profile. That case advances 100 ms of guest virtual time, injects a routed
+LIS2DW12 wake event, and checks that firmware consumes the interrupt. Renode's
+emulation RunFor command advances guest time deterministically without waiting
+for the same amount of host wall time. This does not validate electrical timing
+or STOP current behavior.
+
+Build the physical Zephyr profile in a configured Zephyr workspace, then run:
+
+    west build -b nucleo_l031k6 -d build/tag-nucleo-l031k6 hardware/firmware/zephyr
+    export RIOSE_ZEPHYR_ELF="$PWD/build/tag-nucleo-l031k6/zephyr/zephyr.elf"
+    make hardware-renode-test
+
+The platform wires the MCU model's GPIO, SPI, I2C, timer/RTC and interrupt
+controllers to the protocol responders. The Robot case verifies startup and IMU
+IRQ-driven return to sleep only. A full temporal trace, timer-driven wake, exact
+L031 flash/RAM limits, clock-tree fidelity and STOP/deep-sleep electrical
+behavior remain outside the evidence produced by this surrogate and require
+additional target-specific validation before claiming full MCU equivalence.
+native_sim remains a separate fast software/model test path and does not
+represent Renode or electrical simulation.

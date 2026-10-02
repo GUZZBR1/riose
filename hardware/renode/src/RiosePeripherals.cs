@@ -152,12 +152,14 @@ namespace Antmicro.Renode.Peripherals.Riose
         private bool pointerSet;
         private uint failedTransactions;
         private int sample = 0;
+        private bool holdIRQ;
 
         public LIS2DW12(Machine machine, int address) { Reset(); INT1 = new GPIO(); }
         public GPIO INT1 { get; }
-        public bool HoldIRQ { get; set; }
+        public bool HoldIRQ { get => holdIRQ; set { holdIRQ = value; UpdateWakeupIRQ(); } }
         public bool FailI2C { get; set; }
         public string MotionProfile { get; set; } = "STATIC";
+        public bool WakeupIRQAsserted { get; private set; }
 
         public void Write(byte[] data)
         {
@@ -169,6 +171,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             {
                 if(pointer == 0x0F || pointer == 0x27 || (pointer >= 0x28 && pointer <= 0x2D) || pointer == 0x38 || pointer == 0x3B) continue;
                 registers[pointer] = data[i];
+                if(pointer == 0x23 || pointer == 0x3F) UpdateWakeupIRQ();
             }
         }
 
@@ -181,7 +184,12 @@ namespace Antmicro.Renode.Peripherals.Riose
             {
                 if(pointer == 0x28) UpdateSample();
                 result[i] = fail ? (byte)0 : pointer < registers.Length ? registers[pointer] : (byte)0;
-                if(pointer == 0x38 || pointer == 0x3B) { registers[0x38] = 0; registers[0x3B] = 0; INT1.Set(false); }
+                if(pointer == 0x38 || pointer == 0x3B)
+                {
+                    registers[0x38] = 0;
+                    registers[0x3B] = 0;
+                    UpdateWakeupIRQ();
+                }
                 pointer = (byte)((pointer + 1) & 0x3F);
             }
             return result;
@@ -198,12 +206,32 @@ namespace Antmicro.Renode.Peripherals.Riose
             failedTransactions = 0;
             pointer = 0;
             pointerSet = false;
+            sample = 0;
             HoldIRQ = FailI2C = false;
-            INT1?.Set(false);
+            registers[0x23] = registers[0x3F] = 0;
+            UpdateWakeupIRQ();
         }
 
         // Fault injection hooks callable by monitor/Python automation.
         public void FailNextI2C(uint transactions) { failedTransactions = transactions; }
+
+        // Inject a deterministic wake event from the environment. Respect the
+        // same routing and global interrupt-enable bits as UpdateSample so a
+        // test cannot accidentally claim an IRQ when firmware left it masked.
+        public void TriggerWakeup()
+        {
+            registers[0x38] |= 0x08;
+            registers[0x3B] |= 0x08;
+            UpdateWakeupIRQ();
+        }
+
+        private void UpdateWakeupIRQ()
+        {
+            bool routed = (registers[0x23] & 0x20) != 0 &&
+                (registers[0x3F] & 0x20) != 0;
+            WakeupIRQAsserted = routed && !HoldIRQ && (registers[0x38] & 0x08) != 0;
+            INT1?.Set(WakeupIRQAsserted);
+        }
 
         private bool ConsumeI2cFault()
         {
@@ -230,7 +258,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             if(routed && MotionProfile != "STATIC" && threshold > 0)
             {
                 registers[0x38] = 0x08; registers[0x3B] |= 0x08;
-                if(!HoldIRQ) INT1.Set(true);
+                UpdateWakeupIRQ();
             }
         }
     }
