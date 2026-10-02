@@ -71,6 +71,7 @@ SX1262 TX Completes On Virtual Time And Routes DIO1 IRQ
     Execute Command    sysbus.spi1.radio TxLatencyMs 7
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    sysbus.spi1.radio TxLatencyMs 30
     ${busy}=    Execute Command    sysbus.spi1.radio BusyAsserted
     ${busy}=    Strip String    ${busy}
     Should Be Equal    ${busy}    True
