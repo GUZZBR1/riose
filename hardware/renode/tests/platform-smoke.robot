@@ -181,6 +181,33 @@ SX1262 Rejects Malformed Frames And Reset Clears State
     Should Be Equal As Integers    ${faults_after_reset}    0    base=16
     Should Be Equal As Integers    ${mode_after_reset}    20    base=16
 
+SX1262 Sleep And Standby Transitions Cancel Pending RX
+    [Setup]    Create RIOSE Platform
+    ${initial_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${initial_mode}    20    base=16
+    Send SX1262 Command    0x84    0x04
+    ${sleep_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${sleep_mode}    00    base=16
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    ${sleep_faults}=    Execute Command    sysbus.spi1.radio FaultCount
+    ${sleep_mode_after_tx}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${sleep_faults}    1
+    Should Be Equal As Integers    ${sleep_mode_after_tx}    00    base=16
+    Send SX1262 Command    0x80    0x00
+    ${standby_rc}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${standby_rc}    20    base=16
+    Send SX1262 Command    0x82    0x00    0x00    0x40
+    ${rx_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${rx_mode}    50    base=16
+    Send SX1262 Command    0x80    0x01
+    ${standby_xosc}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${busy_after_standby}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy_after_standby}=    Strip String    ${busy_after_standby}
+    Should Be Equal As Integers    ${standby_xosc}    30    base=16
+    Should Be Equal    ${busy_after_standby}    False
+    Execute Command    emulation RunFor "0.002"
+    ${irq_after_cancel}=    Execute Command    sysbus.spi1.radio IRQStatus
+    Should Be Equal As Integers    ${irq_after_cancel}    0000    base=16
 SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     [Setup]    Create RIOSE Platform
     Execute Command    sysbus.spi1.radio HoldBusy true
