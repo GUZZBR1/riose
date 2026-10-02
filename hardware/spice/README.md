@@ -17,27 +17,24 @@ To execute ngspice when it is installed:
 python3 hardware/spice/energy_model.py --ngspice /path/to/ngspice
 ```
 
-To calculate autonomy, explicitly supply a candidate capacity, for example:
-
-```sh
-python3 hardware/spice/energy_model.py --capacity-mah 2200
-```
-
-Do not treat that example as a selected battery or an advertised lifetime.
-When capacity is absent the model emits `NOT_CALCULATED_CAPACITY_UNCONFIGURED`
-and leaves both lifetime fields null. Outputs are `summary.json`,
+The default profile now records a Tadiran TLL-5902 capacity rating (1,100 mAh)
+and a TPS62840 regulator candidate. The calculated days are an arithmetic
+estimate from configured loads, not a demonstrated battery lifetime. Outputs
+are `summary.json`,
 `energy_24h.csv`, a generated ngspice pulse deck and the ngspice log.
 
-The day profile assumes 96 beacons/day, 120 ms airtime each, 30 ms MCU awake
-per beacon and a 100 ms receive window after each beacon (the firmware timeout). These timings are
-configurable planning assumptions, not a measured packet airtime or firmware
-trace. The estimate adds MCU and IMU current in TX/RX periods, counts the
-IMU low-power load through the day, and treats all other time as sleep. It does
-not add battery self-discharge, regulator losses, antenna/front-end losses,
-passive RFID loading, temperature derating, retransmissions or component
-leakage beyond the configured radio sleep allowance.
+The normal day profile assumes 96 beacons/day (15-minute interval), 120 ms
+airtime each, 30 ms MCU awake per beacon and a 100 ms receive window after
+each beacon. These timings are configurable assumptions, not measured airtime
+or a firmware power trace. The charge model converts rail current to battery
+input using the configured nominal voltage, regulator efficiency assumption,
+and quiescent current; it also counts the IMU load through the day. It does not
+include battery self-discharge, RF front-end losses, passive RFID loading,
+temperature/age derating, retransmissions or unmodeled board leakage.
 
-The ngspice deck is a representative single TX pulse through a battery
-equivalent, source resistance and bypass capacitor. It checks a transient
-voltage dip; it is not a 24-hour transient run and does not independently
-validate the charge integration in `energy_model.py`.
+For the selected-cell/regulator transient sensitivity model, run
+[`candidate/run_sweep.py`](candidate/README.md). It sweeps voltage, ESR and
+output capacitor in ngspice. Its regulator is an averaged idealization, and
+the results do not validate a physical brownout. The older generated deck here
+is a representative single pulse only; it does not independently validate the
+daily charge integration.

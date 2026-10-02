@@ -67,12 +67,18 @@ portable firmware FSM, SX1262 SPI command model, LIS2DW12 register/IRQ model,
 energy profile. Run `make hardware-test` for the CTest suite or
 `make hardware-demo` for the accelerated tag scenarios.
 
-The firmware also builds and runs with Zephyr `native_sim/native/64` against
-the same C peripheral models (`make hardware-native-sim` from a configured
-Zephyr workspace). The tested Zephyr build is software simulation only.
-ngspice 42 ran the single-TX rail transient; the assumed 3.3 V/3 Ω/47 µF model
-reached 3.164086 V. Default energy estimates use explicit mixed inputs and do
-not calculate autonomy because no battery capacity is selected. Full details,
+The normal firmware beacon interval is 15 minutes (96 transmissions/day);
+ACTIVE and ALERT cadence increases are bounded to two-minute bursts. The energy
+budget is below the 0.5 mAh/day target under its configured assumptions. A
+Tadiran TLL-5902 (1/2 AA, 1.1 Ah) and TI TPS62840 buck are engineering
+candidates, not finalized physical parts. The firmware also builds and runs
+with Zephyr `native_sim/native/64` against the same C peripheral models
+(`make hardware-native-sim` from a configured Zephyr workspace). ngspice 42
+ran 150 voltage/ESR/capacitor sensitivity scenarios; this averaged circuit
+model is not a vendor regulator model or physical brownout validation. The
+nominal-cell rail minimum was 3.2909 V under the +14 dBm TX stress current; low
+voltage points crossed an assumed 2.7 V design threshold. Autonomy is only an
+arithmetic estimate until current is measured on a board. Full details,
 test counts, energy scenarios, and blockers are in
 [`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md).
 
