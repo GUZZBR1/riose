@@ -28,8 +28,16 @@ finite, positive seconds. The output preserves this provenance and labels
 daily consumption as an extrapolation.
 The terminal `MCU_SLEEP` payload closes a trace window; it does not imply that
 the trace repeats daily. Daily charge extrapolates only the declared repeat
-period and is not an autonomy claim. Capacity division is intentionally not
-performed. Trace-derived schedules retain common window metadata so the idle
+period and is not an autonomy claim. When a nominal battery capacity in mAh
+has valid provenance, `ideal_capacity_division` reports nominal capacity
+divided by simulated mAh/day as `THEORETICAL_IDEAL_CAPACITY_DIVISION`; it is
+nominal-only arithmetic, not usable capacity or an autonomy prediction. The
+output includes capacity and consumption provenance, the formula, and a caveat.
+The caveat states that this mathematical division does not represent usable
+capacity, aging, temperature, discharge curve, cutoff, real efficiency, or
+predicted product autonomy. The nominal TLL-5902 capacity source is rated at
+1 mA to 2.0 V and is not evidence of usable capacity under this rail's load.
+Trace-derived schedules retain common window metadata so the idle
 tail is included once. Radio start/end markers must be correctly ordered and
 paired. Every observed FSM state and TX/RX interval must have a load-profile
 entry; incomplete profiles fail conversion instead of dropping part of the

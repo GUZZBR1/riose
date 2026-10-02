@@ -102,6 +102,7 @@ def _power_assumptions(spec: dict[str, Any]) -> dict[str, Any]:
 
     values = {
         "battery_voltage_v": (numeric("components.battery.nominal_voltage_v"), "V", source("components.battery.nominal_voltage_v")),
+        "nominal_capacity_mah": (numeric("components.battery.nominal_capacity_mah"), "mAh", source("components.battery.nominal_capacity_mah")),
         "battery_esr_ohm": (numeric("components.battery.esr_ohm"), "ohm", source("components.battery.esr_ohm")),
         "regulator_output_v": (numeric("regulator.output_voltage_v"), "V", source("regulator.output_voltage_v")),
         "regulator_efficiency": (numeric("regulator.efficiency"), "fraction", source("regulator.efficiency")),
@@ -120,7 +121,17 @@ def _power_assumptions(spec: dict[str, Any]) -> dict[str, Any]:
     values["idle_current_ma"] = (idle, "mA", "; ".join((
         source("components.imu.low_power_current_ma"), source("components.radio.sleep_current_ma"),
         values["regulator_quiescent_ma"][2], "aggregate sleep baseline excludes MCU stop current")))
-    return {"status": "ASSUMED", "model_status": "SIMULATED",
-            "source_note": "Values projected from the canonical MVP2 hardware spec; no electrical measurements.",
-            **{key: {"value": value, "unit": unit, "status": "ASSUMED", "source": provenance}
-               for key, (value, unit, provenance) in values.items()}}
+    assumptions = {"status": "ASSUMED", "model_status": "SIMULATED",
+                   "source_note": "Values projected from the canonical MVP2 hardware spec; no electrical measurements.",
+                   **{key: {"value": value, "unit": unit, "status": "ASSUMED", "source": provenance}
+                      for key, (value, unit, provenance) in values.items()}}
+    capacity_path = "components.battery.nominal_capacity_mah"
+    capacity_record: Any = spec
+    for part in capacity_path.split("."):
+        capacity_record = capacity_record.get(part) if isinstance(capacity_record, dict) else None
+    assumptions["nominal_capacity_mah"] = {
+        "value": numeric(capacity_path), "unit": "mAh",
+        "status": capacity_record.get("status") if isinstance(capacity_record, dict) else "UNKNOWN",
+        "source": source(capacity_path),
+    }
+    return assumptions

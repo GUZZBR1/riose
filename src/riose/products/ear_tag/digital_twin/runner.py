@@ -373,6 +373,11 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                     "ngspice_status": result.get("ngspice", {}).get("status", "UNKNOWN"),
                     "modeled_charge_uah": result.get("total_charge_mah_window", 0) * 1000,
                     "modeled_window_s": result.get("modeled_window_s"),
+                    "mAh_per_day": result.get("mAh_per_day"),
+                    "mAh_per_day_provenance": result.get("mAh_per_day_provenance"),
+                    "ideal_capacity_division": result.get("ideal_capacity_division"),
+                    "ideal_capacity_division_status": result.get("ideal_capacity_division_status"),
+                    "ideal_capacity_division_details": result.get("ideal_capacity_division_details"),
                     "event_charge": result.get("event_charge", []),
                     "result_class": "SIMULATED", "outputs": str(scenario_dir),
                 }
@@ -394,6 +399,11 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "ngspice_status": normal_power.get("ngspice_status", "NOT_RUN"),
             "modeled_charge_uah": normal_power.get("modeled_charge_uah"),
             "modeled_window_s": normal_power.get("modeled_window_s"),
+            "mAh_per_day": normal_power.get("mAh_per_day"),
+            "mAh_per_day_provenance": normal_power.get("mAh_per_day_provenance"),
+            "ideal_capacity_division": normal_power.get("ideal_capacity_division"),
+            "ideal_capacity_division_status": normal_power.get("ideal_capacity_division_status"),
+            "ideal_capacity_division_details": normal_power.get("ideal_capacity_division_details"),
             "event_charge": normal_power.get("event_charge", []),
             "detail": "Four scenario rail simulations completed" if all_power
                       else "Trace charge integration is available where produced; ngspice execution remains required for rail results",

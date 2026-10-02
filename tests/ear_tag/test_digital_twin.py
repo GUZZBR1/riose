@@ -29,6 +29,20 @@ def test_power_repeat_period_argument_preserves_spec_provenance():
     assert args[4:] == ["--period-status", "SIMULATED", "--period-unit", "s"]
 
 
+def test_power_assumptions_preserve_nominal_capacity_provenance():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+
+    capacity = _power_assumptions(spec)["nominal_capacity_mah"]
+
+    assert capacity == {
+        "value": 1100.0,
+        "unit": "mAh",
+        "status": "DATASHEET",
+        "source": "hardware/spec.yaml:components.battery.nominal_capacity_mah "
+                  "(DATASHEET: Datasheet rated at 1 mA to 2.0 V; not usable-capacity evidence for this rail)",
+    }
+
+
 @pytest.mark.parametrize("field,value", [
     ("value", 0), ("value", -1), ("value", float("nan")),
     ("value", float("inf")), ("value", True), ("unit", "ms"),

@@ -103,6 +103,75 @@ def _shared_trace_metadata(rows: list[dict], key: str) -> Any:
     return values[0] if values else None
 
 
+def _ideal_capacity_division(assumptions: dict, consumption: float | None,
+                             consumption_provenance: dict | None) -> dict:
+    """Return nominal-capacity arithmetic with strict provenance and no lifetime claim."""
+    caveat = (
+        "This is only mathematical division of nominal capacity by simulated consumption. "
+        "It does not represent usable capacity, aging, temperature, discharge curve, cutoff, "
+        "real efficiency, or predicted product autonomy."
+    )
+    result = {
+        "status": "NOT_AVAILABLE_NO_VALID_INPUTS",
+        "classification": "THEORETICAL_IDEAL_NOMINAL_ONLY",
+        "nominal_capacity": None,
+        "simulated_consumption": None,
+        "formula": "nominal_capacity_mAh / simulated_consumption_mAh_per_day",
+        "value_days": None,
+        "caveat": caveat,
+    }
+    capacity = assumptions.get("nominal_capacity_mah")
+    if capacity is None:
+        result["status"] = "NOT_AVAILABLE_NO_NOMINAL_CAPACITY"
+        return result
+    if not isinstance(capacity, dict):
+        result["status"] = "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY"
+        return result
+    if capacity.get("unit") != "mAh":
+        result["status"] = "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY_UNIT"
+        return result
+    if (not isinstance(capacity.get("status"), str) or
+            capacity["status"] not in {"DATASHEET", "ASSUMED", "SIMULATED"} or
+            not isinstance(capacity.get("source"), str) or not capacity["source"].strip()):
+        result["status"] = "NOT_AVAILABLE_MISSING_CAPACITY_PROVENANCE"
+        return result
+    try:
+        capacity_mah = _value({"nominal_capacity_mah": capacity}, "nominal_capacity_mah")
+    except (KeyError, ValueError):
+        result["status"] = "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY"
+        return result
+    if capacity_mah <= 0:
+        result["status"] = "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY"
+        return result
+    result["nominal_capacity"] = {"value": capacity_mah, "unit": "mAh",
+                                  "status": capacity["status"], "source": capacity["source"]}
+    if (isinstance(consumption, bool) or not isinstance(consumption, (int, float)) or
+            not math.isfinite(consumption) or consumption <= 0):
+        result["status"] = "NOT_AVAILABLE_INVALID_SIMULATED_CONSUMPTION"
+        return result
+    valid_consumption_provenance = (
+        isinstance(consumption_provenance, dict) and
+        consumption_provenance.get("unit") == "mAh/day" and
+        consumption_provenance.get("value") == consumption and
+        consumption_provenance.get("status") == "SIMULATED_EXTRAPOLATION_FROM_DECLARED_REPEAT_PERIOD" and
+        isinstance(consumption_provenance.get("source"), str) and
+        bool(consumption_provenance["source"].strip())
+    )
+    if not valid_consumption_provenance:
+        result["status"] = "NOT_AVAILABLE_MISSING_CONSUMPTION_PROVENANCE"
+        return result
+    days = capacity_mah / consumption
+    if not math.isfinite(days) or days <= 0:
+        result["status"] = "NOT_AVAILABLE_INVALID_DIVISION_RESULT"
+        return result
+    result.update({
+        "status": "THEORETICAL_IDEAL_CAPACITY_DIVISION",
+        "simulated_consumption": consumption_provenance,
+        "value_days": days,
+    })
+    return result
+
+
 def _validated_period(rows: list[dict], period_s: float | None) -> float | None:
     if period_s is None:
         return None
@@ -245,6 +314,18 @@ def analyze_schedule(rows: list[dict], assumptions: dict, period_s: float | None
             row["provenance"] = sorted({str(idle_source)} if idle_source else set())
     daily_period = period_s
     modeled_mah_day = charge_mah * 24 * 3600 / daily_period if daily_period else None
+    daily_provenance = ({
+        "value": modeled_mah_day,
+        "unit": "mAh/day",
+        "status": "SIMULATED_EXTRAPOLATION_FROM_DECLARED_REPEAT_PERIOD",
+        "source": "simulated interval-load integration extrapolated using the declared repeat period",
+        "repeat_period": {"value": period_s, "unit": period_unit,
+                          "status": period_status, "source": period_source},
+        "trace": trace_provenance,
+        "load_sources": sorted({source for sources in component_provenance.values()
+                                 for source in sources}),
+    } if modeled_mah_day is not None else None)
+    ideal_capacity = _ideal_capacity_division(assumptions, modeled_mah_day, daily_provenance)
     rail_v = (_value(assumptions, "regulator_output_v")
               if "regulator_output_v" in assumptions else None)
     energy_status = ("SIMULATED_AT_ASSUMED_REGULATOR_OUTPUT_VOLTAGE" if rail_v is not None
@@ -275,6 +356,7 @@ def analyze_schedule(rows: list[dict], assumptions: dict, period_s: float | None
             "total_charge_mah_window": charge_mah,
             "mAh_per_day": modeled_mah_day,
             "mAh_per_day_period_s": daily_period,
+            "mAh_per_day_provenance": daily_provenance,
             "repeat_period_provenance": ({"value": period_s, "unit": period_unit,
                                            "status": period_status, "source": period_source}
                                           if period_s is not None else None),
@@ -282,8 +364,9 @@ def analyze_schedule(rows: list[dict], assumptions: dict, period_s: float | None
             "trace_event_coverage": trace_event_coverage,
             "mAh_per_day_status": ("SIMULATED_EXTRAPOLATION_FROM_DECLARED_REPEAT_PERIOD" if period_s else
                                    "NOT_REPORTED_NO_REPEAT_PERIOD"),
-            "ideal_capacity_division": None,
-            "ideal_capacity_division_status": "NOT_CALCULATED_NO_USABLE_CAPACITY_INPUT",
+            "ideal_capacity_division": ideal_capacity["value_days"],
+            "ideal_capacity_division_status": ideal_capacity["status"],
+            "ideal_capacity_division_details": ideal_capacity,
             "event_charge": event_rows,
             "component_charge_uah": {k: v * 1000 for k, v in sorted(by_component.items())},
             "component_provenance": {k: sorted(v) for k, v in sorted(component_provenance.items())},

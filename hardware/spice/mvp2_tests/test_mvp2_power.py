@@ -35,6 +35,70 @@ class TraceDrivenPowerTests(unittest.TestCase):
         tx = next(r for r in result["event_charge"] if r["event"] == "TX_START")
         self.assertAlmostEqual(tx["charge_uah"], 40 / 3600 * 1000)
         self.assertIsNone(result["ideal_capacity_division"])
+        self.assertEqual(result["ideal_capacity_division_status"],
+                         "NOT_AVAILABLE_NO_NOMINAL_CAPACITY")
+
+    def test_nominal_capacity_division_is_theoretical_and_provenance_complete(self):
+        assumptions = {**self.assumptions, "nominal_capacity_mah": {
+            "value": 1100, "unit": "mAh", "status": "DATASHEET",
+            "source": "hardware/spec.yaml nominal capacity; rated at 1 mA to 2.0 V"}}
+        result = power.analyze_schedule(self.rows, assumptions, period_s=10.0,
+            period_source="test repeat period", period_status="ASSUMED")
+        details = result["ideal_capacity_division_details"]
+        self.assertAlmostEqual(result["ideal_capacity_division"], 1100 / result["mAh_per_day"])
+        self.assertEqual(details["status"], "THEORETICAL_IDEAL_CAPACITY_DIVISION")
+        self.assertEqual(details["classification"], "THEORETICAL_IDEAL_NOMINAL_ONLY")
+        self.assertEqual(details["nominal_capacity"], assumptions["nominal_capacity_mah"])
+        self.assertEqual(details["simulated_consumption"], result["mAh_per_day_provenance"])
+        self.assertEqual(details["formula"],
+                         "nominal_capacity_mAh / simulated_consumption_mAh_per_day")
+        self.assertIn("does not represent usable capacity", details["caveat"])
+        self.assertIn("predicted product autonomy", details["caveat"])
+        self.assertNotIn("battery_life", details)
+        self.assertNotIn("expected_autonomy", details)
+        self.assertNotIn("MEASURED", details["status"])
+
+    def test_ideal_capacity_division_fails_closed_for_invalid_capacity(self):
+        consumption = 1.25
+        provenance = {"value": consumption, "unit": "mAh/day",
+            "status": "SIMULATED_EXTRAPOLATION_FROM_DECLARED_REPEAT_PERIOD", "source": "test trace"}
+        valid = {"value": 1100, "unit": "mAh", "status": "DATASHEET", "source": "test spec"}
+        self.assertEqual(power._ideal_capacity_division({}, consumption, provenance)["status"],
+                         "NOT_AVAILABLE_NO_NOMINAL_CAPACITY")
+        for value in (0, -1, float("nan"), float("inf"), -float("inf")):
+            with self.subTest(value=value):
+                item = {**valid, "value": value}
+                result = power._ideal_capacity_division({"nominal_capacity_mah": item}, consumption, provenance)
+                self.assertIsNone(result["value_days"])
+                self.assertEqual(result["status"], "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY")
+        result = power._ideal_capacity_division(
+            {"nominal_capacity_mah": {**valid, "unit": "Ah"}}, consumption, provenance)
+        self.assertEqual(result["status"], "NOT_AVAILABLE_INVALID_NOMINAL_CAPACITY_UNIT")
+        result = power._ideal_capacity_division(
+            {"nominal_capacity_mah": {**valid, "source": "   "}}, consumption, provenance)
+        self.assertEqual(result["status"], "NOT_AVAILABLE_MISSING_CAPACITY_PROVENANCE")
+
+    def test_ideal_capacity_division_fails_closed_for_invalid_or_unproven_daily_consumption(self):
+        capacity = {"nominal_capacity_mah": {"value": 1100, "unit": "mAh",
+            "status": "DATASHEET", "source": "test spec"}}
+        valid_provenance = {"value": 1.0, "unit": "mAh/day",
+            "status": "SIMULATED_EXTRAPOLATION_FROM_DECLARED_REPEAT_PERIOD", "source": "test trace"}
+        for consumption in (None, 0, -1, float("nan"), float("inf")):
+            with self.subTest(consumption=consumption):
+                result = power._ideal_capacity_division(capacity, consumption, valid_provenance)
+                self.assertIsNone(result["value_days"])
+                self.assertEqual(result["status"], "NOT_AVAILABLE_INVALID_SIMULATED_CONSUMPTION")
+        for provenance in (None, {}, {**valid_provenance, "source": ""},
+                           {**valid_provenance, "status": "MEASURED"},
+                           {**valid_provenance, "unit": "Ah/day"}):
+            with self.subTest(provenance=provenance):
+                result = power._ideal_capacity_division(capacity, 1.0, provenance)
+                self.assertIsNone(result["value_days"])
+                self.assertEqual(result["status"], "NOT_AVAILABLE_MISSING_CONSUMPTION_PROVENANCE")
+        valid_result = power._ideal_capacity_division(capacity, 1.0, valid_provenance)
+        invalid_result = power._ideal_capacity_division(capacity, None, None)
+        self.assertEqual(valid_result["value_days"], 1100)
+        self.assertIsNone(invalid_result["value_days"])
 
     def test_daily_projection_requires_declared_repeat_period(self):
         result = power.analyze_schedule(self.rows, self.assumptions)
