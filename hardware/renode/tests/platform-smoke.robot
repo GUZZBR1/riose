@@ -18,7 +18,7 @@ Loads MCU Surrogate And Custom Peripherals
 Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to a Zephyr ELF built for the STM32L0 profile.
     Execute Command    sysbus LoadELF @${ELF}
-    Execute Command    emulation RunFor "0.1"
+    Execute Command    emulation RunFor "0.25"
     Firmware State Should Be    2
     Execute Command    sysbus.i2c1.imu TriggerWakeup
     ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted

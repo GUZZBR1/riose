@@ -253,7 +253,7 @@ void tag_firmware_step(tag_firmware_t *fw)
             fail(fw);
         } else {
             set_state(fw, TAG_STATE_SLEEP);
-            fw->next_beacon_ms = now_ms(fw) + fw->config.normal_beacon_ms;
+            fw->next_beacon_ms = now_ms(fw);
         }
         break;
     case TAG_STATE_SLEEP:
