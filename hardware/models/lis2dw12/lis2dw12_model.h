@@ -30,12 +30,20 @@ extern "C" {
 #define LIS2DW12_REG_WAKE_UP_SRC 0x38u
 #define LIS2DW12_REG_ALL_INT_SRC 0x3Bu
 
+#define LIS2DW12_STATUS_SLEEP_STATE 0x20u
+#define LIS2DW12_STATUS_WAKE_UP 0x40u
+#define LIS2DW12_CTRL2_IF_ADD_INC 0x04u
+#define LIS2DW12_CTRL2_SOFT_RESET 0x40u
+#define LIS2DW12_WAKE_UP_SLEEP_ON 0x40u
+#define LIS2DW12_WAKE_UP_DUR_STATIONARY 0x10u
+
 #define LIS2DW12_REGISTER_COUNT 64u
 
 typedef enum {
     LIS2DW12_OK = 0,
     LIS2DW12_EINVAL = -1,
     LIS2DW12_EIO = -2,
+    LIS2DW12_ETIMEDOUT = -3,
 } lis2dw12_result_t;
 
 typedef enum {
@@ -55,8 +63,14 @@ typedef struct {
     uint64_t elapsed_ms;
     uint32_t sample_number;
     uint32_t fail_transactions;
+    uint32_t timeout_transactions;
+    uint32_t still_samples;
+    uint64_t sample_elapsed_ms;
     lis2dw12_motion_t motion;
     bool irq_latched;
+    bool irq_output_stuck;
+    bool irq_pin_absent;
+    bool irq_pin_stuck;
     bool initialized;
     lis2dw12_irq_callback_t irq_callback;
     void *irq_user_data;
@@ -87,6 +101,12 @@ void lis2dw12_clear_irq(lis2dw12_model_t *model);
 
 /* Inject failures on the next N bus transactions, then return to normal. */
 void lis2dw12_fail_next_i2c(lis2dw12_model_t *model, uint32_t transactions);
+void lis2dw12_timeout_next_i2c(lis2dw12_model_t *model, uint32_t transactions);
+
+/* Model a disconnected INT1 or an INT1 line that stays asserted after clear. */
+void lis2dw12_set_irq_faults(lis2dw12_model_t *model,
+                             bool irq_pin_absent,
+                             bool irq_pin_stuck);
 
 /* Raw signed 16-bit register output, left-aligned like the sensor data format. */
 int16_t lis2dw12_axis_raw(const lis2dw12_model_t *model, unsigned axis);
