@@ -1,15 +1,14 @@
 {
   "status": "SIMULATED",
-  "assumptions_notice": "SIMULATED energy budget using datasheet values and explicit assumptions. The candidate battery capacity is a manufacturer rating, while current inputs, regulator efficiency and duty profile are not measured. Calculated days are an arithmetic model result, not demonstrated lifetime. RX window matches the firmware's 100 ms timeout; high-rate event bursts are bounded and represented by separate scenarios.",
+  "assumptions_notice": "SIMULATED energy budget using datasheet values and explicit assumptions. Currents, regulator efficiency and duty profile are not measured. No usable battery capacity is configured, so runtime is not calculated. The candidate cell's rated capacity endpoint is incompatible with the 3.3 V buck rail as drawn. RX window matches firmware's 100 ms timeout; event bursts are bounded.",
   "daily_charge_mah": 0.21743578431372543,
   "average_current_ma": 0.009059824346405227,
   "peak_configured_current_ma": 48.85817764705882,
   "messages_per_day": 96,
-  "battery_capacity_mah": 1100,
-  "estimated_battery_life_days": 5058.964896104102,
-  "estimated_battery_life_years": 13.850691022872285,
-  "autonomy_status": "CALCULATED_FROM_EXPLICIT_CAPACITY",
-  "lifetime_interpretation": "ARITHMETIC_ONLY_NOT_FIELD_LIFETIME",
+  "measured_usable_capacity_mah": null,
+  "estimated_battery_life_days": null,
+  "autonomy_status": "NOT_CALCULATED_USABLE_CAPACITY_UNMEASURED",
+  "lifetime_interpretation": "USABLE_CAPACITY_AND_CURRENT_NOT_MEASURED",
   "regulator": {
     "model": "TPS62840 candidate",
     "output_voltage_v": 3.3,
@@ -98,7 +97,15 @@
     }
   },
   "ngspice": {
-    "status": "NOT_AVAILABLE",
-    "netlist": "hardware/spice/results/tag_power_pulse.cir"
+    "status": "EXECUTED",
+    "executable": "ngspice",
+    "version": "ngspice 42",
+    "return_code": 0,
+    "netlist": "tag_power_pulse.cir",
+    "log": "ngspice.log",
+    "run_command": "ngspice -b tag_power_pulse.cir (from this results directory)",
+    "minimum_tag_voltage_v": 3.588674,
+    "brownout_threshold_v": 2.7,
+    "below_configured_brownout": false
   }
 }

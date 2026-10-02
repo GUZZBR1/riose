@@ -17,10 +17,13 @@ To execute ngspice when it is installed:
 python3 hardware/spice/energy_model.py --ngspice /path/to/ngspice
 ```
 
-The default profile now records a Tadiran TLL-5902 capacity rating (1,100 mAh)
-and a TPS62840 regulator candidate. The calculated days are an arithmetic
-estimate from configured loads, not a demonstrated battery lifetime. Outputs
-are `summary.json`,
+The default profile records the TLL-5902's 1,100 mAh nominal datasheet rating
+as candidate metadata, but configures **no usable capacity**. The rated
+endpoint is 2.0 V and is not demonstrated usable with the candidate 3.3 V buck
+rail. Runtime is therefore not calculated. Only after measuring usable
+capacity on the final rail/load may `--measured-usable-capacity-mah` be used;
+that arithmetic still is not a demonstrated battery lifetime. Outputs are
+`summary.json`,
 `energy_24h.csv`, a generated ngspice pulse deck and the ngspice log.
 
 The normal day profile assumes 96 beacons/day (15-minute interval), 120 ms

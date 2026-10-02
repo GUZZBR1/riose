@@ -1,7 +1,13 @@
 {
   "model_status": "SIMULATED",
-  "notice": "SIMULATED energy budget using datasheet values and explicit assumptions. The candidate battery capacity is a manufacturer rating, while current inputs, regulator efficiency and duty profile are not measured. Calculated days are an arithmetic model result, not demonstrated lifetime. RX window matches the firmware's 100 ms timeout; high-rate event bursts are bounded and represented by separate scenarios.",
-  "battery_capacity_mah": 1100,
+  "notice": "SIMULATED energy budget using datasheet values and explicit assumptions. Currents, regulator efficiency and duty profile are not measured. No usable battery capacity is configured, so runtime is not calculated. The candidate cell's rated capacity endpoint is incompatible with the 3.3 V buck rail as drawn. RX window matches firmware's 100 ms timeout; event bursts are bounded.",
+  "battery_usable_capacity_mah": null,
+  "battery_candidate": {
+    "model": "Tadiran TLL-5902",
+    "nominal_rated_capacity_mah": 1100,
+    "capacity_rating_condition": "datasheet rating at 1 mA to 2.0 V; not demonstrated usable with 3.3 V buck rail",
+    "status": "CANDIDATE_ONLY_USABLE_CAPACITY_NOT_ESTABLISHED"
+  },
   "battery_voltage_v": 3.6,
   "tx_count_per_day": 96,
   "tx_duration_s": 0.12,

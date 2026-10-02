@@ -1,25 +1,68 @@
-# Initial tag power-tree capture notes
+# Candidate hardware power tree
 
-KiCad is not available in the current build environment (`kicad-cli` was not
-found), so this workstream supplies the electrical topology and a runnable
-ngspice equivalent rather than claiming a validated KiCad schematic or PCB.
-Capture the following as a KiCad schematic once KiCad is installed:
+**Evidence: ASSUMED / SIMULATED.** A candidate supply is now selected for
+bench evaluation. There is no KiCad schematic, PCB, assembled prototype, or
+physical rail measurement checked in yet. The ngspice study is a simplified
+average-load sensitivity model, not a switching-regulator model.
 
 ```text
-BAT+ (nominal/configurable 3.3 V equivalent)
-  ├── local bypass capacitor Cbulk to GND
-  ├── STM32L031K6 VDD, VDDIO, VDDA; decoupling at each supply pin
-  ├── SX1262 VBAT / VBAT_RF; local bulk + high-frequency bypass
-  ├── LIS2DW12 VDD/VDDIO; local bypass
-  └── passive animal RFID element (no DC load modeled here)
-BAT- / GND ── common return
+Tadiran TLL-5902, 3.6 V nominal, 1/2 AA Li-SOCl2 (primary, not rechargeable)
+  └── TPS62840 buck, candidate output 3.3 V
+       ├── STM32L031K6 MCU (test platform candidate)
+       ├── SX1262 sub-GHz radio (test module/board)
+       └── LIS2DW12 IMU
+Passive 134.2 kHz animal RFID identity element: represented in architecture;
+  it is not powered from this rail and has no reader/load in this prototype.
 ```
 
-This is a first-pass direct rail budget: 3.3 V is used as a configurable
-nominal supply and is inside the STM32L031, SX1262 and LIS2DW12 supply ranges.
-It is not a battery recommendation. Battery chemistry, capacity, pulse
-impedance, protection, charging, regulator choice and brownout margin remain
-unselected. The current ngspice deck models the source as an ideal voltage
-plus configurable series resistance and one bypass capacitor. Component
-provenance and the pulse results are in `../spice/power_profile.json` and
-`../reports/power-model.md`.
+The **TLL-5902 and TPS62840 are engineering candidates, not a released BOM**.
+Tadiran rates the cell at 1.1 Ah under its datasheet test condition (1 mA to
+2 V), recommends up to 50 mA continuous and specifies 100 mA pulse current
+subject to its conditions. Those ratings do not establish capacity at the
+tag's pulsed load, temperature, age, or end-of-life rail margin. TI specifies
+the TPS62840 as a 1.8–6.5 V input buck with 750 mA output capability; its
+60 nA typical quiescent current and a circuit-level efficiency must be
+verified on the actual implementation. See
+[`spice/candidate/README.md`](../spice/candidate/README.md) for the assumed
+rail sweep and its limitations.
+
+There is an unresolved compatibility risk in this pair: a buck set to 3.3 V
+cannot regulate 3.3 V after its input falls below the required headroom. The
+cell's 2.0 V capacity-rating endpoint is therefore not usable for a 3.3 V
+system as drawn, and the rated 1.1 Ah must not be used to claim usable capacity
+or runtime. Before selecting the battery, measure the loaded cell cutoff and
+either verify a lower system rail against every component or evaluate a
+buck-boost/topology change. No such alternative is validated yet.
+
+## Schematic capture checklist
+
+When KiCad is available, capture the cell holder, reverse-polarity protection
+decision, regulator and feedback, inductor, input/output capacitors, MCU
+decoupling, radio peak-current bypassing, IMU decoupling, test points for
+battery and 3.3 V rail, and a current-measurement link. Select every passive
+from the regulator datasheet and radio layout guidance; current model values
+are not component selections. Provide a removable link that lets the current
+instrument measure the complete tag without routing current through the
+debugger/USB power path.
+
+The first bench setup may use an STM32 Nucleo board plus a wired SX1262 module
+and LIS2DW12 breakout to validate firmware. Its board regulator, debugger LEDs
+and interface circuitry can dominate sleep current. Measure MCU-only current
+and complete assembly current as separate results; neither is the final
+custom-brincho current. The Nucleo IDD jumper, where available, isolates MCU
+current only and is not a whole-tag measurement.
+
+## Design thresholds
+
+The ngspice sweep's 2.7 V rail line is an **assumed design comparison point**,
+not the MCU brownout threshold or a measured reset voltage. It does not model
+TPS62840 switching, control-loop response, current limit, cell electrochemistry,
+or the SX1262's actual TX transient. Determine reset/brownout behavior and rail
+margin using the assembled circuit and a scope/current measurement before
+selecting a battery or claiming runtime.
+
+Sources: [Tadiran TLL-5902 datasheet](https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf),
+[TI TPS62840](https://www.ti.com/product/TPS62840),
+[ST STM32L031K6](https://www.st.com/resource/en/datasheet/stm32l031k6.pdf),
+[Semtech SX1262](https://www.semtech.com/products/wireless-rf/lora-connect/sx1262),
+[ST LIS2DW12](https://www.st.com/en/mems-and-sensors/lis2dw12.html).

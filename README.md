@@ -78,7 +78,9 @@ ran 150 voltage/ESR/capacitor sensitivity scenarios; this averaged circuit
 model is not a vendor regulator model or physical brownout validation. The
 nominal-cell rail minimum was 3.2909 V under the +14 dBm TX stress current; low
 voltage points crossed an assumed 2.7 V design threshold. Autonomy is only an
-arithmetic estimate until current is measured on a board. Full details,
+unmeasured quantity; no runtime is calculated and no battery-life claim is made. The physical test protocol
+and capture analyzer are in [`hardware/physical/`](hardware/physical/README.md).
+Full details,
 test counts, energy scenarios, and blockers are in
 [`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md).
 

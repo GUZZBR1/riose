@@ -1,0 +1,1 @@
+scenario,run_id,timestamp_s,state,battery_current_ma,rail_voltage_v,battery_voltage_v,tx_count,firmware_sha,board_revision,instrument_id,instrument_range,burden_voltage_mv,sample_rate_hz,calibration_date,tx_power_dbm,antenna_load,ambient_c

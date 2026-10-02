@@ -9,7 +9,7 @@ Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
 Using transient initial conditions
 
 No. of Data Rows : 25025
-vtag_min            =  3.164086e+00 at=  1.300100e-01
+vtag_min            =  3.588674e+00 at=  1.300100e-01
 battery_peak        =  4.530480e-02 at=  1.300100e-01
 ngspice-42 done
 Note: can't find the initialization file spinit.

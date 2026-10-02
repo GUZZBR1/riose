@@ -18,8 +18,15 @@ assumida e 60 nA típicos de IQ para o buck candidato.
 | Carga simulada em 24 h | 0,217436 mAh/tag | Mistura de dados de fabricante e hipóteses |
 | Corrente média equivalente da célula | 9,060 µA | Derivada do modelo |
 | TX normais por dia | 96 | Política configurada, beacon de 15 min |
-| Capacidade nominal da célula candidata | 1.100 mAh | Tadiran TLL-5902, ficha técnica a 1 mA até 2 V |
-| Vida aritmética capacidade/carga | 5.059 dias (13,85 anos) | **Limite matemático do modelo, não autonomia prevista** |
+| Capacidade nominal declarada (não utilizável assumida) | 1.100 mAh | Tadiran TLL-5902, ficha técnica a 1 mA até 2 V; buck 3,3 V não alcança esse endpoint |
+
+Não convertemos capacidade nominal em autonomia: ainda faltam medições do
+conjunto, verificação de capacidade sob carga pulsada e perfil real de eventos.
+Há uma incompatibilidade potencial adicional: um buck TPS62840 ajustado a 3,3 V
+não mantém o rail quando a entrada cai abaixo da margem necessária. A
+capacidade de 1,1 Ah especificada até 2,0 V não é capacidade utilizável
+demonstrada para esse circuito. Será necessário validar cutoff sob carga ou
+rever rail/topologia.
 
 O cálculo nominal fica abaixo do alvo de 0,5 mAh/dia. Aplicando a mesma carga
 unitária aos resultados observados no harness: 108 TX/dia (perfil estacionário
@@ -66,6 +73,7 @@ e não prova funcionamento ou falha de uma placa física.
 
 ## Próxima medida
 
+O protocolo de captura da bancada está em [`../physical/README.md`](../physical/README.md).
 Na bancada, medir corrente de repouso da placa, forma de onda de TX na potência
 regional escolhida, recepção, eficiência do regulador e tensão do rail durante
 TX com TLL-5902 nova e descarregada, incluindo temperatura. Trocar no perfil

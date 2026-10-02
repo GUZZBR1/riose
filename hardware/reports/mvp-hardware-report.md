@@ -45,20 +45,23 @@ Para o perfil nominal (96 transmissões/dia; TX configurado em 120 ms; MCU ativa
 
 - **0,217436 mAh/tag/dia**;
 - **9,060 µA de corrente média equivalente na célula**;
-- **1.100 mAh de capacidade nominal** para a candidata Tadiran TLL-5902;
-- divisão aritmética capacidade/carga de **5.059 dias (13,85 anos)**, limite matemático dos parâmetros simulados, não previsão de autonomia ou vida útil.
+- **1.100 mAh de capacidade nominal** para a candidata Tadiran TLL-5902.
+
+Não publicamos autonomia calculada por capacidade/carga: os estados de baixa
+corrente, o perfil de eventos, a eficiência e o pulso real ainda não foram
+medidos na montagem.
 
 Aplicando o mesmo perfil energético às contagens do harness, resultam 0,274336 mAh/dia para o cenário misto (128 TX) e 0,238773 mAh/dia para o perfil estacionário com alerta (108 TX). São extrapolações da mesma corrente/duração por pacote, não medições. A atividade contínua foi exercitada por três horas e não foi extrapolada para 24 horas.
 
-Os valores misturam dados de fabricante e hipóteses editáveis. O consumo TX de 45 mA é stress case Semtech em +14 dBm; firmware está configurado em +10 dBm e 45 mA não é atribuído a +10 dBm. A Tadiran TLL-5902 declara 3,6 V, 1,1 Ah, corrente contínua recomendada de 50 mA e capacidade de pulso de 100 mA. O buck TPS62840 é candidato para 3,3 V. ESR, eficiência, capacitores, perfis de carga e limiar funcional continuam hipóteses. O modelo ngspice é médio, não inclui controle chaveado real e não comprova brownout. A HAL recebe a tensão da bateria como valor estático; não há ADC, supervisor ou teste físico de queda.
+Os valores misturam dados de fabricante e hipóteses editáveis. O consumo TX de 45 mA é stress case Semtech em +14 dBm; firmware está configurado em +10 dBm e 45 mA não é atribuído a +10 dBm. A Tadiran TLL-5902 declara 3,6 V, 1,1 Ah sob teste até 2 V, corrente contínua recomendada de 50 mA e capacidade de pulso de 100 mA. Como o TPS62840 candidato é um buck ajustado para 3,3 V, essa capacidade nominal até 2 V não foi demonstrada como utilizável; existe risco de o rail sair da regulação bem antes. ESR, eficiência, capacitores, perfis de carga e limiar funcional continuam hipóteses. O modelo ngspice é médio, não inclui controle chaveado real e não comprova brownout. A HAL recebe a tensão da bateria como valor estático; não há ADC, supervisor ou teste físico de queda.
 
 ## Componentes avançados e bloqueios
 
-- **Zephyr:** o caminho `native_sim/native/64` está compilado e executado. O adapter de uma placa física ainda precisa de overlay, pinagem, driver e build para uma placa alvo real.
+- **Zephyr:** o caminho `native_sim/native/64` compila e executa o modelo de periféricos. O adapter físico espera BUSY baixo do SX1262 antes de SPI, mas ainda precisa de overlay/pinagem da placa e build para um alvo físico; esse adapter não é compilado pelo `native_sim`.
 - **Wokwi:** indisponível neste ambiente; não foi criado projeto Wokwi nem alegada simulação de MCU/periférico pelo Wokwi. Os modelos C cumprem o papel de harness local determinístico.
 - **KiCad:** `kicad-cli` indisponível; não existe esquemático/PCB para ERC/DRC ou simulação SPICE de placa. O netlist ngspice usado é uma topologia equivalente mínima.
-- **SX1262, IMU e RFID físicos:** sem dispositivo, antena, leitor, bateria ou instrumento de medida, não há validação de RF, consumo ou identificação no campo.
-- **Autonomia:** a divisão aritmética de 1.100 mAh por 0,217436 mAh/dia é 13,85 anos, mas não é estimativa de produto. Temperatura, auto-descarga, envelhecimento, regulador, correntes da placa e perfil de eventos ainda requerem validação.
+- **SX1262, IMU e RFID físicos:** o ambiente não expõe dispositivo ou instrumento de medida. Não há validação de RF, consumo, tensão de rail, brownout, bateria ou identificação no campo. A coleta aguarda montagem/conexão física.
+- **Autonomia:** não medida e não estimada como vida útil de produto. Temperatura, auto-descarga, envelhecimento, regulador, correntes da placa e perfil de eventos ainda requerem validação física.
 
 ## Hipóteses avaliadas
 
@@ -69,6 +72,6 @@ Os valores misturam dados de fabricante e hipóteses editáveis. O consumo TX de
 
 ## Próximo experimento físico recomendado
 
-Montar um protótipo instrumentável com MCU de baixo consumo, módulo SX1262/antena ajustada, LIS2DW12, buck TPS62840 ou equivalente, capacitores e célula TLL-5902 candidata. Medir STOP, wake/leitura de IMU, TX com potência/modulação documentadas, RX, vazamento em sleep e rail/pico de entrada durante TX, com bateria nova e descarregada em diferentes temperaturas. Conferir tamanho e massa no encapsulamento antes de fixar a célula. Nenhum preço foi pesquisado nesta etapa.
+Montar um protótipo instrumentável com MCU de baixo consumo, módulo SX1262/antena ajustada, LIS2DW12, buck TPS62840 ou equivalente, capacitores e célula TLL-5902 candidata. Medir STOP, wake/leitura de IMU, TX com potência/modulação documentadas, RX, vazamento em sleep e rail/pico de entrada durante TX, com bateria nova e descarregada em diferentes temperaturas. Conferir tamanho e massa no encapsulamento antes de fixar a célula. O protocolo e o analisador de capturas estão em [`../physical/README.md`](../physical/README.md). Nenhum preço foi pesquisado nesta etapa.
 
 As correntes nominais usadas como referência estão documentadas com fontes primárias no [relatório de energia](power-model.md); os valores de corrente de uma placa pronta devem ser substituídos por medições antes de alegar autonomia.

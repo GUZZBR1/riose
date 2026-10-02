@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 DEFAULT_CONFIG = ROOT / "power_profile.json"
 
 
-def calculate(config: dict, capacity_override=None):
+def calculate(config: dict, measured_usable_capacity_override=None):
     n = int(config["tx_count_per_day"])
     tx_s = float(config["tx_duration_s"])
     awake_s = float(config["mcu_awake_s_per_beacon"])
@@ -54,7 +54,8 @@ def calculate(config: dict, capacity_override=None):
                      "charge_mah_day": current * duration / 3600,
                      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"})
     daily = sum(r["charge_mah_day"] for r in rows)
-    capacity = capacity_override if capacity_override is not None else config.get("battery_capacity_mah")
+    capacity = (measured_usable_capacity_override if measured_usable_capacity_override is not None
+                else config.get("battery_usable_capacity_mah"))
     life_days = float(capacity) / daily if capacity is not None and daily > 0 else None
     return {
         "status": "SIMULATED",
@@ -63,11 +64,10 @@ def calculate(config: dict, capacity_override=None):
         "average_current_ma": daily / 24,
         "peak_configured_current_ma": max(state_current.values()),
         "messages_per_day": n,
-        "battery_capacity_mah": capacity,
+        "measured_usable_capacity_mah": capacity,
         "estimated_battery_life_days": life_days,
-        "estimated_battery_life_years": life_days / 365.25 if life_days is not None else None,
-        "autonomy_status": "CALCULATED_FROM_EXPLICIT_CAPACITY" if life_days is not None else "NOT_CALCULATED_CAPACITY_UNCONFIGURED",
-        "lifetime_interpretation": "ARITHMETIC_ONLY_NOT_FIELD_LIFETIME" if life_days is not None else "NO_CAPACITY_SELECTED",
+        "autonomy_status": "ARITHMETIC_FROM_MEASURED_USABLE_CAPACITY_NOT_FIELD_LIFETIME" if life_days is not None else "NOT_CALCULATED_USABLE_CAPACITY_UNMEASURED",
+        "lifetime_interpretation": "MEASURED_INPUTS_STILL_REQUIRE_FIELD_VALIDATION" if life_days is not None else "USABLE_CAPACITY_AND_CURRENT_NOT_MEASURED",
         "regulator": regulator,
         "states": rows,
         "component_inputs": c,
@@ -131,7 +131,8 @@ def write_outputs(result, output_dir: Path, config, ngspice_path=None):
         result["ngspice"] = record
     (output_dir / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     with (output_dir / "energy_24h.csv").open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=result["states"][0].keys())
+        writer = csv.DictWriter(f, fieldnames=result["states"][0].keys(),
+                                lineterminator="\n")
         writer.writeheader()
         writer.writerows(result["states"])
 
@@ -140,15 +141,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output", type=Path, default=ROOT / "results")
-    parser.add_argument("--capacity-mah", type=float,
-                        help="Only set when a battery capacity is explicitly selected/configured")
+    parser.add_argument("--measured-usable-capacity-mah", type=float,
+                        help="Only set to usable capacity measured for this rail/load; nominal datasheet rating is insufficient")
     parser.add_argument("--ngspice", type=str,
                         help="ngspice binary (auto-detected on PATH when omitted)")
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
-    if args.capacity_mah is not None and args.capacity_mah <= 0:
-        parser.error("--capacity-mah must be positive")
-    result = calculate(config, args.capacity_mah)
+    if args.measured_usable_capacity_mah is not None and args.measured_usable_capacity_mah <= 0:
+        parser.error("--measured-usable-capacity-mah must be positive")
+    result = calculate(config, args.measured_usable_capacity_mah)
     write_outputs(result, args.output, config, args.ngspice)
     print(f"status={result['status']}")
     print(f"daily_charge_mah={result['daily_charge_mah']:.6f}")

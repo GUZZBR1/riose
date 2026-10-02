@@ -58,7 +58,13 @@ specific pulse-duration, temperature, or state-of-discharge conditions. The
 voltage sweep is a set of independent points, not a cell discharge curve. The
 TLL-5902's 2.0 V point is the datasheet's rated capacity endpoint under 1 mA
 load; it is included only as an end-of-capacity stress point and is not a valid
-TX operating condition.
+TX operating condition. More fundamentally, a buck set to 3.3 V cannot
+regulate that output below its input headroom. The candidate cell's rated
+capacity endpoint at 2.0 V is thus not available to this 3.3 V rail as drawn.
+The 1.1 Ah nominal rating is not usable capacity for this design and must not
+be turned into a runtime claim. Measure cutoff under load or investigate a
+lower rail or buck-boost design before treating this battery/regulator pairing
+as viable.
 
 ## What the deck models
 
