@@ -23,4 +23,19 @@ config TAG_TX_POWER_DBM
 	range -9 22
 	default 10
 
+config TAG_STRUCTURED_TRACE
+	bool "Emit structured firmware trace records"
+	default y
+	help
+	  Enable the optional SIMULATED_TRACE console sink. Disabling this option
+	  removes structured trace output without changing firmware policy.
+
+config TAG_NATIVE_SIM_INJECT_IMU_FAILURE
+	bool "Inject one native_sim IMU error for trace recovery tests"
+	depends on BOARD_NATIVE_SIM
+	default n
+	help
+	  Make the native_sim test fail one IMU read, then verify the firmware
+	  emits ERROR/RECOVERY records and completes a later radio cycle.
+
 endmenu

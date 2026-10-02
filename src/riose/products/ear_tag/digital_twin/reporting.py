@@ -33,6 +33,11 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     largest_event = max(event_charge, key=lambda row: row.get("charge_uah", 0), default=None)
     long_runs = stages.get("long_duration_1_7_30_days", {})
     fault_stage = stages.get("adversarial_fault_injection", {})
+    fault_results = fault_stage.get("fault_results", [])
+    fault_counts = {status: sum(row.get("status") == status for row in fault_results)
+                    for status in ("RECOVERED", "OBSERVED", "BLOCKED", "FAILED")}
+    electrical_rows = [row for row in fault_results
+                       if row.get("fault") in {"voltage_drop", "high_esr", "regulator_instability"}]
     mechanical = stages.get("mechanical", {})
     antenna = stages.get("antenna", {})
     antenna_rows = antenna.get("scenarios", [])
@@ -79,11 +84,21 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
               f"7. Frequência de ressonância/S11: openEMS `{antenna.get('status', 'NOT_RUN')}`; {antenna_answer}",
               f"8. Degradação por PCB/bateria/carcaça/animal: {len(antenna_rows)} cenários listados; resultados exigem openEMS; aproximação animal é experimental.",
               f"9. Encaixe geométrico estimado: `{'PASS' if mechanical.get('fit', {}).get('fits') else 'BLOCKED'}`; CadQuery disponível `{mechanical.get('cadquery_available', False)}`. O resultado não valida montagem física.",
-              f"10. Falhas encontradas: {summary.get('failure_count', 'ver failures.csv')} entradas; falhas de host cobertas `{', '.join(fault_stage.get('completed_host_cases', []))}`; pendentes `{', '.join(fault_stage.get('pending_cases', []))}`; matriz detalhada `{fault_stage.get('fault_csv', 'fault_scenarios.csv')}`.",
+              f"10. Faults: {len(fault_results)} cenários; {fault_counts['RECOVERED']} RECOVERED, {fault_counts['OBSERVED']} OBSERVED, {fault_counts['BLOCKED']} BLOCKED, {fault_counts['FAILED']} FAILED; CSV estruturado `{Path(fault_stage.get('fault_csv', 'fault_scenarios.csv')).name}`.",
               "11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.",
               f"12. Parâmetros por status: `{json.dumps(summary['parameter_statuses'], sort_keys=True)}`; provenance completa na spec.",
               "13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.",
               "14. Este gate não é validação comercial, clínica ou de campo.", "",
               "## Integridade da evidência", "",
-              "Nenhum campo MEASURED é permitido na spec do MVP2. Capacidades GPU são metadados de ambiente e o experimento Sionna é opcional.", ""]
+              "Nenhum campo MEASURED é permitido na spec do MVP2. Capacidades GPU são metadados de ambiente e o experimento Sionna é opcional.", "",
+              "### Feedback elétrico para o modelo do firmware", "",
+              "Os perfis ngspice alimentam amostras de rail validadas pelo hash ao modelo host do firmware. A classificação de brownout usa o supervisor SIMULATED; o limite de 2.7 V e os amplitudes dos faults são ASSUMED, não constituem validação física.", "",
+              "| Cenário | Rail mínimo (V) | Cruzamento (V) | Retorno (V) | Resultado | Simulation ID |",
+              "|---|---:|---:|---:|---|---|"]
+    for row in electrical_rows:
+        lines.append("| {fault} | {minimum} | {crossing} | {recovery} | {status} | {simulation_id} |".format(
+            fault=row.get("fault", "unknown"), minimum=row.get("rail_min_v", ""),
+            crossing=row.get("rail_crossing_v", ""), recovery=row.get("rail_recovery_v", ""),
+            status=row.get("status", "UNKNOWN"), simulation_id=row.get("simulation_id", "")))
+    lines += ["", "Watchdog/reset classification rows are synthetic reinitialization probes; they do not demonstrate watchdog expiry, CPU lockup, independent reset cause, or physical MCU reset. Fault status counts above derive from structured per-scenario evidence, not from the global prototype gate failure count.", ""]
     return "\n".join(lines)

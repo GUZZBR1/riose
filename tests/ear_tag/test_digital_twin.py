@@ -10,10 +10,50 @@ from riose.digital_twin.faults import FAULT_SCENARIOS
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
 from riose.products.ear_tag.digital_twin import cli as canonical_cli
 from riose.products.ear_tag.digital_twin.paths import resolve_user_path
+from riose.products.ear_tag.digital_twin.power import _repeat_period_arguments
 from riose.products.ear_tag.digital_twin import spec as canonical_spec
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_power_repeat_period_argument_preserves_spec_provenance():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+
+    args = _repeat_period_arguments(spec)
+
+    assert args[:2] == ["--period-s", "900.0"]
+    assert args[2] == "--period-source"
+    assert "hardware/spec.yaml:power_profiles.normal_beacon_interval_s" in args[3]
+    assert "SIMULATED" in args[3]
+    assert args[4:] == ["--period-status", "SIMULATED", "--period-unit", "s"]
+
+
+def test_power_assumptions_preserve_nominal_capacity_provenance():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+
+    capacity = _power_assumptions(spec)["nominal_capacity_mah"]
+
+    assert capacity == {
+        "value": 1100.0,
+        "unit": "mAh",
+        "status": "DATASHEET",
+        "source": "hardware/spec.yaml:components.battery.nominal_capacity_mah "
+                  "(DATASHEET: Datasheet rated at 1 mA to 2.0 V; not usable-capacity evidence for this rail)",
+    }
+
+
+@pytest.mark.parametrize("field,value", [
+    ("value", 0), ("value", -1), ("value", float("nan")),
+    ("value", float("inf")), ("value", True), ("unit", "ms"),
+    ("status", "MEASURED"), ("status", []), ("source", ""), ("source", "   "),
+])
+def test_power_repeat_period_rejects_invalid_or_unproven_spec_records(field, value):
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    spec["power_profiles"]["normal_beacon_interval_s"] = {
+        **spec["power_profiles"]["normal_beacon_interval_s"], field: value}
+
+    assert _repeat_period_arguments(spec) == []
 
 
 def test_legacy_modules_forward_to_canonical_objects():

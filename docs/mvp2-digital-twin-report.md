@@ -42,14 +42,14 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 
 1. Estabilidade do firmware: long runs C host `COMPLETED`; Zephyr `NOT_AVAILABLE`.
 2. Coerência dos periféricos virtuais: Renode `NOT_AVAILABLE`; Renode and renode-test are required for the MCU/bus twin.
-3. Energia digital estimada na janela observada: `0.514252 µAh` pela integração SIMULATED de correntes ASSUMED/trace; ngspice: PASS.
+3. Energia digital estimada na janela observada: `0.878847 µAh` pela integração SIMULATED de correntes ASSUMED/trace; ngspice: PASS.
 4. Estabilidade do rail: ngspice `PASS`; sem medição física ou resultado de rail quando não executado.
 5. Evento com maior carga integrada: `TX` / `sx1262` (0.375 µAh) na janela simulada.
 6. O envelope mecânico estimado cabe: análise de caixas delimitadoras `NOT_AVAILABLE`; sem conflito de envelope reportado.
 7. Frequência de ressonância/S11: openEMS `NOT_AVAILABLE`; 0/5 cenários passaram a comparação numérica de malha; resultados simulados não validam desempenho físico.
 8. Degradação por PCB/bateria/carcaça/animal: 5 cenários listados; resultados exigem openEMS; aproximação animal é experimental.
 9. Encaixe geométrico estimado: `PASS`; CadQuery disponível `False`. O resultado não valida montagem física.
-10. Falhas injetadas: 10 cenários; 8 `RECOVERED`, incluindo `voltage_drop`, `high_esr` e `regulator_instability`, e 2 probes sintéticos `OBSERVED`; `FAULTS_BLOCKED=0`, `FAULTS_FAILED=0`. Nenhum fault pendente; a matriz estruturada `fault_scenarios.csv` é gerada no diretório de cada execução.
+10. Faults: 10 cenários; 8 RECOVERED, 2 OBSERVED, 0 BLOCKED, 0 FAILED; CSV estruturado `fault_scenarios.csv`.
 11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.
 12. Parâmetros por status: `{"ASSUMED": 78, "DATASHEET": 18, "SIMULATED": 3}`; provenance completa na spec.
 13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.
@@ -61,12 +61,12 @@ Nenhum campo MEASURED é permitido na spec do MVP2. Capacidades GPU são metadad
 
 ### Feedback elétrico para o modelo do firmware
 
-O run determinístico com seed `4242` alimentou o modelo host do firmware com amostras rail de ngspice. Em cada caso, o supervisor virtual observou cruzamento abaixo do limite de brownout `2.7 V` (ASSUMED, provenance em `hardware/spec.yaml`), retorno acima do limite e beacon pós-reinicialização com CRC válido. O reset é classificado por `SIMULATED_RAIL_THRESHOLD_SUPERVISOR`, não é BOR físico. Os perfis de fault também são ASSUMED e não caracterizam hardware.
+Os perfis ngspice alimentam amostras de rail validadas pelo hash ao modelo host do firmware. A classificação de brownout usa o supervisor SIMULATED; o limite de 2.7 V e os amplitudes dos faults são ASSUMED, não constituem validação física.
 
 | Cenário | Rail mínimo (V) | Cruzamento (V) | Retorno (V) | Resultado | Simulation ID |
 |---|---:|---:|---:|---|---|
-| voltage_drop | 2.28080341 | 2.49923423 | 2.84172959 | RECOVERED | `d18a6d5f88dfdb83db67e9d5bcaf39ef8209303e1bae19559695cc6a93ae75b8` |
-| high_esr | 1.53880539 | 2.55401301 | 2.91683991 | RECOVERED | `94cdf07e7045b753b0b3393e688e2e0cacbf8321cae0ceab57fdb2a412bf6733` |
-| regulator_instability | 2.68102219 | 2.69621307 | 2.70476922 | RECOVERED | `7de877e8af9286d38d0515e456a04dcfb9cb902b64c2780a28782f6ebbbb3955` |
+| voltage_drop | 2.28080341 | 2.49923423 | 2.84172959 | RECOVERED | d18a6d5f88dfdb83db67e9d5bcaf39ef8209303e1bae19559695cc6a93ae75b8 |
+| high_esr | 1.53880539 | 2.55401301 | 2.91683991 | RECOVERED | 94cdf07e7045b753b0b3393e688e2e0cacbf8321cae0ceab57fdb2a412bf6733 |
+| regulator_instability | 2.68102219 | 2.69621307 | 2.70476922 | RECOVERED | 7de877e8af9286d38d0515e456a04dcfb9cb902b64c2780a28782f6ebbbb3955 |
 
-O relatório de execução final registrou 10/10 faults, 12/12 long runs, timer e sequence rollover aprovados e os quatro cenários de potência concluídos. Repetir seed `4242` produziu CSVs de faults e métricas idênticos. O gate global segue `NOT_READY_FOR_PHYSICAL_PROTOTYPE` pelos estágios Renode, Zephyr, mecânico e antena indisponíveis neste ambiente.
+Watchdog/reset classification rows are synthetic reinitialization probes; they do not demonstrate watchdog expiry, CPU lockup, independent reset cause, or physical MCU reset. Fault status counts above derive from structured per-scenario evidence, not from the global prototype gate failure count.
