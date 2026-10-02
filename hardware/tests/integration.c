@@ -22,6 +22,8 @@ typedef struct {
     uint32_t sleep_commands;
     uint32_t tx_commands;
     uint32_t rx_commands;
+    uint32_t wait_calls;
+    uint32_t max_wait_timeout_ms;
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
     bool force_active_sample;
@@ -154,6 +156,16 @@ static void virtual_sleep_ms(void *context, uint32_t duration_ms)
     sx1262_model_advance(&tag->radio, tag->now_ms);
 }
 
+static void virtual_wait_for_event(void *context, uint32_t timeout_ms)
+{
+    virtual_tag_t *tag = (virtual_tag_t *)context;
+    ++tag->wait_calls;
+    if (timeout_ms > tag->max_wait_timeout_ms)
+        tag->max_wait_timeout_ms = timeout_ms;
+    if (!lis2dw12_irq_pending(&tag->imu) && !sx1262_model_irq(&tag->radio))
+        virtual_sleep_ms(context, timeout_ms);
+}
+
 static tag_hal_t virtual_hal(virtual_tag_t *tag)
 {
     const tag_hal_t hal = {
@@ -165,6 +177,7 @@ static tag_hal_t virtual_hal(virtual_tag_t *tag)
         .radio_irq_pending = virtual_radio_irq_pending,
         .clock_ms = virtual_clock_ms,
         .sleep_ms = virtual_sleep_ms,
+        .wait_for_event = virtual_wait_for_event,
     };
     return hal;
 }
@@ -179,11 +192,14 @@ static void virtual_tag_init(virtual_tag_t *tag, tag_firmware_t *firmware,
     tag->radio.tx_latency_ms = latency_ms;
     lis2dw12_init(&tag->imu, NULL, NULL);
     const uint8_t ctrl1 = 0x30u; /* 25-Hz ODR; output generation enabled. */
-    const uint8_t wake_route = 0x08u;
+    const uint8_t wake_route = 0x20u; /* CTRL4.INT1_WU */
+    const uint8_t wake_enable = 0x20u; /* CTRL7.INTERRUPTS_ENABLE */
     const uint8_t wake_threshold = 0x04u;
     assert(lis2dw12_i2c_write(&tag->imu, LIS2DW12_REG_CTRL1, &ctrl1, 1u) == LIS2DW12_OK);
     assert(lis2dw12_i2c_write(&tag->imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
                               &wake_route, 1u) == LIS2DW12_OK);
+    assert(lis2dw12_i2c_write(&tag->imu, LIS2DW12_REG_CTRL7,
+                              &wake_enable, 1u) == LIS2DW12_OK);
     assert(lis2dw12_i2c_write(&tag->imu, LIS2DW12_REG_WAKE_UP_THS,
                               &wake_threshold, 1u) == LIS2DW12_OK);
     const tag_hal_t hal = virtual_hal(tag);
@@ -253,7 +269,7 @@ static void test_boot_packet_sleep_and_wake(void)
 
     /* A LIS2DW12 wake IRQ must bring firmware out of hardware sleep and produce
      * an alert packet; the adapter consumes the sensor's latched source. */
-    const uint8_t irq_route_on = 0x08u;
+    const uint8_t irq_route_on = 0x20u;
     assert(lis2dw12_i2c_write(&tag.imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
                               &irq_route_on, 1u) == LIS2DW12_OK);
     lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_RUNNING);
@@ -271,6 +287,35 @@ static void test_boot_packet_sleep_and_wake(void)
     assert(tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len));
     assert(tag.last_packet[1] == TAG_BEHAVIOR_ALERT);
     assert(!lis2dw12_irq_pending(&tag.imu));
+}
+
+static void test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(0x5151u);
+    config.normal_beacon_ms = 900000u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    tag_firmware_step(&firmware); /* BOOT -> SELF_TEST */
+    tag_firmware_step(&firmware); /* SELF_TEST -> SLEEP */
+    firmware.next_beacon_ms = tag.now_ms + config.normal_beacon_ms;
+
+    tag_firmware_step(&firmware); /* one timed HAL wait, not 10-ms polling */
+    assert(tag.wait_calls == 1u);
+    assert(tag.max_wait_timeout_ms == config.normal_beacon_ms);
+    assert(tag.now_ms == config.normal_beacon_ms);
+    assert(firmware.state == TAG_STATE_SLEEP);
+
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_RUNNING);
+    lis2dw12_tick(&tag.imu, 100u);
+    assert(lis2dw12_irq_pending(&tag.imu));
+    tag_firmware_step(&firmware); /* IRQ path must skip the timed wait. */
+    assert(firmware.state == TAG_STATE_IMU_MONITORING);
+    assert(tag.wait_calls == 1u);
+    tag_firmware_step(&firmware); /* source read clears IRQ and emits alert */
+    assert(!lis2dw12_irq_pending(&tag.imu));
+    assert(firmware.packets_sent == 1u);
+    assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
 }
 
 static void test_imu_failure_recovery(void)
@@ -628,6 +673,7 @@ static void test_pathological_alert_for_three_hours(void)
 int main(void)
 {
     test_boot_packet_sleep_and_wake();
+    test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu();
     test_imu_failure_recovery();
     test_radio_fault_recovery();
     test_missing_tx_done_timeout();

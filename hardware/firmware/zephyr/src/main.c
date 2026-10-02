@@ -13,6 +13,10 @@
 
 LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
 
+K_SEM_DEFINE(tag_event_sem, 0, 1);
+static struct gpio_callback imu_gpio_cb;
+static struct gpio_callback radio_gpio_cb;
+
 #if !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio), okay) || \
     !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay) || \
     !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio_busy), okay)
@@ -85,9 +89,29 @@ static int imu_configure(void)
                                sizeof(identity));
     if (rc != 0) return rc;
     if (identity != 0x44) return -ENODEV;
-    rc = imu_write_register(0x21, 0x08); /* block data update */
+    rc = imu_write_register(0x21, 0x08); /* CTRL2: block data update */
     if (rc != 0) return rc;
-    return imu_write_register(0x20, 0x14); /* 12.5 Hz, low-power mode */
+    rc = imu_write_register(0x20, 0x14); /* CTRL1: 12.5 Hz, low-power mode */
+    if (rc != 0) return rc;
+    rc = imu_write_register(0x34, 0x02); /* WAKE_UP_THS: 62.5 mg at +/-2 g */
+    if (rc != 0) return rc;
+    rc = imu_write_register(0x35, 0x00); /* WAKE_UP_DUR: no extra debounce */
+    if (rc != 0) return rc;
+
+    /* Source registers are read-to-clear; discard any power-up/latching event
+     * before enabling the route and global interrupt gate. */
+    uint8_t source_reg = 0x38; /* WAKE_UP_SRC */
+    uint8_t source = 0;
+    rc = i2c_write_read_dt(&imu_i2c, &source_reg, sizeof(source_reg),
+                           &source, sizeof(source));
+    if (rc != 0) return rc;
+    source_reg = 0x3b; /* ALL_INT_SRC */
+    rc = i2c_write_read_dt(&imu_i2c, &source_reg, sizeof(source_reg),
+                           &source, sizeof(source));
+    if (rc != 0) return rc;
+    rc = imu_write_register(0x23, 0x20); /* CTRL4.INT1_WU (bit 5) -> INT1 */
+    if (rc != 0) return rc;
+    return imu_write_register(0x3f, 0x20); /* CTRL7.INTERRUPTS_ENABLE */
 }
 
 static int imu_read_fn(void *context, tag_imu_sample_t *sample)
@@ -110,7 +134,13 @@ static int imu_read_fn(void *context, tag_imu_sample_t *sample)
         else if (axis == 1) sample->y_mg = mg;
         else sample->z_mg = mg;
     }
-    sample->interrupt_flags = 0;
+    uint8_t source_reg = 0x38; /* Reading WAKE_UP_SRC clears the latched WU event. */
+    uint8_t wake_source = 0;
+    rc = i2c_write_read_dt(&imu_i2c, &source_reg, sizeof(source_reg),
+                           &wake_source, sizeof(wake_source));
+    if (rc != 0) return rc;
+    sample->interrupt_flags = (wake_source & 0x08u) != 0u
+        ? TAG_IMU_FLAG_WAKE_UP : 0u;
     return 0;
 }
 
@@ -138,6 +168,24 @@ static void sleep_ms(void *context, uint32_t duration_ms)
     k_sleep(K_MSEC(duration_ms));
 }
 
+static void tag_gpio_isr(const struct device *port, struct gpio_callback *cb,
+                         gpio_port_pins_t pins)
+{
+    ARG_UNUSED(port);
+    ARG_UNUSED(cb);
+    ARG_UNUSED(pins);
+    k_sem_give(&tag_event_sem);
+}
+
+static void wait_for_event(void *context, uint32_t timeout_ms)
+{
+    ARG_UNUSED(context);
+    /* Level check closes the gap between the FSM's IRQ check and taking the
+     * semaphore. INT1/DIO1 callbacks then wake the MCU without periodic polls. */
+    if (gpio_pin_get_dt(&imu_int) > 0 || gpio_pin_get_dt(&radio_dio1) > 0) return;
+    (void)k_sem_take(&tag_event_sem, K_MSEC(timeout_ms));
+}
+
 int main(void)
 {
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
@@ -155,6 +203,16 @@ int main(void)
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&imu_int, GPIO_INPUT);
     if (rc != 0) return rc;
+    gpio_init_callback(&imu_gpio_cb, tag_gpio_isr, BIT(imu_int.pin));
+    rc = gpio_add_callback(imu_int.port, &imu_gpio_cb);
+    if (rc != 0) return rc;
+    rc = gpio_pin_interrupt_configure_dt(&imu_int, GPIO_INT_EDGE_TO_ACTIVE);
+    if (rc != 0) return rc;
+    gpio_init_callback(&radio_gpio_cb, tag_gpio_isr, BIT(radio_dio1.pin));
+    rc = gpio_add_callback(radio_dio1.port, &radio_gpio_cb);
+    if (rc != 0) return rc;
+    rc = gpio_pin_interrupt_configure_dt(&radio_dio1, GPIO_INT_EDGE_TO_ACTIVE);
+    if (rc != 0) return rc;
     rc = imu_configure();
     if (rc != 0) {
         LOG_ERR("LIS2DW12 I2C setup failed (%d)", rc);
@@ -170,6 +228,7 @@ int main(void)
         .radio_irq_pending = radio_irq_pending,
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
+        .wait_for_event = wait_for_event,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);
     config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;

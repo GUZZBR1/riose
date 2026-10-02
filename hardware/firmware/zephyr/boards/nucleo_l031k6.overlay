@@ -1,0 +1,104 @@
+/*
+ * Physical wiring for the RIOSE tag on ST NUCLEO-L031K6.
+ * Pin identities come from Zephyr's checked-in board DTS / STM32 pinctrl and
+ * ST UM1956 Table 14. External breakout/module header layouts are not implied.
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/pinctrl/stm32-pinctrl.h>
+
+/ {
+	aliases {
+		tag-radio = &sx1262;
+		tag-imu = &lis2dw12;
+		tag-radio-reset = &radio_reset;
+		tag-radio-busy = &radio_busy;
+		tag-radio-dio1 = &radio_dio1;
+		tag-imu-int = &imu_int;
+	};
+
+	tag_gpio: tag-gpios {
+		radio_reset: radio-reset {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpioa 12 GPIO_ACTIVE_LOW>; /* CN3 D2 */
+		};
+
+		radio_busy: radio-busy {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>; /* CN3 D3 */
+		};
+
+		radio_dio1: radio-dio1 {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>; /* CN3 D6 */
+		};
+
+		imu_int: imu-int {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>; /* CN3 D9 */
+		};
+	};
+
+};
+
+/* UM1956 Table 14 exposes SPI1 on D13/D12/D11 = PB3/PB4/PB5. D13 also
+ * drives the onboard LED through SB15; isolate it before using PB3 as SCK.
+ */
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pb3 &spi1_miso_pb4 &spi1_mosi_pb5>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>; /* CN3 D10 */
+	status = "okay";
+
+	sx1262: sx1262@0 {
+		compatible = "riose,sx1262-raw";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+		status = "okay";
+	};
+};
+
+/* Use the Nano I2C-capable route PB6/PB7. UM1956 requires SB16 and SB18 ON;
+ * this consumes D5/D4 and requires the alternate PA6/PA5 pads to float.
+ */
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	/* LIS2DW12 SA0 low => 7-bit address 0x18. Change to 0x19 if the actual
+	 * module straps SA0 high; this overlay does not assume its header.
+	 */
+	lis2dw12: lis2dw12@18 {
+		compatible = "riose,lis2dw12-raw";
+		reg = <0x18>;
+		status = "okay";
+	};
+};
+
+/* The base DTS assigns PB3 to LD2. Disable the software LED device because
+ * PB3 is now SPI SCK; the physical LED is isolated by opening SB15.
+ */
+&green_led_2 {
+	status = "disabled";
+};
+
+/* ST UM1956 requires PA5 and PA6 to be inputs when SB18/SB16 reroute PB7/PB6
+ * to A4/A5. Keep these pads high impedance in the board's default state.
+ */
+&gpioa {
+	pa5_i2c_reroute_float: pa5-i2c-reroute-float {
+		gpio-hog;
+		gpios = <5 GPIO_ACTIVE_HIGH>;
+		input;
+		line-name = "unused PA5 with SB18 enabled";
+	};
+
+	pa6_i2c_reroute_float: pa6-i2c-reroute-float {
+		gpio-hog;
+		gpios = <6 GPIO_ACTIVE_HIGH>;
+		input;
+		line-name = "unused PA6 with SB16 enabled";
+	};
+};

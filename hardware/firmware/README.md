@@ -32,17 +32,25 @@ can be attached through the HAL in this workspace.
 `SLEEP`, `IMU_MONITORING`, `RF_TX`, `RF_RX`, `ALERT`, and `ERROR_RECOVERY`
 states. The HAL has a full-duplex SPI transfer callback, reset, IMU sample and
 interrupt, radio IRQ, monotonic time, and sleep. SX1262 command bytes are sent
-from C over SPI (`0x80`, `0x8a`, `0x86`, `0x8b`, `0x8c`, `0x8e`, `0x8f`, `0x08`,
-`0x0e`, `0x83`, `0x12`, `0x02`, `0x82`). LoRa defaults are SF7/BW125/CR4/5 at
-915 MHz and 10 dBm. Confirm region, antenna, matching, legal band plan, and
-radio parameter compatibility for the physical deployment.
+from C over SPI (`0x80`, `0x98`, `0x8a`, `0x86`, `0x8b`, `0x8c`, `0x95`,
+`0x8e`, `0x8f`, `0x08`, `0x0e`, `0x83`, `0x12`, `0x02`, `0x82`). LoRa defaults are SF7/BW125/CR4/5 at
+915 MHz and 10 dBm. The setup performs the 902–928 MHz image calibration and
+configures the SX1262 high-power PA with `SetPaConfig(04 07 00 01)` before
+`SetTxParams`; a driver-level test also verifies the +14 dBm command sequence.
+This proves command encoding and model acceptance only. It does not prove
+conducted output power: matching network, supply, layout, RF switch, antenna,
+region, and legal band plan must be validated on the actual board. Parameters
+and the 915 MHz calibration mapping follow [Semtech's SX126x reference driver](https://github.com/Lora-net/LoRaMac-node/blob/master/src/radio/sx126x/sx126x.c)
+and [SX1261/2 product datasheet](https://www.semtech.com/products/wireless-rf/lora-connect/sx1262).
 
 Telemetry is little-endian: version (1), behavior (1), tag ID (4), sequence
 (4), uptime ms (4), acceleration XYZ mg (6), battery mV (2), CRC-16/CCITT-FALSE
 (2). Total is 24 bytes. A valid CRC detects accidental corruption; it is not
 authentication or encryption.
 
-This source is kept HAL-portable so it can be integrated by Zephyr `native_sim`
-or target drivers later. A runnable Zephyr project and Wokwi custom-chip target
-are not included in this first slice because those toolchains are not installed
-here; the host build is the current compile/run evidence.
+This source remains HAL-portable and is integrated with Zephyr `native_sim` and
+a Zephyr target adapter for the ST NUCLEO-L031K6. The native C-model cycle and
+the ARM target image compile successfully; the image has not been flashed.
+Wokwi and custom-chip integration remain experimental future work. A compile
+does not validate pin-level electrical behavior, actual radio output, sleep
+current, or battery life.

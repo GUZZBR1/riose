@@ -27,11 +27,11 @@ if (lis2dw12_i2c_read(&imu, LIS2DW12_REG_WHO_AM_I, &who, 1) != LIS2DW12_OK ||
 
 ## Registradores e perfis
 
-Implementa WHO_AM_I (`0x0F`, valor `0x44`), registradores de controle principais (`CTRL1`, `CTRL4_INT1_PAD_CTRL`, `CTRL6`, limiar de wake), STATUS/data-ready, saídas X/Y/Z (`0x28`–`0x2D`) e fontes de interrupção. Saídas são palavras signed little-endian, 16-bit alinhadas à esquerda como no formato de dados do sensor. A referência de sensibilidade é ±2/4/8/16 g; a resolução exata depende do modo. A seleção de ODR em CTRL1 liga/desliga a atualização; CTRL6 seleciona ±2/4/8/16 g. Perfil de movimento gera amostras reproduzíveis para parado, pastejo, caminhada, corrida e movimento anormal. Roteamento de wake em INT1 e limiar habilitam a flag e o callback de IRQ.
+Implementa WHO_AM_I (`0x0F`, valor `0x44`), registradores de controle principais (`CTRL1`, `CTRL4_INT1_PAD_CTRL`, `CTRL6`, `CTRL7`, limiar de wake), STATUS/data-ready, saídas X/Y/Z (`0x28`–`0x2D`) e fontes de interrupção. Saídas são palavras signed little-endian, 16-bit alinhadas à esquerda como no formato de dados do sensor. A referência de sensibilidade é ±2/4/8/16 g; a resolução exata depende do modo. A seleção de ODR em CTRL1 liga/desliga a atualização; CTRL6 seleciona ±2/4/8/16 g. Perfil de movimento gera amostras reproduzíveis para parado, pastejo, caminhada, corrida e movimento anormal. A IRQ de wake exige ambos `CTRL4.INT1_WU` (`0x20`) e `CTRL7.INTERRUPTS_ENABLE` (`0x20`), além de limiar e ODR ativos. Ler `WAKE_UP_SRC` apresenta `WU_IA` no bit 3 e limpa a condição latched.
 
 ## Referência do formato físico
 
-A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038, seção 4.5](https://www.st.com/resource/en/application_note/an5038-lis2dw12-alwayson-3axis-accelerometer-stmicroelectronics.pdf). A nota descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo faz a geração dos valores físicos em mg e quantiza para esse formato. O limiar de wake representa 1/64 da escala total por código.
+A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038](https://www.st.com/resource/en/application_note/dm00401877-lis2dw12-alwayson-3d-accelerometer-stmicroelectronics.pdf), seção 4.5. O caminho físico configura `CTRL1=0x14` (12,5 Hz, low-power), `WAKE_UP_DUR=0x00`, `WAKE_UP_THS=0x02` (62,5 mg a ±2 g), `CTRL4=0x20` e `CTRL7=0x20`, seguindo o exemplo de wake-up da seção 5.4. AN5038 descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo gera aceleração física em mg e quantiza para esse formato. O limiar representa 1/64 da escala total por código.
 
 ## Limitações conhecidas
 

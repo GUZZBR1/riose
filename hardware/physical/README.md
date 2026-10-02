@@ -16,7 +16,13 @@ Evaluate the present firmware against this candidate chain:
 - TPS62840 buck configured for a 3.3 V rail;
 - Tadiran TLL-5902 3.6 V primary Li-SOCl2 cell.
 
-These are the selected **bench candidates**, not final product choices. A
+These are the selected **bench candidates**, not final product choices. The
+TLL-5902 is rated down to a 2.0 V end voltage, while the TPS62840 is a buck
+converter that cannot hold 3.3 V once its input falls below the output plus
+headroom. Therefore this pair cannot be credited with the cell's full rated
+capacity. Re-rate usable capacity at the converter dropout point or compare a
+buck-boost/lower-voltage rail before making a battery-life claim. This has not
+been measured. A
 Nucleo board is useful for firmware bring-up, but its debugger, LEDs and board
 regulator can distort sleep-current results. Measure MCU-only if using the
 IDD jumper, then separately measure current entering the complete tag rail.
@@ -91,12 +97,12 @@ parameter. Keep simulated and measured profiles separate.
 ## Current workspace blocker
 
 The environment audit found no `/dev/ttyACM*`, `/dev/ttyUSB*`, `/dev/spidev*`,
-GPIO/I2C/SPI device, programmer, cross compiler, or measurement instrument.
-So the required physical readings, firmware flash, regulator validation and
-brownout test cannot be performed here. Zephyr `native_sim` and the ngspice
-average-load deck remain software/model evidence only. `src/main.c` also needs
-a board overlay and SX1262 BUSY handshake before it is ready for hardware;
-see the Zephyr adapter notes. This blocker should be cleared with the assembled
-bench candidate and instrument connected, then the capture workflow above can
-be run. See [`../reports/power-model.md`](../reports/power-model.md) for the
-current ASSUMED/SIMULATED numbers and their limits.
+GPIO/I2C/SPI device, programmer, physical MCU/radio/sensor, battery, or current
+measurement instrument. The NUCLEO-L031K6 overlay and SX1262 BUSY handshake
+are implemented, and the ARM image compiles, but it has not been flashed.
+Physical current, RF output, interrupt timing, rail stability, and brownout
+remain unmeasured. Zephyr `native_sim` and the ngspice average-load deck are
+software/model evidence only. Clear the remaining blocker with an assembled
+bench candidate and instrument, then run the capture workflow above. See
+[`../reports/power-model.md`](../reports/power-model.md) for the current
+ASSUMED/SIMULATED values and limits.

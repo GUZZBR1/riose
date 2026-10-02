@@ -11,6 +11,7 @@ extern "C" {
 
 #define TAG_TELEMETRY_MAX_SIZE 24u
 #define TAG_DEFAULT_BEACON_MS 900000u
+#define TAG_IMU_FLAG_WAKE_UP 0x02u
 
 typedef enum {
     TAG_STATE_BOOT = 0,
@@ -50,6 +51,8 @@ typedef struct {
     bool (*radio_irq_pending)(void *context);
     uint32_t (*clock_ms)(void *context);
     void (*sleep_ms)(void *context, uint32_t duration_ms);
+    /* Optional interrupt/event wait. Returns after an event or timeout. */
+    void (*wait_for_event)(void *context, uint32_t timeout_ms);
 } tag_hal_t;
 
 typedef struct {

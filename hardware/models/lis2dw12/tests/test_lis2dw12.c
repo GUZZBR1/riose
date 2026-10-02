@@ -51,14 +51,20 @@ static void test_quantized_output_and_profile(void)
 static void test_wake_irq_and_source_clear(void)
 {
     lis2dw12_model_t model;
-    uint8_t ctrl1 = 0x30u, route = 0x08u, threshold = 0x01u;
+    uint8_t ctrl1 = 0x30u, route = 0x20u, interrupt_enable = 0x20u;
+    uint8_t threshold = 0x01u;
     uint8_t source = 0u;
     irq_count = 0u;
     lis2dw12_init(&model, on_irq, NULL);
     assert(lis2dw12_i2c_write(&model, LIS2DW12_REG_CTRL1, &ctrl1, 1u) == LIS2DW12_OK);
     assert(lis2dw12_i2c_write(&model, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL, &route, 1u) == LIS2DW12_OK);
+    /* Routing alone must not assert INT1: CTRL7 is the global gate. */
     assert(lis2dw12_i2c_write(&model, LIS2DW12_REG_WAKE_UP_THS, &threshold, 1u) == LIS2DW12_OK);
     lis2dw12_set_motion(&model, LIS2DW12_MOTION_RUNNING);
+    lis2dw12_tick(&model, 50u);
+    assert(!lis2dw12_irq_pending(&model));
+    assert(lis2dw12_i2c_write(&model, LIS2DW12_REG_CTRL7,
+                              &interrupt_enable, 1u) == LIS2DW12_OK);
     lis2dw12_tick(&model, 50u);
     assert(lis2dw12_irq_pending(&model));
     assert(irq_count == 1u);

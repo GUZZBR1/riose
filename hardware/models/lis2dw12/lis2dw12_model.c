@@ -64,8 +64,14 @@ static void update_irq(lis2dw12_model_t *model)
         if (delta < 0) delta = -delta;
         if (delta > peak_delta) peak_delta = delta;
     }
-    const bool wake_routed = (model->registers[LIS2DW12_REG_CTRL4_INT1_PAD_CTRL] & 0x08u) != 0u;
-    if (wake_routed && threshold_mg > 0 && peak_delta >= threshold_mg && !model->irq_latched) {
+    /* ST LIS2DW12: CTRL4.INT1_WU is bit 5 (0x20); CTRL7.INTERRUPTS_ENABLE
+     * is also bit 5 (0x20). See AN5038, wake-up interrupt configuration. */
+    const bool wake_routed =
+        (model->registers[LIS2DW12_REG_CTRL4_INT1_PAD_CTRL] & 0x20u) != 0u;
+    const bool interrupts_enabled =
+        (model->registers[LIS2DW12_REG_CTRL7] & 0x20u) != 0u;
+    if (wake_routed && interrupts_enabled && threshold_mg > 0 &&
+        peak_delta >= threshold_mg && !model->irq_latched) {
         model->irq_latched = true;
         model->registers[LIS2DW12_REG_WAKE_UP_SRC] = 0x08u; /* WU_IA */
         model->registers[LIS2DW12_REG_ALL_INT_SRC] |= 0x08u;

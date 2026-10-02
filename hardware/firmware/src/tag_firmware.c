@@ -63,7 +63,8 @@ static void sample_imu(tag_firmware_t *fw)
     const int64_t y = fw->last_imu.y_mg;
     const int64_t z = (int64_t)fw->last_imu.z_mg - 1000;
     const int64_t energy = x * x + y * y + z * z;
-    if ((fw->last_imu.interrupt_flags & 0x02u) != 0u || energy > 1800000) {
+    if ((fw->last_imu.interrupt_flags & TAG_IMU_FLAG_WAKE_UP) != 0u ||
+        energy > 1800000) {
         fw->still_tracking = false;
         fw->behavior = TAG_BEHAVIOR_ALERT;
         fw->state = TAG_STATE_ALERT;
@@ -171,7 +172,15 @@ void tag_firmware_step(tag_firmware_t *fw)
             fw->state = TAG_STATE_IMU_MONITORING;
             break;
         }
-        fw->hal.sleep_ms(fw->hal.context, 10u);
+        const uint32_t remaining_ms = fw->next_beacon_ms - now_ms(fw);
+        if (fw->hal.wait_for_event != NULL) {
+            fw->hal.wait_for_event(fw->hal.context, remaining_ms);
+        } else {
+            /* Keep the fast host harness responsive; hardware HALs should
+             * implement wait_for_event to sleep until IRQ or beacon timeout. */
+            const uint32_t poll_ms = remaining_ms < 10u ? remaining_ms : 10u;
+            fw->hal.sleep_ms(fw->hal.context, poll_ms);
+        }
         break;
     case TAG_STATE_IMU_MONITORING:
         {
