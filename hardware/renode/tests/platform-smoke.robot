@@ -9,10 +9,10 @@ ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
 
 *** Test Cases ***
-Loads MCU Surrogate And Custom Peripherals
+Loads MCU Surrogate, SX1262 And Native LIS2DW12
     ${listing}=    Execute Command    peripherals
     Should Contain    ${listing}    SX1262
-    Should Contain    ${listing}    LIS2DW12
+    Should Contain    ${listing}    imu
     [Setup]    Create RIOSE Platform
 
 Loads Firmware When Provided

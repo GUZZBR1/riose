@@ -21,8 +21,7 @@ cpu:
         include @src/RiosePeripherals.cs
 
 radio: Riose.SX1262 @ spi1
-imu: Riose.LIS2DW12 @ i2c1 0x18
-    address: 0x18
+imu: Sensors.LIS2DW12 @ i2c1 0x2d
 
 radio:
     Busy -> gpioPortB@0

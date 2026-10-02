@@ -23,15 +23,48 @@ if (lis2dw12_i2c_read(&imu, LIS2DW12_REG_WHO_AM_I, &who, 1) != LIS2DW12_OK ||
 }
 ```
 
-`lis2dw12_fail_next_i2c(&imu, n)` injeta erros nas próximas `n` transações para validar recuperação do firmware. `WAKE_UP_SRC`/`ALL_INT_SRC` limpam o IRQ latched quando lidos; também existe `lis2dw12_clear_irq()`.
+`lis2dw12_fail_next_i2c(&imu, n)` injeta erros nas próximas `n` transações;
+`lis2dw12_timeout_next_i2c(&imu, n)` injeta timeouts I2C. Ambos se esgotam e a
+transação seguinte pode recuperar normalmente. `lis2dw12_set_irq_faults()`
+simula INT1 ausente ou preso; limpar a falha e a fonte permite recuperação.
+Ler `WAKE_UP_SRC` ou `ALL_INT_SRC` reconhece fontes e limpa o IRQ latched.
 
 ## Registradores e perfis
 
-Implementa WHO_AM_I (`0x0F`, valor `0x44`), registradores de controle principais (`CTRL1`, `CTRL4_INT1_PAD_CTRL`, `CTRL6`, `CTRL7`, limiar de wake), STATUS/data-ready, saídas X/Y/Z (`0x28`–`0x2D`) e fontes de interrupção. Saídas são palavras signed little-endian, 16-bit alinhadas à esquerda como no formato de dados do sensor. A referência de sensibilidade é ±2/4/8/16 g; a resolução exata depende do modo. A seleção de ODR em CTRL1 liga/desliga a atualização; CTRL6 seleciona ±2/4/8/16 g. Perfil de movimento gera amostras reproduzíveis para parado, pastejo, caminhada, corrida e movimento anormal. A IRQ de wake exige ambos `CTRL4.INT1_WU` (`0x20`) e `CTRL7.INTERRUPTS_ENABLE` (`0x20`), além de limiar e ODR ativos. Ler `WAKE_UP_SRC` apresenta `WU_IA` no bit 3 e limpa a condição latched.
+Implementa WHO_AM_I (`0x0F`, valor `0x44`), registradores de controle
+principais (`CTRL1`, `CTRL4`, `CTRL5`, `CTRL6`, `CTRL7` e wake), STATUS,
+saídas X/Y/Z (`0x28`–`0x2D`) e fontes de interrupção. Saídas são signed
+little-endian no formato de 16 bits do sensor. A unidade interna dos perfis é
+mg; a faixa selecionável é ±2/4/8/16 g. `CTRL1.ODR` agenda atualizações em
+tempo virtual, com resolução de relógio de 1 ms; atrasos longos avançam a
+sequência e disponibilizam a amostra mais recente. A IRQ de wake requer
+`CTRL4.INT1_WU` (`0x20`) e `CTRL7.INTERRUPTS_ENABLE` (`0x20`). Sono/repouso é
+modelado pelo subconjunto `WAKE_UP_THS.SLEEP_ON`, `WAKE_UP_DUR` e rota de
+mudança de sono em `CTRL5`.
+
+## Datasets sintéticos
+
+O gerador grava `STATIC`, `WALK`, `RUN`, `IMPACT` e `RANDOM_MOVEMENT` como CSV
+mais um `manifest.json`. Cada conjunto registra seed, taxa em Hz, unidade `g`
+e status `SIMULATED`. Os sinais são fixtures ilustrativas de firmware, não
+medições ou padrões de comportamento bovino.
+
+```sh
+python3 hardware/models/lis2dw12/generate_datasets.py \
+  --output hardware/models/lis2dw12/datasets --samples 128 \
+  --sample-rate-hz 12.5 --seed 20261002
+python3 -m pytest hardware/models/lis2dw12/tests/test_datasets.py -q
+```
+
+Renode upstream inclui `Sensors.LIS2DW12` desde a release 1.13.3. O arquivo
+`hardware/renode/riose_stm32l0.repl` usa esse periférico nativo; converta uma
+das CSVs para RESD com a ferramenta `csv2resd.py` da instalação Renode e
+alimente-a por `imu FeedAccelerationSamplesFromRESD @<arquivo.resd>`. Isso
+evita manter outro driver de periférico Renode no repositório.
 
 ## Referência do formato físico
 
-A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038](https://www.st.com/resource/en/application_note/dm00401877-lis2dw12-alwayson-3d-accelerometer-stmicroelectronics.pdf), seção 4.5. O caminho físico configura `CTRL1=0x14` (12,5 Hz, low-power), `WAKE_UP_DUR=0x00`, `WAKE_UP_THS=0x02` (62,5 mg a ±2 g), `CTRL4=0x20` e `CTRL7=0x20`, seguindo o exemplo de wake-up da seção 5.4. AN5038 descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo gera aceleração física em mg e quantiza para esse formato. O limiar representa 1/64 da escala total por código.
+A disposição e conversão da saída signed de 16 bits seguem a nota de aplicação oficial da ST [AN5038](https://www.st.com/resource/en/application_note/dm00401877-lis2dw12-alwayson-3d-accelerometer-stmicroelectronics.pdf), seção 4.5. O exemplo de wake-up da seção 5.4 configura `CTRL1=0x14` (12,5 Hz, high-performance), `WAKE_UP_DUR=0x00`, `WAKE_UP_THS=0x02` (62,5 mg a ±2 g), `CTRL4=0x20` e `CTRL7=0x20`. AN5038 descreve dados alinhados à esquerda e sensibilidade de 0,244 mg/LSB (14-bit, ±2 g); este modelo gera aceleração em mg e quantiza para esse formato. O limiar representa 1/64 da escala total por código.
 
 ## Limitações conhecidas
 
