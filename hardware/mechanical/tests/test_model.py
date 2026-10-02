@@ -12,7 +12,8 @@ ROOT = Path(__file__).parent
 
 
 def test_fitting_assumed_spec_reports_mass_and_center_of_mass():
-    report = build_report(load_spec(ROOT / "fixtures/fitting_spec.yaml"))
+    spec = load_spec(ROOT / "fixtures/fitting_spec.yaml")
+    report = build_report(spec)
     assert report["fit"]["fits"] is True
     assert report["gate"] == "CONDITIONALLY_READY_PENDING_THRESHOLD_APPROVAL"
     assert report["mass_estimate_g"]["total"] > 0
@@ -22,6 +23,18 @@ def test_fitting_assumed_spec_reports_mass_and_center_of_mass():
     assert report["clearances_mm"]["mcu/radio"] == pytest.approx(0.5)
     assert report["mounting_hole"]["status"] == "ASSUMED"
     assert "MEASURED" not in report["specification_statuses"]
+    wall = spec["mechanical"]["enclosure"]["wall_thickness_mm"]["value"]
+    hole_diameter = spec["mechanical"]["enclosure"]["mounting_hole_diameter_mm"]["value"]
+    expected_hole_volume = 3.141592653589793 * (hole_diameter / 2) ** 2 * 2 * wall
+    enclosure_shell_volume = (
+        report["envelope_mm"]["width"] * report["envelope_mm"]["height"] * report["envelope_mm"]["thickness"]
+        - report["internal_cavity_mm"]["width"] * report["internal_cavity_mm"]["height"] * report["internal_cavity_mm"]["thickness"]
+        - expected_hole_volume
+    )
+    assert report["volume_mm3"]["enclosure"] == pytest.approx(enclosure_shell_volume)
+    assert report["mass_estimate_g"]["parts"]["enclosure"] == pytest.approx(
+        enclosure_shell_volume * report["materials"]["enclosure"]["density_g_cm3"] / 1000
+    )
     assert not any(len(warning) == 1 for warning in report["warnings"])
 
 
@@ -178,8 +191,13 @@ def test_invalid_clearance_override_is_rejected():
 
 def test_cad_export_refuses_reports_with_clashes(tmp_path):
     report = build_report(load_spec(ROOT.parent.parent / "spec.yaml"))
+    outputs = [tmp_path / "tag.step", tmp_path / "tag.step.provenance.json",
+               tmp_path / "tag.stl", tmp_path / "tag.stl.provenance.json"]
+    for output in outputs:
+        output.write_text("stale artifact")
     with pytest.raises(SpecError, match="fit/clash"):
-        export_cad(report, tmp_path / "tag.step", tmp_path / "tag.stl")
+        export_cad(report, outputs[0], outputs[2])
+    assert all(not output.exists() for output in outputs)
 
 
 def test_export_unavailable_is_explicit(tmp_path):
@@ -240,9 +258,44 @@ def test_headless_step_stl_export_and_provenance(tmp_path):
     solids = imported.solids().vals()
     assert len(solids) == 7
     assert all(shape.isValid() for shape in solids)
+    assert sum(shape.Volume() for shape in solids) == pytest.approx(
+        sum(json.loads(baseline_report.read_text())["volume_mm3"].values()), rel=1e-8
+    )
     assert any(
         abs(shape.BoundingBox().xlen - 20) < 1e-6
         and abs(shape.BoundingBox().ylen - 8) < 1e-6
         and abs(shape.BoundingBox().zlen - 8) < 1e-6
         for shape in solids
     )
+
+    def geometry_signature(path):
+        imported_shapes = cq.importers.importStep(str(path)).solids().vals()
+        return sorted(
+            tuple(round(value, 5) for value in (
+                shape.BoundingBox().xmin, shape.BoundingBox().ymin, shape.BoundingBox().zmin,
+                shape.BoundingBox().xmax, shape.BoundingBox().ymax, shape.BoundingBox().zmax,
+                shape.Volume(),
+            ))
+            for shape in imported_shapes
+        )
+
+    baseline_signature = geometry_signature(step)
+    for index, override in enumerate((
+        "mechanical.enclosure.height_mm=69",
+        "mechanical.enclosure.thickness_mm=16",
+        "mechanical.battery.diameter_mm=8.5",
+        "mechanical.battery.length_mm=21",
+        "mechanical.pcb.width_mm=13",
+        "mechanical.pcb.height_mm=25",
+        "mechanical.minimum_clearance_mm=0.75",
+    )):
+        variant_step = tmp_path / f"variant_{index}.step"
+        variant_report = tmp_path / f"variant_{index}.json"
+        assert main([
+            "--spec", str(spec), "--output", str(variant_report), "--step", str(variant_step),
+            "--set", override,
+        ]) == 0
+        variant_stl = variant_step.with_suffix(".stl")
+        assert variant_step.read_bytes() != step.read_bytes()
+        assert variant_stl.read_bytes() != step.with_suffix(".stl").read_bytes()
+        assert geometry_signature(variant_step) != baseline_signature, override

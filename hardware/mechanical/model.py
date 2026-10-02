@@ -274,8 +274,12 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     densities = {"enclosure": den_shell[0], "pcb": den_pcb[0], "battery": den_batt[0], "component": den_parts[0]}
     # Shell volume is outer minus inner cavity. Components contribute their full
     # box volumes; this deliberately overestimates solid component packaging.
+    enclosure_before_hole = ew.value * eh.value * et.value - inner_w * inner_h * inner_t
+    # The mounting hole is tangent to the inner side wall by construction and
+    # removes material only from the two enclosure skins along the z axis.
+    hole_volume = math.pi * (hole_d.value / 2) ** 2 * (2 * wall.value)
     volumes = {
-        "enclosure": (ew.value * eh.value * et.value - inner_w * inner_h * inner_t),
+        "enclosure": enclosure_before_hole - hole_volume,
         "pcb": boxes[1].volume_mm3(),
         "battery": math.pi * (bd.value / 2) ** 2 * bl.value,
     }
@@ -289,7 +293,10 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     }
     mass_total = sum(masses.values())
     # Approximate body and cylinder centroids; remaining parts use bbox centers.
-    weighted = [(masses["enclosure"], 0, 0, et.value / 2),
+    enclosure_mass_before_hole = enclosure_before_hole * densities["enclosure"] / 1000
+    hole_mass = hole_volume * densities["enclosure"] / 1000
+    weighted = [(enclosure_mass_before_hole, 0, 0, et.value / 2),
+                (-hole_mass, 0, hole_y, et.value / 2),
                 (masses["pcb"], board.x, board.y, board.z + pt.value / 2),
                 (masses["battery"], boxes[2].x, boxes[2].y, boxes[2].z + bd.value / 2)]
     for box in (*boxes[3:6], antenna):
@@ -422,6 +429,13 @@ def _cadquery_available() -> bool:
 
 
 def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | None = None) -> None:
+    outputs = [step_output, step_output.with_suffix(step_output.suffix + ".provenance.json")]
+    if stl_output is not None:
+        outputs.extend((stl_output, stl_output.with_suffix(stl_output.suffix + ".provenance.json")))
+    # A refused or interrupted export must not leave artifacts from an older run
+    # that could be mistaken for the result of this report.
+    for output in outputs:
+        output.unlink(missing_ok=True)
     if not report["fit"]["fits"]:
         raise SpecError("CAD export blocked because the report contains fit/clash failures")
     try:
@@ -452,8 +466,6 @@ def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | Non
     shell = outer.cut(inner).cut(cutter)
     assembly.add(shell, name="enclosure_shell")
     shapes.append(shell.val())
-    step_output.parent.mkdir(parents=True, exist_ok=True)
-    assembly.export(str(step_output), exportType="STEP")
     provenance = {
         "analysis": "SIMULATED",
         "physical_validation": "NOT_PERFORMED",
@@ -462,11 +474,21 @@ def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | Non
         "materials": report["materials"],
         "mass_estimate_g": report["mass_estimate_g"],
     }
-    step_output.with_suffix(step_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
-    if stl_output is not None:
-        stl_output.parent.mkdir(parents=True, exist_ok=True)
-        cq.exporters.export(cq.Compound.makeCompound(shapes), str(stl_output), exportType="STL")
-        stl_output.with_suffix(stl_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+    try:
+        step_output.parent.mkdir(parents=True, exist_ok=True)
+        assembly.export(str(step_output), exportType="STEP")
+        step_output.with_suffix(step_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+        if stl_output is not None:
+            stl_output.parent.mkdir(parents=True, exist_ok=True)
+            cq.exporters.export(cq.Compound.makeCompound(shapes), str(stl_output), exportType="STL")
+            stl_output.with_suffix(stl_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+    except Exception:
+        for output in outputs:
+            try:
+                output.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
 
 
 def main(argv: list[str] | None = None) -> int:
