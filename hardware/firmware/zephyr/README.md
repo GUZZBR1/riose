@@ -124,7 +124,7 @@ west build -b nucleo_l031k6 -d build/tag-nucleo-l031k6 \
   /home/lucas_coimbra/projects/riose/hardware/firmware/zephyr
 ```
 
-The latest build produced `zephyr.bin` at 28,988 bytes (88.46% of the MCU's 32 KiB
+The latest build produced `zephyr.bin` at 29,104 bytes (88.82% of the MCU's 32 KiB
 flash) and uses 2,976 bytes of its 8 KiB RAM. The RTC companion timer accounts
 for additional code and leaves about 3 KiB of flash headroom. This verifies compilation and
 linking for the target only. The image was not flashed; radio behavior, IRQ
