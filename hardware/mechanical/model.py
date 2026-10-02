@@ -9,6 +9,7 @@ MEASURED: MVP 2 has no physical measurements.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import math
 import sys
@@ -74,6 +75,9 @@ def _parameter(spec: dict[str, Any], paths: list[str], *, name: str) -> Paramete
             continue
         if not isinstance(raw, dict) or not {"value", "unit", "source", "status"} <= raw.keys():
             raise SpecError(f"{path} must contain value, unit, source and status")
+        if (not isinstance(raw["source"], str) or not raw["source"].strip()
+                or not isinstance(raw["unit"], str) or not raw["unit"].strip()):
+            raise SpecError(f"{path} must have non-empty unit and source provenance")
         try:
             value = float(raw["value"])
         except (TypeError, ValueError) as exc:
@@ -94,7 +98,10 @@ def _mm(parameter: Parameter, name: str) -> Parameter:
     unit = parameter.unit.strip().lower()
     if unit not in factors:
         raise SpecError(f"{name} must use a length unit (mm, cm, m, in); got {parameter.unit!r}")
-    return Parameter(parameter.value * factors[unit], "mm", parameter.source, parameter.status)
+    value = parameter.value * factors[unit]
+    if not math.isfinite(value) or value <= 0:
+        raise SpecError(f"{name} is outside the supported numeric range")
+    return Parameter(value, "mm", parameter.source, parameter.status)
 
 
 def _get_mm(spec: dict[str, Any], path: str, *aliases: str) -> Parameter:
@@ -141,6 +148,7 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     ah = _get_mm(spec, f"{root}.antenna.height_mm")
     at = _get_mm(spec, f"{root}.antenna.thickness_mm")
     ak = _get_mm(spec, f"{root}.antenna.keepout_mm")
+    clearance = _get_mm(spec, f"{root}.minimum_clearance_mm")
     dims: dict[str, tuple[Parameter, Parameter, Parameter]] = {
         "mcu": tuple(_get_mm(spec, f"{root}.components.mcu.{axis}_mm") for axis in ("width", "height", "thickness")),
         "radio": tuple(_get_mm(spec, f"{root}.components.radio.{axis}_mm") for axis in ("width", "height", "thickness")),
@@ -171,14 +179,15 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     # the antenna keepout does not cross the cavity wall merely because the
     # board was anchored flush to the left. The hardware spec does not declare
     # an origin, so this remains an explicit placement estimate.
-    pcb_left_aligned_x = -inner_w / 2 + pw.value / 2
+    pcb_left_aligned_x = -inner_w / 2 + clearance.value + pw.value / 2
     antenna_keepout_half_width = aw.value / 2 + ak.value
-    pcb_x = max(pcb_left_aligned_x, -inner_w / 2 + antenna_keepout_half_width)
+    pcb_keepout_clearance_x = -inner_w / 2 + antenna_keepout_half_width + clearance.value
+    pcb_x = max(pcb_left_aligned_x, pcb_keepout_clearance_x)
     boxes: list[Box] = [
         Box("enclosure", 0, 0, 0, ew.value, eh.value, et.value, "enclosure", ew.source, ew.status),
         Box("pcb", pcb_x, 0, wall.value, pw.value, ph.value, pt.value, "pcb", pw.source, pw.status),
         # Side-by-side with PCB; an overlap means the selected envelopes do not fit.
-        Box("battery", inner_w / 2 - bl.value / 2, 0, wall.value, bl.value, bd.value, bd.value, "battery", bl.source, bl.status),
+        Box("battery", inner_w / 2 - clearance.value - bl.value / 2, 0, wall.value, bl.value, bd.value, bd.value, "battery", bl.source, bl.status),
     ]
     hole_y = eh.value / 2 - wall.value - hole_d.value / 2
 
@@ -186,8 +195,8 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     cursor_x = board.x - pw.value / 2
     cursor_y = board.y - ph.value / 2
     row_height = 0.0
-    gap = 0.5  # explicitly an assumed placement clearance, not a reviewed design value
-    warnings.append("Component placement gap of 0.5 mm is an ASSUMED layout heuristic.")
+    gap = clearance.value
+    warnings.append("Component placement uses the spec minimum clearance; it is ASSUMED until design review.")
     for name in ("mcu", "radio", "imu"):
         a, b, c = dims[name]
         if cursor_x + a.value > board.x + pw.value / 2:
@@ -232,12 +241,29 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     for box in boxes[3:6]:
         if _overlap(box, antenna_keepout):
             issues.append(f"{box.name} package violates antenna keepout")
+    if _overlap(boxes[2], antenna_keepout):
+        issues.append("battery envelope violates antenna keepout")
     # Check solid part overlaps, with PCB/component contact intentionally allowed.
     physical = [box for box in boxes if box.name not in {"enclosure", "antenna_keepout"}]
+    wall_clearances = {box.name: _wall_clearances(box, inner_w, inner_h, et.value - wall.value) for box in physical}
+    for name, distances in wall_clearances.items():
+        minimum = min(distances.values())
+        if minimum + 1e-9 < clearance.value:
+            issues.append(
+                f"minimum enclosure-wall clearance violated: {name} "
+                f"({minimum:.3f} mm < {clearance.value:.3f} mm)"
+            )
     for i, first in enumerate(physical):
         for second in physical[i + 1:]:
             if _overlap(first, second):
                 issues.append(f"unexpected envelope overlap: {first.name} / {second.name}")
+            elif not _intentional_contact(first.name, second.name):
+                distance = _box_distance(first, second)
+                if distance + 1e-9 < clearance.value:
+                    issues.append(
+                        f"minimum clearance violated: {first.name} / {second.name} "
+                        f"({distance:.3f} mm < {clearance.value:.3f} mm)"
+                    )
     if not (ew.value > 0 and eh.value > 0 and et.value > 0):
         issues.append("invalid external envelope")
 
@@ -275,6 +301,7 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
         "mechanical.battery.diameter_mm": bd, "mechanical.battery.length_mm": bl,
         "mechanical.antenna.width_mm": aw, "mechanical.antenna.height_mm": ah,
         "mechanical.antenna.thickness_mm": at, "mechanical.antenna.keepout_mm": ak,
+        "mechanical.minimum_clearance_mm": clearance,
     }
     for name, group in dims.items():
         for axis, parameter in zip(("width_mm", "height_mm", "thickness_mm"), group):
@@ -282,6 +309,7 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     statuses = {p.status for p in parameter_inputs.values()}
     if "MEASURED" in statuses:
         raise SpecError("MVP 2 mechanical inputs cannot have status MEASURED")
+    clearance_report = _clearances(physical)
     return {
         "schema_version": "1.0",
         "analysis": "SIMULATED_GEOMETRY_ESTIMATE",
@@ -293,8 +321,16 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
         "internal_cavity_mm": {"width": inner_w, "height": inner_h, "thickness": inner_t},
         "parts": [asdict(box) | {"volume_mm3": box.volume_mm3(), "bounds_mm": {k: list(v) for k, v in box.bounds().items()}} for box in boxes],
         "fit": {"fits": not issues, "issues": issues},
+        "clearances_mm": clearance_report,
+        "enclosure_wall_clearances_mm": wall_clearances,
         "volume_mm3": volumes,
         "mass_estimate_g": {"parts": masses, "total": mass_total, "status": "ASSUMED"},
+        "mass_by_material_class_g": {
+            "enclosure": masses["enclosure"],
+            "pcb": masses["pcb"],
+            "battery": masses["battery"],
+            "components": masses["components"],
+        },
         "center_of_mass_mm": cg,
         "materials": {
             "enclosure": {"density_g_cm3": den_shell[0], "source": den_shell[2], "status": den_shell[3]},
@@ -305,12 +341,72 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
         "mounting_hole": {"diameter_mm": hole_d.value, "center_mm": {"x": 0.0, "y": hole_y}, "axis": "z", "source": hole_d.source, "status": hole_d.status},
         "warnings": sorted(set(warnings)),
         "cadquery_available": _cadquery_available(),
+        "provenance": {
+            "analysis": "SIMULATED",
+            "geometry_inputs": {name: {"source": p.source, "status": p.status} for name, p in parameter_inputs.items()},
+            "mass_estimate": "ASSUMED",
+            "physical_validation": "NOT_PERFORMED",
+        },
     }
 
 
 def _overlap(a: Box, b: Box) -> bool:
     ab, bb = a.bounds(), b.bounds()
     return all(min(ab[axis][1], bb[axis][1]) - max(ab[axis][0], bb[axis][0]) > 1e-9 for axis in ("x", "y", "z"))
+
+
+def _clearances(boxes: list[Box]) -> dict[str, float]:
+    """Report axis-aligned envelope distances; intended PCB contacts are zero."""
+    result: dict[str, float] = {}
+    for index, first in enumerate(boxes):
+        for second in boxes[index + 1:]:
+            result[f"{first.name}/{second.name}"] = _box_distance(first, second)
+    return result
+
+
+def _box_distance(first: Box, second: Box) -> float:
+    a, b = first.bounds(), second.bounds()
+    gaps = [max(0.0, b[axis][0] - a[axis][1], a[axis][0] - b[axis][1]) for axis in ("x", "y", "z")]
+    return math.sqrt(sum(gap * gap for gap in gaps))
+
+
+def _wall_clearances(box: Box, inner_w: float, inner_h: float, ceiling_z: float) -> dict[str, float]:
+    bounds = box.bounds()
+    return {
+        "left": bounds["x"][0] + inner_w / 2,
+        "right": inner_w / 2 - bounds["x"][1],
+        "front": bounds["y"][0] + inner_h / 2,
+        "rear": inner_h / 2 - bounds["y"][1],
+        # PCB, battery and board-mounted parts intentionally rest on the floor.
+        "ceiling": ceiling_z - bounds["z"][1],
+    }
+
+
+def _intentional_contact(first: str, second: str) -> bool:
+    names = {first, second}
+    return "pcb" in names and bool(names & {"mcu", "radio", "imu", "antenna"})
+
+
+def apply_overrides(spec: dict[str, Any], overrides: list[str]) -> dict[str, Any]:
+    """Apply numeric CLI parameter overrides while recording simulated provenance."""
+    result = copy.deepcopy(spec)
+    for override in overrides:
+        path, separator, value_text = override.partition("=")
+        if not separator or not path or not value_text:
+            raise SpecError(f"Invalid --set {override!r}; expected dotted.path=value")
+        raw = _node(result, path)
+        if not isinstance(raw, dict) or "value" not in raw:
+            raise SpecError(f"--set target {path!r} is not an existing spec parameter")
+        try:
+            value = float(value_text)
+        except ValueError as exc:
+            raise SpecError(f"--set value for {path!r} must be numeric") from exc
+        if not math.isfinite(value) or value <= 0:
+            raise SpecError(f"--set value for {path!r} must be finite and positive")
+        raw["value"] = value
+        raw["source"] = f"CLI override: --set {path}={value_text}"
+        raw["status"] = "SIMULATED"
+    return result
 
 
 def _cadquery_available() -> bool:
@@ -322,6 +418,8 @@ def _cadquery_available() -> bool:
 
 
 def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | None = None) -> None:
+    if not report["fit"]["fits"]:
+        raise SpecError("CAD export blocked because the report contains fit/clash failures")
     try:
         import cadquery as cq
     except ImportError as exc:
@@ -331,8 +429,12 @@ def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | Non
     for part in report["parts"]:
         if part["name"] in {"enclosure", "antenna_keepout"}:
             continue
-        shape = cq.Workplane("XY").box(part["width"], part["height"], part["thickness"], centered=(True, True, False))
-        shape = shape.translate((part["x"], part["y"], part["z"]))
+        if part["name"] == "battery":
+            shape = cq.Workplane("YZ").circle(part["height"] / 2).extrude(part["width"])
+            shape = shape.translate((part["x"] - part["width"] / 2, part["y"], part["z"] + part["thickness"] / 2))
+        else:
+            shape = cq.Workplane("XY").box(part["width"], part["height"], part["thickness"], centered=(True, True, False))
+            shape = shape.translate((part["x"], part["y"], part["z"]))
         assembly.add(shape, name=part["name"])
         shapes.append(shape.val())
     # Hollow open-top envelope keeps the first export simple and editable.
@@ -348,9 +450,19 @@ def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | Non
     shapes.append(shell.val())
     step_output.parent.mkdir(parents=True, exist_ok=True)
     cq.exporters.export(cq.Compound.makeCompound(shapes), str(step_output), exportType="STEP")
+    provenance = {
+        "analysis": "SIMULATED",
+        "physical_validation": "NOT_PERFORMED",
+        "specification_statuses": report["specification_statuses"],
+        "inputs": report["input_parameters"],
+        "materials": report["materials"],
+        "mass_estimate_g": report["mass_estimate_g"],
+    }
+    step_output.with_suffix(step_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
     if stl_output is not None:
         stl_output.parent.mkdir(parents=True, exist_ok=True)
         cq.exporters.export(cq.Compound.makeCompound(shapes), str(stl_output), exportType="STL")
+        stl_output.with_suffix(stl_output.suffix + ".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -359,9 +471,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=Path("results/mvp2/mechanical/geometry.json"))
     parser.add_argument("--step", type=Path, help="Optional STEP export (requires CadQuery)")
     parser.add_argument("--stl", type=Path, help="Optional STL export; with --step both formats use the same shapes")
+    parser.add_argument("--set", dest="overrides", action="append", default=[], metavar="PATH=VALUE", help="Override a numeric spec value (repeatable); provenance is marked SIMULATED")
     args = parser.parse_args(argv)
     try:
-        report = build_report(load_spec(args.spec))
+        report = build_report(apply_overrides(load_spec(args.spec), args.overrides))
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         if args.step or args.stl:
@@ -372,9 +485,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"mechanical model error: {exc}", file=sys.stderr)
         return 2
     print(json.dumps({"report": str(args.output), "gate": report["gate"], "fits": report["fit"]["fits"], "cadquery_available": report["cadquery_available"]}))
-    # A completed analysis is success even when it reports a fit failure. The
-    # report is the machine-readable result; only invalid inputs/tools return 2.
-    return 0
+    # Preserve the report for diagnosis while failing the CLI on fit blockers.
+    return 0 if report["fit"]["fits"] else 1
 
 
 if __name__ == "__main__":

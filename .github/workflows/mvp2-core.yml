@@ -9,6 +9,24 @@ permissions:
   contents: read
 
 jobs:
+  cad-export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.7"
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install CAD dependencies
+        run: |
+          uv sync --locked --extra dev
+          uv pip install --python .venv/bin/python -r requirements-cad.txt
+      - name: Export STEP and STL headlessly
+        run: .venv/bin/python -m pytest -q hardware/mechanical/tests/test_model.py -k headless_step_stl_export_and_provenance
+        env:
+          RIOSE_REQUIRE_CADQUERY: "1"
   core:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
