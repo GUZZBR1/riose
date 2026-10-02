@@ -28,7 +28,7 @@ typedef struct {
     uint32_t max_wait_timeout_ms;
     uint32_t state_trace_calls;
     tag_state_t last_traced_state;
-    uint32_t structured_trace_counts[21];
+    uint32_t structured_trace_counts[22];
     tag_trace_record_t last_trace_record;
     bool have_trace_record;
     bool trace_timestamps_monotonic;
@@ -240,7 +240,8 @@ static void virtual_trace_event(void *context, const tag_trace_record_t *record)
             "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ",
             "PACKET_CREATED", "RADIO_STANDBY", "TX_START", "TX_DONE",
             "RX_START", "RX_DONE", "RADIO_SLEEP", "ERROR", "RECOVERY",
-            "MCU_SLEEP", "WAKE", "SPI", "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT"
+            "MCU_SLEEP", "WAKE", "SPI", "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT",
+            "TRACE_END"
         };
         static const char *const sources[] = {"INVALID", "FIRMWARE", "SX1262", "HAL"};
         const unsigned state = (unsigned)record->state;
@@ -1075,6 +1076,11 @@ static int export_scenario_trace(const char *path, const char *scenario)
         }
     }
     if (cycle_complete) tag_firmware_step(&firmware); /* Emit scheduled sleep interval. */
+    if (cycle_complete) {
+        tag_trace_emit(&firmware.hal, firmware.state, TAG_TRACE_END,
+                       TAG_TRACE_SOURCE_HAL, 0, firmware.packets_sent,
+                       firmware.failures, 0u);
+    }
     const bool failed = !cycle_complete || firmware.packets_sent != 1u ||
                         fflush(stream) != 0 || ferror(stream);
     if (fclose(stream) != 0) return 1;

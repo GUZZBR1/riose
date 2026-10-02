@@ -46,7 +46,9 @@ typedef enum {
     TAG_TRACE_IRQ,
     TAG_TRACE_TIMEOUT,
     TAG_TRACE_WATCHDOG,
-    TAG_TRACE_REBOOT
+    TAG_TRACE_REBOOT,
+    /* Explicit simulator capture boundary; not an operational firmware event. */
+    TAG_TRACE_END
 } tag_trace_event_t;
 
 typedef enum {

@@ -32,19 +32,28 @@ enum values in `tag_firmware.h`. `PACKET_CREATED.packet_hex` contains the exact
 transmitted bytes in lowercase hexadecimal; `value0` gives their byte length.
 Other event values carry stage-specific context: IMU axes (signed values
 represented in 32-bit two's-complement), sequence, behavior, TX configuration,
-IRQ flags, sleep duration, or failure count. `WATCHDOG` and `REBOOT` are
-reserved event IDs; this firmware has no watchdog or reboot action to report.
+IRQ flags, sleep duration, or failure count. On physical targets with Zephyr
+HWINFO reset-cause support, startup emits `WATCHDOG` or `REBOOT` only when the
+hardware reports a prior watchdog or other non-power-on reset; `value0` contains
+the raw reset-cause flags and `value1` the classified cause. The native_sim
+backend does not emulate reset causes and does not fabricate these events.
+`TRACE_END` marks the end of a simulator capture and is not an operational FSM
+event.
 All trace lines are labeled `SIMULATED_TRACE`; they are software/model
 events, not electrical measurements. Existing GPIO state-trace output remains
 available and unchanged. A null callback keeps MVP 1 integrations silent. The
 `trace_export.py` helper normalizes console captures to the shared
-`riose.firmware.trace/v1` JSONL schema and checks sequence/timestamp integrity,
-event IDs, and packet/TX/RX ordering. The `native_sim` adapter uses the same
-versioned record layout as the board adapter. `make hardware-native-sim` captures
-a normal run and an injected IMU-failure recovery run, exporting them to
-`/tmp/riose-native-sim-trace.jsonl` and
-`/tmp/riose-native-sim-failure-trace.jsonl`; the target fails if either
-producer output cannot be parsed. The NUCLEO profile sets
+`riose.firmware.trace/v1` JSONL schema and checks required fields,
+sequence/timestamp integrity, state transitions, event source/state context,
+telemetry bytes and CRC, and complete packet/TX/RX intervals. The `native_sim`
+adapter uses the same versioned record layout as the board adapter. `make
+hardware-native-sim` captures a normal run and an injected IMU-failure recovery
+run, exporting them to `/tmp/riose-native-sim-trace.jsonl` and
+`/tmp/riose-native-sim-failure-trace.jsonl`; it repeats the normal run to compare
+semantic event determinism and builds/runs a trace-disabled configuration to
+check that FSM policy still passes without trace records. The target fails if
+producer output cannot be parsed or the disabled run emits trace records. The
+NUCLEO profile sets
 `CONFIG_LOG=n`, so its console trace records remain disabled unless logging is
 enabled for that board. GPIO state markers remain independent.
 

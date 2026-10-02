@@ -340,6 +340,9 @@ void tag_firmware_step(tag_firmware_t *fw)
                 (int32_t)(now_ms(fw) - fw->tx_irq_deadline_ms) >= 0) {
                 /* DIO1 may be disconnected or suppressed even though the
                  * radio completed its own timeout. Never wait for IRQ forever. */
+                tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TIMEOUT,
+                               TAG_TRACE_SOURCE_FIRMWARE, -1, 0u,
+                               fw->tx_packet_len, 0u);
                 fail(fw);
             } else {
                 fw->hal.sleep_ms(fw->hal.context, 1u);
@@ -389,6 +392,8 @@ void tag_firmware_step(tag_firmware_t *fw)
         } else {
             if (fw->rx_irq_deadline_ms != 0u &&
                 (int32_t)(now_ms(fw) - fw->rx_irq_deadline_ms) >= 0) {
+                tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TIMEOUT,
+                               TAG_TRACE_SOURCE_FIRMWARE, -1, 0u, 0u, 0u);
                 fail(fw);
             } else {
                 fw->hal.sleep_ms(fw->hal.context, 1u);

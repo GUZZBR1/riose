@@ -98,7 +98,7 @@ static const char *trace_event_name(tag_trace_event_t event)
         "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
         "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
         "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP", "WAKE", "SPI",
-        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT"
+        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT", "TRACE_END"
     };
     return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
 }
@@ -169,6 +169,8 @@ int main(void)
                 firmware.packets_sent, firmware.failures, firmware.state, radio.mode);
         nsi_exit(-EIO);
     }
+    tag_trace_emit(&hal, firmware.state, TAG_TRACE_END, TAG_TRACE_SOURCE_HAL,
+                   0, firmware.packets_sent, firmware.failures, 0u);
     LOG_INF("SIMULATED native_sim cycle PASS: TX=%u packet=%uB failures=%u; SX1262 asleep",
             firmware.packets_sent, TAG_TELEMETRY_MAX_SIZE, firmware.failures);
     nsi_exit(0);

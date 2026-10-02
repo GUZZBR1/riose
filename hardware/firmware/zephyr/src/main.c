@@ -22,6 +22,9 @@ K_SEM_DEFINE(tag_event_sem, 0, 1);
 #define TAG_RESET_FLAGS_KNOWN_MASK ((1u << 9) - 1u)
 static struct gpio_callback imu_gpio_cb;
 static struct gpio_callback radio_gpio_cb;
+static bool reset_cause_available;
+static uint32_t previous_reset_cause;
+static tag_reset_kind_t previous_reset_kind;
 
 #if defined(CONFIG_WATCHDOG)
 static const struct device *const tag_watchdog = DEVICE_DT_GET(DT_NODELABEL(iwdg));
@@ -65,6 +68,9 @@ static void report_and_clear_reset_cause(void)
         return;
     }
     const tag_reset_kind_t kind = tag_reset_cause_classify(cause);
+    reset_cause_available = cause != 0u;
+    previous_reset_cause = cause;
+    previous_reset_kind = kind;
     LOG_INF("MCU_RESET_CAUSE,flags=0x%08x,kind=%s,unknown_bits=0x%08x",
             cause, tag_reset_kind_name(kind), cause & ~TAG_RESET_FLAGS_KNOWN_MASK);
     const int clear_rc = hwinfo_clear_reset_cause();
@@ -279,7 +285,7 @@ static const char *trace_event_name(tag_trace_event_t event)
         "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
         "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
         "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP", "WAKE", "SPI",
-        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT"
+        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT", "TRACE_END"
     };
     return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
 }
@@ -364,6 +370,12 @@ int main(void)
     static tag_firmware_t firmware;
     rc = tag_firmware_init(&firmware, &hal, &config);
     if (rc != 0) return rc;
+    if (reset_cause_available && previous_reset_kind != TAG_RESET_KIND_POWER_ON) {
+        const tag_trace_event_t event = previous_reset_kind == TAG_RESET_KIND_WATCHDOG
+            ? TAG_TRACE_WATCHDOG : TAG_TRACE_REBOOT;
+        tag_trace_emit(&firmware.hal, firmware.state, event, TAG_TRACE_SOURCE_HAL,
+                       0, previous_reset_cause, (uint32_t)previous_reset_kind, 0u);
+    }
     LOG_INF("C tag firmware started (tag id %u)", config.tag_id);
 
     while (true) {
