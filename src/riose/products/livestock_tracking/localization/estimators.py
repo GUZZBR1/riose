@@ -16,6 +16,7 @@ from typing import Mapping, Sequence
 import numpy as np
 
 from ..domain.contracts import Anchor, Estimate, GroundTruth, RFObservation
+from ..simulation.rf import free_space_path_loss_db
 
 
 METHODS = (
@@ -28,6 +29,12 @@ METHODS = (
 )
 
 EPOCH_TOLERANCE_S = 1.0
+_DEFAULT_TX_POWER_DBM = 14.0
+_DEFAULT_RF_FREQUENCY_MHZ = 915.0
+_DEFAULT_PATH_LOSS_EXPONENT = 2.7
+_DEFAULT_RSSI_AT_1M_DBM = _DEFAULT_TX_POWER_DBM - free_space_path_loss_db(
+    1.0, _DEFAULT_RF_FREQUENCY_MHZ
+)
 
 
 @dataclass(slots=True)
@@ -299,8 +306,11 @@ def _multilateration(usable: Sequence[tuple[RFObservation, Anchor]]) -> tuple[fl
     except ImportError:  # pragma: no cover - declared core dependency
         return None
     # This is a rough log-distance inversion, not a ranging capability claim.
+    # Match the simulator's default 14 dBm / 915 MHz link budget rather than
+    # the old -44 dBm intercept, which forced most ranges to the 1 m clamp.
     rssi = np.asarray([float(o.rssi_dbm) for o, _ in usable])
-    distances = np.clip(10 ** ((-44.0 - rssi) / (10.0 * 2.7)), 1.0, 10000.0)
+    distances = np.clip(10 ** ((_DEFAULT_RSSI_AT_1M_DBM - rssi) /
+                               (10.0 * _DEFAULT_PATH_LOSS_EXPONENT)), 1.0, 10000.0)
     initial = _weighted_centroid(usable)
     result = least_squares(lambda p: (np.linalg.norm(coords - p, axis=1) - distances),
                            np.asarray(initial), loss="soft_l1", f_scale=10.0, max_nfev=100)
