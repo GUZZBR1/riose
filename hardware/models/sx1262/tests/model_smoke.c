@@ -36,7 +36,12 @@ int main(void)
     const uint8_t clear_irq[] = {0x02, 0x00, 0x01};
     const uint8_t start_tx_timeout[] = {0x83, 0x00, 0x00, 0x01}; /* 15.625 us radio timeout */
     const uint8_t clear_all_irq[] = {0x02, 0x03, 0xff};
-    const uint8_t start_rx[] = {0x82, 0x00, 0x00, 0x40}; /* bounded timeout */
+    const uint8_t start_rx[] = {0x82, 0x00, 0x00, 0x40}; /* 1 ms timeout */
+    const uint8_t start_rx_continuous[] = {0x82, 0x00, 0x00, 0x00};
+    const uint8_t long_timeout_tx[] = {0x83, 0xff, 0xff, 0xff};
+    const uint8_t equal_timeout_tx[] = {0x83, 0x00, 0x01, 0xc0}; /* 7 ms == TX latency */
+    const uint8_t later_timeout_tx[] = {0x83, 0x00, 0x02, 0x00}; /* 8 ms > TX latency */
+    const uint8_t start_sleep[] = {0x84, 0x04};
     const uint8_t read_back[] = {0x1e, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     sx1262_model_init(&radio);
@@ -80,11 +85,71 @@ int main(void)
     assert(!(radio.irq_status & SX1262_IRQ_TX_DONE));
     assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
 
+    /* At equal TX and timeout deadlines, timeout wins; a later timeout does not. */
+    radio.tx_latency_ms = 7;
+    assert(spi_transfer(&radio, equal_timeout_tx, sizeof(equal_timeout_tx), rx, sizeof(equal_timeout_tx)) == 0);
+    sx1262_model_advance(&radio, radio.now_ms + 7u);
+    assert((radio.irq_status & SX1262_IRQ_TIMEOUT) != 0);
+    assert((radio.irq_status & SX1262_IRQ_TX_DONE) == 0);
+    assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
+    assert(spi_transfer(&radio, later_timeout_tx, sizeof(later_timeout_tx), rx, sizeof(later_timeout_tx)) == 0);
+    sx1262_model_advance(&radio, radio.now_ms + 100u);
+    assert((radio.irq_status & SX1262_IRQ_TX_DONE) != 0);
+    assert((radio.irq_status & SX1262_IRQ_TIMEOUT) == 0);
+    assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
+
+    /* A running TX keeps its captured deadline if the configured latency changes. */
+    radio.tx_latency_ms = 30;
+    assert(spi_transfer(&radio, start_tx, sizeof(start_tx), rx, sizeof(start_tx)) == 0);
+    radio.tx_latency_ms = 1;
+    sx1262_model_advance(&radio, radio.now_ms + 1u);
+    assert(radio.tx_pending && !(radio.irq_status & SX1262_IRQ_TX_DONE));
+    sx1262_model_advance(&radio, radio.now_ms + 29u);
+    assert(!radio.tx_pending && (radio.irq_status & SX1262_IRQ_TX_DONE));
+    assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
+
+    /* Continuous RX is bounded to one virtual second for deterministic tests. */
+    assert(spi_transfer(&radio, start_rx_continuous, sizeof(start_rx_continuous), rx, sizeof(start_rx_continuous)) == 0);
+    sx1262_model_advance(&radio, radio.now_ms + 999u);
+    assert(radio.rx_pending);
+    sx1262_model_advance(&radio, radio.now_ms + 1u);
+    assert(!radio.rx_pending && (radio.irq_status & SX1262_IRQ_TIMEOUT));
+    assert(!(radio.irq_status & SX1262_IRQ_TX_DONE));
+    assert(spi_transfer(&radio, clear_all_irq, sizeof(clear_all_irq), rx, sizeof(clear_all_irq)) == 0);
+
+    /* Large 24-bit timeouts must not overflow their millisecond conversion. */
+    assert(spi_transfer(&radio, long_timeout_tx, sizeof(long_timeout_tx), rx, sizeof(long_timeout_tx)) == 0);
+    assert(radio.tx_pending && radio.tx_timeout_ms == 262144u);
+    assert(spi_transfer(&radio, start_sleep, sizeof(start_sleep), rx, sizeof(start_sleep)) == 0);
+    assert(!radio.tx_pending && !radio.rx_pending && radio.mode == SX1262_MODE_SLEEP);
+
+    /* DIO1 routing is independent from the global IRQ mask. */
+    { const uint8_t start_tx_again[] = {0x83, 0, 0, 0};
+      const uint8_t dio_irq_disabled[] = {0x08, 0, 1, 0, 0, 0, 0, 0, 0};
+      const uint8_t return_to_standby[] = {0x80, 0};
+      radio.tx_latency_ms = 7;
+      assert(spi_transfer(&radio, return_to_standby, sizeof(return_to_standby), rx, sizeof(return_to_standby)) == 0);
+      assert(spi_transfer(&radio, dio_irq, sizeof(dio_irq), rx, sizeof(dio_irq)) == 0);
+      assert(spi_transfer(&radio, start_tx_again, sizeof(start_tx_again), rx, sizeof(start_tx_again)) == 0);
+      sx1262_model_advance(&radio, radio.now_ms + 7u);
+      assert((radio.irq_status & SX1262_IRQ_TX_DONE) != 0);
+      assert(sx1262_model_irq(&radio));
+      assert(spi_transfer(&radio, dio_irq_disabled, sizeof(dio_irq_disabled), rx, sizeof(dio_irq_disabled)) == 0);
+      assert(!sx1262_model_irq(&radio));
+    }
+
     /* Invalid command length is surfaced in command status and diagnostics. */
     { const uint8_t malformed[] = {0x86, 0x01};
+      const uint8_t overlong[] = {0x80, 0x00, 0x00};
       assert(spi_transfer(&radio, malformed, sizeof(malformed), rx, sizeof(malformed)) == 0);
-      assert(radio.fault && radio.fault_count == 1 && (rx[1] & 0x0e) == 0x08); }
+      assert(radio.fault && radio.fault_count == 1 && (rx[1] & 0x0e) == 0x08);
+      assert(spi_transfer(&radio, overlong, sizeof(overlong), rx, sizeof(overlong)) == 0);
+      assert(radio.fault_count == 2 && (rx[1] & 0x0e) == 0x08); }
 
-    puts("SX1262 model smoke: PASS (SPI config, FIFO, TX_DONE/TIMEOUT, IRQ clear, malformed command)");
+    sx1262_model_reset(&radio);
+    assert(radio.mode == SX1262_MODE_STANDBY_RC && radio.irq_status == 0);
+    assert(radio.tx_latency_ms == 7 && !radio.tx_pending && !radio.rx_pending);
+
+    puts("SX1262 model smoke: PASS (configuration, FIFO, virtual-time outcomes, IRQ routing, reset/sleep and malformed commands)");
     return 0;
 }

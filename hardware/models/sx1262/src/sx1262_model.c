@@ -60,28 +60,35 @@ void sx1262_model_init(sx1262_model_t *m)
 
 void sx1262_model_advance(sx1262_model_t *m, uint32_t now_ms)
 {
+    bool was_rx;
+    bool timed_out;
+    uint32_t duration_ms;
+    uint32_t elapsed_ms;
+
     m->now_ms = now_ms;
     if (!m->tx_pending && !m->rx_pending)
         return;
+
+    was_rx = m->rx_pending;
+    duration_ms = (uint32_t)(m->tx_due_ms - m->tx_started_ms);
+    timed_out = was_rx || (m->tx_timeout_ms && m->tx_timeout_ms <= duration_ms);
+    if (timed_out)
+        duration_ms = m->tx_timeout_ms;
     /* Unsigned subtraction is wrap-safe for intervals shorter than 2^31 ms. */
-    if (m->tx_timeout_ms && (uint32_t)(now_ms - m->tx_started_ms) >= m->tx_timeout_ms) {
-        m->tx_pending = false;
-        m->rx_pending = false;
-        m->mode = SX1262_MODE_STANDBY_RC;
-        m->irq_status |= SX1262_IRQ_TIMEOUT;
-        m->command_status = CMD_TIMEOUT;
-    } else if ((int32_t)(now_ms - m->tx_due_ms) >= 0) {
-        m->tx_pending = false;
-        m->rx_pending = false;
-        m->mode = SX1262_MODE_STANDBY_RC;
-        m->irq_status |= m->rx_pending ? SX1262_IRQ_TIMEOUT : SX1262_IRQ_TX_DONE;
-        m->command_status = m->rx_pending ? CMD_TIMEOUT : CMD_OK;
-    }
+    elapsed_ms = (uint32_t)(now_ms - m->tx_started_ms);
+    if (elapsed_ms < duration_ms)
+        return;
+
+    m->tx_pending = false;
+    m->rx_pending = false;
+    m->mode = SX1262_MODE_STANDBY_RC;
+    m->irq_status |= timed_out ? SX1262_IRQ_TIMEOUT : SX1262_IRQ_TX_DONE;
+    m->command_status = timed_out ? CMD_TIMEOUT : CMD_OK;
 }
 
 bool sx1262_model_irq(const sx1262_model_t *m)
 {
-    return (m->irq_status & m->irq_mask) != 0;
+    return (m->irq_status & m->irq_mask & m->dio1_mask) != 0;
 }
 
 static uint8_t status_byte(const sx1262_model_t *m)
@@ -105,6 +112,12 @@ static bool need(const uint8_t *tx, size_t tx_len, size_t n)
     return tx_len >= n;
 }
 
+static bool exact(const uint8_t *tx, size_t tx_len, size_t n)
+{
+    (void)tx;
+    return tx_len == n;
+}
+
 int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
                           uint8_t *rx, size_t rx_len)
 {
@@ -125,59 +138,62 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         if (rx_len > 1) rx[1] = status_byte(m);
         break;
     case CMD_SET_SLEEP:
-        if (!need(tx, tx_len, 2)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 2)) { fault(m, CMD_INVALID); break; }
         m->mode = SX1262_MODE_SLEEP;
         m->tx_pending = false;
+        m->rx_pending = false;
+        m->tx_timeout_ms = 0;
         break;
     case CMD_SET_STANDBY:
-        if (!need(tx, tx_len, 2) || tx[1] > 1) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 2) || tx[1] > 1) { fault(m, CMD_INVALID); break; }
         m->mode = tx[1] ? SX1262_MODE_STANDBY_XOSC : SX1262_MODE_STANDBY_RC;
         m->tx_pending = false;
+        m->rx_pending = false;
+        m->tx_timeout_ms = 0;
         break;
     case CMD_SET_PACKET_TYPE:
-        if (!need(tx, tx_len, 2) || (tx[1] != 0 && tx[1] != 1)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 2) || (tx[1] != 0 && tx[1] != 1)) { fault(m, CMD_INVALID); break; }
         m->packet_type = tx[1];
         break;
     case CMD_SET_DIO2_RF_SWITCH:
-        if (!need(tx, tx_len, 2) || tx[1] > 1) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 2) || tx[1] > 1) { fault(m, CMD_INVALID); break; }
         m->dio2_rf_switch_enabled = tx[1] != 0;
         break;
     case CMD_SET_RF_FREQUENCY:
-        if (!need(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }
         m->rf_frequency_word = ((uint32_t)tx[1] << 24) | ((uint32_t)tx[2] << 16) |
                                ((uint32_t)tx[3] << 8) | tx[4];
         break;
     case CMD_SET_TX_PARAMS:
-        if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
         m->tx_power_dbm = tx[1]; /* signed 8-bit two's-complement representation */
         m->ramp_time = tx[2];
         break;
     case CMD_CALIBRATE_IMAGE:
-        if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
         m->image_calibration[0] = tx[1];
         m->image_calibration[1] = tx[2];
         break;
     case CMD_SET_PA_CONFIG:
-        if (!need(tx, tx_len, 5) || tx[1] > 0x07 || tx[2] > 0x07 ||
+        if (!exact(tx, tx_len, 5) || tx[1] > 0x07 || tx[2] > 0x07 ||
             tx[3] > 0x01 || tx[4] != 0x01) { fault(m, CMD_INVALID); break; }
         memcpy(m->pa_config, tx + 1, sizeof(m->pa_config));
         break;
     case CMD_SET_MODULATION_PARAMS:
-        if (!need(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }
         if (m->packet_type == 1 && (tx[1] < 5 || tx[1] > 12 || !valid_lora_bandwidth(tx[2]) || tx[3] < 1 || tx[3] > 4 || tx[4] > 1)) {
             fault(m, CMD_INVALID); break;
         }
         memcpy(m->modulation, tx + 1, sizeof(m->modulation));
         break;
     case CMD_SET_PACKET_PARAMS:
-        /* SX126x SetPacketParams has six LoRa arguments (7 bytes with
-         * opcode); FSK uses a longer packet parameter structure. */
-        if (!need(tx, tx_len, 7)) { fault(m, CMD_INVALID); break; }
+        /* SX126x SetPacketParams has six LoRa arguments or nine GFSK arguments. */
+        if (!exact(tx, tx_len, m->packet_type == 1 ? 7u : 10u)) { fault(m, CMD_INVALID); break; }
         memset(m->packet, 0, sizeof(m->packet));
         memcpy(m->packet, tx + 1, tx_len - 1 < sizeof(m->packet) ? tx_len - 1 : sizeof(m->packet));
         break;
     case CMD_SET_BUFFER_BASE:
-        if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
         m->tx_base = tx[1]; m->rx_base = tx[2];
         break;
     case CMD_WRITE_BUFFER:
@@ -192,7 +208,7 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         m->command_status = CMD_DATA_AVAILABLE;
         break;
     case CMD_SET_DIO_IRQ_PARAMS:
-        if (!need(tx, tx_len, 9)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 9)) { fault(m, CMD_INVALID); break; }
         m->irq_mask = u16(tx + 1); m->dio1_mask = u16(tx + 3);
         m->dio2_mask = u16(tx + 5); m->dio3_mask = u16(tx + 7);
         break;
@@ -203,13 +219,13 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         m->command_status = CMD_DATA_AVAILABLE;
         break;
     case CMD_CLEAR_IRQ_STATUS:
-        if (!need(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 3)) { fault(m, CMD_INVALID); break; }
         m->irq_status &= (uint16_t)~u16(tx + 1);
         break;
     case CMD_SET_TX:
-        if (!need(tx, tx_len, 4)) { fault(m, CMD_INVALID); break; }
+        if (!exact(tx, tx_len, 4)) { fault(m, CMD_INVALID); break; }
         if (m->mode == SX1262_MODE_SLEEP || m->mode == SX1262_MODE_TX) { fault(m, CMD_FAILED); break; }
-        m->tx_timeout_ms = (u24(tx + 1) * 15625u + 999999u) / 1000000u;
+        m->tx_timeout_ms = (uint32_t)(((uint64_t)u24(tx + 1) * 15625ull + 999999ull) / 1000000ull);
         m->tx_started_ms = m->now_ms;
         m->tx_due_ms = m->now_ms + m->tx_latency_ms;
         m->tx_pending = true;
@@ -221,12 +237,14 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
         /* Timeout is a 24-bit count in units of 15.625 us. 0 means
          * continuous receive; this deterministic model treats it as a
          * bounded 1 s window to avoid an unbounded host test. */
-        if (!need(tx, tx_len, 4) || m->mode == SX1262_MODE_SLEEP ||
-            m->mode == SX1262_MODE_TX) { fault(m, CMD_FAILED); break; }
+        if (!exact(tx, tx_len, 4)) { fault(m, CMD_INVALID); break; }
+        if (m->mode == SX1262_MODE_SLEEP || m->mode == SX1262_MODE_TX) {
+            fault(m, CMD_FAILED); break;
+        }
         m->tx_pending = false;
         m->rx_pending = true;
         m->tx_timeout_ms = (u24(tx + 1) == 0)
-            ? 1000u : (u24(tx + 1) * 15625u + 999999u) / 1000000u;
+            ? 1000u : (uint32_t)(((uint64_t)u24(tx + 1) * 15625ull + 999999ull) / 1000000ull);
         m->tx_started_ms = m->now_ms;
         m->tx_due_ms = m->now_ms + m->tx_timeout_ms;
         m->mode = SX1262_MODE_RX;
