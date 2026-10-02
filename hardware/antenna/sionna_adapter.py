@@ -130,7 +130,7 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         "metrics": metrics,
         "evidence": evidence,
         "assumptions": [
-            "Single isotropic dipole model; no ear-tag antenna pattern or enclosure geometry",
+            "Single dipole pattern; no ear-tag antenna pattern or enclosure geometry",
             "Generic obstacle dielectric is an assumed sensitivity input",
             "Ray-tracing output is exploratory and is not measured link performance",
         ],
