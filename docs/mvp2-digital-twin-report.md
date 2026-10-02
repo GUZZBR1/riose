@@ -6,9 +6,9 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 
 ## Execução
 
-- Spec SHA-256: `60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51`
+- Spec SHA-256: `85cfe45443600a11bf828851bb9ac988735e988235a9cfaae1dca6f2b264c3fa`
 - Plataforma: `Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39`
-- Parâmetros por status: `{"ASSUMED": 77, "DATASHEET": 14, "SIMULATED": 3}`
+- Parâmetros por status: `{"ASSUMED": 73, "DATASHEET": 18, "SIMULATED": 3}`
 - GPU: `{"CUDA_AVAILABLE": false, "GPU_AVAILABLE": false, "GPU_TYPE": "NONE_DETECTED", "SIONNA_AVAILABLE": false, "experiment": "OPTIONAL_GPU_EXPERIMENT", "result_status": "ENVIRONMENT_CAPABILITY_ONLY", "status": "SKIPPED_OPTIONAL"}`
 
 ## Estágios
@@ -50,7 +50,7 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 9. Encaixe físico digital: `BLOCKED`; CadQuery disponível `True`.
 10. Falhas encontradas: 9 entradas; falhas de host cobertas `one_shot_i2c_failure_recovery, one_shot_spi_failure_recovery, late_tx_done_timeout_recovery, digital_fault_crc_corruption, digital_fault_sx1262_busy_stuck, digital_fault_irq_missing, digital_reset_cause_flag_classification`; pendentes `battery_voltage_drop, high_esr, regulator_instability, watchdog_reset_executed_on_target, unexpected_reboot`. O watchdog IWDG de 10 s foi configurado e compilado no build Zephyr da NUCLEO-L031K6; nenhum reset foi provocado em hardware.
 11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.
-12. Parâmetros por status: `{"ASSUMED": 77, "DATASHEET": 14, "SIMULATED": 3}`; provenance completa na spec.
+12. Parâmetros por status: `{"ASSUMED": 73, "DATASHEET": 18, "SIMULATED": 3}`; provenance completa na spec.
 13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.
 14. Este gate não é validação comercial, clínica ou de campo.
 

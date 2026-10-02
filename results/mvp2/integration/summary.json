@@ -204,15 +204,15 @@
     "root": "/home/lucas_coimbra/.codex/worktrees/0208/riose/results/mvp2"
   },
   "parameter_statuses": {
-    "ASSUMED": 77,
-    "DATASHEET": 14,
+    "ASSUMED": 73,
+    "DATASHEET": 18,
     "SIMULATED": 3
   },
   "physical_measurements_used": false,
   "result_class": "SIMULATED",
   "schema_version": "riose.mvp2.digital-twin/v1",
   "spec_path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/spec.yaml",
-  "spec_sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
+  "spec_sha256": "85cfe45443600a11bf828851bb9ac988735e988235a9cfaae1dca6f2b264c3fa",
   "stages": {
     "adversarial_fault_injection": {
       "completed_host_cases": [
@@ -889,7 +889,8 @@
       ],
       "detail": "battery envelope exceeds enclosure cavity; unexpected envelope overlap: pcb / battery",
       "dimensions_status": [
-        "ASSUMED"
+        "ASSUMED",
+        "DATASHEET"
       ],
       "fit": {
         "fits": false,

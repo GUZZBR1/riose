@@ -80,15 +80,15 @@
       "status": "ASSUMED"
     },
     "battery_dimensions_mm": {
-      "value": [14.7, 49.5, 14.7],
+      "value": [14.5, 25.2, 14.5],
       "unit": "mm",
-      "source": "Candidate cell envelope from hardware/spec.yaml, represented as a cuboid",
+      "source": "Tadiran TLL-5902 1/2 AA package dimensions (diameter × length × diameter); cuboid surrogate https://tadiranbat.com/products/ixtra-series-lithium-thionyl-chloride-lisocl2-batteries/",
       "status": "ASSUMED"
     },
     "battery_offset_mm": {
-      "value": [-7.35, -24.75, -16.3],
+      "value": [-7.25, -12.6, -16.1],
       "unit": "mm",
-      "source": "Lower corner of the cuboid centered in XY and placed 1.6 mm below the ground plane",
+      "source": "Lower corner of the TLL-5902 cuboid surrogate centered in XY; its top face remains 1.6 mm below the assumed ground plane",
       "status": "ASSUMED"
     },
     "enclosure_shape": {
@@ -172,7 +172,7 @@
     "limitations": [
       "ASSUMED parametric simulation candidate; not a released routed antenna design.",
       "Perfect-conductor trace/ground and battery surrogate omit conductor and cell losses.",
-      "PCB, candidate battery, and cited enclosure dimensions have not passed fit review.",
+      "The TLL-5902 package envelope is represented as a PEC cuboid; battery internals, terminals, tolerances, and combined PCB/enclosure fit have not been validated.",
       "Generic dielectric placeholders are not selected or characterized materials.",
       "The animal case is a homogeneous sensitivity slab, not tissue or anatomy validation."
     ]

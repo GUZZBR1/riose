@@ -34,7 +34,7 @@ components:
     continuous_current_limit_ma: {value: 50, unit: mA, source: "TLL-5902 datasheet; rating conditions apply", status: DATASHEET}
     pulse_current_limit_ma: {value: 100, unit: mA, source: "TLL-5902 datasheet; pulse conditions apply", status: DATASHEET}
     esr_ohm: {value: 0.25, unit: ohm, source: "MVP1 illustrative ngspice pulse profile; sweep required", status: ASSUMED}
-    package: {diameter_mm: {value: 14.7, unit: mm, source: "Candidate cell package envelope; verify against datasheet drawing", status: ASSUMED}, length_mm: {value: 49.5, unit: mm, source: "Candidate cell package envelope; verify against datasheet drawing", status: ASSUMED}}
+    package: {diameter_mm: {value: 14.5, unit: mm, source: "Tadiran TLL-5902 datasheet mechanical drawing: 1/2 AA cell diameter https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf", status: DATASHEET}, length_mm: {value: 25.2, unit: mm, source: "Tadiran TLL-5902 datasheet mechanical drawing: 1/2 AA cell length https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf", status: DATASHEET}}
 
 regulator:
   model: {value: TI TPS62840, unit: part_number, source: "MVP1 engineering candidate https://www.ti.com/product/TPS62840", status: DATASHEET}
@@ -63,8 +63,8 @@ mechanical:
     height_mm: {value: 48.0, unit: mm, source: "Provisional internal layout assumption", status: ASSUMED}
     thickness_mm: {value: 1.6, unit: mm, source: "Provisional PCB envelope assumption", status: ASSUMED}
   battery:
-    diameter_mm: {value: 14.7, unit: mm, source: "Candidate TLL-5902 envelope; verify drawing", status: ASSUMED}
-    length_mm: {value: 49.5, unit: mm, source: "Candidate TLL-5902 envelope; verify drawing", status: ASSUMED}
+    diameter_mm: {value: 14.5, unit: mm, source: "Tadiran TLL-5902 datasheet mechanical drawing: 1/2 AA cell diameter https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf", status: DATASHEET}
+    length_mm: {value: 25.2, unit: mm, source: "Tadiran TLL-5902 datasheet mechanical drawing: 1/2 AA cell length https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf", status: DATASHEET}
   components:
     mcu: {width_mm: {value: 7.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, height_mm: {value: 7.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
     radio: {width_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope, not radio module", status: ASSUMED}, height_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope, not radio module", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional chip envelope", status: ASSUMED}}

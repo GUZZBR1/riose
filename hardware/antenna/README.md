@@ -83,7 +83,11 @@ convergence; the battery surrogate hit the timestep limit before that
 criterion, so the fine mesh did not start. No scenario produced accepted RF
 metrics. Detailed solver output was kept in temporary run directories, not
 treated as release artifacts. The summarized evidence and candidate/spec
-hashes are in `results/mvp2/antenna/openems_candidate_pilot.json`.
+hashes are in `results/mvp2/antenna/openems_candidate_pilot.json`. The pilot
+predates the corrected TLL-5902 package envelope in
+`candidate_model.json`; its battery scenario is historical and is not evidence
+for the updated candidate. Rerun it only after the physical layout and material
+assumptions are reviewed.
 
 Set `RIOSE_OPENEMS_ADAPTER=module.name` to load a Python module exposing
 `simulate(spec=..., scenario=..., output_dir=...)`. It may report `COMPLETED`
