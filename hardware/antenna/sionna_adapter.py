@@ -14,9 +14,13 @@ from typing import Any
 import numpy as np
 
 SCENARIO_SETTINGS = {
-    "TAG_TO_RECEIVER_10M": {"obstacle": False, "orientation_rad": 0.0},
-    "TAG_TO_RECEIVER_WITH_OBSTACLE": {"obstacle": True, "orientation_rad": 0.0},
-    "TAG_TO_RECEIVER_ORIENTATION_VARIANT": {"obstacle": False, "orientation_rad": math.pi / 2},
+    # Sionna uses orientation=(yaw_z, pitch_y, roll_x). The base dipole's
+    # local z axis is vertical; pitching it around Y tilts that axis toward X.
+    "TAG_TO_RECEIVER_10M": {"obstacle": False, "orientation_rad": (0.0, 0.0, 0.0)},
+    "TAG_TO_RECEIVER_WITH_OBSTACLE": {"obstacle": True, "orientation_rad": (0.0, 0.0, 0.0)},
+    "TAG_TO_RECEIVER_ORIENTATION_VARIANT": {
+        "obstacle": False, "orientation_rad": (0.0, math.pi / 4, 0.0),
+    },
 }
 
 # A 4 m wide, 3 m high planar panel centered between tag and receiver. The
@@ -82,8 +86,9 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         scene.add(obstacle)
         obstacle.position = mi.Point3f(5.0, 0.0, 1.5)
 
+    orientation = settings["orientation_rad"]
     tx = Transmitter(name="tag", position=[0.0, 0.0, 1.5],
-                     orientation=[0.0, 0.0, settings["orientation_rad"]])
+                     orientation=list(orientation))
     rx = Receiver(name="receiver", position=[10.0, 0.0, 1.5])
     scene.add([tx, rx])
 
@@ -111,7 +116,9 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         "frequency_hz": frequency_hz,
         "scene": "empty free-space scene plus optional single rectangular sensitivity obstacle",
         "tag_position_m": [0.0, 0.0, 1.5],
-        "tag_orientation_rad": [0.0, 0.0, settings["orientation_rad"]],
+        "tag_orientation_rad": list(orientation),
+        "tag_orientation_convention": "Sionna RT yaw_z, pitch_y, roll_x (radians)",
+        "tag_dipole_axis_world": [math.sin(orientation[1]), 0.0, math.cos(orientation[1])],
         "receiver_position_m": [10.0, 0.0, 1.5],
         "antenna_pattern": "dipole",
         "antenna_polarization": "V",

@@ -17,6 +17,9 @@ from .capabilities import detect_capabilities
 
 SCHEMA_VERSION = "riose.sionna.experiment/v1"
 SCENARIOS = ("TAG_TO_RECEIVER_10M", "TAG_TO_RECEIVER_WITH_OBSTACLE", "TAG_TO_RECEIVER_ORIENTATION_VARIANT")
+# Sionna's usual CUDA Mitsuba variant uses float32. Eight ULPs of relative
+# tolerance avoids counting round-off as an RF change, without a physical cutoff.
+_FLOAT32_COMPARISON_REL_TOL = 8 * 2**-23
 
 
 def _version(package: str) -> str | None:
@@ -111,6 +114,27 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
         except Exception as exc:  # optional plugin failures are recorded, never promoted to core failures
             rows.append({**base, "status": "FAILED", "detail": f"{type(exc).__name__}: {exc}",
                          "result_class": "NO_SIMULATION_RESULT", "metrics": None})
+    base_row = next(row for row in rows if row["scenario"] == "TAG_TO_RECEIVER_10M")
+    variant_row = next(row for row in rows if row["scenario"] == "TAG_TO_RECEIVER_ORIENTATION_VARIANT")
+    if eligible and variant_row["status"] == "COMPLETED":
+        if base_row["status"] != "COMPLETED":
+            variant_row.update(status="FAILED", result_class="NO_SIMULATION_RESULT", metrics=None,
+                               detail="base RF result unavailable; orientation comparison could not be verified")
+        else:
+            metric = "summed_path_coefficient_power_linear"
+            base_value = base_row["metrics"][metric]
+            variant_value = variant_row["metrics"][metric]
+            differs = not math.isclose(base_value, variant_value,
+                                       rel_tol=_FLOAT32_COMPARISON_REL_TOL, abs_tol=0.0)
+            variant_row["rf_comparison"] = {
+                "baseline_scenario": base_row["scenario"], "metric": metric,
+                "baseline_value": base_value, "variant_value": variant_value,
+                "relative_tolerance": _FLOAT32_COMPARISON_REL_TOL,
+                "status": "DIFFERENT" if differs else "INDISTINGUISHABLE_AT_FLOAT32_PRECISION",
+            }
+            if not differs:
+                variant_row.update(status="FAILED", result_class="NO_SIMULATION_RESULT", metrics=None,
+                                   detail="orientation variant did not produce a distinguishable RF metric")
     statuses = {row["status"] for row in rows}
     status = "SKIPPED_OPTIONAL" if statuses == {"SKIPPED_OPTIONAL"} else (
         "COMPLETED" if rows and statuses == {"COMPLETED"} else "PARTIAL_OR_BLOCKED"

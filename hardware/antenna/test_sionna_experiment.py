@@ -31,6 +31,34 @@ def test_gpu_capability_runs_builtin_sionna_adapter(tmp_path, monkeypatch):
     def simulate(**kwargs):
         scenario = kwargs["scenario"]
         calls.append(scenario)
+        power = 0.125 if scenario == "TAG_TO_RECEIVER_ORIENTATION_VARIANT" else 0.25
+        return {
+            "status": "COMPLETED",
+            "metrics": {"path_count": 1, "tag_receiver_distance_m": 10.0,
+                        "summed_path_coefficient_power_linear": power},
+            "evidence": {"solver": "Sionna RT PathSolver", "solver_version": "test",
+                         "mitsuba_variant": "cuda_ad_mono_polarized", "seed": 42,
+                         "deterministic": True, "frequency_hz": 915000000.0,
+                         "spec_sha256": None,
+                         "obstacle_sha256": "a" * 64 if scenario == "TAG_TO_RECEIVER_WITH_OBSTACLE" else None},
+        }
+
+    monkeypatch.setattr(adapter, "simulate", simulate)
+    result = experiment.run_experiment(tmp_path, capabilities=caps, adapter_name="")
+    assert result["status"] == "COMPLETED"
+    assert calls == list(experiment.SCENARIOS)
+    assert all(row["metrics"]["path_count"] == 1 for row in result["scenarios"])
+    variant = result["scenarios"][2]
+    assert variant["rf_comparison"]["status"] == "DIFFERENT"
+    assert variant["rf_comparison"]["baseline_value"] != variant["rf_comparison"]["variant_value"]
+
+
+def test_orientation_variant_fails_when_rf_metric_is_indistinguishable(tmp_path, monkeypatch):
+    caps = {"GPU_AVAILABLE": True, "GPU_TYPE": "test-gpu",
+            "CUDA_AVAILABLE": True, "SIONNA_AVAILABLE": True}
+
+    def simulate(**kwargs):
+        scenario = kwargs["scenario"]
         return {
             "status": "COMPLETED",
             "metrics": {"path_count": 1, "tag_receiver_distance_m": 10.0,
@@ -44,9 +72,10 @@ def test_gpu_capability_runs_builtin_sionna_adapter(tmp_path, monkeypatch):
 
     monkeypatch.setattr(adapter, "simulate", simulate)
     result = experiment.run_experiment(tmp_path, capabilities=caps, adapter_name="")
-    assert result["status"] == "COMPLETED"
-    assert calls == list(experiment.SCENARIOS)
-    assert all(row["metrics"]["path_count"] == 1 for row in result["scenarios"])
+    variant = result["scenarios"][2]
+    assert variant["status"] == "FAILED"
+    assert variant["metrics"] is None
+    assert variant["rf_comparison"]["status"] == "INDISTINGUISHABLE_AT_FLOAT32_PRECISION"
 
 
 def test_invalid_adapter_completion_is_not_promoted_to_simulated(tmp_path, monkeypatch):
@@ -62,9 +91,9 @@ def test_invalid_adapter_completion_is_not_promoted_to_simulated(tmp_path, monke
 
 
 @pytest.mark.parametrize("scenario,orientation,has_obstacle", [
-    ("TAG_TO_RECEIVER_10M", 0.0, False),
-    ("TAG_TO_RECEIVER_WITH_OBSTACLE", 0.0, True),
-    ("TAG_TO_RECEIVER_ORIENTATION_VARIANT", 1.5707963267948966, False),
+    ("TAG_TO_RECEIVER_10M", [0.0, 0.0, 0.0], False),
+    ("TAG_TO_RECEIVER_WITH_OBSTACLE", [0.0, 0.0, 0.0], True),
+    ("TAG_TO_RECEIVER_ORIENTATION_VARIANT", [0.0, 0.7853981633974483, 0.0], False),
 ])
 def test_builtin_scenarios_capture_geometry_and_valid_paths(
         tmp_path, monkeypatch, scenario, orientation, has_obstacle):
@@ -121,9 +150,16 @@ def test_builtin_scenarios_capture_geometry_and_valid_paths(
         assert obstacle.position == (5.0, 0.0, 1.5)
     assert result["metrics"]["path_count"] == 1
     assert result["metrics"]["summed_path_coefficient_power_linear"] == 0.25
-    assert result["evidence"]["tag_orientation_rad"] == [0.0, 0.0, orientation]
+    assert result["evidence"]["tag_orientation_rad"] == orientation
+    assert result["evidence"]["tag_orientation_convention"] == "Sionna RT yaw_z, pitch_y, roll_x (radians)"
+    assert result["evidence"]["tag_dipole_axis_world"] == pytest.approx(
+        [0.0 if has_obstacle or scenario == "TAG_TO_RECEIVER_10M" else 2**-0.5,
+         0.0, 1.0 if has_obstacle or scenario == "TAG_TO_RECEIVER_10M" else 2**-0.5]
+    )
     assert result["evidence"]["tag_position_m"] == [0.0, 0.0, 1.5]
     assert result["evidence"]["receiver_position_m"] == [10.0, 0.0, 1.5]
+    tx = next(item for item in fake_scene.items if getattr(item, "name", None) == "tag")
+    assert tx.orientation == orientation
     if has_obstacle:
         assert (output / "obstacle.obj").is_file()
         mesh = (output / "obstacle.obj").read_text()
