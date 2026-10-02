@@ -1,5 +1,6 @@
 #include "tag_firmware.h"
 #include "sx1262.h"
+#include "tag_reset_cause.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -7,7 +8,8 @@
 #include <string.h>
 
 typedef enum { PROFILE_NORMAL, PROFILE_ACTIVE, PROFILE_ALERT, PROFILE_WORST } profile_t;
-typedef enum { FAULT_NONE, FAULT_SPI_ONCE, FAULT_IMU_ONCE, FAULT_IRQ_STUCK } fault_t;
+typedef enum { FAULT_NONE, FAULT_SPI_ONCE, FAULT_IMU_ONCE, FAULT_IRQ_STUCK,
+               FAULT_WATCHDOG, FAULT_UNEXPECTED_REBOOT } fault_t;
 
 typedef struct {
     uint32_t time_ms;
@@ -25,6 +27,8 @@ typedef struct {
     uint32_t recovery_events;
     uint32_t tx_start_events;
     uint32_t error_events;
+    uint32_t boot_events;
+    uint32_t timer_wraps;
 } host_board_t;
 
 static int spi_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
@@ -92,7 +96,9 @@ static uint32_t clock_ms(void *ctx) { return ((host_board_t *)ctx)->time_ms; }
 static void advance_ms(host_board_t *board, uint32_t ms)
 {
     board->absolute_ms += ms;
+    const uint32_t before = board->time_ms;
     board->time_ms += ms;
+    if (board->time_ms < before) board->timer_wraps++;
 }
 static void sleep_ms(void *ctx, uint32_t ms) { advance_ms(ctx, ms); }
 static void wait_for_event(void *ctx, uint32_t ms) { advance_ms(ctx, ms); }
@@ -103,6 +109,7 @@ static void trace_event(void *ctx, const tag_trace_record_t *record)
     if (record->event == TAG_TRACE_RECOVERY) board->recovery_events++;
     if (record->event == TAG_TRACE_TX_START) board->tx_start_events++;
     if (record->event == TAG_TRACE_ERROR) board->error_events++;
+    if (record->event == TAG_TRACE_BOOT) board->boot_events++;
 }
 
 static bool parse_profile(const char *text, profile_t *profile)
@@ -137,6 +144,58 @@ static bool parse_u32(const char *text, uint32_t *value)
     return true;
 }
 
+static bool run_reset_fault(fault_t fault, host_board_t *board, tag_firmware_t *fw,
+                            const tag_hal_t *hal, const tag_config_t *config)
+{
+    for (unsigned i = 0; i < 6u; ++i) tag_firmware_step(fw);
+    if (fw->state != TAG_STATE_SLEEP) return false;
+
+    const uint32_t cause = fault == FAULT_WATCHDOG
+        ? TAG_RESET_CAUSE_WATCHDOG : TAG_RESET_CAUSE_CPU_LOCKUP;
+    uint32_t elapsed_ms = 0u;
+    const uint32_t watchdog_timeout_ms = 50u;
+    if (fault == FAULT_WATCHDOG) {
+        /* Advance a virtual watchdog deadline while its feed is deliberately
+         * withheld. The timeout is a host-model assumption, not target timing. */
+        while (elapsed_ms < watchdog_timeout_ms) {
+            advance_ms(board, 10u);
+            elapsed_ms += 10u;
+        }
+    } else {
+        /* Inject an unplanned CPU lockup/reset after the initial boot cycle. */
+        elapsed_ms = 1u;
+        advance_ms(board, elapsed_ms);
+    }
+
+    if (tag_reset_cause_classify(cause) != (fault == FAULT_WATCHDOG
+            ? TAG_RESET_KIND_WATCHDOG : TAG_RESET_KIND_OTHER)) return false;
+    board->irq = 0u;
+    board->irq_high = false;
+    board->packet_len = 0u;
+    if (tag_firmware_init(fw, hal, config) != 0) return false;
+
+    /* Policy: discard volatile state, cold boot, then resume the normal beacon
+     * schedule. Success requires a post-reset packet and terminal SLEEP. */
+    for (unsigned i = 0; i < 4096u; ++i) {
+        tag_firmware_step(fw);
+        if (fw->packets_sent > 0u && fw->state == TAG_STATE_SLEEP) break;
+    }
+    const bool recovered = board->boot_events >= 2u && fw->failures == 0u &&
+        fw->packets_sent > 0u && fw->state == TAG_STATE_SLEEP &&
+        tag_telemetry_crc_valid(board->packet, board->packet_len);
+    printf("{\"status\":\"%s\",\"fault\":\"%s\",\"injection_applied\":true,"
+           "\"recovered\":%s,\"attempts\":1,\"terminal_state\":\"%s\","
+           "\"trace_event\":\"BOOT\",\"trace_event_count\":%u,\"seed\":%u,"
+           "\"reset_cause\":\"%s\",\"elapsed_before_reset_ms\":%u,"
+           "\"post_reset_packets\":%u,\"evidence\":\"virtual reset observed; cold-boot policy resumed packet schedule\"}\n",
+           recovered ? "RECOVERED" : "FAILED",
+           fault == FAULT_WATCHDOG ? "watchdog_reset" : "unexpected_reboot",
+           recovered ? "true" : "false", state_name(fw->state), board->boot_events - 1u,
+           board->seed, tag_reset_kind_name(tag_reset_cause_classify(cause)), elapsed_ms,
+           fw->packets_sent);
+    return recovered;
+}
+
 int main(int argc, char **argv)
 {
     uint32_t days = 0u, seed = 7u, start_ms = 0u, start_sequence = 0u;
@@ -160,6 +219,8 @@ int main(int argc, char **argv)
             if (strcmp(name, "spi_timeout_once") == 0) fault = FAULT_SPI_ONCE;
             else if (strcmp(name, "imu_i2c_timeout_once") == 0) fault = FAULT_IMU_ONCE;
             else if (strcmp(name, "irq_missing") == 0) fault = FAULT_IRQ_STUCK;
+            else if (strcmp(name, "watchdog_reset") == 0) fault = FAULT_WATCHDOG;
+            else if (strcmp(name, "unexpected_reboot") == 0) fault = FAULT_UNEXPECTED_REBOOT;
             else return 64;
         } else return 64;
     }
@@ -178,6 +239,8 @@ int main(int argc, char **argv)
     fw.sequence = start_sequence;
 
     if (!is_long_run) {
+        if (fault == FAULT_WATCHDOG || fault == FAULT_UNEXPECTED_REBOOT)
+            return run_reset_fault(fault, &board, &fw, &hal, &cfg) ? 0 : 2;
         for (unsigned i = 0; i < 6u; ++i) tag_firmware_step(&fw);
         if (fault != FAULT_NONE) board.inject_enabled = true;
         for (unsigned i = 0; i < 4096u; ++i) {
@@ -212,7 +275,7 @@ int main(int argc, char **argv)
         fw.packets_sent > 0u && fw.state == TAG_STATE_SLEEP &&
         tag_telemetry_crc_valid(board.packet, board.packet_len);
     const uint32_t sequence_wrapped = (fw.sequence < start_sequence) ? 1u : 0u;
-    const uint32_t timer_wraps = (uint32_t)(((uint64_t)start_ms + elapsed) >> 32);
+    const uint32_t timer_wraps = board.timer_wraps;
     printf("{\"status\":\"%s\",\"scenario\":\"%s\",\"seed\":%u,\"virtual_days\":%u,\"virtual_elapsed_ms\":%" PRIu64 ",\"sequence\":%u,\"sequence_wraps\":%u,\"timer_wraps\":%u,\"packets\":%u,\"failures\":%u,\"terminal_state\":\"%s\",\"firmware_bytes\":%zu,\"heap_bytes\":0,\"heap_status\":\"NO_DYNAMIC_ALLOCATION\",\"trace_events\":%u,\"trace_recovery_events\":%u}\n",
         complete ? "COMPLETED" : "FAILED", profile_name(profile), seed, days, elapsed,
         fw.sequence, sequence_wrapped, timer_wraps, fw.packets_sent, fw.failures,

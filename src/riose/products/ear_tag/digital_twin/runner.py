@@ -61,7 +61,8 @@ def _long_run_energy_uah(days: int, packets: int, spec: dict[str, Any]) -> dict[
     per_packet_mas = (awake_delta * _record(spec, "power_profiles.mcu_awake_s_per_event") +
                       tx_delta * _record(spec, "components.radio.tx_duration_s") +
                       rx_delta * _record(spec, "components.radio.rx_window_s") +
-                      _record(spec, "power_profiles.imu_sample_current_ma") *
+                      max(0.0, _record(spec, "power_profiles.imu_sample_current_ma") -
+                          _record(spec, "components.imu.low_power_current_ma")) *
                       _record(spec, "power_profiles.mcu_awake_s_per_event"))
     value = (sleep_ma * seconds + packets * per_packet_mas) / 3.6
     return {"status": "SIMULATED_FROM_ASSUMED_PROFILE", "value_uah": value,
@@ -194,13 +195,16 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                 key = f"{scenario}_{days}d"
                 try:
                     result = subprocess.run(
-                        [str(hardware_bin), "--long-run-days", str(days), "--scenario", scenario],
+                        [str(hardware_bin), "--long-run-days", str(days), "--scenario", scenario,
+                         "--seed", str(seed)],
                         cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
                     )
                     payload = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
                     expected_ms = days * 86_400_000
                     valid = (result.returncode == 0 and payload.get("status") == "COMPLETED" and
                              payload.get("scenario") == scenario and payload.get("days") == days and
+                             payload.get("seed") == seed and payload.get("terminal_state") == "SLEEP" and
+                             payload.get("packet_crc_valid") is True and
                              payload.get("virtual_ms") == expected_ms and payload.get("steps", 0) > 0 and
                              payload.get("tx_count", 0) > 0 and payload.get("failures") == 0)
                     payload.update(status="COMPLETED" if valid else "FAILED",
@@ -248,30 +252,53 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         else "Counter rollover probe did not produce validated evidence",
     }
 
-    # Host C tests classify reset flags but cannot provoke an MCU reset. The
-    # Zephyr target build proves the IWDG code compiles for the selected board;
-    # only physical target execution can prove watchdog reset behavior.
     fault_rows = [row for row in FAULT_SCENARIOS if row["host_argument"] is not None]
     remaining_faults = [row for row in FAULT_SCENARIOS if row["host_argument"] is None]
     fault_csv_rows = []
     for row in fault_rows:
-        observed = c_tests["status"] == "PASSED"
-        fault_csv_rows.append({**row, "status": "OBSERVED" if observed else "FAILED",
-                               "recovered": row["recovery_expected"] if observed else False,
-                               "seed": seed, "detail": "Dedicated C integration assertion" if observed else c_tests.get("detail", "C tests unavailable")})
+        kind, scenario = row["host_argument"].split(":", 1)
+        executable = hardware_bin if kind == "integration" else host_demo
+        command = ([str(executable), "--fault-scenario", scenario, "--seed", str(seed)]
+                   if kind == "integration" else
+                   [str(executable), "--fault", scenario, "--seed", str(seed)])
+        try:
+            result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                                    timeout=30, check=False)
+            payload = next((json.loads(line) for line in reversed(result.stdout.splitlines())
+                            if line.startswith("{")), {})
+            recovered = payload.get("recovered") is True
+            valid = (result.returncode == 0 and payload.get("injection_applied") is True and
+                     payload.get("fault") == row["fault"] and payload.get("seed") == seed and
+                     payload.get("attempts", 0) > 0 and
+                     payload.get("terminal_state") == row["terminal_state"] and
+                     payload.get("trace_event") == row["trace_event"] and
+                     payload.get("trace_event_count", 0) > 0 and
+                     recovered == row["recovery_expected"] and bool(payload.get("evidence")))
+            fault_csv_rows.append({**row, **payload,
+                "status": ("RECOVERED" if valid and recovered else "OBSERVED" if valid else "FAILED"),
+                "recovered": recovered if valid else False, "seed": seed,
+                "return_code": result.returncode,
+                "detail": payload.get("evidence") or result.stderr[-1000:] or "missing structured evidence"})
+        except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+            fault_csv_rows.append({**row, "status": "FAILED", "recovered": False,
+                                   "seed": seed, "return_code": None, "detail": str(exc)})
     for row in remaining_faults:
-        fault_csv_rows.append({**row, "status": "BLOCKED", "recovered": False, "seed": seed, "detail": row["blocker"]})
+        fault_csv_rows.append({**row, "status": "BLOCKED", "recovered": False, "seed": seed,
+            "injection_applied": False, "trace_event_count": 0, "evidence": "",
+            "return_code": None, "detail": row["blocker"]})
     fault_csv = output / "fault_scenarios.csv"
     with fault_csv.open("w", newline="", encoding="utf-8") as stream:
-        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail"]
+        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail", "injection_applied", "trace_event_count", "evidence", "return_code"]
         writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows({key: row.get(key) for key in fields} for row in fault_csv_rows)
-    host_faults = [row["fault"] for row in fault_rows] if c_tests["status"] == "PASSED" else []
+    host_faults = [row["fault"] for row in fault_csv_rows if row["status"] in ("RECOVERED", "OBSERVED")]
+    failed_faults = [row["fault"] for row in fault_csv_rows if row["status"] == "FAILED"]
+    blocked_faults = [row["fault"] for row in fault_csv_rows if row["status"] == "BLOCKED"]
     stages["adversarial_fault_injection"] = {
-        "status": "PARTIAL" if c_tests["status"] == "PASSED" else "NOT_AVAILABLE",
+        "status": "COMPLETED" if not blocked_faults and not failed_faults else "PARTIAL",
         "required": True, "completed_host_cases": host_faults,
-        "pending_cases": [row["fault"] for row in remaining_faults],
+        "pending_cases": blocked_faults, "failed_cases": failed_faults,
         "fault_csv": str(fault_csv), "fault_results": fault_csv_rows,
         "watchdog_target_build": {
             "status": "CONFIGURED_AND_COMPILED" if stages["zephyr_firmware"]["status"] == "PASSED" else "NOT_VERIFIED",
@@ -279,7 +306,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "result_class": "TARGET_FIRMWARE_BUILD_EVIDENCE",
             "detail": "The NUCLEO-L031K6 image configures the STM32 IWDG and reports/clears reset flags; no physical watchdog reset was triggered",
         },
-        "detail": "Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, and TX/RX IRQ deadlines. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",
+        "detail": "Fault rows come from per-case structured execution evidence; unavailable IMU-validity and analog coupling remain explicitly blocked",
     }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"

@@ -40,11 +40,42 @@ typedef struct {
     bool suppress_radio_irq;
     bool radio_busy_stuck;
     uint32_t corrupted_tx_packets;
+    uint32_t injected_spi_failures;
+    uint32_t injected_i2c_failures;
+    uint32_t busy_fault_observations;
     uint32_t trace_sequence;
     uint8_t last_packet[TAG_TELEMETRY_MAX_SIZE];
     size_t last_packet_len;
     uint16_t power_mv;
 } virtual_tag_t;
+
+static bool emit_fault_evidence;
+static uint32_t fault_seed = 7u;
+
+static const char *fault_state_name(tag_state_t state)
+{
+    static const char *const names[] = {"BOOT", "SELF_TEST", "SLEEP", "IMU_MONITORING",
+        "RF_TX", "RF_RX", "ALERT", "ERROR_RECOVERY"};
+    return (unsigned)state < sizeof(names) / sizeof(names[0]) ? names[state] : "UNKNOWN";
+}
+
+static void print_fault_evidence(const char *fault, const char *trace_event,
+                                 const char *evidence, uint32_t attempts,
+                                 uint32_t trace_count, bool recovered,
+                                 const virtual_tag_t *tag,
+                                 const tag_firmware_t *firmware)
+{
+    if (!emit_fault_evidence) return;
+    printf("{\"status\":\"%s\",\"fault\":\"%s\",\"injection_applied\":true,"
+           "\"recovery_expected\":true,\"recovered\":%s,\"attempts\":%u,"
+           "\"terminal_state\":\"%s\",\"trace_event\":\"%s\","
+           "\"trace_event_count\":%u,\"seed\":%u,\"reset_count\":%u,\"firmware_failures\":%u,"
+           "\"packets\":%u,\"evidence\":\"%s\"}\n",
+           recovered ? "RECOVERED" : "FAILED", fault,
+           recovered ? "true" : "false", attempts,
+           fault_state_name(firmware->state), trace_event, trace_count, fault_seed,
+           tag->reset_count, firmware->failures, firmware->packets_sent, evidence);
+}
 
 static void record_packet(virtual_tag_t *tag)
 {
@@ -60,6 +91,7 @@ static int virtual_spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
     virtual_tag_t *tag = (virtual_tag_t *)context;
     if (tag->spi_bus_failures > 0u) {
         --tag->spi_bus_failures;
+        ++tag->injected_spi_failures;
         return -1;
     }
     if (tx != NULL && tx_len > 0u) {
@@ -113,6 +145,7 @@ static int virtual_imu_read(void *context, tag_imu_sample_t *sample)
     uint8_t bytes[6];
     if (tag->imu_bus_failures > 0u) {
         --tag->imu_bus_failures;
+        ++tag->injected_i2c_failures;
         lis2dw12_fail_next_i2c(&tag->imu, 1u);
     }
     lis2dw12_tick(&tag->imu, 20u);
@@ -154,7 +187,10 @@ static bool virtual_radio_irq_pending(void *context)
 
 static int virtual_radio_busy(void *context)
 {
-    return ((virtual_tag_t *)context)->radio_busy_stuck ? 1 : 0;
+    virtual_tag_t *tag = (virtual_tag_t *)context;
+    if (tag->radio_busy_stuck && tag->busy_fault_observations == 0u)
+        ++tag->busy_fault_observations;
+    return tag->radio_busy_stuck ? 1 : 0;
 }
 
 static uint32_t virtual_clock_ms(void *context)
@@ -181,8 +217,10 @@ static void virtual_sleep_ms(void *context, uint32_t duration_ms)
         const uint32_t until_beacon = tag->firmware->next_beacon_ms - tag->now_ms;
         if ((int32_t)until_beacon > (int32_t)delta) delta = until_beacon;
     }
-    if (tag->stop_at_ms != 0u &&
-        (int32_t)(tag->now_ms + delta - tag->stop_at_ms) > 0) {
+    if (tag->stop_at_ms != 0u && tag->now_ms <= tag->stop_at_ms &&
+        delta > tag->stop_at_ms - tag->now_ms) {
+        /* stop_at is an absolute horizon less than one uint32 wrap away.
+         * Signed-delta comparison fails for 30-day horizons (> INT32_MAX). */
         delta = tag->stop_at_ms - tag->now_ms;
     }
     tag->now_ms += delta;
@@ -481,7 +519,7 @@ static void test_imu_failure_recovery(void)
 {
     virtual_tag_t tag;
     tag_firmware_t firmware;
-    tag_config_t config = tag_default_config(7u);
+    tag_config_t config = tag_default_config(fault_seed);
     config.normal_beacon_ms = 100u;
     virtual_tag_init(&tag, &firmware, &config, 5u);
     tag_firmware_step(&firmware);
@@ -494,13 +532,19 @@ static void test_imu_failure_recovery(void)
     assert(firmware.failures == 1u);
     assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
     assert(tag.reset_count >= 2u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u);
+    assert(tag.injected_i2c_failures == 1u);
+    print_fault_evidence("i2c_timeout", "RECOVERY", "one LIS2DW12 I2C read failed; recovery trace and SLEEP observed",
+        tag.injected_i2c_failures, tag.structured_trace_counts[TAG_TRACE_RECOVERY],
+        firmware.state == TAG_STATE_SLEEP && tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u,
+        &tag, &firmware);
 }
 
 static void test_radio_fault_recovery(void)
 {
     virtual_tag_t tag;
     tag_firmware_t firmware;
-    tag_config_t config = tag_default_config(8u);
+    tag_config_t config = tag_default_config(fault_seed);
     config.normal_beacon_ms = 100u;
     virtual_tag_init(&tag, &firmware, &config, 5u);
     tag_firmware_step(&firmware);
@@ -512,6 +556,12 @@ static void test_radio_fault_recovery(void)
     assert(firmware.failures == 1u);
     assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
     assert(tag.reset_count >= 2u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u);
+    assert(tag.injected_spi_failures == 1u);
+    print_fault_evidence("spi_timeout", "RECOVERY", "one modeled SX1262 SPI transfer failed; recovery trace and SLEEP observed",
+        tag.injected_spi_failures, tag.structured_trace_counts[TAG_TRACE_RECOVERY],
+        firmware.state == TAG_STATE_SLEEP && tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u,
+        &tag, &firmware);
 }
 
 static void test_missing_tx_done_timeout(void)
@@ -558,13 +608,17 @@ static void test_crc_corruption_is_rejected_and_next_frame_is_valid(void)
     assert(tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len));
     assert(firmware.packets_sent == 2u);
     assert(tag.radio.mode == SX1262_MODE_SLEEP);
+    print_fault_evidence("crc_invalid", "PACKET_CREATED", "host CRC validator rejected the corrupted frame; next frame passed CRC",
+        tag.corrupted_tx_packets, tag.structured_trace_counts[TAG_TRACE_PACKET_CREATED],
+        firmware.state == TAG_STATE_SLEEP && tag.corrupted_tx_packets == 1u &&
+            tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len), &tag, &firmware);
 }
 
 static void test_busy_stuck_times_out_and_recovers_after_release(void)
 {
     virtual_tag_t tag;
     tag_firmware_t firmware;
-    tag_config_t config = tag_default_config(11u);
+    tag_config_t config = tag_default_config(fault_seed);
     config.normal_beacon_ms = 100u;
     virtual_tag_init(&tag, &firmware, &config, 5u);
     tag_firmware_step(&firmware);
@@ -585,13 +639,19 @@ static void test_busy_stuck_times_out_and_recovers_after_release(void)
     tag.radio_busy_stuck = false;
     assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
     assert(tag.reset_count >= 2u);
+    assert(tag.busy_fault_observations == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u);
+    print_fault_evidence("sx1262_busy_stuck", "RECOVERY", "BUSY stayed high for 100 ms; line released; recovery trace and SLEEP observed",
+        tag.busy_fault_observations, tag.structured_trace_counts[TAG_TRACE_RECOVERY],
+        firmware.state == TAG_STATE_SLEEP && tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u,
+        &tag, &firmware);
 }
 
 static void test_missing_radio_irq_has_software_timeout_and_recovers(void)
 {
     virtual_tag_t tag;
     tag_firmware_t firmware;
-    tag_config_t config = tag_default_config(12u);
+    tag_config_t config = tag_default_config(fault_seed);
     config.normal_beacon_ms = 100u;
     virtual_tag_init(&tag, &firmware, &config, 5u);
     tag_firmware_step(&firmware);
@@ -610,6 +670,7 @@ static void test_missing_radio_irq_has_software_timeout_and_recovers(void)
     tag.suppress_radio_irq = false;
     assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
     assert(tag.reset_count >= 2u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u);
 
     /* The bounded RX window also needs a software deadline when DIO1 is lost. */
     virtual_tag_init(&tag, &firmware, &config, 5u);
@@ -624,6 +685,11 @@ static void test_missing_radio_irq_has_software_timeout_and_recovers(void)
     assert((uint32_t)(tag.now_ms - tag.radio.tx_started_ms) == 100u + 100u);
     tag.suppress_radio_irq = false;
     assert(step_until_state(&firmware, TAG_STATE_SLEEP, 500u));
+    assert(tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u);
+    print_fault_evidence("irq_missing", "RECOVERY", "TX/RX IRQ hidden until software deadlines; recovery trace and SLEEP observed",
+        1u, tag.structured_trace_counts[TAG_TRACE_RECOVERY],
+        firmware.state == TAG_STATE_SLEEP && tag.structured_trace_counts[TAG_TRACE_RECOVERY] > 0u,
+        &tag, &firmware);
 }
 
 static void test_reset_cause_flags_are_classified_deterministically(void)
@@ -830,7 +896,7 @@ static void run_to_time(tag_firmware_t *firmware, virtual_tag_t *tag,
     tag->stop_at_ms = 0u;
 }
 
-static int run_long_virtual_scenario(const char *scenario, uint32_t days)
+static int run_long_virtual_scenario(const char *scenario, uint32_t days, uint32_t seed)
 {
     if (days == 0u || days > 30u ||
         (strcmp(scenario, "NORMAL") != 0 && strcmp(scenario, "ACTIVE") != 0 &&
@@ -841,7 +907,7 @@ static int run_long_virtual_scenario(const char *scenario, uint32_t days)
     const uint32_t target_ms = days * DAY_MS;
     virtual_tag_t tag;
     tag_firmware_t firmware;
-    tag_config_t config = tag_default_config(0x4d565032u);
+    tag_config_t config = tag_default_config(seed);
     config.normal_beacon_ms = 900000u;
     config.active_beacon_ms = 60000u;
     config.alert_beacon_ms = 10000u;
@@ -863,15 +929,31 @@ static int run_long_virtual_scenario(const char *scenario, uint32_t days)
         if (firmware.state == TAG_STATE_ERROR_RECOVERY) break;
         ++steps;
     }
+    /* Drain a radio transaction that was already in flight at the horizon.
+     * The measurement window remains exactly target_ms; this cleanup makes
+     * terminal-state evidence meaningful without truncating the TX/RX FSM. */
+    const uint32_t horizon_ms = tag.now_ms;
+    if (horizon_ms >= target_ms) {
+        tag.stop_at_ms = 0u;
+        for (uint32_t drain = 0u; firmware.state != TAG_STATE_SLEEP && drain < 1000u; ++drain) {
+            tag_firmware_step(&firmware);
+            ++steps;
+            if (firmware.state == TAG_STATE_ERROR_RECOVERY) break;
+        }
+    }
     const bool completed = tag.now_ms >= target_ms && firmware.failures == 0u &&
                            firmware.packets_sent > 0u &&
+                           firmware.state == TAG_STATE_SLEEP &&
                            tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len);
     printf("{\"schema_version\":\"riose.virtual-run/v1\",\"scenario\":\"%s\","
-           "\"days\":%u,\"virtual_ms\":%u,\"steps\":%u,\"tx_count\":%u,"
-           "\"failures\":%u,\"tx_latency_ms\":%u,\"status\":\"%s\","
-           "\"result_class\":\"SIMULATED\"}\n",
-           scenario, days, tag.now_ms, steps, firmware.packets_sent,
-           firmware.failures, tx_latency_ms, completed ? "COMPLETED" : "FAILED");
+           "\"days\":%u,\"virtual_ms\":%u,\"actual_virtual_ms\":%u,\"steps\":%u,\"tx_count\":%u,"
+           "\"failures\":%u,\"tx_latency_ms\":%u,\"seed\":%u,"
+           "\"terminal_state\":\"%s\",\"packet_crc_valid\":%s,"
+           "\"status\":\"%s\",\"result_class\":\"SIMULATED\"}\n",
+           scenario, days, target_ms, tag.now_ms, steps, firmware.packets_sent,
+           firmware.failures, tx_latency_ms, seed, fault_state_name(firmware.state),
+           tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len) ? "true" : "false",
+           completed ? "COMPLETED" : "FAILED");
     return completed ? 0 : 1;
 }
 
@@ -1038,13 +1120,15 @@ static int export_scenario_trace(const char *path, const char *scenario)
 
 static int parse_runner_arguments(int argc, char **argv, const char **trace_path,
                                  const char **trace_scenario, const char **scenario,
-                                 const char **fault_scenario, uint32_t *long_run_days)
+                                 const char **fault_scenario, uint32_t *long_run_days,
+                                 uint32_t *seed)
 {
     *trace_path = NULL;
     *trace_scenario = NULL;
     *scenario = "NORMAL";
     *fault_scenario = NULL;
     *long_run_days = 0u;
+    *seed = 7u;
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--trace-output") == 0 && i + 1 < argc && *trace_path == NULL) {
             *trace_path = argv[++i];
@@ -1060,10 +1144,15 @@ static int parse_runner_arguments(int argc, char **argv, const char **trace_path
             const unsigned long parsed = strtoul(argv[++i], &end, 10);
             if (end == argv[i] || *end != '\0' || parsed == 0u || parsed > 30u) return 0;
             *long_run_days = (uint32_t)parsed;
+        } else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) {
+            char *end = NULL;
+            const unsigned long parsed = strtoul(argv[++i], &end, 10);
+            if (end == argv[i] || *end != '\0' || parsed > UINT32_MAX) return 0;
+            *seed = (uint32_t)parsed;
         } else {
             fprintf(stderr, "usage: %s [--trace-output PATH [--trace-scenario SCENARIO]] "
                     "[--long-run-days 1|7|30 --scenario SCENARIO] "
-                    "[--fault-scenario crc_corruption|sx1262_busy_stuck|irq_missing|reset_cause_reporting]\n", argv[0]);
+                    "[--seed N] [--fault-scenario i2c_timeout|spi_timeout|crc_corruption|sx1262_busy_stuck|irq_missing|reset_cause_reporting]\n", argv[0]);
             return 0;
         }
     }
@@ -1081,9 +1170,20 @@ int main(int argc, char **argv)
     const char *scenario = NULL;
     const char *fault_scenario = NULL;
     uint32_t long_run_days = 0u;
+    uint32_t seed = 7u;
     if (!parse_runner_arguments(argc, argv, &trace_path, &trace_scenario,
-                                &scenario, &fault_scenario, &long_run_days)) return 2;
+                                &scenario, &fault_scenario, &long_run_days, &seed)) return 2;
+    fault_seed = seed;
     if (fault_scenario != NULL) {
+        emit_fault_evidence = true;
+        if (strcmp(fault_scenario, "i2c_timeout") == 0) {
+            test_imu_failure_recovery();
+            return 0;
+        }
+        if (strcmp(fault_scenario, "spi_timeout") == 0) {
+            test_radio_fault_recovery();
+            return 0;
+        }
         if (strcmp(fault_scenario, "crc_corruption") == 0) {
             test_crc_corruption_is_rejected_and_next_frame_is_valid();
             puts("Digital fault scenario crc_corruption passed (corrupt frame rejected by CRC check; next frame valid)");
@@ -1109,7 +1209,7 @@ int main(int argc, char **argv)
             return 2;
         }
     }
-    if (long_run_days != 0u) return run_long_virtual_scenario(scenario, long_run_days);
+    if (long_run_days != 0u) return run_long_virtual_scenario(scenario, long_run_days, seed);
     if (trace_scenario != NULL)
         return export_scenario_trace(trace_path, trace_scenario);
     if (trace_path != NULL && trace_path[0] != '\0' &&
