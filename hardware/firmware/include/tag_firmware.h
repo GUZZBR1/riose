@@ -53,6 +53,8 @@ typedef struct {
     void (*sleep_ms)(void *context, uint32_t duration_ms);
     /* Optional interrupt/event wait. Returns after an event or timeout. */
     void (*wait_for_event)(void *context, uint32_t timeout_ms);
+    /* Optional low-overhead state marker for logic-analyzer captures. */
+    void (*state_trace)(void *context, tag_state_t state);
 } tag_hal_t;
 
 typedef struct {

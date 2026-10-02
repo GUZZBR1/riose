@@ -69,6 +69,9 @@ printed on the actual modules and confirm each board's logic voltage first.
 | LIS2DW12 SCL | PB6 | A5 (CN4-7) | SCL |
 | LIS2DW12 SDA | PB7 | A4 (CN4-8) | SDA |
 | LIS2DW12 INT1 | PA8 | D9 | INT1 |
+| State trace bit 0 | PA0 | A0 | logic analyzer channel 0 |
+| State trace bit 1 | PA1 | A1 | logic analyzer channel 1 |
+| State trace bit 2 | PA3 | A2 | logic analyzer channel 2 |
 | Shared supply | — | +3V3 (CN4-14) | module VCC, only if its datasheet allows 3.3 V |
 | Shared return | — | GND (CN3-4 or CN4-2) | module GND |
 
@@ -79,6 +82,9 @@ and PA6 as input GPIOs as required by the SB16/SB18 configuration and disables
 the board's PB3 LED device. Do not connect anything to D4, D5, A4, or A5 except
 the stated I2C signals in this wiring profile. The unused D0/D1 UART pins are
 left alone. Verify the physical board's solder-bridge defaults before wiring.
+The A0/PA0 trace output assumes the board's standard LSE clock arrangement;
+check the ST-LINK clock solder bridges before using PA0 in a modified board
+configuration.
 
 The default I2C address in the overlay is `0x18` (LIS2DW12 SA0 low); set it to
 `0x19` if the specific module straps SA0 high. The radio SPI rate is initially
@@ -90,6 +96,14 @@ must follow their datasheets. The profile config in
 `+14 dBm`; it is board-specific, so `native_sim` keeps its independent
 settings.
 
+The three state-trace pins output the binary `tag_state_t` value, with A0 as
+the least-significant bit. Capture them on a high-impedance logic analyzer to
+measure transition times and dwell intervals without UART logging. Codes are
+`000 BOOT`, `001 SELF_TEST`, `010 SLEEP`, `011 IMU_MONITORING`, `100 RF_TX`,
+`101 RF_RX`, `110 ALERT`, and `111 ERROR_RECOVERY`. Connect analyzer ground to
+board ground; do not drive these outputs. Probe capacitance and any attached
+load become part of the measured board configuration.
+
 The physical profile was compiled successfully with Zephyr v4.2.1 and Zephyr
 SDK 0.16.8 using:
 
@@ -98,8 +112,8 @@ west build -b nucleo_l031k6 -d build/tag-nucleo-l031k6 \
   /home/lucas_coimbra/projects/riose/hardware/firmware/zephyr
 ```
 
-The build produced `zephyr.bin` at 25,216 bytes (76.95% of the MCU's 32 KiB
-flash) and uses 2,944 bytes of its 8 KiB RAM. This verifies compilation and
+The build produced `zephyr.bin` at 25,384 bytes (77.47% of the MCU's 32 KiB
+flash) and uses 2,952 bytes of its 8 KiB RAM. This verifies compilation and
 linking for the target only. The image was not flashed; radio behavior, IRQ
 wake, rail stability and current still require the actual board, modules,
 power path, and measurement setup.

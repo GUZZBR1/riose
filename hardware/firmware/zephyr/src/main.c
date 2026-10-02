@@ -19,8 +19,9 @@ static struct gpio_callback radio_gpio_cb;
 
 #if !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio), okay) || \
     !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay) || \
-    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio_busy), okay)
-#error "Add tag-radio, tag-imu, and tag-radio-busy devicetree aliases for this board"
+    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio_busy), okay) || \
+    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_state_trace), okay)
+#error "Add tag-radio, tag-imu, tag-radio-busy, and tag-state-trace aliases"
 #endif
 
 static const struct spi_dt_spec radio_spi = SPI_DT_SPEC_GET(
@@ -35,6 +36,11 @@ static const struct gpio_dt_spec radio_dio1 =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_dio1), gpios);
 static const struct gpio_dt_spec imu_int =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_imu_int), gpios);
+static const struct gpio_dt_spec state_trace_pins[] = {
+    GPIO_DT_SPEC_GET_BY_IDX(DT_ALIAS(tag_state_trace), gpios, 0),
+    GPIO_DT_SPEC_GET_BY_IDX(DT_ALIAS(tag_state_trace), gpios, 1),
+    GPIO_DT_SPEC_GET_BY_IDX(DT_ALIAS(tag_state_trace), gpios, 2),
+};
 
 static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
                         uint8_t *rx, size_t rx_len)
@@ -186,6 +192,15 @@ static void wait_for_event(void *context, uint32_t timeout_ms)
     (void)k_sem_take(&tag_event_sem, K_MSEC(timeout_ms));
 }
 
+static void state_trace(void *context, tag_state_t state)
+{
+    ARG_UNUSED(context);
+    const uint8_t code = (uint8_t)state;
+    for (size_t bit = 0; bit < ARRAY_SIZE(state_trace_pins); ++bit) {
+        (void)gpio_pin_set_dt(&state_trace_pins[bit], (code >> bit) & 1u);
+    }
+}
+
 int main(void)
 {
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
@@ -203,6 +218,11 @@ int main(void)
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&imu_int, GPIO_INPUT);
     if (rc != 0) return rc;
+    for (size_t i = 0; i < ARRAY_SIZE(state_trace_pins); ++i) {
+        if (!gpio_is_ready_dt(&state_trace_pins[i])) return -ENODEV;
+        rc = gpio_pin_configure_dt(&state_trace_pins[i], GPIO_OUTPUT_INACTIVE);
+        if (rc != 0) return rc;
+    }
     gpio_init_callback(&imu_gpio_cb, tag_gpio_isr, BIT(imu_int.pin));
     rc = gpio_add_callback(imu_int.port, &imu_gpio_cb);
     if (rc != 0) return rc;
@@ -229,6 +249,7 @@ int main(void)
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
+        .state_trace = state_trace,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);
     config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;

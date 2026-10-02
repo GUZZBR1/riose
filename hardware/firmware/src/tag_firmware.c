@@ -8,10 +8,18 @@ static uint32_t now_ms(const tag_firmware_t *fw)
     return fw->hal.clock_ms(fw->hal.context);
 }
 
+static void set_state(tag_firmware_t *fw, tag_state_t state)
+{
+    if (fw->state == state) return;
+    fw->state = state;
+    if (fw->hal.state_trace != NULL)
+        fw->hal.state_trace(fw->hal.context, state);
+}
+
 static void fail(tag_firmware_t *fw)
 {
     fw->failures++;
-    fw->state = TAG_STATE_ERROR_RECOVERY;
+    set_state(fw, TAG_STATE_ERROR_RECOVERY);
     fw->recovery_at_ms = now_ms(fw) + 1000u;
 }
 
@@ -49,6 +57,8 @@ int tag_firmware_init(tag_firmware_t *fw, const tag_hal_t *hal,
     fw->state = TAG_STATE_BOOT;
     fw->behavior = TAG_BEHAVIOR_NORMAL;
     fw->initialized = true;
+    if (fw->hal.state_trace != NULL)
+        fw->hal.state_trace(fw->hal.context, TAG_STATE_BOOT);
     return 0;
 }
 
@@ -67,11 +77,11 @@ static void sample_imu(tag_firmware_t *fw)
         energy > 1800000) {
         fw->still_tracking = false;
         fw->behavior = TAG_BEHAVIOR_ALERT;
-        fw->state = TAG_STATE_ALERT;
+        set_state(fw, TAG_STATE_ALERT);
     } else if (energy > 180000) {
         fw->still_tracking = false;
         fw->behavior = TAG_BEHAVIOR_ACTIVE;
-        fw->state = TAG_STATE_RF_TX;
+        set_state(fw, TAG_STATE_RF_TX);
     } else if (energy < 2500) {
         if (!fw->still_tracking) {
             fw->still_tracking = true;
@@ -80,15 +90,15 @@ static void sample_imu(tag_firmware_t *fw)
         if ((uint32_t)(now_ms(fw) - fw->still_since_ms) >=
             fw->config.still_alert_after_ms) {
             fw->behavior = TAG_BEHAVIOR_ALERT;
-            fw->state = TAG_STATE_ALERT;
+            set_state(fw, TAG_STATE_ALERT);
         } else {
             fw->behavior = TAG_BEHAVIOR_STILL;
-            fw->state = TAG_STATE_SLEEP;
+            set_state(fw, TAG_STATE_SLEEP);
         }
     } else {
         fw->still_tracking = false;
         fw->behavior = TAG_BEHAVIOR_NORMAL;
-        fw->state = TAG_STATE_RF_TX;
+        set_state(fw, TAG_STATE_RF_TX);
     }
     /* Escalate quickly for a bounded window, then send sparse heartbeats
      * while the condition persists. This prevents a latched alarm (notably
@@ -140,7 +150,7 @@ static void transmit(tag_firmware_t *fw)
         fw->next_beacon_ms = now_ms(fw) + fw->config.active_beacon_ms;
     }
     fw->packets_sent++;
-    fw->state = TAG_STATE_RF_TX;
+    set_state(fw, TAG_STATE_RF_TX);
 }
 
 void tag_firmware_step(tag_firmware_t *fw)
@@ -148,7 +158,7 @@ void tag_firmware_step(tag_firmware_t *fw)
     if (fw == NULL || !fw->initialized) return;
     switch (fw->state) {
     case TAG_STATE_BOOT:
-        fw->state = TAG_STATE_SELF_TEST;
+        set_state(fw, TAG_STATE_SELF_TEST);
         break;
     case TAG_STATE_SELF_TEST:
         if (fw->hal.radio_reset(fw->hal.context) != 0 ||
@@ -158,18 +168,18 @@ void tag_firmware_step(tag_firmware_t *fw)
             sx1262_set_sleep(&fw->hal) != 0) {
             fail(fw);
         } else {
-            fw->state = TAG_STATE_SLEEP;
+            set_state(fw, TAG_STATE_SLEEP);
             fw->next_beacon_ms = now_ms(fw);
         }
         break;
     case TAG_STATE_SLEEP:
         if (fw->hal.imu_irq_pending != NULL &&
             fw->hal.imu_irq_pending(fw->hal.context)) {
-            fw->state = TAG_STATE_IMU_MONITORING;
+            set_state(fw, TAG_STATE_IMU_MONITORING);
             break;
         }
         if ((int32_t)(now_ms(fw) - fw->next_beacon_ms) >= 0) {
-            fw->state = TAG_STATE_IMU_MONITORING;
+            set_state(fw, TAG_STATE_IMU_MONITORING);
             break;
         }
         const uint32_t remaining_ms = fw->next_beacon_ms - now_ms(fw);
@@ -195,13 +205,13 @@ void tag_firmware_step(tag_firmware_t *fw)
             !beacon_due) {
             /* Keep sensing after wake, but suppress ad-hoc transmissions
              * until the extended low-battery beacon interval expires. */
-            fw->state = TAG_STATE_SLEEP;
+            set_state(fw, TAG_STATE_SLEEP);
             break;
         }
         if (beacon_due || escalation) {
             transmit(fw);
         } else {
-            fw->state = TAG_STATE_SLEEP;
+            set_state(fw, TAG_STATE_SLEEP);
         }
         break;
         }
@@ -218,7 +228,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             if ((irq & SX1262_IRQ_TX_DONE) != 0u) {
-                fw->state = TAG_STATE_RF_RX;
+                set_state(fw, TAG_STATE_RF_RX);
             } else if ((irq & SX1262_IRQ_TIMEOUT) != 0u) {
                 fail(fw);
             } else {
@@ -249,7 +259,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 if (sx1262_set_sleep(&fw->hal) != 0) {
                     fail(fw);
                 } else {
-                    fw->state = TAG_STATE_SLEEP;
+                    set_state(fw, TAG_STATE_SLEEP);
                 }
             } else {
                 fail(fw);
@@ -261,7 +271,7 @@ void tag_firmware_step(tag_firmware_t *fw)
     }
     case TAG_STATE_ERROR_RECOVERY:
         if ((int32_t)(now_ms(fw) - fw->recovery_at_ms) >= 0) {
-            fw->state = TAG_STATE_SELF_TEST;
+            set_state(fw, TAG_STATE_SELF_TEST);
         } else {
             fw->hal.sleep_ms(fw->hal.context, 10u);
         }

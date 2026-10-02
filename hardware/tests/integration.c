@@ -24,6 +24,8 @@ typedef struct {
     uint32_t rx_commands;
     uint32_t wait_calls;
     uint32_t max_wait_timeout_ms;
+    uint32_t state_trace_calls;
+    tag_state_t last_traced_state;
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
     bool force_active_sample;
@@ -166,6 +168,13 @@ static void virtual_wait_for_event(void *context, uint32_t timeout_ms)
         virtual_sleep_ms(context, timeout_ms);
 }
 
+static void virtual_state_trace(void *context, tag_state_t state)
+{
+    virtual_tag_t *tag = (virtual_tag_t *)context;
+    ++tag->state_trace_calls;
+    tag->last_traced_state = state;
+}
+
 static tag_hal_t virtual_hal(virtual_tag_t *tag)
 {
     const tag_hal_t hal = {
@@ -178,6 +187,7 @@ static tag_hal_t virtual_hal(virtual_tag_t *tag)
         .clock_ms = virtual_clock_ms,
         .sleep_ms = virtual_sleep_ms,
         .wait_for_event = virtual_wait_for_event,
+        .state_trace = virtual_state_trace,
     };
     return hal;
 }
@@ -316,6 +326,24 @@ static void test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu(void)
     assert(!lis2dw12_irq_pending(&tag.imu));
     assert(firmware.packets_sent == 1u);
     assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
+}
+
+static void test_state_trace_reports_transitions(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(0x5152u);
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    assert(tag.state_trace_calls == 1u);
+    assert(tag.last_traced_state == TAG_STATE_BOOT);
+
+    tag_firmware_step(&firmware);
+    assert(tag.state_trace_calls == 2u);
+    assert(tag.last_traced_state == TAG_STATE_SELF_TEST);
+
+    tag_firmware_step(&firmware);
+    assert(tag.state_trace_calls == 3u);
+    assert(tag.last_traced_state == TAG_STATE_SLEEP);
 }
 
 static void test_imu_failure_recovery(void)
@@ -674,6 +702,7 @@ int main(void)
 {
     test_boot_packet_sleep_and_wake();
     test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu();
+    test_state_trace_reports_transitions();
     test_imu_failure_recovery();
     test_radio_fault_recovery();
     test_missing_tx_done_timeout();
@@ -686,7 +715,7 @@ int main(void)
     test_alert_burst_two_minutes();
     test_repeated_active_events_per_hour();
     test_pathological_alert_for_three_hours();
-    puts("Hardware integration: 13 scenarios passed");
+    puts("Hardware integration: 14 scenarios passed");
     puts("Power coverage: battery voltage is a static telemetry input only; brownout is unsupported by tag_hal_t.");
     return 0;
 }

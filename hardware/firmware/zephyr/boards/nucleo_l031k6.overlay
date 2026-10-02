@@ -15,6 +15,7 @@
 		tag-radio-busy = &radio_busy;
 		tag-radio-dio1 = &radio_dio1;
 		tag-imu-int = &imu_int;
+		tag-state-trace = &state_trace;
 	};
 
 	tag_gpio: tag-gpios {
@@ -36,6 +37,15 @@
 		imu_int: imu-int {
 			compatible = "riose,tag-gpio";
 			gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>; /* CN3 D9 */
+		};
+
+		/* Three-bit state code to observe dwell time with a logic analyzer.
+		 * UM1956 Table 14: A0/A1/A2 are PA0/PA1/PA3. */
+		state_trace: state-trace {
+			compatible = "riose,tag-gpio";
+			gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>, /* CN4 A0: state bit 0 */
+				<&gpioa 1 GPIO_ACTIVE_HIGH>, /* CN4 A1: state bit 1 */
+				<&gpioa 3 GPIO_ACTIVE_HIGH>; /* CN4 A2: state bit 2 */
 		};
 	};
 
