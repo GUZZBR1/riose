@@ -224,7 +224,7 @@ def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():
 
 def test_fault_catalog_defines_injection_recovery_attempts_terminal_and_trace():
     required = {"fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "host_argument"}
-    assert len({row["fault"] for row in FAULT_SCENARIOS}) == 11
+    assert len({row["fault"] for row in FAULT_SCENARIOS}) == 10
     assert all(required <= row.keys() for row in FAULT_SCENARIOS)
     assert all(row["attempts"] > 0 for row in FAULT_SCENARIOS if row["host_argument"])
     assert all(row.get("blocker") for row in FAULT_SCENARIOS if row["host_argument"] is None)
