@@ -39,5 +39,5 @@ Create RIOSE Platform
 Firmware State Should Be
     [Arguments]    ${expected}
     ${odr}=    Execute Command    sysbus ReadDoubleWord 0x50000014
-    ${state}=    Evaluate    int("${odr}", 0) & ${STATE_MASK}
+    ${state}=    Evaluate    int($odr.strip(), 0) & ${STATE_MASK}
     Should Be Equal As Integers    ${state}    ${expected}
