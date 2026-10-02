@@ -8,6 +8,7 @@ this adapter never supplies or labels current as measured.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -38,12 +39,12 @@ def _load_config(loads: dict[str, dict[str, Any]], key: str) -> dict[str, Any] |
         raise TraceConversionError(f"{key}: load profile entry must be an object")
     if config.get("current_status") != "ASSUMED":
         raise TraceConversionError(f"{key}: current_status must be ASSUMED")
-    if not config.get("source"):
+    if not isinstance(config.get("source"), str) or not config["source"].strip():
         raise TraceConversionError(f"{key}: source is required for current provenance")
     current = _number(config.get("load_current_ma"), f"{key}.load_current_ma")
     if current < 0:
         raise TraceConversionError(f"{key}: current must be nonnegative")
-    if not config.get("component"):
+    if not isinstance(config.get("component"), str) or not config["component"].strip():
         raise TraceConversionError(f"{key}: component is required")
     return {**config, "load_current_ma": current}
 
@@ -176,10 +177,35 @@ def trace_to_schedule(records: list[dict[str, Any]],
                 # load profile's assumed fallback into time absent from trace.
                 continue
             elapsed = _number(sleep["value0"], "MCU_SLEEP.value0") / 1000.0
+            if elapsed == 0:
+                continue
             append(key, state, state, start, elapsed,
-                   "TRACE_EVENT_PAYLOAD" if elapsed > 0 else None)
+                   "TRACE_EVENT_PAYLOAD")
             continue
         append(key, state, state, start, elapsed)
+
+    structural_events = {
+        "BOOT", "MCU_INIT", "PACKET_CREATED", "RADIO_STANDBY", "RADIO_SLEEP",
+        "ERROR", "RECOVERY", "MCU_SLEEP", "STATE",
+    }
+    event_coverage: dict[str, dict[str, Any]] = {}
+    for record in parsed:
+        event = str(record["event"])
+        if event in {"TX_START", "TX_DONE", "RX_START", "RX_DONE"}:
+            handler = "PAIRED_RADIO_INTERVAL"
+            if f"event:{event}" in loads:
+                raise TraceConversionError(
+                    f"event:{event}: radio markers are covered by paired intervals and cannot also be point loads")
+        elif f"event:{event}" in loads:
+            handler = "ASSUMED_POINT_INTERVAL"
+        elif event in structural_events:
+            handler = "STRUCTURAL_MARKER_NO_SEPARATE_LOAD"
+        else:
+            raise TraceConversionError(f"event:{event}: no state, pair, point-load, or structural handling")
+        entry = event_coverage.setdefault(event, {"count": 0, "handling": handler})
+        if entry["handling"] != handler:
+            raise TraceConversionError(f"event:{event}: inconsistent event handling")
+        entry["count"] += 1
 
     # Explicitly paired radio stages preserve their event duration. A missing
     # end marker is an error when that interval is requested in the load profile.
@@ -239,9 +265,15 @@ def trace_to_schedule(records: list[dict[str, Any]],
         if sleep_s > 0:
             trace_end_s += sleep_s
     for row in rows:
+        if row["timestamp_s"] + row["duration_s"] > trace_end_s + 1e-12:
+            raise TraceConversionError(
+                f"{row['event']}: modeled interval extends beyond the trace window")
         row["trace_window_start_s"] = 0.0
         row["trace_window_end_s"] = trace_end_s
         row["trace_source_start_s"] = trace_start_s
+        row["trace_event_coverage"] = event_coverage
+        row["trace_status"] = "SIMULATED"
+        row["trace_schema_version"] = "riose.firmware.trace/v1"
     return sorted(rows, key=lambda row: (row["timestamp_s"], row["component"], row["event"]))
 
 
@@ -267,11 +299,17 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path,
                         help="power-tool-compatible schedule JSONL output")
     args = parser.parse_args()
+    args.output.unlink(missing_ok=True)
     try:
-        records = [json.loads(line) for line in args.trace.read_text().splitlines() if line.strip()]
+        trace_bytes = args.trace.read_bytes()
+        records = [json.loads(line) for line in trace_bytes.decode("utf-8").splitlines() if line.strip()]
         loads = read_load_profile(args.loads)
         rows = trace_to_schedule(records, loads)
-    except (TraceConversionError, json.JSONDecodeError, OSError) as exc:
+        trace_provenance = {"path": str(args.trace), "sha256": hashlib.sha256(trace_bytes).hexdigest(),
+                            "status": "SIMULATED", "schema_version": "riose.firmware.trace/v1"}
+        for row in rows:
+            row["trace_provenance"] = trace_provenance
+    except (TraceConversionError, json.JSONDecodeError, OSError, UnicodeError) as exc:
         parser.error(str(exc))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w") as stream:

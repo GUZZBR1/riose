@@ -283,7 +283,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             if powered["status"] == "PASSED" and result_path.is_file():
                 result = json.loads(result_path.read_text())
                 power_scenarios[scenario] = {
-                    "status": "COMPLETED" if result.get("ngspice", {}).get("status") == "EXECUTED" else "NOT_AVAILABLE",
+                    "status": "COMPLETED" if result.get("ngspice", {}).get("status") == "PASS" else "NOT_AVAILABLE",
                     "ngspice_status": result.get("ngspice", {}).get("status", "UNKNOWN"),
                     "modeled_charge_uah": result.get("total_charge_mah_window", 0) * 1000,
                     "modeled_window_s": result.get("modeled_window_s"),

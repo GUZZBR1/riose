@@ -22,7 +22,10 @@ CSV, JSONL/NDJSON, or JSON array/object input rows use these fields:
 Intervals from simultaneous components add. Gaps use the configured assumed
 idle current. Event charge is integrated from each component interval;
 unattributed idle is included in total charge. `mAh/day` is emitted only when
-the caller declares `--period-s` and its provenance with `--period-source`.
+the caller declares `--period-s`, a non-empty `--period-source`, and
+`--period-status` (`DATASHEET`, `ASSUMED`, or `SIMULATED`). Periods must be
+finite, positive seconds. The output preserves this provenance and labels
+daily consumption as an extrapolation.
 The terminal `MCU_SLEEP` payload closes a trace window; it does not imply that
 the trace repeats daily. Daily charge extrapolates only the declared repeat
 period and is not an autonomy claim. Capacity division is intentionally not
@@ -37,6 +40,7 @@ firmware sequence.
 ```sh
 python hardware/spice/mvp2_power.py path/to/trace.jsonl \
   --period-s 900 --period-source "declared 15-minute event interval" \
+  --period-status SIMULATED --period-unit s \
   --output results/mvp2/power
 ```
 

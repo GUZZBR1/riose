@@ -1,8 +1,10 @@
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 BASE = Path(__file__).resolve().parents[1]
 
@@ -77,6 +79,10 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         self.assertEqual(imu["duration_source"], "ASSUMED_FALLBACK")
         self.assertTrue(all(row["status"] == "SIMULATED" and
                             row["current_status"] == "ASSUMED" for row in rows))
+        coverage = rows[0]["trace_event_coverage"]
+        self.assertEqual(coverage["TX_START"]["handling"], "PAIRED_RADIO_INTERVAL")
+        self.assertEqual(coverage["TX_DONE"]["count"], 1)
+        self.assertEqual(coverage["STATE"]["handling"], "STRUCTURAL_MARKER_NO_SEPARATE_LOAD")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "schedule.jsonl"
@@ -114,6 +120,14 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         }}
         with self.assertRaisesRegex(adapter.TraceConversionError, "must be ASSUMED"):
             adapter.trace_to_schedule(trace, loads)
+
+    def test_blank_load_provenance_or_component_is_rejected(self):
+        trace = [record(0, "STATE", "SLEEP"), record(1, "MCU_SLEEP", "SLEEP", value0=10)]
+        base = {"component": "mcu", "load_current_ma": 0.01,
+                "current_status": "ASSUMED", "source": "test fixture"}
+        for key, value in (("source", "   "), ("component", "")):
+            with self.subTest(key=key), self.assertRaises(adapter.TraceConversionError):
+                adapter.trace_to_schedule(trace, {"state:SLEEP": {**base, key: value}})
 
     def test_versioned_trace_requires_contiguous_sequence(self):
         records = [record(0, "STATE", "SLEEP", sequence=0),
@@ -188,6 +202,60 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertAlmostEqual(rows[0]["duration_s"], 0.01)
         self.assertAlmostEqual(rows[0]["trace_window_end_s"], 0.01)
+
+    def test_unprofiled_events_and_double_counted_radio_markers_are_rejected(self):
+        trace = [record(0, "STATE", "SLEEP"), record(1, "UNEXPECTED", "SLEEP")]
+        loads = {"state:SLEEP": {"component": "mcu", "load_current_ma": 0.01,
+                                  "current_status": "ASSUMED", "source": "test"}}
+        with self.assertRaisesRegex(adapter.TraceConversionError, "UNEXPECTED.*no state, pair, point-load"):
+            adapter.trace_to_schedule(trace, loads)
+
+        radio_trace = [record(0, "TX_START", "RF_TX"), record(1, "TX_DONE", "RF_TX")]
+        radio_loads = {
+            "pair:TX_START:TX_DONE": {"component": "radio", "load_current_ma": 20,
+                                      "current_status": "ASSUMED", "source": "test"},
+            "event:TX_START": {"component": "radio", "load_current_ma": 20,
+                               "current_status": "ASSUMED", "source": "test",
+                               "fallback_duration_s": 0.001, "duration_status": "ASSUMED",
+                               "duration_source": "test"},
+        }
+        with self.assertRaisesRegex(adapter.TraceConversionError, "cannot also be point loads"):
+            adapter.trace_to_schedule(radio_trace, radio_loads)
+
+    def test_point_event_interval_cannot_extend_beyond_trace_window(self):
+        trace = [record(0, "IMU_READ", "IMU_MONITORING")]
+        loads = {"event:IMU_READ": {
+            "component": "imu", "load_current_ma": 1, "current_status": "ASSUMED",
+            "source": "test", "fallback_duration_s": 1, "duration_status": "ASSUMED",
+            "duration_source": "test",
+        }}
+        with self.assertRaisesRegex(adapter.TraceConversionError, "extends beyond the trace window"):
+            adapter.trace_to_schedule(trace, loads)
+
+    def test_cli_attaches_trace_hash_and_clears_old_schedule_on_invalid_input(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            trace_path, loads_path, output = root / "trace.jsonl", root / "loads.json", root / "schedule.jsonl"
+            trace_path.write_text(json.dumps(record(0, "STATE", "SLEEP")) + "\n" +
+                                  json.dumps(record(1, "STATE", "SLEEP")) + "\n")
+            loads_path.write_text(json.dumps({"state:SLEEP": {
+                "component": "mcu", "load_current_ma": 0.01,
+                "current_status": "ASSUMED", "source": "fixture spec",
+            }}))
+            argv = ["trace_adapter", str(trace_path), "--loads", str(loads_path), "--output", str(output)]
+            with patch.object(sys, "argv", argv):
+                self.assertEqual(adapter.main(), 0)
+            rows = [json.loads(line) for line in output.read_text().splitlines()]
+            self.assertEqual(rows[0]["trace_provenance"]["status"], "SIMULATED")
+            self.assertEqual(rows[0]["trace_provenance"]["sha256"],
+                             __import__("hashlib").sha256(trace_path.read_bytes()).hexdigest())
+
+            trace_path.write_text("{invalid json\n")
+            with patch.object(sys, "argv", argv), patch.object(adapter.argparse.ArgumentParser, "error",
+                    side_effect=SystemExit(2)):
+                with self.assertRaises(SystemExit):
+                    adapter.main()
+            self.assertFalse(output.exists())
 
 
 if __name__ == "__main__":

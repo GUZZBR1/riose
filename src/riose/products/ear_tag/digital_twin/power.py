@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 def _record(spec: dict[str, Any], dotted: str, fallback: float = 0.0) -> float:
@@ -17,15 +18,23 @@ def _repeat_period_arguments(spec: dict[str, Any]) -> list[str]:
     """Return a daily-extrapolation period only with its spec provenance."""
     parameter = spec.get("power_profiles", {}).get("normal_beacon_interval_s", {})
     if (not isinstance(parameter, dict) or not {"value", "status", "source"} <= parameter.keys()
+            or not isinstance(parameter["status"], str)
             or parameter["status"] not in {"DATASHEET", "ASSUMED", "SIMULATED"}
-            or not parameter["source"]):
+            or not isinstance(parameter["source"], str) or not parameter["source"].strip()
+            or parameter.get("unit") != "s"):
         return []
-    period_s = float(parameter["value"])
-    if period_s <= 0:
+    if isinstance(parameter["value"], bool):
+        return []
+    try:
+        period_s = float(parameter["value"])
+    except (TypeError, ValueError):
+        return []
+    if not math.isfinite(period_s) or period_s <= 0:
         return []
     source = ("hardware/spec.yaml:power_profiles.normal_beacon_interval_s "
               f"({parameter['status']}: {parameter['source']})")
-    return ["--period-s", str(period_s), "--period-source", source]
+    return ["--period-s", str(period_s), "--period-source", source,
+            "--period-status", parameter["status"], "--period-unit", parameter["unit"]]
 
 def _power_load_profile(spec: dict[str, Any]) -> dict[str, Any]:
     """Build explicit ASSUMED loads from the single hardware specification."""

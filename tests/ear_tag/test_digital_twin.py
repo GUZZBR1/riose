@@ -24,6 +24,20 @@ def test_power_repeat_period_argument_preserves_spec_provenance():
     assert args[2] == "--period-source"
     assert "hardware/spec.yaml:power_profiles.normal_beacon_interval_s" in args[3]
     assert "SIMULATED" in args[3]
+    assert args[4:] == ["--period-status", "SIMULATED", "--period-unit", "s"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("value", 0), ("value", -1), ("value", float("nan")),
+    ("value", float("inf")), ("value", True), ("unit", "ms"),
+    ("status", "MEASURED"), ("status", []), ("source", ""), ("source", "   "),
+])
+def test_power_repeat_period_rejects_invalid_or_unproven_spec_records(field, value):
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    spec["power_profiles"]["normal_beacon_interval_s"] = {
+        **spec["power_profiles"]["normal_beacon_interval_s"], field: value}
+
+    assert _repeat_period_arguments(spec) == []
 
 
 def test_legacy_modules_forward_to_canonical_objects():
