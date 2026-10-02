@@ -1,15 +1,16 @@
 metric,value,unit,provenance,notes
 stage.synthetic_motion,COMPLETED,status,SIMULATED,
-stage.gpu_optional,SKIPPED_OPTIONAL,status,ENVIRONMENT_CAPABILITY_ONLY,
-stage.zephyr_firmware,NOT_AVAILABLE,status,ENVIRONMENT_OR_TEST_RESULT,Zephyr SDK/workspace is not configured; host C tests do not validate the Zephyr target
-stage.long_duration_1_7_30_days,NOT_AVAILABLE,status,ENVIRONMENT_OR_TEST_RESULT,Accelerated virtual-time execution for 1/7/30 days is not implemented in the available host harness
-stage.adversarial_fault_injection,NOT_AVAILABLE,status,ENVIRONMENT_OR_TEST_RESULT,"Fault injection requires the Renode peripheral platform/backend, unavailable in this environment"
-stage.four_power_scenarios,NOT_AVAILABLE,status,ENVIRONMENT_OR_TEST_RESULT,Only one host-harness trace is available; NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE must run through the FSM before energy comparison
+stage.gpu_optional,SKIPPED_OPTIONAL,status,ENVIRONMENT_CAPABILITY_ONLY,Sionna RT is optional; no GPU scenario blocks the digital twin core
 stage.mvp1_c_tests,PASSED,status,SIMULATED_SOFTWARE_TESTS,
-stage.renode_firmware,NOT_AVAILABLE,status,ENVIRONMENT_OR_TEST_RESULT,Renode and renode-test are required for the MCU/bus twin
+stage.zephyr_firmware,PASSED,status,ENVIRONMENT_OR_TEST_RESULT,Built target firmware for nucleo_l031k6
+stage.renode_firmware,PASSED,status,ENVIRONMENT_OR_TEST_RESULT,Renode platform smoke and Zephyr ELF execution completed
 stage.host_trace_export,PASSED,status,SIMULATED_SOFTWARE_TRACE,
-stage.mechanical,NOT_AVAILABLE,status,SIMULATED_GEOMETRY_ESTIMATE,battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery; CadQuery STEP export unavailable
+stage.firmware_scenarios,COMPLETED,status,SIMULATED_SOFTWARE_TESTS,C FSM traces exported for all four requested profiles
+stage.long_duration_1_7_30_days,COMPLETED,status,SIMULATED_SOFTWARE_RUN,12 deterministic FSM long runs completed
+stage.adversarial_fault_injection,PARTIAL,status,ENVIRONMENT_OR_TEST_RESULT,Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models
+stage.mechanical,FAILED,status,SIMULATED_GEOMETRY_ESTIMATE,battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery
 mechanical.envelope_fit,"['battery envelope exceeds enclosure cavity', 'antenna_keepout envelope exceeds enclosure cavity', 'antenna keepout exceeds PCB envelope', 'unexpected envelope overlap: pcb / battery']",boolean,SIMULATED,
-stage.antenna,NOT_AVAILABLE,status,NO_SIMULATION_RESULT,"The animal-proximity case is an experimental material approximation, not tissue validation."
+stage.antenna,PARTIAL_OR_BLOCKED,status,NO_SIMULATION_RESULT,"The animal-proximity case is an experimental material approximation, not tissue validation."
+stage.power,COMPLETED,status,SIMULATED,Four scenario rail simulations completed
+stage.four_power_scenarios,COMPLETED,status,ENVIRONMENT_OR_TEST_RESULT,NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed
 stage.trace_schedule,PASSED,status,ENVIRONMENT_OR_TEST_RESULT,
-stage.power,NOT_AVAILABLE,status,SIMULATED,Assumed-current charge integration completed; ngspice rail simulation was not executed

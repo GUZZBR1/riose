@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "purpose": "Reproducible MVP2 digital-twin toolchain target; versions are pinned independently from availability.",
+  "host": {
+    "python": "3.12.x",
+    "uv": "0.11.7",
+    "micromamba": "2.9.0",
+    "ninja": "1.13.2",
+    "zephyr": "4.2.1",
+    "zephyr_sdk": "0.16.8",
+    "west": "1.5.0"
+  },
+  "optional_external": {
+    "renode": "1.17.0",
+    "ngspice": "47",
+    "openEMS": "0.37.0-rc3",
+    "CSXCAD": "0.7.0-rc3",
+    "cadquery": "2.8.0"
+  },
+  "notes": [
+    "The CI core pins Python 3.12 and uv and does not require optional solver binaries.",
+    "The WSL headless environment uses micromamba for CadQuery and openEMS Python bindings; it stays separate from the project .venv.",
+    "The Zephyr workspace baseline is 4.2.1 with SDK 0.16.8 and west 1.5.0.",
+    "The openEMS/CSXCAD pair is pinned to the upstream 0.37.0-rc3/0.7.0-rc3 submodule set.",
+    "All optional tools must be reported unavailable or version-mismatched explicitly; they are never silently replaced."
+  ]
+}

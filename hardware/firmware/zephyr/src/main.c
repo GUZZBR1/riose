@@ -44,6 +44,8 @@ static const struct gpio_dt_spec state_trace_pins[] = {
     GPIO_DT_SPEC_GET_BY_IDX(DT_ALIAS(tag_state_trace), gpios, 2),
 };
 
+static uint32_t structured_trace_sequence;
+
 static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
                         uint8_t *rx, size_t rx_len)
 {
@@ -216,10 +218,11 @@ static const char *trace_event_name(tag_trace_event_t event)
 static void trace_event(void *context, const tag_trace_record_t *record)
 {
     ARG_UNUSED(context);
-    LOG_INF("SIMULATED_TRACE,%llu,%u,%s,%u,%d,%u,%u,%u",
+    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u",
+            structured_trace_sequence++,
             (unsigned long long)record->timestamp_us,
             (unsigned)record->state, trace_event_name(record->event),
-            (unsigned)record->source, (int)record->result,
+            (unsigned)record->event, (unsigned)record->source, (int)record->result,
             record->value0, record->value1, record->value2);
 }
 

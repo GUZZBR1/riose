@@ -1,13 +1,16 @@
 {
   "environment": {
     "commands": {
-      "ngspice": null,
-      "openEMS": null,
+      "micromamba": "/home/lucas_coimbra/.local/bin/micromamba",
+      "ngspice": "/home/lucas_coimbra/.local/bin/ngspice",
+      "ninja": "/home/lucas_coimbra/.local/bin/ninja",
+      "openEMS": "/home/lucas_coimbra/.local/opt/openEMS-0.37.0-rc3/bin/openEMS",
       "openscad": null,
-      "python3": "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
-      "renode": null,
-      "renode-test": null,
-      "west": "/home/lucas_coimbra/.local/bin/west"
+      "python3": "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python3",
+      "renode": "/home/lucas_coimbra/.local/bin/renode",
+      "renode-test": "/home/lucas_coimbra/.local/bin/renode-test",
+      "uv": "/home/lucas_coimbra/.local/bin/uv",
+      "west": "/home/lucas_coimbra/zephyrproject/.venv/bin/west"
     },
     "gpu": {
       "CUDA_AVAILABLE": false,
@@ -18,19 +21,158 @@
       "result_status": "ENVIRONMENT_CAPABILITY_ONLY",
       "status": "SKIPPED_OPTIONAL"
     },
+    "module_versions": {
+      "CSXCAD": "0.7.0rc3",
+      "cadquery": "2.8.0",
+      "openEMS": "0.37.0rc3",
+      "sionna": null,
+      "torch": null,
+      "yaml": "6.0.3"
+    },
     "modules": {
-      "CSXCAD": false,
-      "cadquery": false,
-      "openEMS": false,
+      "CSXCAD": true,
+      "cadquery": true,
+      "openEMS": true,
       "sionna": false,
       "torch": false,
       "yaml": true
     },
     "physical_hardware_used": false,
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "python": "3.13.13",
-    "status": "ENVIRONMENT_PROBE_ONLY"
+    "python": "3.12.14",
+    "status": "ENVIRONMENT_PROBE_ONLY",
+    "toolchain_manifest": "/home/lucas_coimbra/projects/riose/hardware/toolchain.json",
+    "versions": {
+      "micromamba": {
+        "expected": "2.9.0",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/bin/micromamba",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "2.9.0"
+      },
+      "module:CSXCAD": {
+        "expected": "0.7.0-rc3",
+        "matches_expected": true,
+        "status": "AVAILABLE",
+        "version": "0.7.0rc3"
+      },
+      "module:cadquery": {
+        "expected": "2.8.0",
+        "matches_expected": true,
+        "status": "AVAILABLE",
+        "version": "2.8.0"
+      },
+      "module:openEMS": {
+        "expected": "0.37.0-rc3",
+        "matches_expected": true,
+        "status": "AVAILABLE",
+        "version": "0.37.0rc3"
+      },
+      "module:sionna": {
+        "expected": null,
+        "matches_expected": null,
+        "status": "NOT_AVAILABLE",
+        "version": null
+      },
+      "module:torch": {
+        "expected": null,
+        "matches_expected": null,
+        "status": "NOT_AVAILABLE",
+        "version": null
+      },
+      "module:yaml": {
+        "expected": null,
+        "matches_expected": null,
+        "status": "AVAILABLE",
+        "version": "6.0.3"
+      },
+      "ngspice": {
+        "expected": "47",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/bin/ngspice",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "** ngspice-47 : Circuit level simulation program"
+      },
+      "ninja": {
+        "expected": "1.13.2",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/bin/ninja",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "1.13.2.git.kitware.jobserver-pipe-1"
+      },
+      "openEMS": {
+        "expected": "0.37.0-rc3",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/opt/openEMS-0.37.0-rc3/bin/openEMS",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": " | openEMS 64bit -- version v0.37.0-rc3"
+      },
+      "openscad": {
+        "expected": null,
+        "matches_expected": null,
+        "status": "NOT_AVAILABLE"
+      },
+      "python3": {
+        "expected": "3.12.x",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python3",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "Python 3.12.14"
+      },
+      "renode": {
+        "expected": "1.17.0",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/bin/renode",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "Renode v1.17.0"
+      },
+      "renode-test": {
+        "expected": null,
+        "matches_expected": null,
+        "path": "/home/lucas_coimbra/.local/bin/renode-test",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "usage: run_tests.py [-h] [-f FIXTURE] [-n [ITERATION_COUNT]] [-N RETRY_COUNT]"
+      },
+      "uv": {
+        "expected": "0.11.7",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/bin/uv",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "uv 0.11.7 (x86_64-unknown-linux-gnu)"
+      },
+      "west": {
+        "expected": "1.5.0",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/zephyrproject/.venv/bin/west",
+        "return_code": 0,
+        "status": "AVAILABLE",
+        "version": "West version: v1.5.0"
+      },
+      "zephyr": {
+        "expected": "4.2.1",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/zephyrproject/zephyr",
+        "status": "AVAILABLE",
+        "version": "4.2.1"
+      },
+      "zephyr_sdk": {
+        "expected": "0.16.8",
+        "matches_expected": true,
+        "path": "/home/lucas_coimbra/.local/opt/zephyr-sdk-0.16.8",
+        "status": "AVAILABLE",
+        "version": "0.16.8"
+      }
+    }
   },
+  "failure_count": 12,
   "gate": {
     "approval": {
       "antenna": "PENDING",
@@ -39,15 +181,10 @@
       "thresholds": "PENDING"
     },
     "blockers": [
-      "adversarial_fault_injection: NOT_AVAILABLE",
-      "antenna: NOT_AVAILABLE",
-      "four_power_scenarios: NOT_AVAILABLE",
-      "long_duration_1_7_30_days: NOT_AVAILABLE",
-      "mechanical: NOT_AVAILABLE",
-      "mechanical: envelope_fit",
-      "power: NOT_AVAILABLE",
-      "renode_firmware: NOT_AVAILABLE",
-      "zephyr_firmware: NOT_AVAILABLE"
+      "adversarial_fault_injection: PARTIAL",
+      "antenna: PARTIAL_OR_BLOCKED",
+      "mechanical: FAILED",
+      "mechanical: envelope_fit"
     ],
     "failed_checks": [
       "mechanical: envelope_fit"
@@ -58,13 +195,13 @@
   "gpu_issue": "OPTIONAL_GPU_EXPERIMENT",
   "milestone": "MVP2_DIGITAL_TWIN",
   "outputs": {
-    "antenna": "/home/lucas_coimbra/projects/riose/results/mvp2/antenna",
-    "failures_csv": "/home/lucas_coimbra/projects/riose/results/mvp2/failures.csv",
-    "firmware": "/home/lucas_coimbra/projects/riose/results/mvp2/firmware",
-    "integration": "/home/lucas_coimbra/projects/riose/results/mvp2/integration",
-    "mechanical": "/home/lucas_coimbra/projects/riose/results/mvp2/mechanical",
-    "power": "/home/lucas_coimbra/projects/riose/results/mvp2/power",
-    "root": "/home/lucas_coimbra/projects/riose/results/mvp2"
+    "antenna": "results/mvp2/antenna",
+    "failures_csv": "results/mvp2/failures.csv",
+    "firmware": "results/mvp2/firmware",
+    "integration": "results/mvp2/integration",
+    "mechanical": "results/mvp2/mechanical",
+    "power": "results/mvp2/power",
+    "root": "results/mvp2"
   },
   "parameter_statuses": {
     "ASSUMED": 77,
@@ -74,62 +211,652 @@
   "physical_measurements_used": false,
   "result_class": "SIMULATED",
   "schema_version": "riose.mvp2.digital-twin/v1",
-  "spec_path": "/home/lucas_coimbra/projects/riose/hardware/spec.yaml",
+  "spec_path": "hardware/spec.yaml",
   "spec_sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
   "stages": {
     "adversarial_fault_injection": {
-      "detail": "Fault injection requires the Renode peripheral platform/backend, unavailable in this environment",
+      "completed_host_cases": [
+        "one_shot_i2c_failure_recovery",
+        "one_shot_spi_failure_recovery",
+        "late_tx_done_timeout_recovery"
+      ],
+      "detail": "Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models",
+      "pending_cases": [
+        "sx1262_busy_stuck",
+        "irq_missing",
+        "crc_corruption",
+        "battery_voltage_drop",
+        "high_esr",
+        "regulator_instability",
+        "watchdog_reset",
+        "unexpected_reboot"
+      ],
       "required": true,
-      "status": "NOT_AVAILABLE"
+      "status": "PARTIAL"
     },
     "antenna": {
       "command": [
-        "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
+        "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python",
         "-m",
         "hardware.antenna.run",
         "--spec",
-        "/home/lucas_coimbra/projects/riose/hardware/spec.yaml",
+        "hardware/spec.yaml",
         "--output",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/antenna"
+        "results/mvp2/antenna"
       ],
       "detail": "The animal-proximity case is an experimental material approximation, not tissue validation.",
       "required": true,
       "result_class": "NO_SIMULATION_RESULT",
-      "return_code": 0,
-      "status": "NOT_AVAILABLE",
+      "return_code": 2,
+      "scenarios": [
+        {
+          "assumptions": "",
+          "center_frequency_hz": 915000000,
+          "center_frequency_status": "ASSUMED",
+          "clearance_mm": 2.0,
+          "clearance_status": "ASSUMED",
+          "detail": "Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured",
+          "efficiency_fraction": null,
+          "element_length_mm": 82.0,
+          "element_length_status": "ASSUMED",
+          "feed_mm": 2.0,
+          "feed_status": "ASSUMED",
+          "gain_dbi": null,
+          "input_impedance_imag_ohm": null,
+          "input_impedance_real_ohm": null,
+          "radiation_pattern_path": null,
+          "resonant_frequency_hz": null,
+          "result_class": "NO_SIMULATION_RESULT",
+          "s11_curve_path": null,
+          "s11_min_db": null,
+          "scenario": "ANTENNA_FREE_SPACE",
+          "status": "ADAPTER_NOT_CONFIGURED",
+          "topology": "meandered_quarter_wave_monopole",
+          "topology_status": "ASSUMED",
+          "vswr_min": null
+        },
+        {
+          "assumptions": "PCB geometry/material approximation required",
+          "center_frequency_hz": 915000000,
+          "center_frequency_status": "ASSUMED",
+          "clearance_mm": 2.0,
+          "clearance_status": "ASSUMED",
+          "detail": "Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured",
+          "efficiency_fraction": null,
+          "element_length_mm": 82.0,
+          "element_length_status": "ASSUMED",
+          "feed_mm": 2.0,
+          "feed_status": "ASSUMED",
+          "gain_dbi": null,
+          "input_impedance_imag_ohm": null,
+          "input_impedance_real_ohm": null,
+          "radiation_pattern_path": null,
+          "resonant_frequency_hz": null,
+          "result_class": "NO_SIMULATION_RESULT",
+          "s11_curve_path": null,
+          "s11_min_db": null,
+          "scenario": "ANTENNA_WITH_PCB",
+          "status": "ADAPTER_NOT_CONFIGURED",
+          "topology": "meandered_quarter_wave_monopole",
+          "topology_status": "ASSUMED",
+          "vswr_min": null
+        },
+        {
+          "assumptions": "Battery geometry/material approximation required",
+          "center_frequency_hz": 915000000,
+          "center_frequency_status": "ASSUMED",
+          "clearance_mm": 2.0,
+          "clearance_status": "ASSUMED",
+          "detail": "Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured",
+          "efficiency_fraction": null,
+          "element_length_mm": 82.0,
+          "element_length_status": "ASSUMED",
+          "feed_mm": 2.0,
+          "feed_status": "ASSUMED",
+          "gain_dbi": null,
+          "input_impedance_imag_ohm": null,
+          "input_impedance_real_ohm": null,
+          "radiation_pattern_path": null,
+          "resonant_frequency_hz": null,
+          "result_class": "NO_SIMULATION_RESULT",
+          "s11_curve_path": null,
+          "s11_min_db": null,
+          "scenario": "ANTENNA_WITH_BATTERY",
+          "status": "ADAPTER_NOT_CONFIGURED",
+          "topology": "meandered_quarter_wave_monopole",
+          "topology_status": "ASSUMED",
+          "vswr_min": null
+        },
+        {
+          "assumptions": "Enclosure geometry/material approximation required",
+          "center_frequency_hz": 915000000,
+          "center_frequency_status": "ASSUMED",
+          "clearance_mm": 2.0,
+          "clearance_status": "ASSUMED",
+          "detail": "Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured",
+          "efficiency_fraction": null,
+          "element_length_mm": 82.0,
+          "element_length_status": "ASSUMED",
+          "feed_mm": 2.0,
+          "feed_status": "ASSUMED",
+          "gain_dbi": null,
+          "input_impedance_imag_ohm": null,
+          "input_impedance_real_ohm": null,
+          "radiation_pattern_path": null,
+          "resonant_frequency_hz": null,
+          "result_class": "NO_SIMULATION_RESULT",
+          "s11_curve_path": null,
+          "s11_min_db": null,
+          "scenario": "ANTENNA_WITH_ENCLOSURE",
+          "status": "ADAPTER_NOT_CONFIGURED",
+          "topology": "meandered_quarter_wave_monopole",
+          "topology_status": "ASSUMED",
+          "vswr_min": null
+        },
+        {
+          "assumptions": "Experimental homogeneous dielectric approximation; not animal tissue validation",
+          "center_frequency_hz": 915000000,
+          "center_frequency_status": "ASSUMED",
+          "clearance_mm": 2.0,
+          "clearance_status": "ASSUMED",
+          "detail": "Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured",
+          "efficiency_fraction": null,
+          "element_length_mm": 82.0,
+          "element_length_status": "ASSUMED",
+          "feed_mm": 2.0,
+          "feed_status": "ASSUMED",
+          "gain_dbi": null,
+          "input_impedance_imag_ohm": null,
+          "input_impedance_real_ohm": null,
+          "radiation_pattern_path": null,
+          "resonant_frequency_hz": null,
+          "result_class": "NO_SIMULATION_RESULT",
+          "s11_curve_path": null,
+          "s11_min_db": null,
+          "scenario": "ANTENNA_NEAR_ANIMAL_APPROXIMATION",
+          "status": "ADAPTER_NOT_CONFIGURED",
+          "topology": "meandered_quarter_wave_monopole",
+          "topology_status": "ASSUMED",
+          "vswr_min": null
+        }
+      ],
+      "status": "PARTIAL_OR_BLOCKED",
       "stderr": "",
-      "stdout": "{\"output\": \"/home/lucas_coimbra/projects/riose/results/mvp2/antenna\", \"result_class\": \"NO_SIMULATION_RESULT\", \"scenarios\": 5, \"status\": \"NOT_AVAILABLE\"}\n"
+      "stdout": "{\"output\": \"results/mvp2/antenna\", \"result_class\": \"NO_SIMULATION_RESULT\", \"scenarios\": 5, \"status\": \"PARTIAL_OR_BLOCKED\"}\n"
+    },
+    "firmware_scenarios": {
+      "detail": "C FSM traces exported for all four requested profiles",
+      "required": true,
+      "result_class": "SIMULATED_SOFTWARE_TESTS",
+      "scenarios": {
+        "ACTIVE": {
+          "path": "results/mvp2/firmware/scenarios/active.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "ALERT": {
+          "path": "results/mvp2/firmware/scenarios/alert.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "NORMAL": {
+          "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "WORST_REASONABLE_CASE": {
+          "path": "results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        }
+      },
+      "status": "COMPLETED"
     },
     "four_power_scenarios": {
-      "detail": "Only one host-harness trace is available; NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE must run through the FSM before energy comparison",
+      "detail": "NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed",
       "required": true,
-      "status": "NOT_AVAILABLE"
+      "scenarios": {
+        "ACTIVE": {
+          "event_charge": [
+            {
+              "charge_uah": 6.488888888888888e-05,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5163604444444445,
+          "modeled_window_s": 0.16,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/active",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "ALERT": {
+          "event_charge": [
+            {
+              "charge_uah": 6.488888888888888e-05,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5163604444444445,
+          "modeled_window_s": 0.16,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/alert",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "NORMAL": {
+          "event_charge": [
+            {
+              "charge_uah": 0.0004055555555555556,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 8.458333333333332e-05,
+              "component": "mcu",
+              "event": "SLEEP",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5142523611111112,
+          "modeled_window_s": 1.0,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/normal",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "WORST_REASONABLE_CASE": {
+          "event_charge": [
+            {
+              "charge_uah": 0.0002554999999999999,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.0025333333333333354,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444442,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.04222222222222222,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777774,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.25,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 6.431239944444444,
+          "modeled_window_s": 0.63,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/worst_reasonable_case",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        }
+      },
+      "status": "COMPLETED"
     },
     "gpu_optional": {
       "CUDA_AVAILABLE": false,
       "GPU_AVAILABLE": false,
       "GPU_TYPE": "NONE_DETECTED",
       "SIONNA_AVAILABLE": false,
+      "detail": "Sionna RT is optional; no GPU scenario blocks the digital twin core",
       "experiment": "OPTIONAL_GPU_EXPERIMENT",
+      "experiment_status": "SKIPPED_OPTIONAL",
       "required": false,
       "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
       "result_status": "ENVIRONMENT_CAPABILITY_ONLY",
+      "scenario_statuses": {
+        "TAG_TO_RECEIVER_10M": "SKIPPED_OPTIONAL",
+        "TAG_TO_RECEIVER_ORIENTATION_VARIANT": "SKIPPED_OPTIONAL",
+        "TAG_TO_RECEIVER_WITH_OBSTACLE": "SKIPPED_OPTIONAL"
+      },
       "status": "SKIPPED_OPTIONAL"
     },
     "host_trace_export": {
-      "path": "/home/lucas_coimbra/projects/riose/results/mvp2/firmware/firmware_trace.jsonl",
-      "required": false,
+      "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+      "required": true,
       "result_class": "SIMULATED_SOFTWARE_TRACE",
+      "return_code": 0,
+      "scenarios": {
+        "ACTIVE": {
+          "path": "results/mvp2/firmware/scenarios/active.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "ALERT": {
+          "path": "results/mvp2/firmware/scenarios/alert.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "NORMAL": {
+          "path": "results/mvp2/firmware/scenarios/normal.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        },
+        "WORST_REASONABLE_CASE": {
+          "path": "results/mvp2/firmware/scenarios/worst_reasonable_case.jsonl",
+          "result_class": "SIMULATED_SOFTWARE_TRACE",
+          "return_code": 0,
+          "status": "PASSED",
+          "stderr": ""
+        }
+      },
       "status": "PASSED",
-      "stderr": "",
-      "stdout": "24h mixed (INT1 disabled): simulated=86400000 ms TX=128 stationary=36 walking=24 running=32 abnormal=24 late-stationary=12 failures=0\n24h TX origin: deadline=128 escalation/event=0\n3h healthy stationary: TX=12 (900-s period, alert threshold=14400000 ms)\n3h prolonged active: TX=14 (burst=120000 ms, active cadence=60000 ms, normal=900000 ms)\n24h stationary alert profile: simulated=86400000 ms TX=108 threshold_ms=14400000 alert_period_ms=10000 final_behavior=3\nNORMAL 24h: TX=96 expected=96 (900-s cadence)\nACTIVE burst 2 min: TX=2 expected=2 (60-s cadence)\nALERT burst 2 min: TX=12 expected=12 (10-s cadence)\nRepeated ACTIVE events 24h: events=85 (~3.54/hour) TX=255 expected=85 events/255 TX\nPathological ALERT 3h: TX=24 expected=24 (13 including burst-end boundary + 11 normal heartbeats)\nHardware integration: 14 scenarios passed\nPower coverage: battery voltage is a static telemetry input only; brownout is unsupported by tag_hal_t.\n"
+      "stderr": ""
     },
     "long_duration_1_7_30_days": {
-      "detail": "Accelerated virtual-time execution for 1/7/30 days is not implemented in the available host harness",
+      "detail": "12 deterministic FSM long runs completed",
       "required": true,
-      "status": "NOT_AVAILABLE"
+      "result_class": "SIMULATED_SOFTWARE_RUN",
+      "runs": {
+        "ACTIVE_1d": {
+          "days": 1,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ACTIVE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 688,
+          "tx_count": 98,
+          "tx_latency_ms": 30,
+          "virtual_ms": 86520000
+        },
+        "ACTIVE_30d": {
+          "days": 30,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ACTIVE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 68476,
+          "tx_count": 9782,
+          "tx_latency_ms": 30,
+          "virtual_ms": 2592000000
+        },
+        "ACTIVE_7d": {
+          "days": 7,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ACTIVE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 4720,
+          "tx_count": 674,
+          "tx_latency_ms": 30,
+          "virtual_ms": 604920000
+        },
+        "ALERT_1d": {
+          "days": 1,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ALERT",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 758,
+          "tx_count": 108,
+          "tx_latency_ms": 30,
+          "virtual_ms": 86520000
+        },
+        "ALERT_30d": {
+          "days": 30,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ALERT",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 327301,
+          "tx_count": 46757,
+          "tx_latency_ms": 30,
+          "virtual_ms": 2592000000
+        },
+        "ALERT_7d": {
+          "days": 7,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "ALERT",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 4790,
+          "tx_count": 684,
+          "tx_latency_ms": 30,
+          "virtual_ms": 604920000
+        },
+        "NORMAL_1d": {
+          "days": 1,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "NORMAL",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 674,
+          "tx_count": 96,
+          "tx_latency_ms": 30,
+          "virtual_ms": 86400000
+        },
+        "NORMAL_30d": {
+          "days": 30,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "NORMAL",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 20162,
+          "tx_count": 2880,
+          "tx_latency_ms": 30,
+          "virtual_ms": 2592000000
+        },
+        "NORMAL_7d": {
+          "days": 7,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "NORMAL",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 4706,
+          "tx_count": 672,
+          "tx_latency_ms": 30,
+          "virtual_ms": 604800000
+        },
+        "WORST_REASONABLE_CASE_1d": {
+          "days": 1,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "WORST_REASONABLE_CASE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 688,
+          "tx_count": 98,
+          "tx_latency_ms": 500,
+          "virtual_ms": 86520000
+        },
+        "WORST_REASONABLE_CASE_30d": {
+          "days": 30,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "WORST_REASONABLE_CASE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 68476,
+          "tx_count": 9782,
+          "tx_latency_ms": 500,
+          "virtual_ms": 2592000000
+        },
+        "WORST_REASONABLE_CASE_7d": {
+          "days": 7,
+          "failures": 0,
+          "result_class": "SIMULATED",
+          "return_code": 0,
+          "scenario": "WORST_REASONABLE_CASE",
+          "schema_version": "riose.virtual-run/v1",
+          "status": "COMPLETED",
+          "steps": 4720,
+          "tx_count": 674,
+          "tx_latency_ms": 500,
+          "virtual_ms": 604920000
+        }
+      },
+      "status": "COMPLETED"
     },
     "mechanical": {
+      "cadquery_available": true,
       "checks": [
         {
           "name": "envelope_fit",
@@ -144,20 +871,36 @@
         }
       ],
       "command": [
-        "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
+        "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python",
         "/home/lucas_coimbra/projects/riose/hardware/mechanical/model.py",
         "--spec",
-        "/home/lucas_coimbra/projects/riose/hardware/spec.yaml",
+        "hardware/spec.yaml",
         "--output",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/mechanical/geometry.json"
+        "results/mvp2/mechanical/geometry.json",
+        "--step",
+        "results/mvp2/mechanical/ear_tag_assumed.step",
+        "--stl",
+        "results/mvp2/mechanical/ear_tag_assumed.stl"
       ],
-      "detail": "battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery; CadQuery STEP export unavailable",
+      "detail": "battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery",
+      "dimensions_status": [
+        "ASSUMED"
+      ],
+      "fit": {
+        "fits": false,
+        "issues": [
+          "battery envelope exceeds enclosure cavity",
+          "antenna_keepout envelope exceeds enclosure cavity",
+          "antenna keepout exceeds PCB envelope",
+          "unexpected envelope overlap: pcb / battery"
+        ]
+      },
       "required": true,
       "result_class": "SIMULATED_GEOMETRY_ESTIMATE",
       "return_code": 0,
-      "status": "NOT_AVAILABLE",
+      "status": "FAILED",
       "stderr": "",
-      "stdout": "{\"report\": \"/home/lucas_coimbra/projects/riose/results/mvp2/mechanical/geometry.json\", \"gate\": \"NOT_READY_FOR_PHYSICAL_PROTOTYPE\", \"fits\": false, \"cadquery_available\": false}\n"
+      "stdout": "{\"report\": \"results/mvp2/mechanical/geometry.json\", \"gate\": \"NOT_READY_FOR_PHYSICAL_PROTOTYPE\", \"fits\": false, \"cadquery_available\": true}\n"
     },
     "mvp1_c_tests": {
       "command": [
@@ -168,20 +911,11 @@
       "result_class": "SIMULATED_SOFTWARE_TESTS",
       "return_code": 0,
       "status": "PASSED",
-      "stderr": "",
-      "stdout": "cmake -S hardware/tests -B /tmp/cattle-rf-hardware-tests\n-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /tmp/cattle-rf-hardware-tests\ncmake --build /tmp/cattle-rf-hardware-tests\ngmake[1]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[2]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 11%] Built target lis2dw12_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 29%] Built target tag_firmware\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 41%] Built target sx1262_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 52%] Built target hardware_integration\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 64%] Built target sx1262_driver_config\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 76%] Built target tag_host_demo\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 88%] Built target sx1262_model_smoke\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[100%] Built target test_lis2dw12\ngmake[2]: Leaving directory '/tmp/cattle-rf-hardware-tests'\ngmake[1]: Leaving directory '/tmp/cattle-rf-hardware-tests'\nctest --test-dir /tmp/cattle-rf-hardware-tests --output-on-failure\nInternal ctest changing into directory: /tmp/cattle-rf-hardware-tests\nTest project /tmp/cattle-rf-hardware-tests\n    Start 1: hardware_integration\n1/6 Test #1: hardware_integration .............   Passed    0.00 sec\n    Start 2: firmware_trace_export\n2/6 Test #2: firmware_trace_export ............   Passed    0.00 sec\n    Start 3: sx1262_driver_config\n3/6 Test #3: sx1262_driver_config .............   Passed    0.00 sec\n    Start 4: tag_host_cycle\n4/6 Test #4: tag_host_cycle ...................   Passed    0.00 sec\n    Start 5: sx1262_model_smoke\n5/6 Test #5: sx1262_model_smoke ...............   Passed    0.00 sec\n    Start 6: lis2dw12_model\n6/6 Test #6: lis2dw12_model ...................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 6\n\nTotal Test time (real) =   0.01 sec\n"
+      "stderr": "cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by cmake)\ncmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\nctest: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by ctest)\n",
+      "stdout": "cmake -S hardware/tests -B /tmp/cattle-rf-hardware-tests\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /tmp/cattle-rf-hardware-tests\ncmake --build /tmp/cattle-rf-hardware-tests\ngmake[1]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[2]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 17%] Built target tag_firmware\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 29%] Built target lis2dw12_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 41%] Built target sx1262_model\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 52%] Built target hardware_integration\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 64%] Built target sx1262_driver_config\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 76%] Built target tag_host_demo\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[ 88%] Built target sx1262_model_smoke\ngmake[3]: Entering directory '/tmp/cattle-rf-hardware-tests'\ngmake[3]: Leaving directory '/tmp/cattle-rf-hardware-tests'\n[100%] Built target test_lis2dw12\ngmake[2]: Leaving directory '/tmp/cattle-rf-hardware-tests'\ngmake[1]: Leaving directory '/tmp/cattle-rf-hardware-tests'\nctest --test-dir /tmp/cattle-rf-hardware-tests --output-on-failure\nInternal ctest changing into directory: /tmp/cattle-rf-hardware-tests\nTest project /tmp/cattle-rf-hardware-tests\n      Start  1: hardware_integration\n 1/23 Test  #1: hardware_integration ...................   Passed    0.00 sec\n      Start  2: firmware_trace_export\n 2/23 Test  #2: firmware_trace_export ..................   Passed    0.00 sec\n      Start  3: firmware_trace_normal\n 3/23 Test  #3: firmware_trace_normal ..................   Passed    0.00 sec\n      Start  4: firmware_trace_active\n 4/23 Test  #4: firmware_trace_active ..................   Passed    0.00 sec\n      Start  5: firmware_trace_alert\n 5/23 Test  #5: firmware_trace_alert ...................   Passed    0.00 sec\n      Start  6: firmware_trace_worst_reasonable_case\n 6/23 Test  #6: firmware_trace_worst_reasonable_case ...   Passed    0.00 sec\n      Start  7: firmware_trace_schema\n 7/23 Test  #7: firmware_trace_schema ..................   Passed    0.02 sec\n      Start  8: virtual_normal_1d\n 8/23 Test  #8: virtual_normal_1d ......................   Passed    0.00 sec\n      Start  9: virtual_active_1d\n 9/23 Test  #9: virtual_active_1d ......................   Passed    0.00 sec\n      Start 10: virtual_alert_1d\n10/23 Test #10: virtual_alert_1d .......................   Passed    0.00 sec\n      Start 11: virtual_worst_reasonable_case_1d\n11/23 Test #11: virtual_worst_reasonable_case_1d .......   Passed    0.00 sec\n      Start 12: virtual_normal_7d\n12/23 Test #12: virtual_normal_7d ......................   Passed    0.00 sec\n      Start 13: virtual_active_7d\n13/23 Test #13: virtual_active_7d ......................   Passed    0.00 sec\n      Start 14: virtual_alert_7d\n14/23 Test #14: virtual_alert_7d .......................   Passed    0.00 sec\n      Start 15: virtual_worst_reasonable_case_7d\n15/23 Test #15: virtual_worst_reasonable_case_7d .......   Passed    0.00 sec\n      Start 16: virtual_normal_30d\n16/23 Test #16: virtual_normal_30d .....................   Passed    0.00 sec\n      Start 17: virtual_active_30d\n17/23 Test #17: virtual_active_30d .....................   Passed    0.01 sec\n      Start 18: virtual_alert_30d\n18/23 Test #18: virtual_alert_30d ......................   Passed    0.06 sec\n      Start 19: virtual_worst_reasonable_case_30d\n19/23 Test #19: virtual_worst_reasonable_case_30d ......   Passed    0.01 sec\n      Start 20: sx1262_driver_config\n20/23 Test #20: sx1262_driver_config ...................   Passed    0.00 sec\n      Start 21: tag_host_cycle\n21/23 Test #21: tag_host_cycle .........................   Passed    0.00 sec\n      Start 22: sx1262_model_smoke\n22/23 Test #22: sx1262_model_smoke .....................   Passed    0.00 sec\n      Start 23: lis2dw12_model\n23/23 Test #23: lis2dw12_model .........................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 23\n\nTotal Test time (real) =   0.13 sec\n"
     },
     "power": {
-      "command": [
-        "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
-        "/home/lucas_coimbra/projects/riose/hardware/spice/mvp2_power.py",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/power/schedule.jsonl",
-        "--assumptions",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/power/assumptions.json",
-        "--output",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/power"
-      ],
-      "detail": "Assumed-current charge integration completed; ngspice rail simulation was not executed",
+      "detail": "Four scenario rail simulations completed",
       "event_charge": [
         {
           "charge_uah": 0.0004055555555555556,
@@ -202,7 +936,7 @@
           "status": "SIMULATED"
         },
         {
-          "charge_uah": 0.0003377777777777778,
+          "charge_uah": 0.002533333333333333,
           "component": "mcu",
           "event": "RF_TX",
           "status": "SIMULATED"
@@ -214,35 +948,252 @@
           "status": "SIMULATED"
         },
         {
-          "charge_uah": 8.71111111111111e-05,
+          "charge_uah": 8.458333333333332e-05,
           "component": "mcu",
           "event": "SLEEP",
           "status": "SIMULATED"
         },
         {
-          "charge_uah": 0.049999999999999996,
+          "charge_uah": 0.37499999999999994,
           "component": "sx1262",
           "event": "TX",
           "status": "SIMULATED"
         }
       ],
-      "modeled_charge_uah": 0.18705933333333333,
+      "modeled_charge_uah": 0.5142523611111112,
       "modeled_window_s": 1.0,
-      "ngspice_status": "NOT_AVAILABLE",
+      "ngspice_status": "EXECUTED",
       "required": true,
       "result_class": "SIMULATED",
-      "return_code": 0,
-      "status": "NOT_AVAILABLE",
-      "stderr": "",
-      "stdout": "status=SIMULATED ngspice=NOT_AVAILABLE window_s=1\ncharge_uah=0.187059333 mAh_per_day=None\noutputs=/home/lucas_coimbra/projects/riose/results/mvp2/power\n"
+      "scenarios": {
+        "ACTIVE": {
+          "event_charge": [
+            {
+              "charge_uah": 6.488888888888888e-05,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5163604444444445,
+          "modeled_window_s": 0.16,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/active",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "ALERT": {
+          "event_charge": [
+            {
+              "charge_uah": 6.488888888888888e-05,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5163604444444445,
+          "modeled_window_s": 0.16,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/alert",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "NORMAL": {
+          "event_charge": [
+            {
+              "charge_uah": 0.0004055555555555556,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444444,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.002533333333333333,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777777,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 8.458333333333332e-05,
+              "component": "mcu",
+              "event": "SLEEP",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.37499999999999994,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 0.5142523611111112,
+          "modeled_window_s": 1.0,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/normal",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        },
+        "WORST_REASONABLE_CASE": {
+          "event_charge": [
+            {
+              "charge_uah": 0.0002554999999999999,
+              "component": "idle_baseline",
+              "event": "IDLE_BASELINE",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.0025333333333333354,
+              "component": "mcu",
+              "event": "IMU_MONITORING",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.666666666666667e-06,
+              "component": "lis2dw12",
+              "event": "IMU_READ",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.008444444444444442,
+              "component": "mcu",
+              "event": "RF_RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.04222222222222222,
+              "component": "mcu",
+              "event": "RF_TX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 0.12777777777777774,
+              "component": "sx1262",
+              "event": "RX",
+              "status": "SIMULATED"
+            },
+            {
+              "charge_uah": 6.25,
+              "component": "sx1262",
+              "event": "TX",
+              "status": "SIMULATED"
+            }
+          ],
+          "modeled_charge_uah": 6.431239944444444,
+          "modeled_window_s": 0.63,
+          "ngspice_status": "EXECUTED",
+          "outputs": "results/mvp2/power/worst_reasonable_case",
+          "result_class": "SIMULATED",
+          "status": "COMPLETED"
+        }
+      },
+      "status": "COMPLETED"
     },
     "renode_firmware": {
-      "detail": "Renode and renode-test are required for the MCU/bus twin",
+      "command": [
+        "/home/lucas_coimbra/.local/bin/renode-test",
+        "/home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot"
+      ],
+      "detail": "Renode platform smoke and Zephyr ELF execution completed",
+      "firmware_elf": "/home/lucas_coimbra/projects/riose/results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
+      "firmware_elf_supplied": true,
+      "log_excerpt": "/platform-smoke.robot\n\nStarting suites\nRunning suite on Renode pid 144574 using port 49152: /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 4.92 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.22 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 1.73 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 144574\nRenode pid 144574 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/projects/riose/robot_output.xml\nLog:     /home/lucas_coimbra/projects/riose/log.html\nReport:  /home/lucas_coimbra/projects/riose/report.html\nTests finished successfully :)\n",
       "required": true,
-      "status": "NOT_AVAILABLE"
+      "return_code": 0,
+      "status": "PASSED",
+      "stderr": "",
+      "stdout": "Preparing suites\nWill run the following 1 test files:\n  - /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n\nStarting suites\nRunning suite on Renode pid 144574 using port 49152: /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot\n+++++ Starting test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals'\n+++++ Finished test 'platform-smoke.Loads MCU Surrogate And Custom Peripherals' in 4.92 seconds with status \u001b[92mOK\u001b[0m\n+++++ Starting test 'platform-smoke.Loads Firmware When Provided'\n+++++ Finished test 'platform-smoke.Loads Firmware When Provided' in 0.22 seconds with status \u001b[92mOK\u001b[0m\nSuite /home/lucas_coimbra/projects/riose/hardware/renode/tests/platform-smoke.robot finished successfully in 1.73 seconds.\n+++++ Finished suite \u001b[95m1/1\u001b[0m\nCleaning up suites\nClosing Renode pid 144574\nRenode pid 144574 closed\nAggregating all robot results\nOutput:  /home/lucas_coimbra/projects/riose/robot_output.xml\nLog:     /home/lucas_coimbra/projects/riose/log.html\nReport:  /home/lucas_coimbra/projects/riose/report.html\nTests finished successfully :)\n"
     },
     "synthetic_motion": {
-      "path": "/home/lucas_coimbra/projects/riose/results/mvp2/firmware/motion_profiles.csv",
+      "path": "results/mvp2/firmware/motion_profiles.csv",
       "physical_hardware_used": false,
       "profiles": [
         "STATIC",
@@ -258,25 +1209,32 @@
       "status": "COMPLETED"
     },
     "trace_schedule": {
-      "command": [
-        "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
-        "/home/lucas_coimbra/projects/riose/hardware/spice/trace_adapter.py",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/firmware/firmware_trace.jsonl",
-        "--loads",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/power/assumed_load_profile.json",
-        "--output",
-        "/home/lucas_coimbra/projects/riose/results/mvp2/power/schedule.jsonl"
+      "required": true,
+      "scenarios": [
+        "NORMAL",
+        "ACTIVE",
+        "ALERT",
+        "WORST_REASONABLE_CASE"
       ],
+      "status": "PASSED"
+    },
+    "zephyr_firmware": {
+      "command": [
+        "/home/lucas_coimbra/zephyrproject/.venv/bin/west",
+        "build",
+        "-b",
+        "nucleo_l031k6",
+        "/home/lucas_coimbra/projects/riose/hardware/firmware/zephyr",
+        "-d",
+        "results/mvp2/firmware/zephyr-build"
+      ],
+      "detail": "Built target firmware for nucleo_l031k6",
+      "elf": "results/mvp2/firmware/zephyr-build/zephyr/zephyr.elf",
       "required": true,
       "return_code": 0,
       "status": "PASSED",
-      "stderr": "",
-      "stdout": ""
-    },
-    "zephyr_firmware": {
-      "detail": "Zephyr SDK/workspace is not configured; host C tests do not validate the Zephyr target",
-      "required": true,
-      "status": "NOT_AVAILABLE"
+      "stderr": "/usr/bin/cmake: /home/lucas_coimbra/.local/share/mamba/envs/riose-mvp2-cad/lib/libcurl.so.4: no version information available (required by /usr/bin/cmake)\n",
+      "stdout": "ninja: no work to do.\n"
     }
   }
 }

@@ -76,6 +76,7 @@ def trace_to_schedule(records: list[dict[str, Any]],
         raise TraceConversionError("trace contains no records")
     parsed = []
     previous_us = -1
+    previous_sequence = -1
     for index, record in enumerate(records, start=1):
         if record.get("status") != "SIMULATED":
             raise TraceConversionError(f"record {index}: expected status=SIMULATED")
@@ -85,6 +86,16 @@ def trace_to_schedule(records: list[dict[str, Any]],
         previous_us = timestamp_us
         if not record.get("event") or not record.get("state"):
             raise TraceConversionError(f"record {index}: event and state are required")
+        schema = record.get("schema_version")
+        if schema is not None and schema != "riose.firmware.trace/v1":
+            raise TraceConversionError(f"record {index}: unsupported schema_version {schema!r}")
+        if "sequence" in record:
+            sequence = record["sequence"]
+            if isinstance(sequence, bool) or not isinstance(sequence, int):
+                raise TraceConversionError(f"record {index}: sequence must be an integer")
+            if sequence != previous_sequence + 1:
+                raise TraceConversionError(f"record {index}: sequence must be contiguous from zero")
+            previous_sequence = sequence
         parsed.append({**record, "_timestamp_s": timestamp_us / 1_000_000.0})
 
     rows: list[dict[str, Any]] = []

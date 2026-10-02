@@ -16,13 +16,14 @@ adapter = load_module("trace_adapter", BASE / "trace_adapter.py")
 power = load_module("mvp2_power", BASE / "mvp2_power.py")
 
 
-def record(timestamp_ms, event, state, value0=0):
+def record(timestamp_ms, event, state, value0=0, sequence=None):
     return {
+        "schema_version": "riose.firmware.trace/v1",
         "status": "SIMULATED", "timestamp_us": timestamp_ms * 1000,
         "state": state, "state_id": 0, "event": event, "event_id": 0,
         "source": "FIRMWARE", "source_id": 1, "result": 0,
         "value0": value0, "value1": 0, "value2": 0,
-    }
+    } | ({"sequence": sequence} if sequence is not None else {})
 
 
 class FirmwareTraceAdapterTests(unittest.TestCase):
@@ -107,6 +108,12 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         }}
         with self.assertRaisesRegex(adapter.TraceConversionError, "must be ASSUMED"):
             adapter.trace_to_schedule(trace, loads)
+
+    def test_versioned_trace_requires_contiguous_sequence(self):
+        records = [record(0, "STATE", "SLEEP", sequence=0),
+                   record(1, "STATE", "RF_TX", sequence=3)]
+        with self.assertRaisesRegex(adapter.TraceConversionError, "contiguous"):
+            adapter.trace_to_schedule(records, {})
 
 
 if __name__ == "__main__":

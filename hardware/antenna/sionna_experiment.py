@@ -1,0 +1,90 @@
+"""Optional Sionna RT capability/scenario runner; never blocks core validation."""
+
+from __future__ import annotations
+
+import argparse
+import importlib
+import json
+import os
+from importlib import metadata
+from pathlib import Path
+from typing import Any
+
+from .capabilities import detect_capabilities
+
+
+SCHEMA_VERSION = "riose.sionna.experiment/v1"
+SCENARIOS = ("TAG_TO_RECEIVER_10M", "TAG_TO_RECEIVER_WITH_OBSTACLE", "TAG_TO_RECEIVER_ORIENTATION_VARIANT")
+
+
+def _version(package: str) -> str | None:
+    try:
+        return metadata.version(package)
+    except metadata.PackageNotFoundError:
+        return None
+
+
+def run_experiment(output_dir: Path, spec_path: Path | None = None,
+                   capabilities: dict[str, Any] | None = None,
+                   adapter_name: str | None = None) -> dict[str, Any]:
+    caps = capabilities or detect_capabilities()
+    adapter_name = adapter_name or os.environ.get("RIOSE_SIONNA_ADAPTER")
+    rows: list[dict[str, Any]] = []
+    eligible = bool(caps.get("CUDA_AVAILABLE") and caps.get("SIONNA_AVAILABLE"))
+    for scenario in SCENARIOS:
+        base = {"scenario": scenario, "experiment": "OPTIONAL_GPU_EXPERIMENT",
+                "gpu_type": caps.get("GPU_TYPE", "UNKNOWN"),
+                "cuda_available": bool(caps.get("CUDA_AVAILABLE")),
+                "sionna_available": bool(caps.get("SIONNA_AVAILABLE")),
+                "sionna_version": _version("sionna") if caps.get("SIONNA_AVAILABLE") else None,
+                "status": "SIMULATED"}
+        if not eligible:
+            rows.append({**base, "status": "SKIPPED_OPTIONAL",
+                         "detail": "CUDA and Sionna RT are both required for this optional experiment",
+                         "result_class": "ENVIRONMENT_CAPABILITY_ONLY", "metrics": None})
+            continue
+        if not adapter_name:
+            rows.append({**base, "status": "NOT_AVAILABLE",
+                         "detail": "Sionna/CUDA detected but no RIOSE_SIONNA_ADAPTER is configured",
+                         "result_class": "NO_SIMULATION_RESULT", "metrics": None})
+            continue
+        try:
+            adapter = importlib.import_module(adapter_name)
+            result = adapter.simulate(scenario=scenario, spec_path=str(spec_path) if spec_path else None,
+                                      output_dir=str(output_dir))
+            if not isinstance(result, dict) or result.get("status") != "COMPLETED":
+                rows.append({**base, "status": "FAILED",
+                             "detail": result.get("detail", "adapter did not complete") if isinstance(result, dict) else "invalid adapter response",
+                             "result_class": "NO_SIMULATION_RESULT", "metrics": None})
+                continue
+            rows.append({**base, **result, "scenario": scenario,
+                         "status": "COMPLETED", "result_class": "SIMULATED"})
+        except Exception as exc:  # optional plugin failures are recorded, never promoted to core failures
+            rows.append({**base, "status": "FAILED", "detail": f"{type(exc).__name__}: {exc}",
+                         "result_class": "NO_SIMULATION_RESULT", "metrics": None})
+    statuses = {row["status"] for row in rows}
+    status = "SKIPPED_OPTIONAL" if statuses == {"SKIPPED_OPTIONAL"} else (
+        "COMPLETED" if rows and statuses == {"COMPLETED"} else "PARTIAL_OR_BLOCKED"
+    )
+    manifest = {"schema_version": SCHEMA_VERSION, "experiment": "OPTIONAL_GPU_EXPERIMENT",
+                "status": status, "required": False, "capabilities": caps,
+                "scenarios": rows, "physical_hardware_used": False,
+                "limitations": ["Sionna RT results are exploratory and do not replace openEMS or physical RF validation."]}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "sionna_experiment.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    return manifest
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--spec", type=Path)
+    parser.add_argument("--output", type=Path, default=Path("results/mvp2/antenna/sionna"))
+    args = parser.parse_args(argv)
+    result = run_experiment(args.output, args.spec)
+    print(json.dumps({"status": result["status"], "scenarios": len(result["scenarios"]),
+                      "output": str(args.output)}, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

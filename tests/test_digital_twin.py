@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from riose.digital_twin.cli import _power_assumptions, _power_load_profile, generate_motion_profiles
+from riose.digital_twin.cli import (_power_assumptions, _power_load_profile, _version_matches,
+                                    generate_motion_profiles, preflight)
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
 
 
@@ -30,6 +31,34 @@ def test_gate_requires_success_then_human_approvals():
     assert evaluate_gate(spec, stages)["state"] == "READY_FOR_PHYSICAL_PROTOTYPE"
     stages["core"]["status"] = "NOT_AVAILABLE"
     assert evaluate_gate(spec, stages)["state"] == "NOT_READY_FOR_PHYSICAL_PROTOTYPE"
+    assert evaluate_gate(spec, stages, required_stage_names=("renode",))["state"] == "NOT_READY_FOR_PHYSICAL_PROTOTYPE"
+    assert "renode: MISSING" in evaluate_gate(spec, stages, required_stage_names=("renode",))["blockers"]
+
+
+def test_spec_rejects_incomplete_or_nonfinite_parameter_records():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    del spec["components"]["mcu"]["run_current_ma"]["source"]
+    with pytest.raises(SpecError, match="missing source"):
+        validate_spec(spec)
+
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    spec["components"]["mcu"]["run_current_ma"]["value"] = float("nan")
+    with pytest.raises(SpecError, match="finite"):
+        validate_spec(spec)
+
+
+def test_spec_rejects_unreviewable_gate_approval_value():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    spec["gate"]["approval"]["antenna"] = "MAYBE"
+    with pytest.raises(SpecError, match="PENDING or APPROVED"):
+        validate_spec(spec)
+
+
+def test_spec_rejects_unknown_unit():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    spec["components"]["mcu"]["run_current_ma"]["unit"] = "milliamps-ish"
+    with pytest.raises(SpecError, match="unit is unsupported"):
+        validate_spec(spec)
 
 
 def test_power_profile_carries_assumed_current_sources():
@@ -58,3 +87,22 @@ def test_motion_inputs_are_seeded_and_explicitly_synthetic(tmp_path):
     assert first.read_bytes() == second.read_bytes()
     assert first.read_text().count("SIMULATED") == 20
     assert "animal_measurement" in first.read_text()
+
+
+def test_preflight_reports_versions_without_requiring_optional_solvers():
+    report = preflight()
+    assert report["status"] == "ENVIRONMENT_PROBE_ONLY"
+    assert report["versions"]["python3"]["status"] == "AVAILABLE"
+    assert report["versions"]["ngspice"]["status"] in {"AVAILABLE", "NOT_AVAILABLE"}
+    assert report["versions"]["python3"]["expected"] == "3.12.x"
+    assert report["versions"]["python3"]["matches_expected"] in {True, False}
+    assert report["versions"]["zephyr"]["status"] in {"AVAILABLE", "NOT_CONFIGURED"}
+    assert Path(report["toolchain_manifest"]).is_file()
+    assert report["gpu"]["experiment"] == "OPTIONAL_GPU_EXPERIMENT"
+
+
+def test_preflight_version_comparison_handles_prereleases_and_minor_pins():
+    assert _version_matches("4.2.1", "Zephyr 4.2.1") is True
+    assert _version_matches("0.37.0-rc3", "openEMS 0.37.0rc3") is True
+    assert _version_matches("3.12.x", "Python 3.12.14") is True
+    assert _version_matches("3.12.x", "Python 3.13.0") is False

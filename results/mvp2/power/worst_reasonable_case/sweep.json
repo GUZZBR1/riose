@@ -1,0 +1,171 @@
+[
+  {
+    "case": "BASELINE",
+    "overrides": {},
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_voltage_v=3",
+    "overrides": {
+      "battery_voltage_v": 3.0
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0586316905882 0.03 0.0586316905882 0.030001 0.0586306552941 0.5 0.0586306552941 0.500001 0.00634830235294 0.6 0.00634830235294 0.600001 0.000395361176471 0.63 0.000395361176471)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_voltage_v=3.3",
+    "overrides": {
+      "battery_voltage_v": 3.3
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.3 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0533015423529 0.03 0.0533015423529 0.030001 0.0533006011765 0.5 0.0533006011765 0.500001 0.00577118941176 0.6 0.00577118941176 0.600001 0.000359424705882 0.63 0.000359424705882)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_voltage_v=3.6",
+    "overrides": {
+      "battery_voltage_v": 3.6
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_esr_ohm=0.1",
+    "overrides": {
+      "battery_esr_ohm": 0.1
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.1 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_esr_ohm=0.25",
+    "overrides": {
+      "battery_esr_ohm": 0.25
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "battery_esr_ohm=0.5",
+    "overrides": {
+      "battery_esr_ohm": 0.5
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.5 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "regulator_efficiency=0.7",
+    "overrides": {
+      "regulator_efficiency": 0.7
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.7\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0593296861905 0.03 0.0593296861905 0.030001 0.0593286385714 0.5 0.0593286385714 0.500001 0.00642387666667 0.6 0.00642387666667 0.600001 0.000400067142857 0.63 0.000400067142857)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "regulator_efficiency=0.85",
+    "overrides": {
+      "regulator_efficiency": 0.85
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "regulator_efficiency=0.95",
+    "overrides": {
+      "regulator_efficiency": 0.95
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.95\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0437166266667 0.03 0.0437166266667 0.030001 0.0437158547368 0.5 0.0437158547368 0.500001 0.00473339859649 0.6 0.00473339859649 0.600001 0.000294802105263 0.63 0.000294802105263)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "output_capacitance_f=3.76e-05",
+    "overrides": {
+      "output_capacitance_f": 3.76e-05
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=3.76e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "output_capacitance_f=4.7e-05",
+    "overrides": {
+      "output_capacitance_f": 4.7e-05
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "output_capacitance_f=5.64e-05",
+    "overrides": {
+      "output_capacitance_f": 5.6399999999999995e-05
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=5.64e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "temperature_c_assumption=-10",
+    "overrides": {
+      "temperature_c_assumption": -10.0
+    },
+    "temperature_status": "ASSUMED_SCENARIO_ONLY_NO_TEMPERATURE_MODEL",
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "temperature_c_assumption=25",
+    "overrides": {
+      "temperature_c_assumption": 25.0
+    },
+    "temperature_status": "ASSUMED_SCENARIO_ONLY_NO_TEMPERATURE_MODEL",
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "temperature_c_assumption=50",
+    "overrides": {
+      "temperature_c_assumption": 50.0
+    },
+    "temperature_status": "ASSUMED_SCENARIO_ONLY_NO_TEMPERATURE_MODEL",
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "tx_current_scale=0.8",
+    "overrides": {
+      "tx_current_scale": 0.8
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0390883011765 0.03 0.0390883011765 0.030001 0.0390874384314 0.5 0.0390874384314 0.500001 0.00429810509804 0.6 0.00429810509804 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.03624546 0.03 0.03624546 0.030001 0.03624466 0.5 0.03624466 0.500001 0.00398546 0.6 0.00398546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "tx_current_scale=1",
+    "overrides": {
+      "tx_current_scale": 1.0
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.0488588894118 0.5 0.0488588894118 0.500001 0.00529026196078 0.6 0.00529026196078 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.04530546 0.5 0.04530546 0.500001 0.00490546 0.6 0.00490546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  },
+  {
+    "case": "tx_current_scale=1.2",
+    "overrides": {
+      "tx_current_scale": 1.2
+    },
+    "temperature_status": null,
+    "netlist": "* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.\n* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.\n.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05\n.param BROWNOUT=2.7 EFF=0.85\nVcell cell_src 0 DC {VBAT}\nRcell cell_src battery {RBAT}\nIbattery battery 0 PWL(0 0.0586312031373 0.03 0.0586312031373 0.030001 0.0586303403922 0.5 0.0586303403922 0.500001 0.00628241882353 0.6 0.00628241882353 0.600001 0.000329477647059 0.63 0.000329477647059)\n* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.\nVreg reg_src 0 DC {VREG}\nRreg reg_src rail {RREG}\nCout rail 0 {COUT} IC={VREG}\nIload rail 0 PWL(0 0.05436706 0.03 0.05436706 0.030001 0.05436626 0.5 0.05436626 0.500001 0.00582546 0.6 0.00582546 0.600001 0.00030546 0.63 0.00030546)\n.control\nset noaskquit\nset wr_singlescale\ntran 6.3e-05 0.63 0 6.3e-05 uic\nmeas tran rail_min MIN v(rail)\nmeas tran rail_max MAX v(rail)\nmeas tran battery_min MIN v(battery)\nmeas tran battery_current_peak MIN i(Vcell)\nwrdata power_waveform.dat v(rail) i(Vcell)\nquit\n.endc\n.end\n",
+    "status": "SIMULATED_DECK_GENERATED_NOT_EXECUTED"
+  }
+]

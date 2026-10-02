@@ -26,8 +26,9 @@ SCHEMA_VERSION = "riose.antenna.experiments/v1"
 METRIC_FIELDS = (
     "resonant_frequency_hz", "s11_min_db", "input_impedance_real_ohm",
     "input_impedance_imag_ohm", "vswr_min", "efficiency_fraction",
-    "gain_dbi", "radiation_pattern_path",
+    "gain_dbi", "s11_curve_path", "radiation_pattern_path",
 )
+NUMERIC_METRICS = tuple(field for field in METRIC_FIELDS if not field.endswith("_path"))
 SCENARIO_ASSUMPTIONS = {
     "ANTENNA_FREE_SPACE": [],
     "ANTENNA_WITH_PCB": ["PCB geometry/material approximation required"],
@@ -168,10 +169,33 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
                                       freq, topology, element_length, feed, clearance))
             continue
         metrics = result.get("metrics", {})
+        evidence = result.get("evidence", {})
+        missing = [field for field in METRIC_FIELDS if metrics.get(field) in (None, "")]
+        for field in NUMERIC_METRICS:
+            try:
+                if not math.isfinite(float(metrics.get(field))):
+                    missing.append(field)
+            except (TypeError, ValueError):
+                missing.append(field)
+        for field in ("solver_version", "geometry_hash", "mesh", "converged"):
+            if evidence.get(field) in (None, "", False):
+                missing.append(f"evidence.{field}")
+        geometry_hash = str(evidence.get("geometry_hash", ""))
+        if geometry_hash and (len(geometry_hash) != 64 or any(c not in "0123456789abcdef" for c in geometry_hash.lower())):
+            missing.append("evidence.geometry_hash_sha256")
+        artifact_paths = [metrics.get("s11_curve_path"), metrics.get("radiation_pattern_path")]
+        for artifact in artifact_paths:
+            if artifact and not (output_dir / artifact).is_file():
+                missing.append(f"artifact.{artifact}")
+        if missing:
+            detail = "incomplete openEMS result/provenance: " + ", ".join(sorted(set(missing)))
+            rows.append(_scenario_row(name, "FAILED", detail, SCENARIO_ASSUMPTIONS[name],
+                                      freq, topology, element_length, feed, clearance))
+            continue
         row = _scenario_row(name, "COMPLETED", result.get("detail"),
                             SCENARIO_ASSUMPTIONS[name], freq, topology, element_length, feed, clearance)
-        for field in METRIC_FIELDS:
-            row[field] = metrics.get(field)
+        row.update({field: metrics[field] for field in METRIC_FIELDS})
+        row["solver_evidence"] = evidence
         rows.append(row)
 
     aggregate_status = "COMPLETED" if rows and all(row["status"] == "COMPLETED" for row in rows) else (

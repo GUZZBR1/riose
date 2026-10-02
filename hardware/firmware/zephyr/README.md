@@ -19,9 +19,9 @@ current, and interrupt timing remain unverified on silicon.
 
 The portable FSM exposes an optional non-blocking `tag_hal_t.trace_event`
 callback. Zephyr targets emit records to the console as comma-separated
-`SIMULATED_TRACE` lines with fields:
+`SIMULATED_TRACE,v1` lines with fields:
 
-`timestamp_us,state,event,source,result,value0,value1,value2`
+`sequence,timestamp_us,state_id,event,event_id,source_id,result,value0,value1,value2`
 
 The timestamp is derived from the virtual/Zephyr millisecond clock and is
 therefore quantized to 1 ms; the `_us` suffix provides a consistent unit, not
@@ -31,7 +31,9 @@ IMU axes (signed values represented in 32-bit two's-complement), packet length,
 sequence, behavior, TX configuration, IRQ flags, sleep duration, or failure
 count. All trace lines are labeled `SIMULATED_TRACE`; they are software/model
 events, not electrical measurements. Existing GPIO state-trace output remains
-available and unchanged. A null callback keeps MVP 1 integrations silent.
+available and unchanged. A null callback keeps MVP 1 integrations silent. The
+`trace_export.py` helper normalizes console captures to the shared
+`riose.firmware.trace/v1` JSONL schema and checks sequence/timestamp integrity.
 
 `boards/native_sim_bus_emul.overlay` is an optional bus-emulator wiring template.
 The validated native_sim path uses the same standalone C peripheral models as
@@ -155,3 +157,17 @@ Zephyr native_sim has documented SPI, I2C and GPIO emulation support; the bus
 emulators still require peripheral-specific responder implementations:
 [native_sim board documentation](https://docs.zephyrproject.org/latest/boards/native/native_sim/doc/index.html),
 [bus-connected device emulator documentation](https://docs.zephyrproject.org/latest/hardware/emulator/bus_emulators.html).
+# Zephyr firmware trace export
+
+The firmware emits compact `SIMULATED_TRACE,v1` records to the Zephyr log
+backend. Capture the console output, then normalize it to the shared versioned
+JSONL schema with:
+
+```sh
+python3 hardware/firmware/zephyr/trace_export.py capture.log \
+  --output results/mvp2/firmware/zephyr-trace.jsonl
+```
+
+The normalizer rejects missing records, malformed rows, sequence gaps, and
+non-monotonic virtual timestamps. A normalized trace is protocol/test evidence
+only; the timestamp is virtual time and does not measure current or RF behavior.

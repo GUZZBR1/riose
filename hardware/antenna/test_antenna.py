@@ -1,5 +1,7 @@
 import csv
 import json
+import sys
+import types
 
 import pytest
 
@@ -61,3 +63,40 @@ def test_gpu_capabilities_report_is_optional_and_machine_readable():
     assert {"GPU_AVAILABLE", "GPU_TYPE", "CUDA_AVAILABLE", "SIONNA_AVAILABLE"} <= report.keys()
     assert report["experiment"] == "OPTIONAL_GPU_EXPERIMENT"
     assert report["result_status"] == "ENVIRONMENT_CAPABILITY_ONLY"
+
+
+def test_openems_adapter_cannot_mark_incomplete_metrics_as_completed(tmp_path, monkeypatch):
+    monkeypatch.setattr(antenna_run, "_openems_available", lambda: (True, None))
+    monkeypatch.setenv("RIOSE_OPENEMS_ADAPTER", "openems_test_adapter")
+    adapter = types.SimpleNamespace(simulate=lambda **kwargs: {"status": "COMPLETED", "metrics": {}})
+    monkeypatch.setitem(sys.modules, "openems_test_adapter", adapter)
+    result = antenna_run.run_experiments(None, tmp_path, [SCENARIOS[0]])
+    row = result["scenarios"][0]
+    assert row["status"] == "FAILED"
+    assert row["s11_min_db"] is None
+    assert "incomplete openEMS result/provenance" in row["detail"]
+
+
+def test_openems_adapter_requires_solver_and_mesh_evidence_artifacts(tmp_path, monkeypatch):
+    monkeypatch.setattr(antenna_run, "_openems_available", lambda: (True, None))
+    monkeypatch.setenv("RIOSE_OPENEMS_ADAPTER", "openems_test_adapter")
+
+    def simulate(**kwargs):
+        output = __import__("pathlib").Path(kwargs["output_dir"])
+        (output / "s11.csv").write_text("frequency_hz,s11_db\n915000000,-3\n")
+        (output / "pattern.csv").write_text("theta,phi,gain_dbi\n0,0,1\n")
+        return {
+            "status": "COMPLETED", "metrics": {
+                "resonant_frequency_hz": 915000000, "s11_min_db": -3,
+                "input_impedance_real_ohm": 50, "input_impedance_imag_ohm": 0,
+                "vswr_min": 1.2, "efficiency_fraction": 0.4, "gain_dbi": 1.0,
+                "s11_curve_path": "s11.csv", "radiation_pattern_path": "pattern.csv",
+            }, "evidence": {"solver_version": "test", "geometry_hash": "a" * 64,
+                            "mesh": {"cells": 100}, "converged": True},
+        }
+
+    monkeypatch.setitem(sys.modules, "openems_test_adapter", types.SimpleNamespace(simulate=simulate))
+    result = antenna_run.run_experiments(None, tmp_path, [SCENARIOS[0]])
+    assert result["status"] == "COMPLETED"
+    assert result["scenarios"][0]["solver_evidence"]["converged"] is True
+    assert result["scenarios"][0]["s11_curve_path"] == "s11.csv"

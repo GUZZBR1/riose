@@ -1,0 +1,18 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * riose mvp2 power twin -- simulated; all component/regulator/cell values assumed.
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+Operating point simulation skipped by 'uic',
+  now using transient initial conditions.
+
+No. of Data Rows : 10052
+rail_min            =  3.29316e+00 at=  4.03200e-05
+rail_max            =  3.29996e+00 at=  6.00037e-01
+battery_min         =  3.58779e+00 at=  3.00000e-02
+battery_current_peak=  -4.88598e-02 at=  3.00000e-02
+ngspice-47 done
