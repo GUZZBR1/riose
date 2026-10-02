@@ -125,8 +125,35 @@ python -m hardware.antenna.sionna_experiment \
   --spec hardware/spec.yaml --output results/mvp2/antenna/sionna
 ```
 
-It records the 10 m, obstacle, and orientation-variant scenarios. CPU-only or
-missing-Sionna environments mark them `SKIPPED_OPTIONAL` with null metrics. If
-CUDA and Sionna are present, a deployment may provide `RIOSE_SIONNA_ADAPTER`
-implementing `simulate(scenario, spec_path, output_dir)`; adapter failures are
-recorded as blocked optional experiments and never alter the core gate.
+It records the 10 m, obstacle, and orientation-variant scenarios. This is an
+`OPTIONAL_GPU_EXPERIMENT`; CPU-only or missing-Sionna environments mark them
+`SKIPPED_OPTIONAL` with null metrics. If CUDA and Sionna RT are present, the
+built-in `PathSolver` runs each scenario with the frequency in
+`hardware/spec.yaml` and writes one scenario JSON beside the aggregate
+manifest. The obstacle case uses one generated planar dielectric panel with
+the 10 cm slab thickness assigned to its radio material (the mesh is
+deliberately not a closed box, which would apply material thickness
+repeatedly).
+
+The base tag uses the default vertical short-dipole pattern with orientation
+`[yaw_z, pitch_y, roll_x] = [0, 0, 0]`. The variant uses `[0, pi/4, 0]`:
+Sionna RT defines these Euler angles as yaw about Z, pitch about Y, and roll
+about X, so this pitch rotates the dipole's local vertical (Z) axis 45 degrees
+toward the tag-to-receiver direction (positive X). The former `[0, 0, pi/2]`
+setting was only yaw and did not tilt the dipole axis. When a real Sionna run
+completes, the runner compares the existing summed path-coefficient-power
+metric for the base and variant. It marks the variant failed if their values
+are indistinguishable within eight float32 ULPs; this numerical tolerance is
+not a physical RF threshold. These are small sensitivity experiments, not a
+farm scene or validated ear-tag antenna model.
+Sionna RT selects its supported Mitsuba backend automatically. The manifest
+records the Sionna version, GPU/CUDA capabilities, solver variant, deterministic
+seed, tag/receiver positions, tag orientation and transformed dipole axis, antenna pattern, obstacle
+material/dimensions, path count, summed path-coefficient power, frequency, spec
+hash, and obstacle mesh hash. The summed power is a solver-derived path sensitivity
+metric; it is not a calibrated RSS measurement. An optional
+`RIOSE_SIONNA_ADAPTER` can still override the built-in runner by exposing
+`simulate(scenario, spec_path, output_dir)` and returning `COMPLETED`, metrics,
+and solver evidence. Any failed scenario remains optional and does not change
+the core gate. Sionna RT is standalone and intentionally is not installed by
+the core project dependencies; see [NVIDIA's installation guide](https://nvlabs.github.io/sionna/installation.html).
