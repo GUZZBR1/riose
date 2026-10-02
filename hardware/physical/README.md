@@ -22,8 +22,8 @@ converter that cannot hold 3.3 V once its input falls below the output plus
 headroom. Therefore this pair cannot be credited with the cell's full rated
 capacity. Re-rate usable capacity at the converter dropout point or compare a
 buck-boost/lower-voltage rail before making a battery-life claim. This has not
-been measured. A
-Nucleo board is useful for firmware bring-up, but its debugger, LEDs and board
+been measured. A Nucleo board is useful for firmware bring-up, but its
+debugger, LEDs and board
 regulator can distort sleep-current results. Measure MCU-only if using the
 IDD jumper, then separately measure current entering the complete tag rail.
 For the whole-tag test, isolate USB/debugger power and insert the analyzer in
@@ -106,3 +106,20 @@ software/model evidence only. Clear the remaining blocker with an assembled
 bench candidate and instrument, then run the capture workflow above. See
 [`../reports/power-model.md`](../reports/power-model.md) for the current
 ASSUMED/SIMULATED values and limits.
+
+## Flash and state capture
+
+After attaching a NUCLEO-L031K6 over its ST-LINK USB connector and installing
+OpenOCD, flash the built image from an initialized Zephyr workspace:
+
+```sh
+west flash -d /tmp/riose-nucleo-l031k6 --runner openocd
+```
+
+`west flash --context -d /tmp/riose-nucleo-l031k6 --runner openocd` verified
+the configured runner and STM32L1 erase/load commands without accessing a
+probe. The flash command itself has **not** been run. The firmware drives a
+three-bit state code on A0/A1/A2; connect high-impedance logic-analyzer channels
+and decode them using the state table in
+[`../firmware/zephyr/README.md`](../firmware/zephyr/README.md). Avoid UART logs
+during current capture; the physical build disables Zephyr logging.
