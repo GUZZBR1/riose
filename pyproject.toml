@@ -28,6 +28,6 @@ cattle-rf = "cattle_rf.cli:main"
 packages = ["src/cattle_rf", "src/riose"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "hardware"]
 pythonpath = [".", "src"]
 

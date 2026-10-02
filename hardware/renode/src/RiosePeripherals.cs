@@ -9,7 +9,7 @@ using Antmicro.Renode.Peripherals.GPIOPort;
 using Antmicro.Renode.Peripherals.I2C;
 using Antmicro.Renode.Peripherals.SPI;
 
-namespace Riose.Renode
+namespace Antmicro.Renode.Peripherals.Riose
 {
     public sealed class SX1262 : ISPIPeripheral, IGPIOReceiver
     {
@@ -27,7 +27,7 @@ namespace Riose.Renode
         private bool holdBusy;
         private bool suppressIRQ;
 
-        public SX1262()
+        public SX1262(Machine machine)
         {
             Busy = new GPIO();
             IRQ = new GPIO();
@@ -153,7 +153,7 @@ namespace Riose.Renode
         private uint failedTransactions;
         private int sample = 0;
 
-        public LIS2DW12() { Reset(); INT1 = new GPIO(); }
+        public LIS2DW12(Machine machine, int address) { Reset(); INT1 = new GPIO(); }
         public GPIO INT1 { get; }
         public bool HoldIRQ { get; set; }
         public bool FailI2C { get; set; }

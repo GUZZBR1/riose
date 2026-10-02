@@ -5,8 +5,15 @@
 // behavior only until an L031-specific validated platform is available.
 using "platforms/cpus/stm32l071.repl"
 
-radio: Riose.Renode.SX1262 @ spi1 0
-imu: Riose.Renode.LIS2DW12 @ i2c1 0x18
+// Compile and register the C# peripherals before the platform resolves
+// their types. A monitor-level include in the .resc file runs too late.
+cpu:
+    preinit:
+        include @src/RiosePeripherals.cs
+
+radio: Riose.SX1262 @ spi1
+imu: Riose.LIS2DW12 @ i2c1 0x18
+    address: 0x18
 
 radio:
     Busy -> gpioPortB@0

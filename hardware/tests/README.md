@@ -17,8 +17,8 @@ CTest also runs the lower-level host firmware cycle and standalone SX1262/LIS2DW
 The integration harness is silent about files by default. Opt in with either
 an argument or an environment variable; both run a separate deterministic
 nominal virtual cycle and write JSONL records with the same
-`tag_trace_record` fields (`timestamp_us`, state/event/source and IDs, result,
-and `value0..2`). Every line has `status=SIMULATED`.
+`riose.firmware.trace/v1` schema (`sequence`, `timestamp_us`, state/event/source
+and IDs, result, and `value0..2`). Every line has `status=SIMULATED`.
 
 ```sh
 /tmp/hardware-tests-build/hardware_integration \
@@ -27,6 +27,13 @@ and `value0..2`). Every line has `status=SIMULATED`.
 RIOSE_TRACE_OUTPUT=/tmp/riose-firmware-trace.jsonl \
   /tmp/hardware-tests-build/hardware_integration
 ```
+
+Use `--trace-scenario NORMAL|ACTIVE|ALERT|WORST_REASONABLE_CASE` to export a
+trace for one deterministic firmware profile. `--long-run-days 1|7|30
+--scenario ...` runs the matching accelerated firmware profile and prints a
+versioned JSON summary. The long-run interface validates scheduling and FSM
+stability; it does not retain a multi-day event trace or represent field data.
+CTest covers all four trace profiles and the 12 scenario/duration combinations.
 
 Convert those point events into the power tool's interval JSONL, then analyze
 the resulting schedule:

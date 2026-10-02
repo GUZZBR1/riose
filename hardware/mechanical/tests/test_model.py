@@ -17,6 +17,15 @@ def test_fitting_assumed_spec_reports_mass_and_center_of_mass():
     assert set(report["center_of_mass_mm"]) == {"x_mm", "y_mm", "z_mm"}
     assert report["mounting_hole"]["status"] == "ASSUMED"
     assert "MEASURED" not in report["specification_statuses"]
+    assert not any(len(warning) == 1 for warning in report["warnings"])
+
+
+def test_missing_material_density_is_reported_as_assumed_fallback():
+    spec = load_spec(ROOT / "fixtures/fitting_spec.yaml")
+    del spec["materials"]["pcb_density_g_cm3"]
+    report = build_report(spec)
+    assert "pcb density uses an ASSUMED fallback" in report["warnings"]
+    assert not any(len(warning) == 1 for warning in report["warnings"])
 
 
 def test_real_candidate_reports_battery_fit_failure_without_rewriting_inputs():

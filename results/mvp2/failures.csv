@@ -1,24 +1,13 @@
 scenario,failure,detail,status
-adversarial_fault_injection,SPI_TIMEOUT,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,I2C_TIMEOUT,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,SX1262_BUSY_STUCK,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,IRQ_MISSING,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,IMU_FAILURE,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,CORRUPT_TELEMETRY,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,BATTERY_VOLTAGE_DROP,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,HIGH_ESR,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,REGULATOR_INSTABILITY,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,WATCHDOG_RESET,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-adversarial_fault_injection,UNEXPECTED_REBOOT,NOT_RUN: Renode backend/toolchain is unavailable,NOT_RUN
-long_duration_1_days,virtual_time_not_executed,NOT_RUN: accelerated long-duration backend is unavailable,NOT_RUN
-long_duration_7_days,virtual_time_not_executed,NOT_RUN: accelerated long-duration backend is unavailable,NOT_RUN
-long_duration_30_days,virtual_time_not_executed,NOT_RUN: accelerated long-duration backend is unavailable,NOT_RUN
-zephyr_firmware,NOT_AVAILABLE,Zephyr SDK/workspace is not configured; host C tests do not validate the Zephyr target,SIMULATED_OR_TOOLCHAIN_BLOCKER
-long_duration_1_7_30_days,NOT_AVAILABLE,Accelerated virtual-time execution for 1/7/30 days is not implemented in the available host harness,SIMULATED_OR_TOOLCHAIN_BLOCKER
-adversarial_fault_injection,NOT_AVAILABLE,"Fault injection requires the Renode peripheral platform/backend, unavailable in this environment",SIMULATED_OR_TOOLCHAIN_BLOCKER
-four_power_scenarios,NOT_AVAILABLE,Only one host-harness trace is available; NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE must run through the FSM before energy comparison,SIMULATED_OR_TOOLCHAIN_BLOCKER
-renode_firmware,NOT_AVAILABLE,Renode and renode-test are required for the MCU/bus twin,SIMULATED_OR_TOOLCHAIN_BLOCKER
-mechanical,NOT_AVAILABLE,battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery; CadQuery STEP export unavailable,SIMULATED_OR_TOOLCHAIN_BLOCKER
+adversarial_fault_injection,sx1262_busy_stuck,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,irq_missing,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,crc_corruption,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,battery_voltage_drop,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,high_esr,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,regulator_instability,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,watchdog_reset,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,unexpected_reboot,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,PARTIAL,Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models,SIMULATED_OR_TOOLCHAIN_BLOCKER
+mechanical,FAILED,battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery,SIMULATED_OR_TOOLCHAIN_BLOCKER
 mechanical,envelope_fit,"[""battery envelope exceeds enclosure cavity"", ""antenna_keepout envelope exceeds enclosure cavity"", ""antenna keepout exceeds PCB envelope"", ""unexpected envelope overlap: pcb / battery""]",SIMULATED
-antenna,NOT_AVAILABLE,"The animal-proximity case is an experimental material approximation, not tissue validation.",SIMULATED_OR_TOOLCHAIN_BLOCKER
-power,NOT_AVAILABLE,Assumed-current charge integration completed; ngspice rail simulation was not executed,SIMULATED_OR_TOOLCHAIN_BLOCKER
+antenna,PARTIAL_OR_BLOCKED,"ANTENNA_FREE_SPACE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_PCB: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_BATTERY: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_ENCLOSURE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_NEAR_ANIMAL_APPROXIMATION: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured)",SIMULATED_OR_TOOLCHAIN_BLOCKER

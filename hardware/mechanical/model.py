@@ -104,7 +104,8 @@ def _get_mm(spec: dict[str, Any], path: str, *aliases: str) -> Parameter:
 def _density(spec: dict[str, Any], key: str, fallback: float) -> tuple[float, str, str, str, list[str]]:
     raw = _node(spec, f"materials.{key}")
     if raw is None:
-        return fallback, "g/cm3", "generic engineering estimate; fallback", "ASSUMED", [f"{key} density uses an ASSUMED fallback"]
+        label = key.removesuffix("_density_g_cm3")
+        return fallback, "g/cm3", "generic engineering estimate; fallback", "ASSUMED", [f"{label} density uses an ASSUMED fallback"]
     p = _parameter(spec, [f"materials.{key}"], name=f"materials.{key}")
     if p.unit.lower() not in {"g/cm3", "g/cm^3", "g/cm³"}:
         raise SpecError(f"materials.{key} must use g/cm3")
@@ -159,7 +160,7 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     den_batt = _density(spec, "battery_density_g_cm3", 2.0)
     den_parts = _density(spec, "component_density_g_cm3", 2.0)
     for density in (den_shell, den_pcb, den_batt, den_parts):
-        warnings.extend(density[3])
+        warnings.extend(density[4])
 
     # Body represented as a hollow rectangular shell. Other parts are simple
     # envelopes; PCB-mounted component mass is not subtracted from the PCB.

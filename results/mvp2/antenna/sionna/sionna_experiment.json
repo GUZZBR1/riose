@@ -1,0 +1,57 @@
+{
+  "capabilities": {
+    "CUDA_AVAILABLE": false,
+    "GPU_AVAILABLE": false,
+    "GPU_TYPE": "NONE_DETECTED",
+    "SIONNA_AVAILABLE": false,
+    "experiment": "OPTIONAL_GPU_EXPERIMENT",
+    "result_status": "ENVIRONMENT_CAPABILITY_ONLY",
+    "status": "SKIPPED_OPTIONAL"
+  },
+  "experiment": "OPTIONAL_GPU_EXPERIMENT",
+  "limitations": [
+    "Sionna RT results are exploratory and do not replace openEMS or physical RF validation."
+  ],
+  "physical_hardware_used": false,
+  "required": false,
+  "scenarios": [
+    {
+      "cuda_available": false,
+      "detail": "CUDA and Sionna RT are both required for this optional experiment",
+      "experiment": "OPTIONAL_GPU_EXPERIMENT",
+      "gpu_type": "NONE_DETECTED",
+      "metrics": null,
+      "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
+      "scenario": "TAG_TO_RECEIVER_10M",
+      "sionna_available": false,
+      "sionna_version": null,
+      "status": "SKIPPED_OPTIONAL"
+    },
+    {
+      "cuda_available": false,
+      "detail": "CUDA and Sionna RT are both required for this optional experiment",
+      "experiment": "OPTIONAL_GPU_EXPERIMENT",
+      "gpu_type": "NONE_DETECTED",
+      "metrics": null,
+      "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
+      "scenario": "TAG_TO_RECEIVER_WITH_OBSTACLE",
+      "sionna_available": false,
+      "sionna_version": null,
+      "status": "SKIPPED_OPTIONAL"
+    },
+    {
+      "cuda_available": false,
+      "detail": "CUDA and Sionna RT are both required for this optional experiment",
+      "experiment": "OPTIONAL_GPU_EXPERIMENT",
+      "gpu_type": "NONE_DETECTED",
+      "metrics": null,
+      "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
+      "scenario": "TAG_TO_RECEIVER_ORIENTATION_VARIANT",
+      "sionna_available": false,
+      "sionna_version": null,
+      "status": "SKIPPED_OPTIONAL"
+    }
+  ],
+  "schema_version": "riose.sionna.experiment/v1",
+  "status": "SKIPPED_OPTIONAL"
+}

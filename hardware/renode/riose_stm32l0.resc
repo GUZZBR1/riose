@@ -1,3 +1,2 @@
-include @hardware/renode/src/RiosePeripherals.cs
 mach create
 machine LoadPlatformDescription @hardware/renode/riose_stm32l0.repl

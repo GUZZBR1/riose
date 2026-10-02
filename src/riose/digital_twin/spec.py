@@ -14,6 +14,12 @@ import yaml
 ALLOWED_STATUSES = {"DATASHEET", "ASSUMED", "SIMULATED"}
 FORBIDDEN_STATUSES = {"MEASURED"}
 REVIEW_KEYS = ("thresholds", "dimensions", "antenna", "fit")
+ALLOWED_UNITS = {
+    "A", "F", "Hz", "MHz", "GHz", "S/m", "V", "mV", "uV", "dB", "dBm",
+    "degC", "g/cm3", "mA", "uA", "mAh", "uAh", "mm", "cm", "m", "in",
+    "ohm", "kOhm", "part_number", "percent", "ratio", "reference", "s", "ms",
+    "us", "topology", "mg", "g", "kg", "m/s2", "fraction", "text",
+}
 
 
 class SpecError(ValueError):
@@ -39,8 +45,8 @@ def validate_spec(spec: dict[str, Any]) -> None:
 
     def walk(value: Any, path: str) -> None:
         if isinstance(value, dict):
-            if "status" in value:
-                status = str(value["status"]).upper()
+            if any(key in value for key in ("value", "unit", "source", "status")):
+                status = str(value.get("status", "")).upper()
                 if status in FORBIDDEN_STATUSES:
                     forbidden.append(path)
                 elif status not in ALLOWED_STATUSES:
@@ -51,10 +57,24 @@ def validate_spec(spec: dict[str, Any]) -> None:
                 else:
                     if not isinstance(value["unit"], str) or not value["unit"].strip():
                         malformed.append(f"{path}.unit must be a non-empty string")
+                    elif value["unit"] not in ALLOWED_UNITS:
+                        malformed.append(f"{path}.unit is unsupported: {value['unit']!r}")
                     if not isinstance(value["source"], str) or not value["source"].strip():
                         malformed.append(f"{path}.source must be a non-empty string")
-                    if isinstance(value["value"], float) and not math.isfinite(value["value"]):
+                    parameter = value["value"]
+                    if isinstance(parameter, bool):
+                        malformed.append(f"{path}.value must not be boolean")
+                    elif isinstance(parameter, (int, float)) and not math.isfinite(parameter):
                         malformed.append(f"{path}.value must be finite")
+                    elif not isinstance(parameter, (int, float, str)):
+                        malformed.append(f"{path}.value must be a number or string")
+                    elif isinstance(parameter, str) and not parameter.strip():
+                        malformed.append(f"{path}.value must not be empty")
+                    source = value.get("source")
+                    if status == "DATASHEET" and isinstance(source, str) and source.strip().lower() in {
+                        "assumed", "placeholder", "unknown", "n/a", "none"
+                    }:
+                        malformed.append(f"{path}.source must identify the datasheet or source document")
             for key, child in value.items():
                 walk(child, f"{path}.{key}" if path else str(key))
         elif isinstance(value, list):
@@ -75,6 +95,13 @@ def validate_spec(spec: dict[str, Any]) -> None:
     missing = [key for key in required if _get(spec, key) is None]
     if missing:
         raise SpecError("Missing required spec keys: " + ", ".join(missing))
+    for key in ("gate.provisional_limits", "gate.approval"):
+        if not isinstance(_get(spec, key), dict):
+            raise SpecError(f"{key} must be a mapping")
+    approvals = _get(spec, "gate.approval")
+    invalid_approvals = [key for key in REVIEW_KEYS if approvals.get(key) not in {"PENDING", "APPROVED"}]
+    if invalid_approvals:
+        raise SpecError("gate.approval entries must be PENDING or APPROVED: " + ", ".join(invalid_approvals))
     if spec.get("evidence_policy", {}).get("design_review_status") != "PENDING":
         raise SpecError("design_review_status must remain PENDING in this milestone")
 
@@ -105,10 +132,14 @@ def parameter_statuses(spec: dict[str, Any]) -> dict[str, int]:
     return totals
 
 
-def evaluate_gate(spec: dict[str, Any], stages: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def evaluate_gate(spec: dict[str, Any], stages: dict[str, dict[str, Any]],
+                  required_stage_names: tuple[str, ...] = ()) -> dict[str, Any]:
     """Fail closed; conditional readiness requires passing provisional limits."""
     blockers: list[str] = []
     failed: list[str] = []
+    for name in required_stage_names:
+        if name not in stages:
+            blockers.append(f"{name}: MISSING")
     for name, result in stages.items():
         if not result.get("required", True):
             continue

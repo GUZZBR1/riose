@@ -1,12 +1,15 @@
 {
   "commands": {
-    "ngspice": null,
-    "openEMS": null,
+    "micromamba": "/home/lucas_coimbra/.local/bin/micromamba",
+    "ngspice": "/home/lucas_coimbra/.local/bin/ngspice",
+    "ninja": "/home/lucas_coimbra/.local/bin/ninja",
+    "openEMS": "/home/lucas_coimbra/.local/opt/openEMS-0.37.0-rc3/bin/openEMS",
     "openscad": null,
-    "python3": "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
-    "renode": null,
-    "renode-test": null,
-    "west": "/home/lucas_coimbra/.local/bin/west"
+    "python3": "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python3",
+    "renode": "/home/lucas_coimbra/.local/bin/renode",
+    "renode-test": "/home/lucas_coimbra/.local/bin/renode-test",
+    "uv": "/home/lucas_coimbra/.local/bin/uv",
+    "west": "/home/lucas_coimbra/zephyrproject/.venv/bin/west"
   },
   "gpu": {
     "CUDA_AVAILABLE": false,
@@ -17,16 +20,154 @@
     "result_status": "ENVIRONMENT_CAPABILITY_ONLY",
     "status": "SKIPPED_OPTIONAL"
   },
+  "module_versions": {
+    "CSXCAD": "0.7.0rc3",
+    "cadquery": "2.8.0",
+    "openEMS": "0.37.0rc3",
+    "sionna": null,
+    "torch": null,
+    "yaml": "6.0.3"
+  },
   "modules": {
-    "CSXCAD": false,
-    "cadquery": false,
-    "openEMS": false,
+    "CSXCAD": true,
+    "cadquery": true,
+    "openEMS": true,
     "sionna": false,
     "torch": false,
     "yaml": true
   },
   "physical_hardware_used": false,
   "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-  "python": "3.13.13",
-  "status": "ENVIRONMENT_PROBE_ONLY"
+  "python": "3.12.14",
+  "status": "ENVIRONMENT_PROBE_ONLY",
+  "toolchain_manifest": "/home/lucas_coimbra/projects/riose/hardware/toolchain.json",
+  "versions": {
+    "micromamba": {
+      "expected": "2.9.0",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/bin/micromamba",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "2.9.0"
+    },
+    "module:CSXCAD": {
+      "expected": "0.7.0-rc3",
+      "matches_expected": true,
+      "status": "AVAILABLE",
+      "version": "0.7.0rc3"
+    },
+    "module:cadquery": {
+      "expected": "2.8.0",
+      "matches_expected": true,
+      "status": "AVAILABLE",
+      "version": "2.8.0"
+    },
+    "module:openEMS": {
+      "expected": "0.37.0-rc3",
+      "matches_expected": true,
+      "status": "AVAILABLE",
+      "version": "0.37.0rc3"
+    },
+    "module:sionna": {
+      "expected": null,
+      "matches_expected": null,
+      "status": "NOT_AVAILABLE",
+      "version": null
+    },
+    "module:torch": {
+      "expected": null,
+      "matches_expected": null,
+      "status": "NOT_AVAILABLE",
+      "version": null
+    },
+    "module:yaml": {
+      "expected": null,
+      "matches_expected": null,
+      "status": "AVAILABLE",
+      "version": "6.0.3"
+    },
+    "ngspice": {
+      "expected": "47",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/bin/ngspice",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "** ngspice-47 : Circuit level simulation program"
+    },
+    "ninja": {
+      "expected": "1.13.2",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/bin/ninja",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "1.13.2.git.kitware.jobserver-pipe-1"
+    },
+    "openEMS": {
+      "expected": "0.37.0-rc3",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/opt/openEMS-0.37.0-rc3/bin/openEMS",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": " | openEMS 64bit -- version v0.37.0-rc3"
+    },
+    "openscad": {
+      "expected": null,
+      "matches_expected": null,
+      "status": "NOT_AVAILABLE"
+    },
+    "python3": {
+      "expected": "3.12.x",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/opt/riose-mvp2-venv/bin/python3",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "Python 3.12.14"
+    },
+    "renode": {
+      "expected": "1.17.0",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/bin/renode",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "Renode v1.17.0"
+    },
+    "renode-test": {
+      "expected": null,
+      "matches_expected": null,
+      "path": "/home/lucas_coimbra/.local/bin/renode-test",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "usage: run_tests.py [-h] [-f FIXTURE] [-n [ITERATION_COUNT]] [-N RETRY_COUNT]"
+    },
+    "uv": {
+      "expected": "0.11.7",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/bin/uv",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "uv 0.11.7 (x86_64-unknown-linux-gnu)"
+    },
+    "west": {
+      "expected": "1.5.0",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/zephyrproject/.venv/bin/west",
+      "return_code": 0,
+      "status": "AVAILABLE",
+      "version": "West version: v1.5.0"
+    },
+    "zephyr": {
+      "expected": "4.2.1",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/zephyrproject/zephyr",
+      "status": "AVAILABLE",
+      "version": "4.2.1"
+    },
+    "zephyr_sdk": {
+      "expected": "0.16.8",
+      "matches_expected": true,
+      "path": "/home/lucas_coimbra/.local/opt/zephyr-sdk-0.16.8",
+      "status": "AVAILABLE",
+      "version": "0.16.8"
+    }
+  }
 }

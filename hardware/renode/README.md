@@ -34,9 +34,11 @@ before treating them as equivalent. The C models remain the reference behavior.
 
 Renode and `renode-test` are optional local tools; this workspace does not
 vendor them. Install a Renode release and ensure `renode` and `renode-test`
-are on `PATH`. Renode compiles the custom C# model when the `.resc` or Robot
-suite includes its source. Build the existing Zephyr
-firmware for the STM32L0 target and set `RIOSE_ZEPHYR_ELF` to its ELF.
+are on `PATH`. The RIOSE platform compiles the custom C# model in the STM32
+CPU's `preinit` block so the types are available before Renode resolves the
+radio and IMU entries. Keep the suite's default setup and teardown from
+`renode-test`; they connect the Robot remote library. Build the existing
+Zephyr firmware for the STM32L0 target and set `RIOSE_ZEPHYR_ELF` to its ELF.
 
 ```sh
 python3 hardware/renode/scripts/check_tools.py

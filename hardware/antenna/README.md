@@ -28,3 +28,16 @@ experimental material approximation, not tissue validation. GPU/Sionna RT is
 separate and optional; inspect its machine-readable report with
 `python -m hardware.antenna.capabilities` or call `detect_capabilities()` from
 `hardware.antenna.capabilities`.
+
+The Sionna RT capability/scenario manifest is generated separately:
+
+```sh
+python -m hardware.antenna.sionna_experiment \
+  --spec hardware/spec.yaml --output results/mvp2/antenna/sionna
+```
+
+It records the 10 m, obstacle, and orientation-variant scenarios. CPU-only or
+missing-Sionna environments mark them `SKIPPED_OPTIONAL` with null metrics. If
+CUDA and Sionna are present, a deployment may provide `RIOSE_SIONNA_ADAPTER`
+implementing `simulate(scenario, spec_path, output_dir)`; adapter failures are
+recorded as blocked optional experiments and never alter the core gate.

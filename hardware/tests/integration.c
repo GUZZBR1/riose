@@ -35,6 +35,7 @@ typedef struct {
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
     bool force_active_sample;
+    uint32_t trace_sequence;
     uint8_t last_packet[TAG_TELEMETRY_MAX_SIZE];
     size_t last_packet_len;
     uint16_t power_mv;
@@ -213,12 +214,13 @@ static void virtual_trace_event(void *context, const tag_trace_record_t *record)
         const unsigned state = (unsigned)record->state;
         const unsigned source = (unsigned)record->source;
         (void)fprintf(tag->trace_file,
-            "{\"status\":\"SIMULATED\",\"timestamp_us\":%" PRIu64
+            "{\"schema_version\":\"riose.firmware.trace/v1\",\"sequence\":%" PRIu32
+            ",\"status\":\"SIMULATED\",\"timestamp_us\":%" PRIu64
             ",\"state\":\"%s\",\"state_id\":%u,\"event\":\"%s\","
             "\"event_id\":%u,\"source\":\"%s\",\"source_id\":%u,"
             "\"result\":%" PRId32 ",\"value0\":%" PRIu32
             ",\"value1\":%" PRIu32 ",\"value2\":%" PRIu32 "}\n",
-            record->timestamp_us,
+            tag->trace_sequence++, record->timestamp_us,
             state < sizeof(states) / sizeof(states[0]) ? states[state] : "UNKNOWN",
             state, event < sizeof(events) / sizeof(events[0]) ? events[event] : "UNKNOWN",
             event, source < sizeof(sources) / sizeof(sources[0]) ? sources[source] : "UNKNOWN",
@@ -691,6 +693,50 @@ static void run_to_time(tag_firmware_t *firmware, virtual_tag_t *tag,
     tag->stop_at_ms = 0u;
 }
 
+static int run_long_virtual_scenario(const char *scenario, uint32_t days)
+{
+    if (days == 0u || days > 30u ||
+        (strcmp(scenario, "NORMAL") != 0 && strcmp(scenario, "ACTIVE") != 0 &&
+         strcmp(scenario, "ALERT") != 0 && strcmp(scenario, "WORST_REASONABLE_CASE") != 0)) {
+        fprintf(stderr, "invalid scenario or virtual duration\n");
+        return 2;
+    }
+    const uint32_t target_ms = days * DAY_MS;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(0x4d565032u);
+    config.normal_beacon_ms = 900000u;
+    config.active_beacon_ms = 60000u;
+    config.alert_beacon_ms = 10000u;
+    config.active_burst_ms = 120000u;
+    config.alert_burst_ms = 120000u;
+    config.still_alert_after_ms = target_ms + 1u;
+    if (strcmp(scenario, "ALERT") == 0) config.still_alert_after_ms = 0u;
+    const uint32_t tx_latency_ms = strcmp(scenario, "WORST_REASONABLE_CASE") == 0 ? 500u : 30u;
+    virtual_tag_init(&tag, &firmware, &config, tx_latency_ms);
+    disable_imu_wake_irq(&tag);
+    tag.force_active_sample = strcmp(scenario, "ACTIVE") == 0 ||
+                              strcmp(scenario, "WORST_REASONABLE_CASE") == 0;
+
+    uint32_t steps = 0u;
+    while (tag.now_ms < target_ms && steps < 2000000u) {
+        lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_STATIONARY);
+        tag_firmware_step(&firmware);
+        if (firmware.state == TAG_STATE_ERROR_RECOVERY) break;
+        ++steps;
+    }
+    const bool completed = tag.now_ms >= target_ms && firmware.failures == 0u &&
+                           firmware.packets_sent > 0u &&
+                           tag_telemetry_crc_valid(tag.last_packet, tag.last_packet_len);
+    printf("{\"schema_version\":\"riose.virtual-run/v1\",\"scenario\":\"%s\","
+           "\"days\":%u,\"virtual_ms\":%u,\"steps\":%u,\"tx_count\":%u,"
+           "\"failures\":%u,\"tx_latency_ms\":%u,\"status\":\"%s\","
+           "\"result_class\":\"SIMULATED\"}\n",
+           scenario, days, tag.now_ms, steps, firmware.packets_sent,
+           firmware.failures, tx_latency_ms, completed ? "COMPLETED" : "FAILED");
+    return completed ? 0 : 1;
+}
+
 static void run_until_packet(tag_firmware_t *firmware, uint32_t prior_packets)
 {
     for (uint32_t steps = 0u; firmware->packets_sent == prior_packets &&
@@ -805,7 +851,7 @@ static void test_pathological_alert_for_three_hours(void)
            firmware.packets_sent);
 }
 
-static int export_nominal_trace(const char *path)
+static int export_scenario_trace(const char *path, const char *scenario)
 {
     FILE *stream = fopen(path, "w");
     if (stream == NULL) {
@@ -816,10 +862,25 @@ static int export_nominal_trace(const char *path)
     tag_firmware_t firmware;
     tag_config_t config = tag_default_config(0x54524143u);
     config.normal_beacon_ms = 1000u;
-    virtual_tag_init_with_trace(&tag, &firmware, &config, 4u, stream);
+    config.active_beacon_ms = 100u;
+    config.alert_beacon_ms = 100u;
+    uint32_t latency_ms = 30u;
+    if (strcmp(scenario, "ACTIVE") == 0 || strcmp(scenario, "WORST_REASONABLE_CASE") == 0)
+        tag.force_active_sample = true;
+    if (strcmp(scenario, "ALERT") == 0) config.still_alert_after_ms = 0u;
+    if (strcmp(scenario, "WORST_REASONABLE_CASE") == 0) latency_ms = 500u;
+    if (strcmp(scenario, "NORMAL") != 0 && strcmp(scenario, "ACTIVE") != 0 &&
+        strcmp(scenario, "ALERT") != 0 && strcmp(scenario, "WORST_REASONABLE_CASE") != 0) {
+        fclose(stream);
+        fprintf(stderr, "unknown trace scenario: %s\n", scenario);
+        return 2;
+    }
+    virtual_tag_init_with_trace(&tag, &firmware, &config, latency_ms, stream);
+    if (strcmp(scenario, "ACTIVE") == 0 || strcmp(scenario, "WORST_REASONABLE_CASE") == 0)
+        tag.force_active_sample = true;
 
     bool cycle_complete = false;
-    for (unsigned step = 0; step < 40u; ++step) {
+    for (unsigned step = 0; step < 2000u; ++step) {
         tag_firmware_step(&firmware);
         if (firmware.packets_sent == 1u && firmware.state == TAG_STATE_SLEEP) {
             cycle_complete = true;
@@ -831,33 +892,57 @@ static int export_nominal_trace(const char *path)
                         fflush(stream) != 0 || ferror(stream);
     if (fclose(stream) != 0) return 1;
     if (failed) {
-        fprintf(stderr, "failed to produce nominal simulated firmware cycle\n");
+        fprintf(stderr, "failed to produce %s simulated firmware cycle\n", scenario);
         return 1;
     }
     return 0;
 }
 
-static const char *trace_output_argument(int argc, char **argv)
+static int parse_runner_arguments(int argc, char **argv, const char **trace_path,
+                                 const char **trace_scenario, const char **scenario,
+                                 uint32_t *long_run_days)
 {
-    const char *path = NULL;
+    *trace_path = NULL;
+    *trace_scenario = NULL;
+    *scenario = "NORMAL";
+    *long_run_days = 0u;
     for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "--trace-output") == 0 && i + 1 < argc && path == NULL) {
-            path = argv[++i];
+        if (strcmp(argv[i], "--trace-output") == 0 && i + 1 < argc && *trace_path == NULL) {
+            *trace_path = argv[++i];
+        } else if (strcmp(argv[i], "--trace-scenario") == 0 && i + 1 < argc && *trace_scenario == NULL) {
+            *trace_scenario = argv[++i];
+        } else if (strcmp(argv[i], "--scenario") == 0 && i + 1 < argc) {
+            *scenario = argv[++i];
+        } else if (strcmp(argv[i], "--long-run-days") == 0 && i + 1 < argc && *long_run_days == 0u) {
+            char *end = NULL;
+            const unsigned long parsed = strtoul(argv[++i], &end, 10);
+            if (end == argv[i] || *end != '\0' || parsed == 0u || parsed > 30u) return 0;
+            *long_run_days = (uint32_t)parsed;
         } else {
-            fprintf(stderr, "usage: %s [--trace-output PATH]\n", argv[0]);
-            return NULL;
+            fprintf(stderr, "usage: %s [--trace-output PATH [--trace-scenario SCENARIO]] "
+                    "[--long-run-days 1|7|30 --scenario SCENARIO]\n", argv[0]);
+            return 0;
         }
     }
-    if (path == NULL) path = getenv("RIOSE_TRACE_OUTPUT");
-    return path;
+    if (*trace_path == NULL) *trace_path = getenv("RIOSE_TRACE_OUTPUT");
+    if ((*trace_scenario != NULL && (*trace_path == NULL || *long_run_days != 0u)) ||
+        (*trace_scenario == NULL && *long_run_days != 0u && *scenario == NULL)) return 0;
+    return 1;
 }
 
 int main(int argc, char **argv)
 {
-    const char *trace_path = trace_output_argument(argc, argv);
-    if (argc > 1 && trace_path == NULL) return 2;
+    const char *trace_path = NULL;
+    const char *trace_scenario = NULL;
+    const char *scenario = NULL;
+    uint32_t long_run_days = 0u;
+    if (!parse_runner_arguments(argc, argv, &trace_path, &trace_scenario,
+                                &scenario, &long_run_days)) return 2;
+    if (long_run_days != 0u) return run_long_virtual_scenario(scenario, long_run_days);
+    if (trace_scenario != NULL)
+        return export_scenario_trace(trace_path, trace_scenario);
     if (trace_path != NULL && trace_path[0] != '\0' &&
-        export_nominal_trace(trace_path) != 0) return 1;
+        export_scenario_trace(trace_path, "NORMAL") != 0) return 1;
     test_boot_packet_sleep_and_wake();
     test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu();
     test_state_trace_reports_transitions();

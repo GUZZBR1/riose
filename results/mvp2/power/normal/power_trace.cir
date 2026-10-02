@@ -1,0 +1,24 @@
+* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.
+* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.
+.param VBAT=3.6 RBAT=0.25 VREG=3.3 RREG=0.15 COUT=4.7e-05
+.param BROWNOUT=2.7 EFF=0.85
+Vcell cell_src 0 DC {VBAT}
+Rcell cell_src battery {RBAT}
+Ibattery battery 0 PWL(0 0.0488597521569 0.03 0.0488597521569 0.030001 0.00529026196078 0.13 0.00529026196078 0.130001 2.01196078431e-06 1 2.01196078431e-06)
+* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.
+Vreg reg_src 0 DC {VREG}
+Rreg reg_src rail {RREG}
+Cout rail 0 {COUT} IC={VREG}
+Iload rail 0 PWL(0 0.04530626 0.03 0.04530626 0.030001 0.00490546 0.13 0.00490546 0.130001 1.81e-06 1 1.81e-06)
+.control
+set noaskquit
+set wr_singlescale
+tran 0.0001 1 0 0.0001 uic
+meas tran rail_min MIN v(rail)
+meas tran rail_max MAX v(rail)
+meas tran battery_min MIN v(battery)
+meas tran battery_current_peak MIN i(Vcell)
+wrdata power_waveform.dat v(rail) i(Vcell)
+quit
+.endc
+.end

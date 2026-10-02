@@ -10,9 +10,11 @@ import math
 import os
 import platform
 import random
+import re
 import shutil
 import subprocess
 import sys
+from importlib import metadata
 from pathlib import Path
 from typing import Any
 
@@ -32,20 +34,122 @@ def _module_available(name: str) -> bool:
         return False
 
 
+def _version_matches(expected: str | None, observed: str | None) -> bool | None:
+    if not expected or not observed:
+        return None
+    expected_token = re.search(r"\d+(?:\.\d+)+(?:[-.]?(?:rc|a|b|dev)\d+)?", expected, re.I)
+    observed_token = re.search(r"\d+(?:\.\d+)+(?:[-.]?(?:rc|a|b|dev)\d+)?", observed, re.I)
+    if not expected_token or not observed_token:
+        return expected in observed
+    expected_value = expected_token.group(0).lower().replace("-", "")
+    observed_value = observed_token.group(0).lower().replace("-", "")
+    if expected.endswith(".x"):
+        return observed_value.startswith(expected_value)
+    return observed_value == expected_value
+
+
 def preflight() -> dict[str, Any]:
+    toolchain_path = ROOT / "hardware" / "toolchain.json"
+    toolchain = json.loads(toolchain_path.read_text(encoding="utf-8"))
     commands = {name: shutil.which(name) for name in (
-        "python3", "west", "renode", "renode-test", "ngspice", "openEMS", "openscad",
+        "python3", "uv", "micromamba", "ninja", "west", "renode", "renode-test",
+        "ngspice", "openEMS", "openscad",
     )}
     modules = {name: _module_available(name) for name in ("yaml", "cadquery", "openEMS", "CSXCAD", "torch", "sionna")}
+    distributions = {"yaml": "PyYAML", "cadquery": "cadquery", "openEMS": "openEMS",
+                     "CSXCAD": "CSXCAD", "torch": "torch", "sionna": "sionna"}
+    module_versions: dict[str, str | None] = {}
+    for module, distribution in distributions.items():
+        try:
+            module_versions[module] = metadata.version(distribution)
+        except metadata.PackageNotFoundError:
+            module_versions[module] = None
     try:
         from hardware.antenna.capabilities import detect_capabilities
         gpu = detect_capabilities()
     except (ImportError, OSError):
         gpu = {"GPU_AVAILABLE": False, "GPU_TYPE": "UNKNOWN", "CUDA_AVAILABLE": False,
                "SIONNA_AVAILABLE": False, "status": "UNAVAILABLE", "experiment": "OPTIONAL_GPU_EXPERIMENT"}
+    versions: dict[str, dict[str, Any]] = {}
+    version_args = {
+        "python3": ["--version"], "uv": ["--version"], "micromamba": ["--version"],
+        "ninja": ["--version"], "west": ["--version"], "renode": ["--version"],
+        # Renode's Robot wrapper has no --version flag; --help is its clean probe.
+        "renode-test": ["--help"], "ngspice": ["--version"], "openEMS": ["--help"],
+    }
+    expected_commands = {
+        "python3": toolchain.get("host", {}).get("python"),
+        "uv": toolchain.get("host", {}).get("uv"),
+        "micromamba": toolchain.get("host", {}).get("micromamba"),
+        "ninja": toolchain.get("host", {}).get("ninja"),
+        "west": toolchain.get("host", {}).get("west"),
+        **toolchain.get("optional_external", {}),
+    }
+    for name, executable in commands.items():
+        expected = expected_commands.get(name)
+        if not executable:
+            versions[name] = {"status": "NOT_AVAILABLE", "expected": expected,
+                              "matches_expected": None}
+            continue
+        args = version_args.get(name)
+        if not args:
+            versions[name] = {"status": "PATH_ONLY", "path": executable,
+                              "expected": expected, "matches_expected": None}
+            continue
+        try:
+            result = subprocess.run([executable, *args], capture_output=True, text=True,
+                                    timeout=5, check=False)
+            output = (result.stdout or result.stderr).strip().splitlines()
+            observed = next((line for line in output if _version_matches(expected, line) is True),
+                            output[0] if output else None)
+            matches = (None if result.returncode != 0 else _version_matches(expected, observed))
+            versions[name] = {"status": "AVAILABLE" if result.returncode == 0 else "VERSION_PROBE_FAILED",
+                              "path": executable, "version": observed, "expected": expected,
+                              "matches_expected": matches, "return_code": result.returncode}
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            versions[name] = {"status": "VERSION_PROBE_FAILED", "path": executable,
+                              "expected": expected, "matches_expected": None, "detail": str(exc)}
+    expected_modules = toolchain.get("optional_external", {})
+    for module in modules:
+        expected = expected_modules.get(module)
+        observed = module_versions.get(module)
+        versions[f"module:{module}"] = {
+            "status": "AVAILABLE" if modules[module] else "NOT_AVAILABLE",
+            "version": observed, "expected": expected,
+            "matches_expected": _version_matches(expected, observed),
+        }
+    zephyr_base = os.environ.get("ZEPHYR_BASE")
+    expected_zephyr = toolchain.get("host", {}).get("zephyr")
+    zephyr_version: str | None = None
+    if zephyr_base:
+        version_file = Path(zephyr_base) / "VERSION"
+        if version_file.is_file():
+            fields = {}
+            for line in version_file.read_text(encoding="utf-8").splitlines():
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    fields[key.strip()] = value.strip()
+            if all(key in fields for key in ("VERSION_MAJOR", "VERSION_MINOR", "PATCHLEVEL")):
+                zephyr_version = ".".join(fields[key] for key in ("VERSION_MAJOR", "VERSION_MINOR", "PATCHLEVEL"))
+    versions["zephyr"] = {"status": "AVAILABLE" if zephyr_version else "NOT_CONFIGURED",
+                           "path": zephyr_base, "version": zephyr_version, "expected": expected_zephyr,
+                           "matches_expected": (str(expected_zephyr) in zephyr_version if zephyr_version else None)}
+    sdk_expected = toolchain.get("host", {}).get("zephyr_sdk")
+    sdk_root = os.environ.get("ZEPHYR_SDK_INSTALL_DIR")
+    if not sdk_root and sdk_expected:
+        candidate = Path.home() / ".local" / "opt" / f"zephyr-sdk-{sdk_expected}"
+        if candidate.is_dir():
+            sdk_root = str(candidate)
+    sdk_version_file = Path(sdk_root) / "sdk_version" if sdk_root else None
+    sdk_version = sdk_version_file.read_text(encoding="utf-8").strip() if sdk_version_file and sdk_version_file.is_file() else None
+    versions["zephyr_sdk"] = {"status": "AVAILABLE" if sdk_version else "NOT_AVAILABLE",
+                               "path": sdk_root, "version": sdk_version, "expected": sdk_expected,
+                               "matches_expected": (sdk_version == str(sdk_expected) if sdk_version else None)}
     return {"status": "ENVIRONMENT_PROBE_ONLY", "platform": platform.platform(),
             "python": sys.version.split()[0], "commands": commands, "modules": modules,
-            "gpu": gpu, "physical_hardware_used": False}
+            "module_versions": module_versions, "versions": versions, "toolchain_manifest": str(toolchain_path),
+            "gpu": gpu,
+            "physical_hardware_used": False}
 
 
 def _record(spec: dict[str, Any], dotted: str, fallback: float = 0.0) -> float:
@@ -183,10 +287,11 @@ def generate_motion_profiles(path: Path, seed: int = 7, sample_rate_hz: float = 
             "seed": seed, "path": str(path), "physical_hardware_used": False}
 
 
-def _run_command(name: str, command: list[str], cwd: Path, timeout_s: int = 120) -> dict[str, Any]:
+def _run_command(name: str, command: list[str], cwd: Path, timeout_s: int = 120,
+                 env: dict[str, str] | None = None) -> dict[str, Any]:
     try:
         result = subprocess.run(command, cwd=cwd, capture_output=True, text=True,
-                                timeout=timeout_s, check=False)
+                                timeout=timeout_s, check=False, env=env)
     except FileNotFoundError:
         return {"status": "NOT_AVAILABLE", "detail": f"command not found: {command[0]}", "required": True}
     except subprocess.TimeoutExpired as exc:
@@ -194,6 +299,12 @@ def _run_command(name: str, command: list[str], cwd: Path, timeout_s: int = 120)
     return {"status": "PASSED" if result.returncode == 0 else "FAILED",
             "return_code": result.returncode, "stdout": result.stdout[-12000:],
             "stderr": result.stderr[-12000:], "command": command, "required": True}
+
+
+def _clear_previous_outputs(*paths: Path) -> None:
+    """Prevent failed reruns from promoting a stale report or metrics artifact."""
+    for path in paths:
+        path.unlink(missing_ok=True)
 
 
 def _write_empty_csv(path: Path, fields: list[str]) -> None:
@@ -227,6 +338,12 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     charge = power.get("modeled_charge_uah")
     event_charge = power.get("event_charge", [])
     largest_event = max(event_charge, key=lambda row: row.get("charge_uah", 0), default=None)
+    long_runs = stages.get("long_duration_1_7_30_days", {})
+    fault_stage = stages.get("adversarial_fault_injection", {})
+    mechanical = stages.get("mechanical", {})
+    antenna = stages.get("antenna", {})
+    antenna_rows = antenna.get("scenarios", [])
+    failed_checks = mechanical.get("fit", {}).get("issues", [])
     energy_answer = (f"`{charge:.6g} µAh` pela integração SIMULATED de correntes ASSUMED/trace; "
                     f"ngspice: {power.get('ngspice_status', 'NOT_RUN')}." if charge is not None else
                     "Sem integração disponível; conferir o estágio power e seus bloqueadores.")
@@ -254,18 +371,18 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     else:
         lines.append("Nenhum bloqueador digital registrado.")
     lines += ["", "## Respostas técnicas", "",
-              "1. Estabilidade do firmware: depende da execução Renode; testes C host são reportados separadamente.",
-              "2. Coerência dos periféricos virtuais: depende de Renode; comparar com os modelos C do MVP1.",
+              f"1. Estabilidade do firmware: long runs C host `{long_runs.get('status', 'NOT_RUN')}`; Zephyr `{stages.get('zephyr_firmware', {}).get('status', 'NOT_RUN')}`.",
+              f"2. Coerência dos periféricos virtuais: Renode `{stages.get('renode_firmware', {}).get('status', 'NOT_RUN')}`; {stages.get('renode_firmware', {}).get('detail', 'firmware/backend unavailable')}.",
               f"3. Energia digital estimada na janela observada: {energy_answer}",
-              "4. Estabilidade do rail: sem resultado se ngspice não executar; nenhuma queda física é inferida.",
+              f"4. Estabilidade do rail: ngspice `{power.get('ngspice_status', 'NOT_RUN')}`; sem medição física ou resultado de rail quando não executado.",
               f"5. Evento com maior carga integrada: {largest_answer}",
-              "6. A antena cabe: envelope mecânico inicial ASSUMED; revisar saída CAD.",
-              "7. Frequência de ressonância/S11: somente solver openEMS; null quando indisponível.",
-              "8. Degradação por PCB/bateria/carcaça/animal: somente comparação openEMS; aproximação animal ASSUMED.",
-              "9. Encaixe físico digital: estimativa geométrica; envelope ainda não aprovado.",
-              "10. Falhas encontradas: ver failures.csv e status dos testes; estágio ausente não significa sucesso.",
-              "11. Hipóteses a revisar: todos os valores ASSUMED e limites do modelo listados na spec.",
-              "12. Parâmetros ASSUMED: consultar hardware/spec.yaml e provenance exportada.",
+              f"6. A antena cabe: análise geométrica `{mechanical.get('status', 'NOT_RUN')}`; {('; '.join(failed_checks) if failed_checks else 'sem conflito de envelope reportado')}.",
+              f"7. Frequência de ressonância/S11: openEMS `{antenna.get('status', 'NOT_RUN')}`; métricas permanecem nulas sem adaptador configurado e simulação concluída.",
+              f"8. Degradação por PCB/bateria/carcaça/animal: {len(antenna_rows)} cenários listados; resultados exigem openEMS; aproximação animal é experimental.",
+              f"9. Encaixe físico digital: `{'PASS' if mechanical.get('fit', {}).get('fits') else 'BLOCKED'}`; CadQuery disponível `{mechanical.get('cadquery_available', False)}`.",
+              f"10. Falhas encontradas: {summary.get('failure_count', 'ver failures.csv')} entradas; falhas de host cobertas `{', '.join(fault_stage.get('completed_host_cases', []))}`; pendentes `{', '.join(fault_stage.get('pending_cases', []))}`.",
+              "11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.",
+              f"12. Parâmetros por status: `{json.dumps(summary['parameter_statuses'], sort_keys=True)}`; provenance completa na spec.",
               "13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.",
               "14. Este gate não é validação comercial, clínica ou de campo.", "",
               "## Integridade da evidência", "",
@@ -280,20 +397,20 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     for path in dirs.values():
         path.mkdir(parents=True, exist_ok=True)
     env = preflight()
+    zephyr_elf: Path | None = Path(os.environ["RIOSE_ZEPHYR_ELF"]) if os.environ.get("RIOSE_ZEPHYR_ELF") else None
     dump_json(dirs["integration"] / "preflight.json", env)
     motion = generate_motion_profiles(dirs["firmware"] / "motion_profiles.csv", seed=seed)
+    from hardware.antenna.sionna_experiment import run_experiment as run_sionna_experiment
+    sionna = run_sionna_experiment(dirs["antenna"] / "sionna", spec_path=spec_path,
+                                  capabilities=env["gpu"])
 
     stages: dict[str, dict[str, Any]] = {
         "synthetic_motion": motion,
-        "gpu_optional": {**env["gpu"], "required": False, "result_class": "ENVIRONMENT_CAPABILITY_ONLY"},
-        "zephyr_firmware": {"status": "NOT_AVAILABLE", "required": True,
-                            "detail": "Zephyr SDK/workspace is not configured; host C tests do not validate the Zephyr target"},
-        "long_duration_1_7_30_days": {"status": "NOT_AVAILABLE", "required": True,
-                                      "detail": "Accelerated virtual-time execution for 1/7/30 days is not implemented in the available host harness"},
-        "adversarial_fault_injection": {"status": "NOT_AVAILABLE", "required": True,
-                                        "detail": "Fault injection requires the Renode peripheral platform/backend, unavailable in this environment"},
-        "four_power_scenarios": {"status": "NOT_AVAILABLE", "required": True,
-                                 "detail": "Only one host-harness trace is available; NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE must run through the FSM before energy comparison"},
+        "gpu_optional": {**env["gpu"], "required": False,
+                          "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
+                          "experiment_status": sionna["status"],
+                          "scenario_statuses": {row["scenario"]: row["status"] for row in sionna["scenarios"]},
+                          "detail": "Sionna RT is optional; no GPU scenario blocks the digital twin core"},
     }
 
     # Run the preserved host integration tests; they validate software models, not Renode or electronics.
@@ -301,40 +418,136 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     c_tests["result_class"] = "SIMULATED_SOFTWARE_TESTS"
     stages["mvp1_c_tests"] = c_tests
 
+    zephyr_base = os.environ.get("ZEPHYR_BASE")
+    if env["commands"].get("west") and zephyr_base and Path(zephyr_base).is_dir():
+        zephyr_build = _run_command("zephyr_build", [env["commands"]["west"], "build",
+            "-b", "nucleo_l031k6", str(ROOT / "hardware" / "firmware" / "zephyr"),
+            "-d", str(dirs["firmware"] / "zephyr-build")], ROOT, timeout_s=1800)
+        elf = dirs["firmware"] / "zephyr-build" / "zephyr" / "zephyr.elf"
+        elf_built = zephyr_build["status"] == "PASSED" and elf.is_file()
+        if elf_built:
+            zephyr_elf = elf
+        stages["zephyr_firmware"] = {**zephyr_build,
+            "status": "PASSED" if elf_built else "FAILED",
+            "required": True, "elf": str(elf) if elf_built else None,
+            "detail": "Built target firmware for nucleo_l031k6" if elf_built
+            else "west build failed or did not produce the expected Zephyr ELF"}
+    else:
+        stages["zephyr_firmware"] = {"status": "NOT_AVAILABLE", "required": True,
+            "detail": "west/Zephyr workspace is not configured; set ZEPHYR_BASE and install the pinned SDK/workspace"}
+
     if env["commands"].get("renode") and env["commands"].get("renode-test"):
-        checker = ROOT / "hardware" / "renode" / "scripts" / "check_tools.py"
-        if checker.exists():
-            check = _run_command("renode_smoke", [sys.executable, str(checker)], ROOT, timeout_s=60)
-            check["detail"] = check.get("stdout", "")[-1000:]
-            stages["renode_firmware"] = check
-        else:
-            stages["renode_firmware"] = {"status": "NOT_AVAILABLE", "required": True,
-                                           "detail": "Renode platform/check script is absent"}
+        robot = ROOT / "hardware" / "renode" / "tests" / "platform-smoke.robot"
+        firmware_configured = bool(zephyr_elf and zephyr_elf.is_file())
+        robot_env = os.environ.copy()
+        if firmware_configured and zephyr_elf is not None:
+            robot_env["RIOSE_ZEPHYR_ELF"] = str(zephyr_elf.resolve())
+        check = _run_command("renode_smoke", [env["commands"]["renode-test"], str(robot)], ROOT,
+                             timeout_s=180, env=robot_env)
+        output_text = check.get("stdout", "") + check.get("stderr", "")
+        check["status"] = "PASSED" if check["status"] == "PASSED" and firmware_configured else (
+            "PARTIAL" if check["status"] == "PASSED" else check["status"]
+        )
+        check["detail"] = ("Renode platform smoke and Zephyr ELF execution completed" if firmware_configured
+                            else "Renode platform/peripheral smoke ran; firmware execution is pending RIOSE_ZEPHYR_ELF")
+        check["firmware_elf_supplied"] = firmware_configured
+        check["firmware_elf"] = str(zephyr_elf.resolve()) if firmware_configured and zephyr_elf else None
+        check["log_excerpt"] = output_text[-1000:]
+        stages["renode_firmware"] = check
     else:
         stages["renode_firmware"] = {"status": "NOT_AVAILABLE", "required": True,
                                       "detail": "Renode and renode-test are required for the MCU/bus twin"}
 
-    # The host firmware trace export is optional until the C harness trace sink is built.
+    # Export one deterministic C-FSM trace per requested behavioral profile.
     trace_path = dirs["firmware"] / "firmware_trace.jsonl"
     hardware_bin = Path("/tmp/cattle-rf-hardware-tests/hardware_integration")
+    scenario_traces: dict[str, Path] = {}
+    trace_runs: dict[str, dict[str, Any]] = {}
     if c_tests["status"] == "PASSED" and hardware_bin.exists():
-        trace_env = os.environ.copy()
-        trace_env["RIOSE_TRACE_OUTPUT"] = str(trace_path)
-        trace_run = subprocess.run([str(hardware_bin)], cwd=ROOT, env=trace_env,
-                                   capture_output=True, text=True, timeout=120, check=False)
-        stages["host_trace_export"] = {"status": "PASSED" if trace_run.returncode == 0 and trace_path.exists() else "NOT_AVAILABLE",
-                                       "required": False, "result_class": "SIMULATED_SOFTWARE_TRACE",
-                                       "stdout": trace_run.stdout[-3000:], "stderr": trace_run.stderr[-3000:],
-                                       "path": str(trace_path)}
+        for scenario in SCENARIOS:
+            path = dirs["firmware"] / "scenarios" / f"{scenario.lower()}.jsonl"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            trace_run = subprocess.run(
+                [str(hardware_bin), "--trace-output", str(path), "--trace-scenario", scenario],
+                cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
+            )
+            trace_runs[scenario] = {
+                "status": "PASSED" if trace_run.returncode == 0 and path.is_file() else "FAILED",
+                "return_code": trace_run.returncode, "path": str(path),
+                "stderr": trace_run.stderr[-3000:], "result_class": "SIMULATED_SOFTWARE_TRACE",
+            }
+            if trace_runs[scenario]["status"] == "PASSED":
+                scenario_traces[scenario] = path
+        normal = trace_runs.get("NORMAL", {})
+        trace_path = scenario_traces.get("NORMAL", trace_path)
+        if trace_path.is_file():
+            (dirs["firmware"] / "firmware_trace.jsonl").write_bytes(trace_path.read_bytes())
+        stages["host_trace_export"] = {
+            **normal, "status": "PASSED" if normal.get("status") == "PASSED" else "FAILED",
+            "required": True, "result_class": "SIMULATED_SOFTWARE_TRACE",
+            "scenarios": trace_runs,
+        }
     else:
-        stages["host_trace_export"] = {"status": "NOT_AVAILABLE", "required": False,
-                                       "detail": "C harness trace exporter not available"}
+        stages["host_trace_export"] = {"status": "NOT_AVAILABLE", "required": True,
+                                       "detail": "Host C integration executable was not built"}
+
+    stages["firmware_scenarios"] = {
+        "status": "COMPLETED" if len(scenario_traces) == len(SCENARIOS) else "NOT_AVAILABLE",
+        "required": True, "result_class": "SIMULATED_SOFTWARE_TESTS",
+        "scenarios": trace_runs,
+        "detail": "C FSM traces exported for all four requested profiles" if len(scenario_traces) == len(SCENARIOS)
+                  else "One or more C FSM profile traces could not be produced",
+    }
+
+    long_run_results: dict[str, dict[str, Any]] = {}
+    if c_tests["status"] == "PASSED" and hardware_bin.exists():
+        for days in (1, 7, 30):
+            for scenario in SCENARIOS:
+                key = f"{scenario}_{days}d"
+                try:
+                    result = subprocess.run(
+                        [str(hardware_bin), "--long-run-days", str(days), "--scenario", scenario],
+                        cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
+                    )
+                    payload = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+                    long_run_results[key] = {**payload,
+                        "status": payload.get("status", "FAILED") if result.returncode == 0 else "FAILED",
+                        "return_code": result.returncode,
+                    }
+                except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+                    long_run_results[key] = {"status": "FAILED", "detail": str(exc)}
+    all_long_runs = len(long_run_results) == 12 and all(
+        result.get("status") == "COMPLETED" for result in long_run_results.values()
+    )
+    stages["long_duration_1_7_30_days"] = {
+        "status": "COMPLETED" if all_long_runs else "NOT_AVAILABLE", "required": True,
+        "result_class": "SIMULATED_SOFTWARE_RUN", "runs": long_run_results,
+        "detail": "12 deterministic FSM long runs completed" if all_long_runs
+                  else "One or more NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE runs for 1/7/30 days failed",
+    }
+
+    # The C integration executable covers transient host-model faults. Persistent
+    # Renode pin/bus faults and analog rail/reset injection stay explicit blockers.
+    host_faults = ["one_shot_i2c_failure_recovery", "one_shot_spi_failure_recovery",
+                   "late_tx_done_timeout_recovery"]
+    remaining_faults = ["sx1262_busy_stuck", "irq_missing", "crc_corruption",
+                        "battery_voltage_drop", "high_esr", "regulator_instability",
+                        "watchdog_reset", "unexpected_reboot"]
+    stages["adversarial_fault_injection"] = {
+        "status": "PARTIAL" if c_tests["status"] == "PASSED" else "NOT_AVAILABLE",
+        "required": True, "completed_host_cases": host_faults if c_tests["status"] == "PASSED" else [],
+        "pending_cases": remaining_faults,
+        "detail": "Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models",
+    }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"
+    cad_step = dirs["mechanical"] / "ear_tag_assumed.step"
+    cad_stl = dirs["mechanical"] / "ear_tag_assumed.stl"
+    _clear_previous_outputs(mechanical_report, cad_step, cad_stl)
     mechanical_cmd = [sys.executable, str(ROOT / "hardware" / "mechanical" / "model.py"),
                       "--spec", str(spec_path), "--output", str(mechanical_report)]
     if env["modules"].get("cadquery"):
-        mechanical_cmd += ["--step", str(dirs["mechanical"] / "ear_tag_assumed.step")]
+        mechanical_cmd += ["--step", str(cad_step), "--stl", str(cad_stl)]
     if (ROOT / "hardware" / "mechanical" / "model.py").exists():
         mech = _run_command("mechanical", mechanical_cmd, ROOT, timeout_s=120)
         if mechanical_report.exists():
@@ -342,11 +555,19 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             mech["checks"] = [{"name": "envelope_fit", "passed": geometry.get("fit", {}).get("fits"),
                                "status": "SIMULATED", "value": geometry.get("fit", {}).get("issues")}]
             mech["detail"] = "; ".join(geometry.get("fit", {}).get("issues", [])) or "Bounding-box fit estimate completed"
-            mech["status"] = "COMPLETED" if geometry.get("fit", {}).get("fits") else "FAILED"
+            mech["fit"] = geometry.get("fit", {})
+            mech["cadquery_available"] = geometry.get("cadquery_available", False)
+            mech["dimensions_status"] = geometry.get("specification_statuses", [])
             mech["result_class"] = "SIMULATED_GEOMETRY_ESTIMATE"
             if not geometry.get("cadquery_available"):
                 mech["status"] = "NOT_AVAILABLE"
                 mech["detail"] += "; CadQuery STEP export unavailable"
+            elif mech.get("status") != "PASSED":
+                mech["status"] = "FAILED"
+                command_error = mech.get("stderr") or mech.get("stdout") or "CAD command failed"
+                mech["detail"] = f"Mechanical report/export command failed: {command_error[-1000:]}"
+            else:
+                mech["status"] = "COMPLETED" if geometry.get("fit", {}).get("fits") else "FAILED"
         stages["mechanical"] = mech
     else:
         stages["mechanical"] = {"status": "NOT_AVAILABLE", "required": True,
@@ -354,61 +575,111 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     antenna_cmd = [sys.executable, "-m", "hardware.antenna.run", "--spec", str(spec_path),
                    "--output", str(dirs["antenna"])]
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
     antenna_manifest = dirs["antenna"] / "antenna_experiments.json"
+    antenna_csv = dirs["antenna"] / "antenna.csv"
+    _clear_previous_outputs(antenna_manifest, antenna_csv)
+    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
         ant["result_class"] = ant_json.get("result_class")
-        ant["detail"] = ant_json.get("limitations", [""])[0]
+        ant["scenarios"] = ant_json.get("scenarios", [])
+        incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
+        if incomplete:
+            ant["detail"] = "; ".join(
+                f"{row.get('scenario', 'scenario')}: {row.get('status', 'UNKNOWN')} ({row.get('detail', '')})"
+                for row in incomplete
+            )
+        else:
+            ant["detail"] = ant_json.get("limitations", [""])[0]
+        if ant.get("return_code") not in (None, 0) and ant_json.get("status") == "COMPLETED":
+            ant["status"] = "FAILED"
+            ant["detail"] = "Antenna runner returned an error despite a completed manifest"
+    elif ant.get("status") == "PASSED":
+        ant["status"] = "FAILED"
+        ant["detail"] = "Antenna runner exited successfully without producing a manifest"
     stages["antenna"] = ant
 
-    power_summary = dirs["power"] / "summary.json"
-    if trace_path.exists() and (ROOT / "hardware" / "spice" / "trace_adapter.py").exists():
+    power_scenarios: dict[str, dict[str, Any]] = {}
+    schedule_statuses: dict[str, str] = {}
+    if scenario_traces and (ROOT / "hardware" / "spice" / "trace_adapter.py").exists():
         loads_path = dirs["power"] / "assumed_load_profile.json"
         dump_json(loads_path, _power_load_profile(spec))
         power_assumptions_path = dirs["power"] / "assumptions.json"
         dump_json(power_assumptions_path, _power_assumptions(spec))
-        adapter = [sys.executable, str(ROOT / "hardware" / "spice" / "trace_adapter.py"),
-                   str(trace_path), "--loads", str(loads_path), "--output", str(dirs["power"] / "schedule.jsonl")]
-        adapted = _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
-        stages["trace_schedule"] = adapted
-        schedule_path = dirs["power"] / "schedule.jsonl"
-        if adapted["status"] == "PASSED" and schedule_path.exists():
+        for scenario, input_trace in scenario_traces.items():
+            scenario_dir = dirs["power"] / scenario.lower()
+            schedule_path = scenario_dir / "schedule.jsonl"
+            adapter = [sys.executable, str(ROOT / "hardware" / "spice" / "trace_adapter.py"),
+                       str(input_trace), "--loads", str(loads_path), "--output", str(schedule_path)]
+            adapted = _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
+            if adapted["status"] != "PASSED" or not schedule_path.is_file():
+                schedule_statuses[scenario] = "FAILED"
+                power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": "Trace conversion failed"}
+                continue
+            schedule_statuses[scenario] = "PASSED"
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
-                         "--output", str(dirs["power"])]
-            power = _run_command("power", power_cmd, ROOT, timeout_s=1800)
-            if power_summary.exists():
-                power_json = json.loads(power_summary.read_text())
-                power["ngspice_status"] = power_json.get("ngspice", {}).get("status", "UNKNOWN")
-                power["modeled_charge_uah"] = power_json.get("total_charge_mah_window", 0) * 1000
-                power["event_charge"] = power_json.get("event_charge", [])
-                power["modeled_window_s"] = power_json.get("modeled_window_s")
-                power["status"] = "COMPLETED" if power["ngspice_status"] == "EXECUTED" else "NOT_AVAILABLE"
-                if power["status"] == "NOT_AVAILABLE":
-                    power["detail"] = "Assumed-current charge integration completed; ngspice rail simulation was not executed"
-                power["result_class"] = "SIMULATED"
-            stages["power"] = power
-        else:
-            stages["power"] = {"status": "NOT_AVAILABLE", "required": True,
-                                "detail": "Trace could not be converted to an event schedule"}
+                         "--output", str(scenario_dir)]
+            powered = _run_command("power", power_cmd, ROOT, timeout_s=1800)
+            result_path = scenario_dir / "summary.json"
+            if powered["status"] == "PASSED" and result_path.is_file():
+                result = json.loads(result_path.read_text())
+                power_scenarios[scenario] = {
+                    "status": "COMPLETED" if result.get("ngspice", {}).get("status") == "EXECUTED" else "NOT_AVAILABLE",
+                    "ngspice_status": result.get("ngspice", {}).get("status", "UNKNOWN"),
+                    "modeled_charge_uah": result.get("total_charge_mah_window", 0) * 1000,
+                    "modeled_window_s": result.get("modeled_window_s"),
+                    "event_charge": result.get("event_charge", []),
+                    "result_class": "SIMULATED", "outputs": str(scenario_dir),
+                }
+            else:
+                power_scenarios[scenario] = {"status": "FAILED", "detail": powered.get("stderr", "power runner failed")}
+        all_power = len(power_scenarios) == len(SCENARIOS) and all(
+            result.get("status") == "COMPLETED" for result in power_scenarios.values()
+        )
+        # Keep the original top-level power artifact shape for downstream users.
+        normal_power = power_scenarios.get("NORMAL", {})
+        normal_summary_path = dirs["power"] / "normal" / "summary.json"
+        if normal_summary_path.exists():
+            import shutil as _shutil
+            _shutil.copy2(normal_summary_path, dirs["power"] / "summary.json")
+            _shutil.copy2(dirs["power"] / "normal" / "power.csv", dirs["power"] / "power.csv")
+        stages["power"] = {
+            "status": "COMPLETED" if all_power else "NOT_AVAILABLE", "required": True,
+            "result_class": "SIMULATED", "scenarios": power_scenarios,
+            "ngspice_status": normal_power.get("ngspice_status", "NOT_RUN"),
+            "modeled_charge_uah": normal_power.get("modeled_charge_uah"),
+            "modeled_window_s": normal_power.get("modeled_window_s"),
+            "event_charge": normal_power.get("event_charge", []),
+            "detail": "Four scenario rail simulations completed" if all_power
+                      else "Trace charge integration is available where produced; ngspice execution remains required for rail results",
+        }
+        stages["four_power_scenarios"] = {
+            "status": "COMPLETED" if all_power else "NOT_AVAILABLE", "required": True,
+            "scenarios": power_scenarios,
+            "detail": "NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed",
+        }
+        schedules_complete = len(schedule_statuses) == len(SCENARIOS) and all(
+            status == "PASSED" for status in schedule_statuses.values()
+        )
+        stages["trace_schedule"] = {"status": "PASSED" if schedules_complete else "FAILED",
+                                     "required": True, "scenarios": schedule_statuses}
     else:
         stages["power"] = {"status": "NOT_AVAILABLE", "required": True,
-                            "detail": "A firmware trace and trace-to-power adapter are required; no synthetic schedule substituted"}
+                            "detail": "Firmware traces and the trace-to-power adapter are required"}
+        stages["four_power_scenarios"] = {"status": "NOT_AVAILABLE", "required": True,
+                                          "detail": "Four scenario traces could not be generated"}
 
     failures: list[dict[str, Any]] = []
-    not_run_faults = (
-        "SPI_TIMEOUT", "I2C_TIMEOUT", "SX1262_BUSY_STUCK", "IRQ_MISSING", "IMU_FAILURE",
-        "CORRUPT_TELEMETRY", "BATTERY_VOLTAGE_DROP", "HIGH_ESR", "REGULATOR_INSTABILITY",
-        "WATCHDOG_RESET", "UNEXPECTED_REBOOT",
-    )
     failures.extend({"scenario": "adversarial_fault_injection", "failure": case,
-                     "detail": "NOT_RUN: Renode backend/toolchain is unavailable",
-                     "status": "NOT_RUN"} for case in not_run_faults)
-    failures.extend({"scenario": f"long_duration_{days}_days", "failure": "virtual_time_not_executed",
-                     "detail": "NOT_RUN: accelerated long-duration backend is unavailable",
-                     "status": "NOT_RUN"} for days in (1, 7, 30))
+                     "detail": "NOT_RUN: persistent fault injection is not implemented in the configured backend",
+                     "status": "NOT_RUN"} for case in remaining_faults)
+    failures.extend({"scenario": name, "failure": result.get("status", "FAILED"),
+                     "detail": result.get("detail", "long virtual run did not complete"),
+                     "status": "NOT_RUN"}
+                    for name, result in long_run_results.items()
+                    if result.get("status") != "COMPLETED")
     for name, result in stages.items():
         status = result.get("status", "UNKNOWN")
         if status not in {"COMPLETED", "PASSED"} and result.get("required", True):
@@ -426,18 +697,23 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         _write_empty_csv(power_csv, ["timestamp_start_s", "timestamp_end_s", "duration_s", "load_current_ma", "active_events", "active_components", "status"])
     antenna_csv = dirs["antenna"] / "antenna.csv"
     if not antenna_csv.exists():
-        _write_empty_csv(antenna_csv, ["scenario", "status", "resonant_frequency_hz", "s11_min_db", "input_impedance_real_ohm", "input_impedance_imag_ohm", "vswr_min", "efficiency_fraction", "gain_dbi", "radiation_pattern_path"])
+        _write_empty_csv(antenna_csv, ["scenario", "status", "resonant_frequency_hz", "s11_min_db", "input_impedance_real_ohm", "input_impedance_imag_ohm", "vswr_min", "efficiency_fraction", "gain_dbi", "s11_curve_path", "radiation_pattern_path"])
     with (output / "failures.csv").open("w", newline="", encoding="utf-8") as stream:
         fields = ["scenario", "failure", "detail", "status"]
         writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(failures)
 
-    gate = evaluate_gate(spec, stages)
+    gate = evaluate_gate(spec, stages, required_stage_names=(
+        "zephyr_firmware", "renode_firmware", "long_duration_1_7_30_days",
+        "adversarial_fault_injection", "four_power_scenarios", "mechanical",
+        "antenna", "power",
+    ))
     summary = {"schema_version": "riose.mvp2.digital-twin/v1", "milestone": "MVP2_DIGITAL_TWIN",
                "result_class": "SIMULATED", "spec_path": str(spec_path), "spec_sha256": spec_hash,
                "parameter_statuses": parameter_statuses(spec), "environment": env, "stages": stages,
-               "gate": gate, "outputs": {"root": str(output), "firmware": str(dirs["firmware"]),
+               "gate": gate, "failure_count": len(failures),
+               "outputs": {"root": str(output), "firmware": str(dirs["firmware"]),
                          "power": str(dirs["power"]), "antenna": str(dirs["antenna"]),
                          "mechanical": str(dirs["mechanical"]), "integration": str(dirs["integration"]),
                          "failures_csv": str(output / "failures.csv")},
