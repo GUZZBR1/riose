@@ -1,0 +1,57 @@
+{
+  "status": "SIMULATED_CANDIDATE",
+  "battery": {
+    "model": "Tadiran TLL-5902",
+    "chemistry": "Li-SOCl2 primary, 1/2 AA",
+    "nominal_voltage_v": 3.6,
+    "capacity_mah": 1100,
+    "capacity_rating_condition": "DATASHEET_CAPACITY_IS_1.1_AH_AT_1_MA_TO_2_V; 2.0V_IS_NOT_A_VALID_TX_OPERATING_POINT",
+    "source": "https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf",
+    "max_recommended_continuous_current_ma": 50,
+    "max_pulse_current_ma": 100,
+    "input_voltage_sweep_v": [3.6, 3.4, 3.3, 3.2, 3.0, 2.9, 2.8, 2.7, 2.4, 2.0],
+    "input_voltage_sweep_status": "ASSUMED_CELL_STATE_SENSITIVITY_POINTS_NOT_A_TLL5902_DISCHARGE_CURVE",
+    "esr_sweep_ohm": [0.1, 0.25, 0.5, 1.0, 2.0],
+    "esr_sweep_status": "ASSUMED_SWEEP_NOT_TLL5902_MEASUREMENTS"
+  },
+  "regulator": {
+    "model": "TPS62840 candidate",
+    "topology": "buck",
+    "output_voltage_v": 3.3,
+    "input_range_v": [1.8, 6.5],
+    "max_output_current_ma": 750,
+    "quiescent_current_a": 6e-8,
+    "source": "https://www.ti.com/product/TPS62840",
+    "efficiency_assumption": 0.85,
+    "effective_output_resistance_ohm": 0.15,
+    "dropout_assumption_v": 0.1,
+    "status": "DEVICE_CANDIDATE_WITH_SIMPLIFIED_ASSUMED_DYNAMIC_MODEL"
+  },
+  "load": {
+    "tx_radio_current_ma": 45.0,
+    "tx_radio_status": "ASSUMED_STRESS_PROFILE_REFERENCED_TO_SX1262_14DBM_NOT_TLL5902_OR_10DBM_MEASUREMENT",
+    "tx_radio_reference_dbm": 14,
+    "tx_duration_s": 0.12,
+    "tx_rise_time_s": 0.0005,
+    "tx_fall_time_s": 0.0005,
+    "rx_radio_current_ma": 4.6,
+    "rx_duration_s": 0.1,
+    "mcu_active_current_ma": 0.304,
+    "imu_low_power_current_ma": 0.0008,
+    "sleep_load_current_ma": 0.00175
+  },
+  "capacitors": {
+    "battery_side_f": 0.000047,
+    "battery_side_esr_ohm": 0.08,
+    "rail_output_sweep_f": [0.000022, 0.000047, 0.0001],
+    "rail_output_esr_ohm": 0.05,
+    "status": "ASSUMED_VALUES_FOR_SENSITIVITY_ONLY"
+  },
+  "simulation": {
+    "input_voltage_v": 3.6,
+    "minimum_functional_rail_v": 2.7,
+    "functional_rail_threshold_status": "ASSUMED_DESIGN_TARGET_NOT_BROWNOUT_MEASUREMENT",
+    "stop_time_s": 0.3,
+    "time_step_s": 0.00001
+  }
+}

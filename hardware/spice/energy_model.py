@@ -29,8 +29,20 @@ def calculate(config: dict, capacity_override=None):
     active_ma = c["mcu_run"]["current_ma"] + c["imu_low_power"]["current_ma"]
     tx_ma = c["radio_tx"]["current_ma"] + active_ma
     rx_ma = c["radio_rx"]["current_ma"] + active_ma
-    state_current = {"DEEP_SLEEP": sleep_ma, "MCU_ACTIVE": active_ma,
-                     "RF_TX": tx_ma, "RF_RX": rx_ma}
+    rail_current = {"DEEP_SLEEP": sleep_ma, "MCU_ACTIVE": active_ma,
+                    "RF_TX": tx_ma, "RF_RX": rx_ma}
+    regulator = config.get("regulator")
+    if regulator:
+        efficiency = float(regulator["efficiency_assumption"])
+        if not 0 < efficiency <= 1:
+            raise ValueError("Regulator efficiency must be in (0, 1]")
+        conversion = (float(regulator["output_voltage_v"]) /
+                      (float(regulator["battery_voltage_v"]) * efficiency))
+        iq_ma = float(regulator["quiescent_current_ma"])
+        state_current = {state: current * conversion + iq_ma
+                         for state, current in rail_current.items()}
+    else:
+        state_current = rail_current
     rows = []
     for state in ("DEEP_SLEEP", "MCU_ACTIVE", "RF_TX", "RF_RX"):
         duration = seconds[state]
@@ -38,6 +50,7 @@ def calculate(config: dict, capacity_override=None):
         rows.append({"state": state, "duration_s_day": duration,
                      "duration_h_day": duration / 3600,
                      "current_ma": current,
+                     "rail_current_ma": rail_current[state],
                      "charge_mah_day": current * duration / 3600,
                      "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"})
     daily = sum(r["charge_mah_day"] for r in rows)
@@ -54,6 +67,8 @@ def calculate(config: dict, capacity_override=None):
         "estimated_battery_life_days": life_days,
         "estimated_battery_life_years": life_days / 365.25 if life_days is not None else None,
         "autonomy_status": "CALCULATED_FROM_EXPLICIT_CAPACITY" if life_days is not None else "NOT_CALCULATED_CAPACITY_UNCONFIGURED",
+        "lifetime_interpretation": "ARITHMETIC_ONLY_NOT_FIELD_LIFETIME" if life_days is not None else "NO_CAPACITY_SELECTED",
+        "regulator": regulator,
         "states": rows,
         "component_inputs": c,
     }

@@ -1,45 +1,59 @@
 {
   "status": "SIMULATED",
-  "assumptions_notice": "Typical/datasheet currents plus explicitly identified assumptions. Replace assumptions with measured board values before claiming runtime. RX window matches the firmware 100 ms bounded receive timeout; active motion/alarm profiles can transmit more often and must be modeled separately.",
-  "daily_charge_mah": 2.416305,
-  "average_current_ma": 0.100679375,
-  "peak_configured_current_ma": 45.3048,
-  "messages_per_day": 1440,
-  "battery_capacity_mah": null,
-  "estimated_battery_life_days": null,
-  "estimated_battery_life_years": null,
-  "autonomy_status": "NOT_CALCULATED_CAPACITY_UNCONFIGURED",
+  "assumptions_notice": "SIMULATED energy budget using datasheet values and explicit assumptions. The candidate battery capacity is a manufacturer rating, while current inputs, regulator efficiency and duty profile are not measured. Calculated days are an arithmetic model result, not demonstrated lifetime. RX window matches the firmware's 100 ms timeout; high-rate event bursts are bounded and represented by separate scenarios.",
+  "daily_charge_mah": 0.21743578431372543,
+  "average_current_ma": 0.009059824346405227,
+  "peak_configured_current_ma": 48.85817764705882,
+  "messages_per_day": 96,
+  "battery_capacity_mah": 1100,
+  "estimated_battery_life_days": 5058.964896104102,
+  "estimated_battery_life_years": 13.850691022872285,
+  "autonomy_status": "CALCULATED_FROM_EXPLICIT_CAPACITY",
+  "lifetime_interpretation": "ARITHMETIC_ONLY_NOT_FIELD_LIFETIME",
+  "regulator": {
+    "model": "TPS62840 candidate",
+    "output_voltage_v": 3.3,
+    "battery_voltage_v": 3.6,
+    "efficiency_assumption": 0.85,
+    "quiescent_current_ma": 6e-05,
+    "status": "DEVICE_CANDIDATE_WITH_ASSUMED_EFFICIENCY_AND_TYPICAL_DATASHEET_IQ",
+    "source": "https://www.ti.com/product/TPS62840"
+  },
   "states": [
     {
       "state": "DEEP_SLEEP",
-      "duration_s_day": 86040.0,
-      "duration_h_day": 23.9,
-      "current_ma": 0.0017499999999999998,
-      "charge_mah_day": 0.041825,
+      "duration_s_day": 86376.0,
+      "duration_h_day": 23.993333333333332,
+      "current_ma": 0.0019472549019607839,
+      "rail_current_ma": 0.0017499999999999998,
+      "charge_mah_day": 0.046721135947712406,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     },
     {
       "state": "MCU_ACTIVE",
-      "duration_s_day": 43.199999999999996,
-      "duration_h_day": 0.011999999999999999,
-      "current_ma": 0.3048,
-      "charge_mah_day": 0.0036575999999999996,
+      "duration_s_day": 2.88,
+      "duration_h_day": 0.0007999999999999999,
+      "current_ma": 0.3287658823529412,
+      "rail_current_ma": 0.3048,
+      "charge_mah_day": 0.0002630127058823529,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     },
     {
       "state": "RF_TX",
-      "duration_s_day": 172.79999999999998,
-      "duration_h_day": 0.047999999999999994,
-      "current_ma": 45.3048,
-      "charge_mah_day": 2.1746304,
+      "duration_s_day": 11.52,
+      "duration_h_day": 0.0031999999999999997,
+      "current_ma": 48.85817764705882,
+      "rail_current_ma": 45.3048,
+      "charge_mah_day": 0.1563461684705882,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     },
     {
       "state": "RF_RX",
-      "duration_s_day": 144.0,
-      "duration_h_day": 0.04,
-      "current_ma": 4.9048,
-      "charge_mah_day": 0.196192,
+      "duration_s_day": 9.600000000000001,
+      "duration_h_day": 0.002666666666666667,
+      "current_ma": 5.289550196078431,
+      "rail_current_ma": 4.9048,
+      "charge_mah_day": 0.014105467189542486,
       "status": "MIXED_INPUTS_ASSUMED_AND_DATASHEET"
     }
   ],
@@ -71,11 +85,10 @@
     },
     "radio_tx": {
       "current_ma": 45.0,
-      "status": "ASSUMED_CONSERVATIVE_PROXY_REQUIRES_10DBM_MEASUREMENT",
-      "basis": "Firmware default is +10 dBm; no +10 dBm current is sourced here. Uses 45 mA as a conservative proxy referenced to the Semtech +14 dBm value; this is not a +10 dBm datasheet claim and must be measured/replaced.",
+      "status": "DATASHEET_TX14DBM_STRESS_CASE_NOT_FIRMWARE_DEFAULT",
+      "basis": "Stress budget uses Semtech's published 45 mA at +14 dBm even though firmware configures +10 dBm; this is not an estimate of +10 dBm current.",
       "source": "https://www.semtech.com/amazon-sidewalk-lora",
-      "tx_power_dbm": 10,
-      "proxy_reference_tx_power_dbm": 14
+      "tx_power_dbm": 14
     },
     "radio_rx": {
       "current_ma": 4.6,
@@ -85,15 +98,7 @@
     }
   },
   "ngspice": {
-    "status": "EXECUTED",
-    "executable": "ngspice",
-    "version": "ngspice 42",
-    "return_code": 0,
-    "netlist": "tag_power_pulse.cir",
-    "log": "ngspice.log",
-    "run_command": "ngspice -b tag_power_pulse.cir (from this results directory)",
-    "minimum_tag_voltage_v": 3.164086,
-    "brownout_threshold_v": 1.8,
-    "below_configured_brownout": false
+    "status": "NOT_AVAILABLE",
+    "netlist": "hardware/spice/results/tag_power_pulse.cir"
   }
 }

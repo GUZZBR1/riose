@@ -1,7 +1,7 @@
 * Virtual cattle tag: battery + series impedance + reservoir capacitor + TX load
 * SIMULATED. RBAT and Cbulk are configurable assumptions, not a selected cell model.
-.param VBAT=3.3
-.param RBAT=3.0
+.param VBAT=3.6
+.param RBAT=0.25
 .param CBULK=4.7e-05
 .param I_IDLE=1.75e-06
 .param I_TX=0.0453048
