@@ -5,6 +5,7 @@
   "battery_voltage_v": {"value": 3.6, "unit": "V", "status": "ASSUMED", "source": "MVP 1 candidate in hardware/spice/power_profile.json"},
   "battery_esr_ohm": {"value": 0.25, "unit": "ohm", "status": "ASSUMED", "source": "MVP 1 illustrative ngspice pulse profile; sweep required"},
   "regulator_output_v": {"value": 3.3, "unit": "V", "status": "ASSUMED", "source": "MVP 1 TPS62840 candidate configuration"},
+  "regulator_dropout_v": {"value": 0.2, "unit": "V", "status": "ASSUMED", "source": "MVP2 averaged regulator headroom placeholder; requires regulator-specific characterization"},
   "regulator_efficiency": {"value": 0.85, "unit": "fraction", "status": "ASSUMED", "source": "MVP 1 candidate estimate"},
   "regulator_quiescent_ma": {"value": 0.00006, "unit": "mA", "status": "ASSUMED", "source": "MVP 1 candidate configuration"},
   "regulator_output_resistance_ohm": {"value": 0.08, "unit": "ohm", "status": "ASSUMED", "source": "Illustrative averaged regulator model; replace with justified model parameters"},
