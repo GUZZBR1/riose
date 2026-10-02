@@ -6,8 +6,16 @@
 
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/pinctrl/stm32-pinctrl.h>
+#include <zephyr/dt-bindings/clock/stm32l0_clock.h>
 
 / {
+	chosen {
+		/* SysTick stops in STM32L0 STOP mode. Keep the RTC running from LSI
+		 * so the kernel can account elapsed time and wake at beacon deadlines.
+		 */
+		zephyr,cortex-m-idle-timer = &rtc;
+	};
+
 	aliases {
 		tag-radio = &sx1262;
 		tag-imu = &lis2dw12;
@@ -49,6 +57,18 @@
 		};
 	};
 
+};
+
+/* The NUCLEO-L031K6 does not provide an LSE crystal. LSI is less accurate,
+ * but remains active in STOP and is sufficient for coarse beacon intervals.
+ */
+&clk_lsi {
+	status = "okay";
+};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK(APB1, 28U)>, <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
 };
 
 /* UM1956 Table 14 exposes SPI1 on D13/D12/D11 = PB3/PB4/PB5. D13 also

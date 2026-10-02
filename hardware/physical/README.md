@@ -107,6 +107,16 @@ bench candidate and instrument, then run the capture workflow above. See
 [`../reports/power-model.md`](../reports/power-model.md) for the current
 ASSUMED/SIMULATED values and limits.
 
+The NUCLEO target build now enables the RTC counter as the Cortex-M SysTick
+low-power companion timer. This is necessary because STM32L0 STOP stops
+SysTick; without a retained timer, kernel timeouts may not wake at the
+scheduled heartbeat. The NUCLEO profile selects its internal LSI clock (the
+board does not provide an LSE crystal), so timeout accuracy is limited by LSI
+frequency tolerance. The successful ARM compile verifies configuration and
+linking only. A scope/logic-analyzer capture must still confirm actual STOP
+dwell and wake timing before the 96-beacon/day schedule or sleep-current
+profile is treated as physically characterized.
+
 ## Flash and state capture
 
 After attaching a NUCLEO-L031K6 over its ST-LINK USB connector and installing

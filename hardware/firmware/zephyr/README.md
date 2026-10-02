@@ -96,6 +96,13 @@ must follow their datasheets. The profile config in
 `+14 dBm`; it is board-specific, so `native_sim` keeps its independent
 settings.
 
+On the NUCLEO-L031K6 target, `boards/nucleo_l031k6.overlay` selects the STM32
+RTC as the SysTick low-power companion timer. STOP halts SysTick; the RTC is
+clocked from the board's internal LSI because this Nucleo target has no LSE
+crystal configured. This lets Zephyr account for elapsed STOP time and schedule
+the next kernel timeout, but LSI accuracy and real wake timing still need
+bench measurement. `native_sim` does not use this physical timer path.
+
 The three state-trace pins output the binary `tag_state_t` value, with A0 as
 the least-significant bit. Capture them on a high-impedance logic analyzer to
 measure transition times and dwell intervals without UART logging. Codes are
@@ -112,8 +119,9 @@ west build -b nucleo_l031k6 -d build/tag-nucleo-l031k6 \
   /home/lucas_coimbra/projects/riose/hardware/firmware/zephyr
 ```
 
-The build produced `zephyr.bin` at 25,384 bytes (77.47% of the MCU's 32 KiB
-flash) and uses 2,952 bytes of its 8 KiB RAM. This verifies compilation and
+The latest build produced `zephyr.bin` at 28,988 bytes (88.46% of the MCU's 32 KiB
+flash) and uses 2,976 bytes of its 8 KiB RAM. The RTC companion timer accounts
+for additional code and leaves about 3 KiB of flash headroom. This verifies compilation and
 linking for the target only. The image was not flashed; radio behavior, IRQ
 wake, rail stability and current still require the actual board, modules,
 power path, and measurement setup.
