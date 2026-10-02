@@ -1,0 +1,16 @@
+{
+  "status": "ASSUMED",
+  "model_status": "SIMULATED",
+  "source_note": "Initial digital-twin placeholder values based on the MVP 1 candidate profile; not measured and not a board characterization.",
+  "battery_voltage_v": {"value": 3.6, "unit": "V", "status": "ASSUMED", "source": "MVP 1 candidate in hardware/spice/power_profile.json"},
+  "battery_esr_ohm": {"value": 0.25, "unit": "ohm", "status": "ASSUMED", "source": "MVP 1 illustrative ngspice pulse profile; sweep required"},
+  "regulator_output_v": {"value": 3.3, "unit": "V", "status": "ASSUMED", "source": "MVP 1 TPS62840 candidate configuration"},
+  "regulator_efficiency": {"value": 0.85, "unit": "fraction", "status": "ASSUMED", "source": "MVP 1 candidate estimate"},
+  "regulator_quiescent_ma": {"value": 0.00006, "unit": "mA", "status": "ASSUMED", "source": "MVP 1 candidate configuration"},
+  "regulator_output_resistance_ohm": {"value": 0.08, "unit": "ohm", "status": "ASSUMED", "source": "Illustrative averaged regulator model; replace with justified model parameters"},
+  "output_capacitance_f": {"value": 0.000047, "unit": "F", "status": "ASSUMED", "source": "MVP 1 illustrative pulse model"},
+  "idle_current_ma": {"value": 0.00175, "unit": "mA", "status": "ASSUMED", "source": "MVP 1 candidate sleep loads, excluding unmodeled board leakage"},
+  "brownout_threshold_v": {"value": 2.7, "unit": "V", "status": "ASSUMED", "source": "MVP 1 illustrative threshold; not MCU BOR configuration"},
+  "temperature_c": {"value": 25, "unit": "degC", "status": "ASSUMED", "source": "Nominal simulation condition only"},
+  "pwl_edge_s": {"value": 0.000001, "unit": "s", "status": "ASSUMED", "source": "Numerical transition approximation"}
+}

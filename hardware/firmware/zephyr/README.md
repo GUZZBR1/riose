@@ -15,6 +15,24 @@ LIS2DW12 C models. It is a software simulation, not analog bus emulation or a
 physical-board build. The production-board `src/main.c` electrical wake,
 current, and interrupt timing remain unverified on silicon.
 
+## Structured firmware trace
+
+The portable FSM exposes an optional non-blocking `tag_hal_t.trace_event`
+callback. Zephyr targets emit records to the console as comma-separated
+`SIMULATED_TRACE` lines with fields:
+
+`timestamp_us,state,event,source,result,value0,value1,value2`
+
+The timestamp is derived from the virtual/Zephyr millisecond clock and is
+therefore quantized to 1 ms; the `_us` suffix provides a consistent unit, not
+microsecond timing precision. Event and state identifiers are the stable C
+enum values in `tag_firmware.h`. Event values carry stage-specific context:
+IMU axes (signed values represented in 32-bit two's-complement), packet length,
+sequence, behavior, TX configuration, IRQ flags, sleep duration, or failure
+count. All trace lines are labeled `SIMULATED_TRACE`; they are software/model
+events, not electrical measurements. Existing GPIO state-trace output remains
+available and unchanged. A null callback keeps MVP 1 integrations silent.
+
 `boards/native_sim_bus_emul.overlay` is an optional bus-emulator wiring template.
 The validated native_sim path uses the same standalone C peripheral models as
 the host integration harness, so it does not claim electrical bus emulation.

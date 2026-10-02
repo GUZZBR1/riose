@@ -1,0 +1,106 @@
+{
+  "loads": {
+    "event:IMU_READ": {
+      "component": "lis2dw12",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.0008,
+      "source": "MVP1 configured profile, assumed; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "pair:RX_START:RX_DONE": {
+      "component": "sx1262",
+      "current_status": "ASSUMED",
+      "duration_source": "components.radio.rx_window_s (ASSUMED: MVP1 configured timeout window); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.1,
+      "load_current_ma": 4.6,
+      "source": "SX1262 product information; configuration dependent; fallback duration ASSUMED from MVP1 configured timeout window"
+    },
+    "pair:TX_START:TX_DONE": {
+      "component": "sx1262",
+      "current_status": "ASSUMED",
+      "duration_source": "components.radio.tx_duration_s (ASSUMED: MVP1 configured profile; not measured airtime); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.12,
+      "load_current_ma": 45.0,
+      "source": "SX1262 published +14 dBm stress case; not the configured +10 dBm current https://www.semtech.com/amazon-sidewalk; fallback duration ASSUMED from MVP1 configured profile; not measured airtime"
+    },
+    "state:ALERT": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:BOOT": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:ERROR_RECOVERY": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:IMU_MONITORING": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:RF_RX": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:RF_TX": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:SELF_TEST": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.mcu_awake_s_per_event (ASSUMED: MVP1 configured profile, assumed); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 0.03,
+      "load_current_ma": 0.304,
+      "source": "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted; fallback duration ASSUMED from MVP1 configured profile, assumed"
+    },
+    "state:SLEEP": {
+      "component": "mcu",
+      "current_status": "ASSUMED",
+      "duration_source": "power_profiles.normal_beacon_interval_s (SIMULATED: MVP1 firmware policy); applied as ASSUMED fallback",
+      "duration_status": "ASSUMED",
+      "fallback_duration_s": 900.0,
+      "load_current_ma": 0.00035,
+      "source": "STM32L031 datasheet typical; operating conditions apply; fallback duration ASSUMED from MVP1 firmware policy"
+    }
+  },
+  "note": "Currents are assumed/configuration-derived, not measured; modeled loads are additive to idle allowance.",
+  "schema_version": "riose.power.loads/v1",
+  "status": "ASSUMED"
+}

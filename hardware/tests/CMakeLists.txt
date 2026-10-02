@@ -10,6 +10,8 @@ target_link_libraries(hardware_integration PRIVATE tag_firmware sx1262_model lis
 target_compile_options(hardware_integration PRIVATE -Wall -Wextra -Wpedantic -Werror)
 enable_testing()
 add_test(NAME hardware_integration COMMAND hardware_integration)
+add_test(NAME firmware_trace_export
+  COMMAND hardware_integration --trace-output ${CMAKE_CURRENT_BINARY_DIR}/firmware-trace.jsonl)
 
 add_executable(sx1262_driver_config sx1262_driver_config.c)
 target_link_libraries(sx1262_driver_config PRIVATE tag_firmware sx1262_model)

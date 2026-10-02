@@ -90,3 +90,26 @@ documented rather than claiming a compiled KiCad schematic or PCB. No radio
 propagation, 134.2 kHz RFID reader, physical battery/brownout, or field animal
 behavior is claimed as validated.
 
+## MVP 2 digital twin (ear tag only)
+
+The MVP 2 work adds a provenance-controlled hardware specification and a
+headless analysis entry point. It preserves this MVP 1 simulator and its C
+firmware models. The commercial Allflex dimensions are only an `ASSUMED` scale
+reference, not approved RIOSE geometry. Run:
+
+```sh
+uv run python -m riose.digital_twin validate-spec
+uv run python -m riose.digital_twin preflight
+uv run python -m riose.digital_twin run
+```
+
+The run writes machine-readable outputs under `results/mvp2/` and
+`docs/mvp2-digital-twin-report.md`. Missing Renode, ngspice, CadQuery, openEMS,
+or a configured openEMS solver adapter is reported as unavailable; missing
+solvers never produce invented electrical or RF metrics. GPU/Sionna is only an
+`OPTIONAL_GPU_EXPERIMENT`. The initial fit calculation flags the assumed
+battery and antenna keepout as not fitting. No parameter may be marked
+`MEASURED`; dimensions, antenna and fit still require review before a READY
+gate can be reached. See [`hardware/spec.yaml`](hardware/spec.yaml) for the
+candidate architecture and provenance.
+

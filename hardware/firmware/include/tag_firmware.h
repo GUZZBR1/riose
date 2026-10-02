@@ -24,6 +24,42 @@ typedef enum {
     TAG_STATE_ERROR_RECOVERY
 } tag_state_t;
 
+/* Stable machine-readable events for simulated execution traces. Timestamps
+ * are virtual microseconds; values are event-specific and never measurements. */
+typedef enum {
+    TAG_TRACE_BOOT = 1,
+    TAG_TRACE_MCU_INIT,
+    TAG_TRACE_STATE,
+    TAG_TRACE_IMU_READ,
+    TAG_TRACE_PACKET_CREATED,
+    TAG_TRACE_RADIO_STANDBY,
+    TAG_TRACE_TX_START,
+    TAG_TRACE_TX_DONE,
+    TAG_TRACE_RX_START,
+    TAG_TRACE_RX_DONE,
+    TAG_TRACE_RADIO_SLEEP,
+    TAG_TRACE_ERROR,
+    TAG_TRACE_RECOVERY,
+    TAG_TRACE_MCU_SLEEP
+} tag_trace_event_t;
+
+typedef enum {
+    TAG_TRACE_SOURCE_FIRMWARE = 1,
+    TAG_TRACE_SOURCE_SX1262 = 2,
+    TAG_TRACE_SOURCE_HAL = 3
+} tag_trace_source_t;
+
+typedef struct {
+    uint64_t timestamp_us;
+    tag_state_t state;
+    tag_trace_event_t event;
+    tag_trace_source_t source;
+    int32_t result;
+    uint32_t value0;
+    uint32_t value1;
+    uint32_t value2;
+} tag_trace_record_t;
+
 typedef enum {
     TAG_BEHAVIOR_STILL = 0,
     TAG_BEHAVIOR_NORMAL = 1,
@@ -55,6 +91,8 @@ typedef struct {
     void (*wait_for_event)(void *context, uint32_t timeout_ms);
     /* Optional low-overhead state marker for logic-analyzer captures. */
     void (*state_trace)(void *context, tag_state_t state);
+    /* Optional structured trace sink. It must not block or retain record. */
+    void (*trace_event)(void *context, const tag_trace_record_t *record);
 } tag_hal_t;
 
 typedef struct {
@@ -98,6 +136,10 @@ int tag_firmware_init(tag_firmware_t *firmware, const tag_hal_t *hal,
                       const tag_config_t *config);
 void tag_firmware_step(tag_firmware_t *firmware);
 tag_state_t tag_firmware_state(const tag_firmware_t *firmware);
+void tag_trace_emit(const tag_hal_t *hal, tag_state_t state,
+                   tag_trace_event_t event, tag_trace_source_t source,
+                   int32_t result, uint32_t value0, uint32_t value1,
+                   uint32_t value2);
 
 /* Compact little-endian wire packet: version, flags, tag id, sequence,
  * uptime-ms, accel xyz in mg, battery mV, CRC-16/CCITT-FALSE. */

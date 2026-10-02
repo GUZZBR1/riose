@@ -1,0 +1,5 @@
+timestamp_start_s,timestamp_end_s,duration_s,load_current_ma,active_events,active_components,status
+0.0,0.004,0.004,45.30626,IMU_READ;RF_TX;TX,lis2dw12;mcu;sx1262,SIMULATED
+0.004,0.03,0.026,4.90626,IMU_READ;RF_RX;RX,lis2dw12;mcu;sx1262,SIMULATED
+0.03,0.104,0.074,4.90546,RF_RX;RX,mcu;sx1262,SIMULATED
+0.104,1.0,0.896,0.00181,SLEEP,mcu,SIMULATED

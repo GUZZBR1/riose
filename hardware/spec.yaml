@@ -1,0 +1,120 @@
+schema_version: 1
+milestone: MVP2_DIGITAL_TWIN
+evidence_policy:
+  allowed_parameter_statuses: [DATASHEET, ASSUMED, SIMULATED]
+  forbidden_statuses: [MEASURED]
+  design_review_status: PENDING
+  source_note: "A fonte comercial orienta somente a escala; não define a geometria RIOSE."
+
+components:
+  mcu:
+    model: {value: STM32L031K6, unit: part_number, source: "MVP1 candidate; STM datasheet https://www.st.com/resource/en/datasheet/stm32l031k6.pdf", status: DATASHEET}
+    clock_mhz: {value: 4.0, unit: MHz, source: "MVP1 power model configuration", status: ASSUMED}
+    run_current_ma: {value: 0.304, unit: mA, source: "76 uA/MHz x assumed 4 MHz; board/peripheral currents omitted", status: ASSUMED}
+    stop_current_ma: {value: 0.00035, unit: mA, source: "STM32L031 datasheet typical; operating conditions apply", status: DATASHEET}
+    package: {width_mm: {value: 7.0, unit: mm, source: "Provisional LQFP envelope; confirm exact ordering code/package", status: ASSUMED}, height_mm: {value: 7.0, unit: mm, source: "Provisional LQFP envelope; confirm exact ordering code/package", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
+  radio:
+    model: {value: SX1262, unit: part_number, source: "MVP1 candidate; Semtech product page https://www.semtech.com/products/wireless-rf/lora-connect/sx1262", status: DATASHEET}
+    center_frequency_hz: {value: 915000000, unit: Hz, source: "MVP1 firmware prototype setting; not a selected regulatory band", status: ASSUMED}
+    tx_power_dbm: {value: 10, unit: dBm, source: "MVP1 firmware configuration", status: ASSUMED}
+    tx_stress_current_ma: {value: 45.0, unit: mA, source: "SX1262 published +14 dBm stress case; not the configured +10 dBm current https://www.semtech.com/amazon-sidewalk", status: DATASHEET}
+    rx_current_ma: {value: 4.6, unit: mA, source: "SX1262 product information; configuration dependent", status: DATASHEET}
+    sleep_current_ma: {value: 0.0006, unit: mA, source: "MVP1 board-level allowance; requires selected module/configuration", status: ASSUMED}
+    tx_duration_s: {value: 0.12, unit: s, source: "MVP1 configured profile; not measured airtime", status: ASSUMED}
+    rx_window_s: {value: 0.1, unit: s, source: "MVP1 configured timeout window", status: ASSUMED}
+    package: {width_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope; final module/package is not selected", status: ASSUMED}, height_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope; final module/package is not selected", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional chip envelope", status: ASSUMED}}
+  imu:
+    model: {value: LIS2DW12, unit: part_number, source: "MVP1 candidate; ST product page https://www.st.com/en/mems-and-sensors/lis2dw12.html", status: DATASHEET}
+    low_power_current_ma: {value: 0.0008, unit: mA, source: "MVP1 configured estimate within datasheet summary; exact mode/ODR pending", status: ASSUMED}
+    package: {width_mm: {value: 2.0, unit: mm, source: "Provisional package envelope; confirm selected package", status: ASSUMED}, height_mm: {value: 2.0, unit: mm, source: "Provisional package envelope; confirm selected package", status: ASSUMED}, thickness_mm: {value: 0.7, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
+  battery:
+    model: {value: Tadiran TLL-5902, unit: part_number, source: "MVP1 engineering candidate; https://tadiranbat.com/wp-content/uploads/2022/03/tll-5902.pdf", status: DATASHEET}
+    nominal_voltage_v: {value: 3.6, unit: V, source: "TLL-5902 datasheet nominal voltage", status: DATASHEET}
+    nominal_capacity_mah: {value: 1100, unit: mAh, source: "Datasheet rated at 1 mA to 2.0 V; not usable-capacity evidence for this rail", status: DATASHEET}
+    continuous_current_limit_ma: {value: 50, unit: mA, source: "TLL-5902 datasheet; rating conditions apply", status: DATASHEET}
+    pulse_current_limit_ma: {value: 100, unit: mA, source: "TLL-5902 datasheet; pulse conditions apply", status: DATASHEET}
+    esr_ohm: {value: 0.25, unit: ohm, source: "MVP1 illustrative ngspice pulse profile; sweep required", status: ASSUMED}
+    package: {diameter_mm: {value: 14.7, unit: mm, source: "Candidate cell package envelope; verify against datasheet drawing", status: ASSUMED}, length_mm: {value: 49.5, unit: mm, source: "Candidate cell package envelope; verify against datasheet drawing", status: ASSUMED}}
+
+regulator:
+  model: {value: TI TPS62840, unit: part_number, source: "MVP1 engineering candidate https://www.ti.com/product/TPS62840", status: DATASHEET}
+  output_voltage_v: {value: 3.3, unit: V, source: "MVP1 candidate output", status: ASSUMED}
+  efficiency: {value: 0.85, unit: ratio, source: "MVP1 assumption; load-dependent and unmeasured", status: ASSUMED}
+  quiescent_current_a: {value: 6.0e-8, unit: A, source: "TPS62840 typical datasheet IQ; configuration/conditions apply", status: DATASHEET}
+  effective_output_resistance_ohm: {value: 0.15, unit: ohm, source: "MVP1 averaged transient model placeholder", status: ASSUMED}
+  dropout_headroom_v: {value: 0.1, unit: V, source: "MVP1 averaged transient model simplification", status: ASSUMED}
+
+capacitors:
+  battery_side_f: {value: 4.7e-5, unit: F, source: "MVP1 candidate power sweep; no selected component", status: ASSUMED}
+  battery_side_esr_ohm: {value: 0.08, unit: ohm, source: "MVP1 candidate power sweep assumption", status: ASSUMED}
+  rail_output_f: {value: 4.7e-5, unit: F, source: "MVP1 candidate power sweep; no selected component", status: ASSUMED}
+  rail_output_esr_ohm: {value: 0.05, unit: ohm, source: "MVP1 candidate power sweep assumption", status: ASSUMED}
+
+mechanical:
+  source_reference: {value: "Allflex Monitoring Ear Tag Flex", unit: reference, source: "https://www.allflex.global/wp-content/uploads/2021/06/SH_B_Allflex_MSD_8_A4_Eng_May_21.pdf", status: ASSUMED}
+  enclosure:
+    width_mm: {value: 38.0, unit: mm, source: "Commercial Allflex envelope reference; not RIOSE design", status: ASSUMED}
+    height_mm: {value: 68.0, unit: mm, source: "Commercial Allflex envelope reference; not RIOSE design", status: ASSUMED}
+    thickness_mm: {value: 15.0, unit: mm, source: "Commercial Allflex envelope reference; not RIOSE design", status: ASSUMED}
+    wall_thickness_mm: {value: 1.2, unit: mm, source: "Provisional enclosure shell assumption", status: ASSUMED}
+    mounting_hole_diameter_mm: {value: 4.0, unit: mm, source: "Provisional geometry assumption; fit review required", status: ASSUMED}
+  pcb:
+    width_mm: {value: 30.0, unit: mm, source: "Provisional internal layout assumption", status: ASSUMED}
+    height_mm: {value: 48.0, unit: mm, source: "Provisional internal layout assumption", status: ASSUMED}
+    thickness_mm: {value: 1.6, unit: mm, source: "Provisional PCB envelope assumption", status: ASSUMED}
+  battery:
+    diameter_mm: {value: 14.7, unit: mm, source: "Candidate TLL-5902 envelope; verify drawing", status: ASSUMED}
+    length_mm: {value: 49.5, unit: mm, source: "Candidate TLL-5902 envelope; verify drawing", status: ASSUMED}
+  components:
+    mcu: {width_mm: {value: 7.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, height_mm: {value: 7.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
+    radio: {width_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope, not radio module", status: ASSUMED}, height_mm: {value: 4.0, unit: mm, source: "Provisional chip envelope, not radio module", status: ASSUMED}, thickness_mm: {value: 1.0, unit: mm, source: "Provisional chip envelope", status: ASSUMED}}
+    imu: {width_mm: {value: 2.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, height_mm: {value: 2.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, thickness_mm: {value: 0.7, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
+  antenna:
+    width_mm: {value: 28.0, unit: mm, source: "Provisional meander footprint placeholder, not routed antenna geometry", status: ASSUMED}
+    height_mm: {value: 10.0, unit: mm, source: "Provisional meander footprint placeholder, not routed antenna geometry", status: ASSUMED}
+    thickness_mm: {value: 0.2, unit: mm, source: "Provisional conductor envelope", status: ASSUMED}
+    keepout_mm: {value: 2.0, unit: mm, source: "Provisional RF clearance placeholder", status: ASSUMED}
+  minimum_clearance_mm: {value: 0.5, unit: mm, source: "Provisional layout rule; pending review", status: ASSUMED}
+
+materials:
+  enclosure_density_g_cm3: {value: 1.2, unit: g/cm3, source: "Generic TPU placeholder; replace with chosen resin data", status: ASSUMED}
+  pcb_density_g_cm3: {value: 1.85, unit: g/cm3, source: "Homogenized FR-4 placeholder", status: ASSUMED}
+  battery_density_g_cm3: {value: 2.5, unit: g/cm3, source: "Cell package average placeholder", status: ASSUMED}
+  component_density_g_cm3: {value: 2.0, unit: g/cm3, source: "Component package average placeholder", status: ASSUMED}
+  enclosure_relative_permittivity: {value: 3.5, unit: ratio, source: "Generic TPU placeholder; not material characterization", status: ASSUMED}
+  enclosure_conductivity_s_m: {value: 0.01, unit: S/m, source: "Loss placeholder; not material characterization", status: ASSUMED}
+  animal_approx_relative_permittivity: {value: 50.0, unit: ratio, source: "Homogeneous animal-proximity sensitivity placeholder; not ear tissue data", status: ASSUMED}
+  animal_approx_conductivity_s_m: {value: 0.8, unit: S/m, source: "Homogeneous animal-proximity sensitivity placeholder; not ear tissue data", status: ASSUMED}
+  animal_approx_thickness_mm: {value: 10.0, unit: mm, source: "Sensitivity placeholder; not anatomical measurement", status: ASSUMED}
+
+antenna:
+  center_frequency_hz: {value: 915000000, unit: Hz, source: "MVP1 firmware prototype setting; not selected regional band", status: ASSUMED}
+  topology: {value: meandered_quarter_wave_monopole, unit: topology, source: "Initial simulation candidate only", status: ASSUMED}
+  free_space_quarter_wave_length_mm: {value: 82.0, unit: mm, source: "c/(4f) at 915 MHz; ideal free-space reference, not tuned length", status: ASSUMED}
+  element_length_mm: {value: 82.0, unit: mm, source: "Initial electrical path length before tuning", status: ASSUMED}
+  trace_width_mm: {value: 1.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
+  feed_mm: {value: 2.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
+  clearance_mm: {value: 2.0, unit: mm, source: "Initial keepout assumption", status: ASSUMED}
+
+power_profiles:
+  mcu_awake_s_per_event: {value: 0.03, unit: s, source: "MVP1 configured profile, assumed", status: ASSUMED}
+  imu_sample_current_ma: {value: 0.0008, unit: mA, source: "MVP1 configured profile, assumed", status: ASSUMED}
+  normal_beacon_interval_s: {value: 900, unit: s, source: "MVP1 firmware policy", status: SIMULATED}
+  active_burst_duration_s: {value: 120, unit: s, source: "MVP1 firmware policy", status: SIMULATED}
+  alert_burst_duration_s: {value: 120, unit: s, source: "MVP1 firmware policy", status: SIMULATED}
+  temperature_c: {value: 25.0, unit: degC, source: "Nominal simulated environment assumption only", status: ASSUMED}
+  pwl_edge_s: {value: 1.0e-6, unit: s, source: "Numerical transition approximation for SPICE input", status: ASSUMED}
+
+gate:
+  approval:
+    thresholds: PENDING
+    dimensions: PENDING
+    antenna: PENDING
+    fit: PENDING
+  provisional_limits:
+    minimum_rail_voltage_v: {value: 2.7, unit: V, source: "MVP1 candidate engineering threshold; not a measured brownout point", status: ASSUMED}
+    maximum_battery_pulse_current_ma: {value: 100.0, unit: mA, source: "TLL-5902 pulse rating; conditions apply", status: DATASHEET}
+    minimum_component_clearance_mm: {value: 0.5, unit: mm, source: "Initial layout rule", status: ASSUMED}
+    target_s11_db: {value: -10.0, unit: dB, source: "Initial RF acceptance hypothesis; pending review", status: ASSUMED}
+    target_efficiency_percent: {value: 10.0, unit: percent, source: "Initial RF acceptance hypothesis; pending review", status: ASSUMED}
+  ready_states: [NOT_READY_FOR_PHYSICAL_PROTOTYPE, CONDITIONALLY_READY_PENDING_THRESHOLD_APPROVAL, READY_FOR_PHYSICAL_PROTOTYPE]

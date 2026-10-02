@@ -1,0 +1,452 @@
+{
+  "schema_version": "1.0",
+  "analysis": "SIMULATED_GEOMETRY_ESTIMATE",
+  "gate": "NOT_READY_FOR_PHYSICAL_PROTOTYPE",
+  "gate_note": "Mechanical dimensions, antenna and fit require explicit review before READY_FOR_PHYSICAL_PROTOTYPE.",
+  "specification_statuses": [
+    "ASSUMED"
+  ],
+  "input_parameters": {
+    "mechanical.enclosure.width_mm": {
+      "value": 38.0,
+      "unit": "mm",
+      "source": "Commercial Allflex envelope reference; not RIOSE design",
+      "status": "ASSUMED"
+    },
+    "mechanical.enclosure.height_mm": {
+      "value": 68.0,
+      "unit": "mm",
+      "source": "Commercial Allflex envelope reference; not RIOSE design",
+      "status": "ASSUMED"
+    },
+    "mechanical.enclosure.thickness_mm": {
+      "value": 15.0,
+      "unit": "mm",
+      "source": "Commercial Allflex envelope reference; not RIOSE design",
+      "status": "ASSUMED"
+    },
+    "mechanical.enclosure.wall_thickness_mm": {
+      "value": 1.2,
+      "unit": "mm",
+      "source": "Provisional enclosure shell assumption",
+      "status": "ASSUMED"
+    },
+    "mechanical.enclosure.mounting_hole_diameter_mm": {
+      "value": 4.0,
+      "unit": "mm",
+      "source": "Provisional geometry assumption; fit review required",
+      "status": "ASSUMED"
+    },
+    "mechanical.pcb.width_mm": {
+      "value": 30.0,
+      "unit": "mm",
+      "source": "Provisional internal layout assumption",
+      "status": "ASSUMED"
+    },
+    "mechanical.pcb.height_mm": {
+      "value": 48.0,
+      "unit": "mm",
+      "source": "Provisional internal layout assumption",
+      "status": "ASSUMED"
+    },
+    "mechanical.pcb.thickness_mm": {
+      "value": 1.6,
+      "unit": "mm",
+      "source": "Provisional PCB envelope assumption",
+      "status": "ASSUMED"
+    },
+    "mechanical.battery.diameter_mm": {
+      "value": 14.7,
+      "unit": "mm",
+      "source": "Candidate TLL-5902 envelope; verify drawing",
+      "status": "ASSUMED"
+    },
+    "mechanical.battery.length_mm": {
+      "value": 49.5,
+      "unit": "mm",
+      "source": "Candidate TLL-5902 envelope; verify drawing",
+      "status": "ASSUMED"
+    },
+    "mechanical.antenna.width_mm": {
+      "value": 28.0,
+      "unit": "mm",
+      "source": "Provisional meander footprint placeholder, not routed antenna geometry",
+      "status": "ASSUMED"
+    },
+    "mechanical.antenna.height_mm": {
+      "value": 10.0,
+      "unit": "mm",
+      "source": "Provisional meander footprint placeholder, not routed antenna geometry",
+      "status": "ASSUMED"
+    },
+    "mechanical.antenna.thickness_mm": {
+      "value": 0.2,
+      "unit": "mm",
+      "source": "Provisional conductor envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.antenna.keepout_mm": {
+      "value": 2.0,
+      "unit": "mm",
+      "source": "Provisional RF clearance placeholder",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.mcu.width_mm": {
+      "value": 7.0,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.mcu.height_mm": {
+      "value": 7.0,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.mcu.thickness_mm": {
+      "value": 1.0,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.radio.width_mm": {
+      "value": 4.0,
+      "unit": "mm",
+      "source": "Provisional chip envelope, not radio module",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.radio.height_mm": {
+      "value": 4.0,
+      "unit": "mm",
+      "source": "Provisional chip envelope, not radio module",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.radio.thickness_mm": {
+      "value": 1.0,
+      "unit": "mm",
+      "source": "Provisional chip envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.imu.width_mm": {
+      "value": 2.0,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.imu.height_mm": {
+      "value": 2.0,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    },
+    "mechanical.components.imu.thickness_mm": {
+      "value": 0.7,
+      "unit": "mm",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED"
+    }
+  },
+  "envelope_mm": {
+    "width": 38.0,
+    "height": 68.0,
+    "thickness": 15.0
+  },
+  "internal_cavity_mm": {
+    "width": 35.6,
+    "height": 65.6,
+    "thickness": 12.6
+  },
+  "parts": [
+    {
+      "name": "enclosure",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "width": 38.0,
+      "height": 68.0,
+      "thickness": 15.0,
+      "material": "enclosure",
+      "source": "Commercial Allflex envelope reference; not RIOSE design",
+      "status": "ASSUMED",
+      "volume_mm3": 38760.0,
+      "bounds_mm": {
+        "x": [
+          -19.0,
+          19.0
+        ],
+        "y": [
+          -34.0,
+          34.0
+        ],
+        "z": [
+          0,
+          15.0
+        ]
+      }
+    },
+    {
+      "name": "pcb",
+      "x": -2.8000000000000007,
+      "y": 0,
+      "z": 1.2,
+      "width": 30.0,
+      "height": 48.0,
+      "thickness": 1.6,
+      "material": "pcb",
+      "source": "Provisional internal layout assumption",
+      "status": "ASSUMED",
+      "volume_mm3": 2304.0,
+      "bounds_mm": {
+        "x": [
+          -17.8,
+          12.2
+        ],
+        "y": [
+          -24.0,
+          24.0
+        ],
+        "z": [
+          1.2,
+          2.8
+        ]
+      }
+    },
+    {
+      "name": "battery",
+      "x": -6.949999999999999,
+      "y": 0,
+      "z": 1.2,
+      "width": 49.5,
+      "height": 14.7,
+      "thickness": 14.7,
+      "material": "battery",
+      "source": "Candidate TLL-5902 envelope; verify drawing",
+      "status": "ASSUMED",
+      "volume_mm3": 10696.455,
+      "bounds_mm": {
+        "x": [
+          -31.7,
+          17.8
+        ],
+        "y": [
+          -7.35,
+          7.35
+        ],
+        "z": [
+          1.2,
+          15.899999999999999
+        ]
+      }
+    },
+    {
+      "name": "mcu",
+      "x": -14.3,
+      "y": -20.5,
+      "z": 2.8,
+      "width": 7.0,
+      "height": 7.0,
+      "thickness": 1.0,
+      "material": "component",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED",
+      "volume_mm3": 49.0,
+      "bounds_mm": {
+        "x": [
+          -17.8,
+          -10.8
+        ],
+        "y": [
+          -24.0,
+          -17.0
+        ],
+        "z": [
+          2.8,
+          3.8
+        ]
+      }
+    },
+    {
+      "name": "radio",
+      "x": -8.3,
+      "y": -22.0,
+      "z": 2.8,
+      "width": 4.0,
+      "height": 4.0,
+      "thickness": 1.0,
+      "material": "component",
+      "source": "Provisional chip envelope, not radio module",
+      "status": "ASSUMED",
+      "volume_mm3": 16.0,
+      "bounds_mm": {
+        "x": [
+          -10.3,
+          -6.300000000000001
+        ],
+        "y": [
+          -24.0,
+          -20.0
+        ],
+        "z": [
+          2.8,
+          3.8
+        ]
+      }
+    },
+    {
+      "name": "imu",
+      "x": -4.800000000000001,
+      "y": -23.0,
+      "z": 2.8,
+      "width": 2.0,
+      "height": 2.0,
+      "thickness": 0.7,
+      "material": "component",
+      "source": "Provisional package envelope",
+      "status": "ASSUMED",
+      "volume_mm3": 2.8,
+      "bounds_mm": {
+        "x": [
+          -5.800000000000001,
+          -3.8000000000000007
+        ],
+        "y": [
+          -24.0,
+          -22.0
+        ],
+        "z": [
+          2.8,
+          3.5
+        ]
+      }
+    },
+    {
+      "name": "antenna",
+      "x": -2.8000000000000007,
+      "y": 17.0,
+      "z": 2.8,
+      "width": 28.0,
+      "height": 10.0,
+      "thickness": 0.2,
+      "material": "antenna",
+      "source": "Provisional meander footprint placeholder, not routed antenna geometry",
+      "status": "ASSUMED",
+      "volume_mm3": 56.0,
+      "bounds_mm": {
+        "x": [
+          -16.8,
+          11.2
+        ],
+        "y": [
+          12.0,
+          22.0
+        ],
+        "z": [
+          2.8,
+          3.0
+        ]
+      }
+    },
+    {
+      "name": "antenna_keepout",
+      "x": -2.8000000000000007,
+      "y": 17.0,
+      "z": 2.8,
+      "width": 32.0,
+      "height": 14.0,
+      "thickness": 4.2,
+      "material": "keepout",
+      "source": "Provisional RF clearance placeholder",
+      "status": "ASSUMED",
+      "volume_mm3": 1881.6000000000001,
+      "bounds_mm": {
+        "x": [
+          -18.8,
+          13.2
+        ],
+        "y": [
+          10.0,
+          24.0
+        ],
+        "z": [
+          2.8,
+          7.0
+        ]
+      }
+    }
+  ],
+  "fit": {
+    "fits": false,
+    "issues": [
+      "battery envelope exceeds enclosure cavity",
+      "antenna_keepout envelope exceeds enclosure cavity",
+      "antenna keepout exceeds PCB envelope",
+      "unexpected envelope overlap: pcb / battery"
+    ]
+  },
+  "volume_mm3": {
+    "enclosure": 9334.464000000004,
+    "pcb": 2304.0,
+    "battery": 8400.976111863452,
+    "components": 123.8
+  },
+  "mass_estimate_g": {
+    "parts": {
+      "enclosure": 11.201356800000003,
+      "pcb": 4.2624,
+      "battery": 21.00244027965863,
+      "components": 0.2476
+    },
+    "total": 36.71379707965863,
+    "status": "ASSUMED"
+  },
+  "center_of_mass_mm": {
+    "x_mm": -4.3555603795671,
+    "y_mm": -0.025543530623248722,
+    "z_mm": 7.43255402863981
+  },
+  "materials": {
+    "enclosure": {
+      "density_g_cm3": 1.2,
+      "source": "Generic TPU placeholder; replace with chosen resin data",
+      "status": "ASSUMED"
+    },
+    "pcb": {
+      "density_g_cm3": 1.85,
+      "source": "Homogenized FR-4 placeholder",
+      "status": "ASSUMED"
+    },
+    "battery": {
+      "density_g_cm3": 2.5,
+      "source": "Cell package average placeholder",
+      "status": "ASSUMED"
+    },
+    "component": {
+      "density_g_cm3": 2.0,
+      "source": "Component package average placeholder",
+      "status": "ASSUMED"
+    }
+  },
+  "mounting_hole": {
+    "diameter_mm": 4.0,
+    "center_mm": {
+      "x": 0.0,
+      "y": 30.799999999999997
+    },
+    "axis": "z",
+    "source": "Provisional geometry assumption; fit review required",
+    "status": "ASSUMED"
+  },
+  "warnings": [
+    "A",
+    "Battery cylinder is approximated by a rectangular envelope with length along X.",
+    "Bounding-box placement and mass properties are estimates; validate clearances and retention in a reviewed design.",
+    "Component placement gap of 0.5 mm is an ASSUMED layout heuristic.",
+    "D",
+    "E",
+    "M",
+    "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface.",
+    "S",
+    "U"
+  ],
+  "cadquery_available": false
+}

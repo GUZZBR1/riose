@@ -203,6 +203,26 @@ static void state_trace(void *context, tag_state_t state)
     }
 }
 
+static const char *trace_event_name(tag_trace_event_t event)
+{
+    static const char *const names[] = {
+        "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
+        "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
+        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP"
+    };
+    return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
+}
+
+static void trace_event(void *context, const tag_trace_record_t *record)
+{
+    ARG_UNUSED(context);
+    LOG_INF("SIMULATED_TRACE,%llu,%u,%s,%u,%d,%u,%u,%u",
+            (unsigned long long)record->timestamp_us,
+            (unsigned)record->state, trace_event_name(record->event),
+            (unsigned)record->source, (int)record->result,
+            record->value0, record->value1, record->value2);
+}
+
 int main(void)
 {
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
@@ -255,6 +275,7 @@ int main(void)
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
         .state_trace = state_trace,
+        .trace_event = trace_event,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);
     config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;

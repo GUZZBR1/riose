@@ -12,6 +12,54 @@ ctest --test-dir /tmp/hardware-tests-build --output-on-failure
 
 CTest also runs the lower-level host firmware cycle and standalone SX1262/LIS2DW12 model tests. A 24-hour virtual sleep advances directly to the next beacon or radio timer deadline, preserving modeled TX/RX timeouts while avoiding millions of meaningless 10-ms MCU sleep iterations.
 
+## Exporting a firmware trace for the Python power model
+
+The integration harness is silent about files by default. Opt in with either
+an argument or an environment variable; both run a separate deterministic
+nominal virtual cycle and write JSONL records with the same
+`tag_trace_record` fields (`timestamp_us`, state/event/source and IDs, result,
+and `value0..2`). Every line has `status=SIMULATED`.
+
+```sh
+/tmp/hardware-tests-build/hardware_integration \
+  --trace-output /tmp/riose-firmware-trace.jsonl
+# Equivalent:
+RIOSE_TRACE_OUTPUT=/tmp/riose-firmware-trace.jsonl \
+  /tmp/hardware-tests-build/hardware_integration
+```
+
+Convert those point events into the power tool's interval JSONL, then analyze
+the resulting schedule:
+
+```sh
+python3 hardware/spice/trace_adapter.py /tmp/riose-firmware-trace.jsonl \
+  --loads results/mvp2/power/assumed_load_profile.json \
+  --output /tmp/riose-power-schedule.jsonl
+python3 hardware/spice/mvp2_power.py /tmp/riose-power-schedule.jsonl
+```
+
+The load profile is a JSON object keyed by `state:<STATE>`,
+`event:<EVENT>`, or `pair:<START_EVENT>:<END_EVENT>`. Every entry supplies a
+component, `load_current_ma`, `current_status: "ASSUMED"`, and a source. Point
+events and event pairs whose timestamps collapse to the trace's 1 ms
+resolution also require `fallback_duration_s`, `duration_status: "ASSUMED"`,
+and `duration_source`. Every current entry also requires a nonempty `source`.
+Pair intervals such as `TX_START` → `TX_DONE`
+otherwise use the elapsed firmware trace timestamps. The adapter refuses
+unpaired intervals, missing durations, or non-ASSUMED current data; it does
+not invent missing loads. The test profile in
+`hardware/spice/mvp2_tests/test_trace_adapter.py` exists only to test parser
+interoperability and is not an ear-tag power estimate. No current in this
+firmware trace is measured.
+The orchestrator generates the load profile from `hardware/spec.yaml` and
+passes it through `--loads`. It maps MCU awake states, SLEEP, IMU reads, TX,
+and RX. State transitions within the same millisecond are zero-duration
+markers and are skipped rather than expanded into overlapping fallback dwell.
+A terminal state uses its `MCU_SLEEP.value0` scheduled wait when present; only
+if that closing event is absent does the adapter use an explicitly configured
+`ASSUMED` fallback. Those fallbacks are model hypotheses and do not claim the
+firmware actually remained in that state for that duration.
+
 ## Integration coverage
 
 The integration executable covers:

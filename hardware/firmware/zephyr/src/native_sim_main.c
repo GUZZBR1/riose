@@ -78,6 +78,26 @@ static uint32_t clock_ms(void *context)
     return now_ms();
 }
 
+static const char *trace_event_name(tag_trace_event_t event)
+{
+    static const char *const names[] = {
+        "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
+        "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
+        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP"
+    };
+    return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
+}
+
+static void trace_event(void *context, const tag_trace_record_t *record)
+{
+    ARG_UNUSED(context);
+    LOG_INF("SIMULATED_TRACE,%llu,%u,%s,%u,%d,%u,%u,%u",
+            (unsigned long long)record->timestamp_us,
+            (unsigned)record->state, trace_event_name(record->event),
+            (unsigned)record->source, (int)record->result,
+            record->value0, record->value1, record->value2);
+}
+
 static void sleep_ms(void *context, uint32_t duration_ms)
 {
     ARG_UNUSED(context);
@@ -102,6 +122,7 @@ int main(void)
         .radio_irq_pending = radio_irq_pending,
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
+        .trace_event = trace_event,
     };
     tag_config_t config = tag_default_config(0x12345678u);
     config.normal_beacon_ms = 100u;

@@ -1,0 +1,18 @@
+// STM32L071 peripheral set used as a temporary STM32L0-family surrogate.
+// RIOSE's actual candidate is STM32L031K6 (32 KiB flash / 8 KiB SRAM); this
+// Renode platform currently exposes the L071's larger memories and is NOT an
+// exact MCU model. Firmware execution here is useful for driver/protocol
+// behavior only until an L031-specific validated platform is available.
+using "platforms/cpus/stm32l071.repl"
+
+radio: Riose.Renode.SX1262 @ spi1 0
+imu: Riose.Renode.LIS2DW12 @ i2c1 0x18
+
+radio:
+    Busy -> gpioPortB@0
+    IRQ -> gpioPortB@1
+imu:
+    INT1 -> gpioPortA@8
+
+gpioPortA:
+    12 -> radio@0

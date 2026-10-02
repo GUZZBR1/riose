@@ -1,0 +1,32 @@
+{
+  "commands": {
+    "ngspice": null,
+    "openEMS": null,
+    "openscad": null,
+    "python3": "/home/lucas_coimbra/projects/riose/.venv/bin/python3",
+    "renode": null,
+    "renode-test": null,
+    "west": "/home/lucas_coimbra/.local/bin/west"
+  },
+  "gpu": {
+    "CUDA_AVAILABLE": false,
+    "GPU_AVAILABLE": false,
+    "GPU_TYPE": "NONE_DETECTED",
+    "SIONNA_AVAILABLE": false,
+    "experiment": "OPTIONAL_GPU_EXPERIMENT",
+    "result_status": "ENVIRONMENT_CAPABILITY_ONLY",
+    "status": "SKIPPED_OPTIONAL"
+  },
+  "modules": {
+    "CSXCAD": false,
+    "cadquery": false,
+    "openEMS": false,
+    "sionna": false,
+    "torch": false,
+    "yaml": true
+  },
+  "physical_hardware_used": false,
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.13.13",
+  "status": "ENVIRONMENT_PROBE_ONLY"
+}

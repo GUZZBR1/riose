@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 enum { DAY_MS = 24 * 60 * 60 * 1000 };
@@ -26,6 +27,11 @@ typedef struct {
     uint32_t max_wait_timeout_ms;
     uint32_t state_trace_calls;
     tag_state_t last_traced_state;
+    uint32_t structured_trace_counts[15];
+    tag_trace_record_t last_trace_record;
+    bool have_trace_record;
+    bool trace_timestamps_monotonic;
+    FILE *trace_file;
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
     bool force_active_sample;
@@ -179,6 +185,47 @@ static void virtual_state_trace(void *context, tag_state_t state)
     tag->last_traced_state = state;
 }
 
+static void virtual_trace_event(void *context, const tag_trace_record_t *record)
+{
+    virtual_tag_t *tag = (virtual_tag_t *)context;
+    const unsigned event = (unsigned)record->event;
+    assert(event < sizeof(tag->structured_trace_counts) /
+                    sizeof(tag->structured_trace_counts[0]));
+    ++tag->structured_trace_counts[event];
+    if (tag->have_trace_record &&
+        record->timestamp_us < tag->last_trace_record.timestamp_us) {
+        tag->trace_timestamps_monotonic = false;
+    }
+    tag->last_trace_record = *record;
+    tag->have_trace_record = true;
+    if (tag->trace_file != NULL) {
+        static const char *const states[] = {
+            "BOOT", "SELF_TEST", "SLEEP", "IMU_MONITORING", "RF_TX",
+            "RF_RX", "ALERT", "ERROR_RECOVERY"
+        };
+        static const char *const events[] = {
+            "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ",
+            "PACKET_CREATED", "RADIO_STANDBY", "TX_START", "TX_DONE",
+            "RX_START", "RX_DONE", "RADIO_SLEEP", "ERROR", "RECOVERY",
+            "MCU_SLEEP"
+        };
+        static const char *const sources[] = {"INVALID", "FIRMWARE", "SX1262", "HAL"};
+        const unsigned state = (unsigned)record->state;
+        const unsigned source = (unsigned)record->source;
+        (void)fprintf(tag->trace_file,
+            "{\"status\":\"SIMULATED\",\"timestamp_us\":%" PRIu64
+            ",\"state\":\"%s\",\"state_id\":%u,\"event\":\"%s\","
+            "\"event_id\":%u,\"source\":\"%s\",\"source_id\":%u,"
+            "\"result\":%" PRId32 ",\"value0\":%" PRIu32
+            ",\"value1\":%" PRIu32 ",\"value2\":%" PRIu32 "}\n",
+            record->timestamp_us,
+            state < sizeof(states) / sizeof(states[0]) ? states[state] : "UNKNOWN",
+            state, event < sizeof(events) / sizeof(events[0]) ? events[event] : "UNKNOWN",
+            event, source < sizeof(sources) / sizeof(sources[0]) ? sources[source] : "UNKNOWN",
+            source, record->result, record->value0, record->value1, record->value2);
+    }
+}
+
 static tag_hal_t virtual_hal(virtual_tag_t *tag)
 {
     const tag_hal_t hal = {
@@ -192,15 +239,19 @@ static tag_hal_t virtual_hal(virtual_tag_t *tag)
         .sleep_ms = virtual_sleep_ms,
         .wait_for_event = virtual_wait_for_event,
         .state_trace = virtual_state_trace,
+        .trace_event = virtual_trace_event,
     };
     return hal;
 }
 
-static void virtual_tag_init(virtual_tag_t *tag, tag_firmware_t *firmware,
-                             tag_config_t *config, uint32_t latency_ms)
+static void virtual_tag_init_with_trace(virtual_tag_t *tag, tag_firmware_t *firmware,
+                                       tag_config_t *config, uint32_t latency_ms,
+                                       FILE *trace_file)
 {
     memset(tag, 0, sizeof(*tag));
+    tag->trace_timestamps_monotonic = true;
     tag->firmware = firmware;
+    tag->trace_file = trace_file;
     tag->power_mv = config->battery_mv;
     sx1262_model_init(&tag->radio);
     tag->radio.tx_latency_ms = latency_ms;
@@ -218,6 +269,12 @@ static void virtual_tag_init(virtual_tag_t *tag, tag_firmware_t *firmware,
                               &wake_threshold, 1u) == LIS2DW12_OK);
     const tag_hal_t hal = virtual_hal(tag);
     assert(tag_firmware_init(firmware, &hal, config) == 0);
+}
+
+static void virtual_tag_init(virtual_tag_t *tag, tag_firmware_t *firmware,
+                             tag_config_t *config, uint32_t latency_ms)
+{
+    virtual_tag_init_with_trace(tag, firmware, config, latency_ms, NULL);
 }
 
 static bool step_until_state(tag_firmware_t *firmware, tag_state_t target,
@@ -348,6 +405,35 @@ static void test_state_trace_reports_transitions(void)
     tag_firmware_step(&firmware);
     assert(tag.state_trace_calls == 3u);
     assert(tag.last_traced_state == TAG_STATE_SLEEP);
+    assert(tag.structured_trace_counts[TAG_TRACE_BOOT] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_MCU_INIT] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_STATE] == 2u);
+    assert(tag.trace_timestamps_monotonic);
+}
+
+static void test_structured_trace_covers_virtual_tx_cycle(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(0x5154u);
+    config.normal_beacon_ms = 20u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+
+    for (unsigned step = 0; step < 40u; ++step) {
+        tag_firmware_step(&firmware);
+        if (firmware.packets_sent != 0u && firmware.state == TAG_STATE_SLEEP)
+            break;
+    }
+    assert(firmware.packets_sent == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_IMU_READ] > 0u);
+    assert(tag.structured_trace_counts[TAG_TRACE_PACKET_CREATED] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RADIO_STANDBY] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_TX_START] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_TX_DONE] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RX_START] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RX_DONE] == 1u);
+    assert(tag.structured_trace_counts[TAG_TRACE_RADIO_SLEEP] == 1u);
+    assert(tag.trace_timestamps_monotonic);
 }
 
 static void test_rf_switch_tracks_tx_and_rx_modes(void)
@@ -719,11 +805,63 @@ static void test_pathological_alert_for_three_hours(void)
            firmware.packets_sent);
 }
 
-int main(void)
+static int export_nominal_trace(const char *path)
 {
+    FILE *stream = fopen(path, "w");
+    if (stream == NULL) {
+        perror("opening trace output");
+        return 1;
+    }
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(0x54524143u);
+    config.normal_beacon_ms = 1000u;
+    virtual_tag_init_with_trace(&tag, &firmware, &config, 4u, stream);
+
+    bool cycle_complete = false;
+    for (unsigned step = 0; step < 40u; ++step) {
+        tag_firmware_step(&firmware);
+        if (firmware.packets_sent == 1u && firmware.state == TAG_STATE_SLEEP) {
+            cycle_complete = true;
+            break;
+        }
+    }
+    if (cycle_complete) tag_firmware_step(&firmware); /* Emit scheduled sleep interval. */
+    const bool failed = !cycle_complete || firmware.packets_sent != 1u ||
+                        fflush(stream) != 0 || ferror(stream);
+    if (fclose(stream) != 0) return 1;
+    if (failed) {
+        fprintf(stderr, "failed to produce nominal simulated firmware cycle\n");
+        return 1;
+    }
+    return 0;
+}
+
+static const char *trace_output_argument(int argc, char **argv)
+{
+    const char *path = NULL;
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--trace-output") == 0 && i + 1 < argc && path == NULL) {
+            path = argv[++i];
+        } else {
+            fprintf(stderr, "usage: %s [--trace-output PATH]\n", argv[0]);
+            return NULL;
+        }
+    }
+    if (path == NULL) path = getenv("RIOSE_TRACE_OUTPUT");
+    return path;
+}
+
+int main(int argc, char **argv)
+{
+    const char *trace_path = trace_output_argument(argc, argv);
+    if (argc > 1 && trace_path == NULL) return 2;
+    if (trace_path != NULL && trace_path[0] != '\0' &&
+        export_nominal_trace(trace_path) != 0) return 1;
     test_boot_packet_sleep_and_wake();
     test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu();
     test_state_trace_reports_transitions();
+    test_structured_trace_covers_virtual_tx_cycle();
     test_rf_switch_tracks_tx_and_rx_modes();
     test_imu_failure_recovery();
     test_radio_fault_recovery();

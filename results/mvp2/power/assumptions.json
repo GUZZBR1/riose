@@ -1,0 +1,71 @@
+{
+  "battery_esr_ohm": {
+    "source": "hardware/spec.yaml:components.battery.esr_ohm (ASSUMED: MVP1 illustrative ngspice pulse profile; sweep required)",
+    "status": "ASSUMED",
+    "unit": "ohm",
+    "value": 0.25
+  },
+  "battery_voltage_v": {
+    "source": "hardware/spec.yaml:components.battery.nominal_voltage_v (DATASHEET: TLL-5902 datasheet nominal voltage)",
+    "status": "ASSUMED",
+    "unit": "V",
+    "value": 3.6
+  },
+  "brownout_threshold_v": {
+    "source": "hardware/spec.yaml:gate.provisional_limits.minimum_rail_voltage_v (ASSUMED: MVP1 candidate engineering threshold; not a measured brownout point)",
+    "status": "ASSUMED",
+    "unit": "V",
+    "value": 2.7
+  },
+  "idle_current_ma": {
+    "source": "hardware/spec.yaml:components.imu.low_power_current_ma (ASSUMED: MVP1 configured estimate within datasheet summary; exact mode/ODR pending); hardware/spec.yaml:components.radio.sleep_current_ma (ASSUMED: MVP1 board-level allowance; requires selected module/configuration); hardware/spec.yaml:regulator.quiescent_current_a (DATASHEET: TPS62840 typical datasheet IQ; configuration/conditions apply); converted A to mA; aggregate sleep baseline excludes MCU stop current",
+    "status": "ASSUMED",
+    "unit": "mA",
+    "value": 0.00146
+  },
+  "model_status": "SIMULATED",
+  "output_capacitance_f": {
+    "source": "hardware/spec.yaml:capacitors.rail_output_f (ASSUMED: MVP1 candidate power sweep; no selected component)",
+    "status": "ASSUMED",
+    "unit": "F",
+    "value": 4.7e-05
+  },
+  "pwl_edge_s": {
+    "source": "hardware/spec.yaml:power_profiles.pwl_edge_s (ASSUMED: Numerical transition approximation for SPICE input)",
+    "status": "ASSUMED",
+    "unit": "s",
+    "value": 1e-06
+  },
+  "regulator_efficiency": {
+    "source": "hardware/spec.yaml:regulator.efficiency (ASSUMED: MVP1 assumption; load-dependent and unmeasured)",
+    "status": "ASSUMED",
+    "unit": "fraction",
+    "value": 0.85
+  },
+  "regulator_output_resistance_ohm": {
+    "source": "hardware/spec.yaml:regulator.effective_output_resistance_ohm (ASSUMED: MVP1 averaged transient model placeholder)",
+    "status": "ASSUMED",
+    "unit": "ohm",
+    "value": 0.15
+  },
+  "regulator_output_v": {
+    "source": "hardware/spec.yaml:regulator.output_voltage_v (ASSUMED: MVP1 candidate output)",
+    "status": "ASSUMED",
+    "unit": "V",
+    "value": 3.3
+  },
+  "regulator_quiescent_ma": {
+    "source": "hardware/spec.yaml:regulator.quiescent_current_a (DATASHEET: TPS62840 typical datasheet IQ; configuration/conditions apply); converted A to mA",
+    "status": "ASSUMED",
+    "unit": "mA",
+    "value": 5.9999999999999995e-05
+  },
+  "source_note": "Values projected from the canonical MVP2 hardware spec; no electrical measurements.",
+  "status": "ASSUMED",
+  "temperature_c": {
+    "source": "hardware/spec.yaml:power_profiles.temperature_c (ASSUMED: Nominal simulated environment assumption only)",
+    "status": "ASSUMED",
+    "unit": "degC",
+    "value": 25.0
+  }
+}

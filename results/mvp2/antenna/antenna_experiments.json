@@ -1,0 +1,199 @@
+{
+  "antenna_parameters": {
+    "center_frequency_hz": {
+      "source": "MVP1 firmware prototype setting; not selected regional band",
+      "status": "ASSUMED",
+      "unit": "Hz",
+      "value": 915000000
+    },
+    "clearance_mm": {
+      "source": "Initial keepout assumption",
+      "status": "ASSUMED",
+      "unit": "mm",
+      "value": 2.0
+    },
+    "element_length_mm": {
+      "source": "Initial electrical path length before tuning",
+      "status": "ASSUMED",
+      "unit": "mm",
+      "value": 82.0
+    },
+    "feed_mm": {
+      "source": "Initial geometry assumption",
+      "status": "ASSUMED",
+      "unit": "mm",
+      "value": 2.0
+    },
+    "topology": {
+      "source": "Initial simulation candidate only",
+      "status": "ASSUMED",
+      "unit": "topology",
+      "value": "meandered_quarter_wave_monopole"
+    }
+  },
+  "created_utc": "2026-10-02T04:10:48.851988+00:00",
+  "experiment": "RIOSE_MVP2_OPENEMS_ANTENNA",
+  "geometry_contract": {
+    "consumed_geometry": "Adapter may consume mechanical PCB, battery, and enclosure records or a validated mesh export.",
+    "expected_records": "{value, unit, source, status}",
+    "mechanical_root_key": "mechanical",
+    "note": "No geometry is inferred from dimensions unless the adapter reports the generated mesh provenance."
+  },
+  "host": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.13.13"
+  },
+  "limitations": [
+    "The animal-proximity case is an experimental material approximation, not tissue validation.",
+    "Assumed geometry/material properties are not measured physical results.",
+    "A missing solver or adapter produces no RF metrics; null fields are intentional."
+  ],
+  "result_class": "NO_SIMULATION_RESULT",
+  "scenario_order": [
+    "ANTENNA_FREE_SPACE",
+    "ANTENNA_WITH_PCB",
+    "ANTENNA_WITH_BATTERY",
+    "ANTENNA_WITH_ENCLOSURE",
+    "ANTENNA_NEAR_ANIMAL_APPROXIMATION"
+  ],
+  "scenarios": [
+    {
+      "assumptions": "",
+      "center_frequency_hz": 915000000,
+      "center_frequency_status": "ASSUMED",
+      "clearance_mm": 2.0,
+      "clearance_status": "ASSUMED",
+      "detail": "openEMS/CSXCAD bindings are absent; no RF metrics were generated",
+      "efficiency_fraction": null,
+      "element_length_mm": 82.0,
+      "element_length_status": "ASSUMED",
+      "feed_mm": 2.0,
+      "feed_status": "ASSUMED",
+      "gain_dbi": null,
+      "input_impedance_imag_ohm": null,
+      "input_impedance_real_ohm": null,
+      "radiation_pattern_path": null,
+      "resonant_frequency_hz": null,
+      "result_class": "NO_SIMULATION_RESULT",
+      "s11_min_db": null,
+      "scenario": "ANTENNA_FREE_SPACE",
+      "status": "NOT_AVAILABLE",
+      "topology": "meandered_quarter_wave_monopole",
+      "topology_status": "ASSUMED",
+      "vswr_min": null
+    },
+    {
+      "assumptions": "PCB geometry/material approximation required",
+      "center_frequency_hz": 915000000,
+      "center_frequency_status": "ASSUMED",
+      "clearance_mm": 2.0,
+      "clearance_status": "ASSUMED",
+      "detail": "openEMS/CSXCAD bindings are absent; no RF metrics were generated",
+      "efficiency_fraction": null,
+      "element_length_mm": 82.0,
+      "element_length_status": "ASSUMED",
+      "feed_mm": 2.0,
+      "feed_status": "ASSUMED",
+      "gain_dbi": null,
+      "input_impedance_imag_ohm": null,
+      "input_impedance_real_ohm": null,
+      "radiation_pattern_path": null,
+      "resonant_frequency_hz": null,
+      "result_class": "NO_SIMULATION_RESULT",
+      "s11_min_db": null,
+      "scenario": "ANTENNA_WITH_PCB",
+      "status": "NOT_AVAILABLE",
+      "topology": "meandered_quarter_wave_monopole",
+      "topology_status": "ASSUMED",
+      "vswr_min": null
+    },
+    {
+      "assumptions": "Battery geometry/material approximation required",
+      "center_frequency_hz": 915000000,
+      "center_frequency_status": "ASSUMED",
+      "clearance_mm": 2.0,
+      "clearance_status": "ASSUMED",
+      "detail": "openEMS/CSXCAD bindings are absent; no RF metrics were generated",
+      "efficiency_fraction": null,
+      "element_length_mm": 82.0,
+      "element_length_status": "ASSUMED",
+      "feed_mm": 2.0,
+      "feed_status": "ASSUMED",
+      "gain_dbi": null,
+      "input_impedance_imag_ohm": null,
+      "input_impedance_real_ohm": null,
+      "radiation_pattern_path": null,
+      "resonant_frequency_hz": null,
+      "result_class": "NO_SIMULATION_RESULT",
+      "s11_min_db": null,
+      "scenario": "ANTENNA_WITH_BATTERY",
+      "status": "NOT_AVAILABLE",
+      "topology": "meandered_quarter_wave_monopole",
+      "topology_status": "ASSUMED",
+      "vswr_min": null
+    },
+    {
+      "assumptions": "Enclosure geometry/material approximation required",
+      "center_frequency_hz": 915000000,
+      "center_frequency_status": "ASSUMED",
+      "clearance_mm": 2.0,
+      "clearance_status": "ASSUMED",
+      "detail": "openEMS/CSXCAD bindings are absent; no RF metrics were generated",
+      "efficiency_fraction": null,
+      "element_length_mm": 82.0,
+      "element_length_status": "ASSUMED",
+      "feed_mm": 2.0,
+      "feed_status": "ASSUMED",
+      "gain_dbi": null,
+      "input_impedance_imag_ohm": null,
+      "input_impedance_real_ohm": null,
+      "radiation_pattern_path": null,
+      "resonant_frequency_hz": null,
+      "result_class": "NO_SIMULATION_RESULT",
+      "s11_min_db": null,
+      "scenario": "ANTENNA_WITH_ENCLOSURE",
+      "status": "NOT_AVAILABLE",
+      "topology": "meandered_quarter_wave_monopole",
+      "topology_status": "ASSUMED",
+      "vswr_min": null
+    },
+    {
+      "assumptions": "Experimental homogeneous dielectric approximation; not animal tissue validation",
+      "center_frequency_hz": 915000000,
+      "center_frequency_status": "ASSUMED",
+      "clearance_mm": 2.0,
+      "clearance_status": "ASSUMED",
+      "detail": "openEMS/CSXCAD bindings are absent; no RF metrics were generated",
+      "efficiency_fraction": null,
+      "element_length_mm": 82.0,
+      "element_length_status": "ASSUMED",
+      "feed_mm": 2.0,
+      "feed_status": "ASSUMED",
+      "gain_dbi": null,
+      "input_impedance_imag_ohm": null,
+      "input_impedance_real_ohm": null,
+      "radiation_pattern_path": null,
+      "resonant_frequency_hz": null,
+      "result_class": "NO_SIMULATION_RESULT",
+      "s11_min_db": null,
+      "scenario": "ANTENNA_NEAR_ANIMAL_APPROXIMATION",
+      "status": "NOT_AVAILABLE",
+      "topology": "meandered_quarter_wave_monopole",
+      "topology_status": "ASSUMED",
+      "vswr_min": null
+    }
+  ],
+  "schema_version": "riose.antenna.experiments/v1",
+  "solver": {
+    "adapter": null,
+    "execution_mode": "headless",
+    "name": "openEMS",
+    "python_bindings_available": false
+  },
+  "spec_provenance": {
+    "path": "hardware/spec.yaml",
+    "sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
+    "status": "LOADED"
+  },
+  "status": "NOT_AVAILABLE"
+}

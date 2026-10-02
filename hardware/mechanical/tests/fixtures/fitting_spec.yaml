@@ -1,0 +1,37 @@
+mechanical:
+  enclosure:
+    width_mm: {value: 38, unit: mm, source: test fixture, status: ASSUMED}
+    height_mm: {value: 68, unit: mm, source: test fixture, status: ASSUMED}
+    thickness_mm: {value: 15, unit: mm, source: test fixture, status: ASSUMED}
+    wall_thickness_mm: {value: 1.2, unit: mm, source: test fixture, status: ASSUMED}
+    mounting_hole_diameter_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}
+  pcb:
+    width_mm: {value: 12, unit: mm, source: test fixture, status: ASSUMED}
+    height_mm: {value: 24, unit: mm, source: test fixture, status: ASSUMED}
+    thickness_mm: {value: 1.6, unit: mm, source: test fixture, status: ASSUMED}
+  battery:
+    diameter_mm: {value: 8, unit: mm, source: test fixture, status: ASSUMED}
+    length_mm: {value: 20, unit: mm, source: test fixture, status: ASSUMED}
+  antenna:
+    width_mm: {value: 8, unit: mm, source: test fixture, status: ASSUMED}
+    height_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}
+    thickness_mm: {value: 0.2, unit: mm, source: test fixture, status: ASSUMED}
+    keepout_mm: {value: 1, unit: mm, source: test fixture, status: ASSUMED}
+  components:
+    mcu:
+      width_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}
+      height_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}
+      thickness_mm: {value: 1, unit: mm, source: test fixture, status: ASSUMED}
+    radio:
+      width_mm: {value: 3, unit: mm, source: test fixture, status: ASSUMED}
+      height_mm: {value: 3, unit: mm, source: test fixture, status: ASSUMED}
+      thickness_mm: {value: 1, unit: mm, source: test fixture, status: ASSUMED}
+    imu:
+      width_mm: {value: 2, unit: mm, source: test fixture, status: ASSUMED}
+      height_mm: {value: 2, unit: mm, source: test fixture, status: ASSUMED}
+      thickness_mm: {value: 0.7, unit: mm, source: test fixture, status: ASSUMED}
+materials:
+  enclosure_density_g_cm3: {value: 1.2, unit: g/cm3, source: test fixture, status: ASSUMED}
+  pcb_density_g_cm3: {value: 1.85, unit: g/cm3, source: test fixture, status: ASSUMED}
+  battery_density_g_cm3: {value: 2.5, unit: g/cm3, source: test fixture, status: ASSUMED}
+  component_density_g_cm3: {value: 2, unit: g/cm3, source: test fixture, status: ASSUMED}

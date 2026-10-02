@@ -1,0 +1,109 @@
+{
+  "status": "SIMULATED",
+  "input_status": "ASSUMED_OR_TRACE_DERIVED_NOT_MEASURED",
+  "modeled_window_s": 1.0,
+  "period_s": null,
+  "total_charge_mah_window": 0.00018705933333333332,
+  "mAh_per_day": null,
+  "mAh_per_day_status": "NOT_REPORTED_NO_REPEAT_PERIOD",
+  "ideal_capacity_division": null,
+  "ideal_capacity_division_status": "NOT_CALCULATED_NO_USABLE_CAPACITY_INPUT",
+  "event_charge": [
+    {
+      "event": "IDLE_BASELINE",
+      "component": "idle_baseline",
+      "charge_uah": 0.0004055555555555556,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "IMU_READ",
+      "component": "lis2dw12",
+      "charge_uah": 6.666666666666667e-06,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "RF_RX",
+      "component": "mcu",
+      "charge_uah": 0.008444444444444444,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "RF_TX",
+      "component": "mcu",
+      "charge_uah": 0.0003377777777777778,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "RX",
+      "component": "sx1262",
+      "charge_uah": 0.12777777777777777,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "SLEEP",
+      "component": "mcu",
+      "charge_uah": 8.71111111111111e-05,
+      "status": "SIMULATED"
+    },
+    {
+      "event": "TX",
+      "component": "sx1262",
+      "charge_uah": 0.049999999999999996,
+      "status": "SIMULATED"
+    }
+  ],
+  "component_charge_uah": {
+    "idle_baseline": 0.0004055555555555556,
+    "lis2dw12": 6.666666666666667e-06,
+    "mcu": 0.008869333333333333,
+    "sx1262": 0.17777777777777776
+  },
+  "idle_current_ma_assumed": 0.00146,
+  "timeline": [
+    {
+      "timestamp_start_s": 0.0,
+      "timestamp_end_s": 0.004,
+      "duration_s": 0.004,
+      "load_current_ma": 45.30626,
+      "active_events": "IMU_READ;RF_TX;TX",
+      "active_components": "lis2dw12;mcu;sx1262",
+      "status": "SIMULATED"
+    },
+    {
+      "timestamp_start_s": 0.004,
+      "timestamp_end_s": 0.03,
+      "duration_s": 0.026,
+      "load_current_ma": 4.90626,
+      "active_events": "IMU_READ;RF_RX;RX",
+      "active_components": "lis2dw12;mcu;sx1262",
+      "status": "SIMULATED"
+    },
+    {
+      "timestamp_start_s": 0.03,
+      "timestamp_end_s": 0.104,
+      "duration_s": 0.074,
+      "load_current_ma": 4.90546,
+      "active_events": "RF_RX;RX",
+      "active_components": "mcu;sx1262",
+      "status": "SIMULATED"
+    },
+    {
+      "timestamp_start_s": 0.104,
+      "timestamp_end_s": 1.0,
+      "duration_s": 0.896,
+      "load_current_ma": 0.00181,
+      "active_events": "SLEEP",
+      "active_components": "mcu",
+      "status": "SIMULATED"
+    }
+  ],
+  "ngspice": {
+    "status": "NOT_AVAILABLE",
+    "detail": "ngspice absent; netlist generated but not executed",
+    "brownout_threshold_v_assumed": 2.7
+  },
+  "sweep": {
+    "status": "GENERATED_NOT_EXECUTED",
+    "cases": 19
+  }
+}

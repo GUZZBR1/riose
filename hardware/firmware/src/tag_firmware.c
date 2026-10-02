@@ -8,10 +8,33 @@ static uint32_t now_ms(const tag_firmware_t *fw)
     return fw->hal.clock_ms(fw->hal.context);
 }
 
+void tag_trace_emit(const tag_hal_t *hal, tag_state_t state,
+                    tag_trace_event_t event, tag_trace_source_t source,
+                    int32_t result, uint32_t value0, uint32_t value1,
+                    uint32_t value2)
+{
+    if (hal == NULL || hal->trace_event == NULL) return;
+    const tag_trace_record_t record = {
+        .timestamp_us = hal->clock_ms != NULL
+            ? (uint64_t)hal->clock_ms(hal->context) * 1000u : 0u,
+        .state = state,
+        .event = event,
+        .source = source,
+        .result = result,
+        .value0 = value0,
+        .value1 = value1,
+        .value2 = value2,
+    };
+    hal->trace_event(hal->context, &record);
+}
+
 static void set_state(tag_firmware_t *fw, tag_state_t state)
 {
     if (fw->state == state) return;
     fw->state = state;
+    tag_trace_emit(&fw->hal, state, TAG_TRACE_STATE,
+                   TAG_TRACE_SOURCE_FIRMWARE, 0, (uint32_t)state,
+                   (uint32_t)fw->behavior, fw->sequence);
     if (fw->hal.state_trace != NULL)
         fw->hal.state_trace(fw->hal.context, state);
 }
@@ -19,6 +42,9 @@ static void set_state(tag_firmware_t *fw, tag_state_t state)
 static void fail(tag_firmware_t *fw)
 {
     fw->failures++;
+    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_ERROR,
+                   TAG_TRACE_SOURCE_FIRMWARE, -1, fw->failures,
+                   (uint32_t)fw->behavior, 0u);
     set_state(fw, TAG_STATE_ERROR_RECOVERY);
     fw->recovery_at_ms = now_ms(fw) + 1000u;
 }
@@ -59,15 +85,27 @@ int tag_firmware_init(tag_firmware_t *fw, const tag_hal_t *hal,
     fw->initialized = true;
     if (fw->hal.state_trace != NULL)
         fw->hal.state_trace(fw->hal.context, TAG_STATE_BOOT);
+    tag_trace_emit(&fw->hal, TAG_STATE_BOOT, TAG_TRACE_BOOT,
+                   TAG_TRACE_SOURCE_FIRMWARE, 0, fw->config.tag_id,
+                   fw->config.rf_frequency_hz, 0u);
+    tag_trace_emit(&fw->hal, TAG_STATE_BOOT, TAG_TRACE_MCU_INIT,
+                   TAG_TRACE_SOURCE_FIRMWARE, 0, 0u, 0u, 0u);
     return 0;
 }
 
 static void sample_imu(tag_firmware_t *fw)
 {
     if (fw->hal.imu_read(fw->hal.context, &fw->last_imu) != 0) {
+        tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_IMU_READ,
+                       TAG_TRACE_SOURCE_HAL, -1, 0u, 0u, 0u);
         fail(fw);
         return;
     }
+    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_IMU_READ,
+                   TAG_TRACE_SOURCE_HAL, 0,
+                   (uint32_t)(int32_t)fw->last_imu.x_mg,
+                   (uint32_t)(int32_t)fw->last_imu.y_mg,
+                   (uint32_t)(int32_t)fw->last_imu.z_mg);
     const tag_behavior_t previous_behavior = fw->behavior;
     const int64_t x = fw->last_imu.x_mg;
     const int64_t y = fw->last_imu.y_mg;
@@ -125,15 +163,24 @@ static void transmit(tag_firmware_t *fw)
         fail(fw);
         return;
     }
+    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RADIO_STANDBY,
+                   TAG_TRACE_SOURCE_SX1262, 0, 0u, 0u, 0u);
     const size_t len = tag_encode_telemetry(fw->tx_packet,
         sizeof(fw->tx_packet), fw->config.tag_id, fw->sequence++, now_ms(fw),
         &fw->last_imu, fw->config.battery_mv, fw->behavior);
-    if (len == 0u || sx1262_write_buffer(&fw->hal, 0u, fw->tx_packet, len) != 0 ||
-        sx1262_set_tx(&fw->hal, 1000u) != 0) {
+    if (len == 0u) {
         fail(fw);
         return;
     }
     fw->tx_packet_len = (uint8_t)len;
+    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_PACKET_CREATED,
+                   TAG_TRACE_SOURCE_FIRMWARE, 0, (uint32_t)len,
+                   fw->sequence - 1u, (uint32_t)fw->behavior);
+    if (sx1262_write_buffer(&fw->hal, 0u, fw->tx_packet, len) != 0 ||
+        sx1262_set_tx(&fw->hal, 1000u) != 0) {
+        fail(fw);
+        return;
+    }
     fw->next_beacon_ms = now_ms(fw) + fw->config.normal_beacon_ms;
     const uint32_t now = now_ms(fw);
     const bool alert_burst = fw->behavior == TAG_BEHAVIOR_ALERT &&
@@ -151,6 +198,10 @@ static void transmit(tag_firmware_t *fw)
     }
     fw->packets_sent++;
     set_state(fw, TAG_STATE_RF_TX);
+    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TX_START,
+                   TAG_TRACE_SOURCE_SX1262, 0, (uint32_t)len,
+                   (uint32_t)(int32_t)fw->config.tx_power_dbm,
+                   fw->config.rf_frequency_hz);
 }
 
 void tag_firmware_step(tag_firmware_t *fw)
@@ -184,11 +235,15 @@ void tag_firmware_step(tag_firmware_t *fw)
         }
         const uint32_t remaining_ms = fw->next_beacon_ms - now_ms(fw);
         if (fw->hal.wait_for_event != NULL) {
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_MCU_SLEEP,
+                           TAG_TRACE_SOURCE_HAL, 0, remaining_ms, 1u, 0u);
             fw->hal.wait_for_event(fw->hal.context, remaining_ms);
         } else {
             /* Keep the fast host harness responsive; hardware HALs should
              * implement wait_for_event to sleep until IRQ or beacon timeout. */
             const uint32_t poll_ms = remaining_ms < 10u ? remaining_ms : 10u;
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_MCU_SLEEP,
+                           TAG_TRACE_SOURCE_HAL, 0, poll_ms, 0u, 0u);
             fw->hal.sleep_ms(fw->hal.context, poll_ms);
         }
         break;
@@ -228,6 +283,9 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             if ((irq & SX1262_IRQ_TX_DONE) != 0u) {
+                tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TX_DONE,
+                               TAG_TRACE_SOURCE_SX1262, 0, irq,
+                               fw->tx_packet_len, 0u);
                 set_state(fw, TAG_STATE_RF_RX);
             } else if ((irq & SX1262_IRQ_TIMEOUT) != 0u) {
                 fail(fw);
@@ -246,6 +304,8 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             fw->rx_started = true;
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RX_START,
+                           TAG_TRACE_SOURCE_SX1262, 0, 100u, 0u, 0u);
         }
         uint16_t irq = 0u;
         if (fw->hal.radio_irq_pending(fw->hal.context)) {
@@ -255,10 +315,14 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             if ((irq & (SX1262_IRQ_RX_DONE | SX1262_IRQ_TIMEOUT)) != 0u) {
+                tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RX_DONE,
+                               TAG_TRACE_SOURCE_SX1262, 0, irq, 0u, 0u);
                 fw->rx_started = false;
                 if (sx1262_set_sleep(&fw->hal) != 0) {
                     fail(fw);
                 } else {
+                    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RADIO_SLEEP,
+                                   TAG_TRACE_SOURCE_SX1262, 0, 0u, 0u, 0u);
                     set_state(fw, TAG_STATE_SLEEP);
                 }
             } else {
@@ -271,8 +335,13 @@ void tag_firmware_step(tag_firmware_t *fw)
     }
     case TAG_STATE_ERROR_RECOVERY:
         if ((int32_t)(now_ms(fw) - fw->recovery_at_ms) >= 0) {
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RECOVERY,
+                           TAG_TRACE_SOURCE_FIRMWARE, 0, fw->failures,
+                           (uint32_t)TAG_STATE_SELF_TEST, 0u);
             set_state(fw, TAG_STATE_SELF_TEST);
         } else {
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_MCU_SLEEP,
+                           TAG_TRACE_SOURCE_HAL, 0, 10u, 0u, 0u);
             fw->hal.sleep_ms(fw->hal.context, 10u);
         }
         break;
