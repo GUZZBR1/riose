@@ -54,8 +54,9 @@ python hardware/spice/mvp2_power.py path/to/trace.jsonl \
 
 The command writes `summary.json`, timeline `power.csv`, `event_energy.csv`,
 `power_trace.cir`, and one-factor-at-a-time `sweep.json`. When ngspice is on
-PATH, a successful run also writes `electrical_trace.csv` with time, rail
-voltage, and battery current, and reports rail extrema, peak input current,
+PATH, a successful run also writes `electrical_trace.csv` with the simulation
+and netlist identity, fault profile, time, rail voltage, battery-terminal
+voltage, battery current, and `SIMULATED` status, and reports rail extrema, peak input current,
 droop from the assumed regulator setpoint, recovery, and margin above the
 assumed functional voltage limit. Missing ngspice, convergence errors, missing
 measurements, and malformed waveforms have explicit non-success status. A
@@ -66,15 +67,24 @@ summary separates TX, wake-window, sleep-window, and component contributions.
 
 The orchestrator derives an assumptions file from `hardware/spec.yaml` for
 each run. The standalone command defaults to the legacy MVP 1 illustrative
-assumptions unless `--assumptions` is supplied. The deck uses an averaged ideal voltage source for the regulator, an assumed
-output resistance/capacitor for rail transients, and a separate battery ESR
-branch driven by load power converted through assumed efficiency. Event energy
-and rail energy are derived at the assumed regulator output voltage and remain
-`SIMULATED`. It is a
-screening model, not a switching TPS62840 model, electrochemical cell model,
-or electrical validation. Temperature sweep rows are tagged as assumptions
-only and do not claim a temperature-dependent component model. Missing
-Renode/ngspice outputs remain gate blockers in the integrated report.
+assumptions unless `--assumptions` is supplied. The averaged regulator source
+is headroom-limited by the battery node after cell ESR and a sourced ASSUMED
+dropout value, so cell voltage/ESR changes can alter the rail. The named
+`--fault-profile` cases apply synthetic ASSUMED injections: voltage drop during
+trace-derived TX intervals, 40 ohm cell ESR stress, or a 0.8 V/100 Hz regulator
+output perturbation while load current exceeds 10 mA. These are stress probes,
+not device characterization or TPS62840 stability claims. Each profile is
+included in the netlist, summary, and CSV; each output is cleared and validated
+before reuse, with hashes binding the CSV to the deck and waveform. Profiles
+skip parameter sweeps so their result remains a single attributable execution.
+The Issue #7 host power supervisor consumes the timestamped rail CSV and only
+reports recovery after an observed threshold crossing, rail recovery, and a
+post-reinitialization beacon. The threshold value/provenance comes from
+`hardware/spec.yaml` and remains ASSUMED. This is a screening model, not a
+switching-regulator model, electrochemical cell model, or electrical
+validation. Temperature sweep rows are tagged as assumptions only and do not
+claim a temperature-dependent component model. Missing Renode/ngspice outputs
+remain gate blockers in the integrated report.
 
 ## Tests
 
@@ -84,5 +94,6 @@ python -m unittest discover -s hardware/spice/mvp2_tests -v
 
 Tests cover interval aggregation, trace-window alignment, complete state/radio
 coverage, malformed marker rejection, energy metrics, invalid electrical
-parameters, netlist generation, sweep metadata, and missing convergence output.
-They do not require ngspice.
+parameters, coupled fault-profile netlists, sweep metadata, and missing
+convergence output. The unit suite does not require ngspice; causal runs require
+an actual ngspice invocation and current-run waveform validation.

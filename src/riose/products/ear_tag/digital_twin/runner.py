@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -61,12 +63,95 @@ def _long_run_energy_uah(days: int, packets: int, spec: dict[str, Any]) -> dict[
     per_packet_mas = (awake_delta * _record(spec, "power_profiles.mcu_awake_s_per_event") +
                       tx_delta * _record(spec, "components.radio.tx_duration_s") +
                       rx_delta * _record(spec, "components.radio.rx_window_s") +
-                      _record(spec, "power_profiles.imu_sample_current_ma") *
+                      max(0.0, _record(spec, "power_profiles.imu_sample_current_ma") -
+                          _record(spec, "components.imu.low_power_current_ma")) *
                       _record(spec, "power_profiles.mcu_awake_s_per_event"))
     value = (sleep_ma * seconds + packets * per_packet_mas) / 3.6
     return {"status": "SIMULATED_FROM_ASSUMED_PROFILE", "value_uah": value,
             "window_s": seconds, "packet_count": packets,
             "provenance": "hardware/spec.yaml ASSUMED currents and durations; not measured"}
+
+
+def _run_electrical_fault(profile: str, schedule_path: Path, assumptions_path: Path,
+                          output_dir: Path, host_binary: Path, seed: int) -> tuple[subprocess.CompletedProcess, dict]:
+    """Run an ngspice fault profile, then feed only its validated fresh rail CSV to the host model."""
+    import hashlib
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
+                 str(schedule_path), "--assumptions", str(assumptions_path),
+                 "--output", str(output_dir), "--fault-profile", profile]
+    ngspice_bin = os.environ.get("NGSPICE_BIN")
+    if ngspice_bin:
+        power_cmd += ["--ngspice", ngspice_bin]
+    power_run = subprocess.run(power_cmd, cwd=ROOT, capture_output=True, text=True,
+                               timeout=1800, check=False)
+    summary_path = output_dir / "summary.json"
+    if power_run.returncode != 0 or not summary_path.is_file():
+        return subprocess.CompletedProcess(power_cmd, power_run.returncode or 1,
+            power_run.stdout, power_run.stderr or "ngspice fault profile did not produce summary.json"), {}
+    summary = json.loads(summary_path.read_text())
+    electrical = summary.get("ngspice", {})
+    csv_path = output_dir / "electrical_trace.csv"
+    netlist_path = output_dir / "power_trace.cir"
+    waveform_path = output_dir / "power_waveform.dat"
+    if (summary.get("fault_profile") != profile or electrical.get("status") != "PASS" or
+            not csv_path.is_file() or not netlist_path.is_file() or not waveform_path.is_file()):
+        detail = electrical.get("detail") or "profile/result/artifact mismatch"
+        return subprocess.CompletedProcess(power_cmd, 1, power_run.stdout, detail), {}
+    netlist_hash = hashlib.sha256(netlist_path.read_bytes()).hexdigest()
+    waveform_hash = hashlib.sha256(waveform_path.read_bytes()).hexdigest()
+    simulation_id = hashlib.sha256((netlist_hash + waveform_hash).encode()).hexdigest()
+    rows = list(csv.DictReader(csv_path.open(newline="", encoding="utf-8")))
+    try:
+        rail_values = [float(row["rail_voltage_v"]) for row in rows]
+        battery_values = [float(row["battery_terminal_voltage_v"]) for row in rows]
+        current_values = [float(row["battery_current_a"]) for row in rows]
+        times = [float(row["timestamp_s"]) for row in rows]
+        fault_provenance = summary.get("fault_profile_provenance", {})
+        profile_deck = netlist_path.read_text()
+        if profile == "voltage_drop":
+            profile_applied = (fault_provenance.get("voltage_drop_amplitude_v") == 1.2 and
+                               "drop=1.2 V" in profile_deck and "Vcell cell_src 0 PWL(" in profile_deck)
+        elif profile == "high_esr":
+            profile_applied = (fault_provenance.get("high_esr_value_ohm") == 40.0 and
+                               "RBAT=40" in profile_deck)
+        else:
+            profile_applied = (fault_provenance.get("regulator_perturbation_amplitude_v") == 0.8 and
+                               fault_provenance.get("regulator_perturbation_frequency_hz") == 100.0 and
+                               "sin(2*pi*100*time)" in profile_deck and "u(i(Iload)-0.01)" in profile_deck)
+        csv_valid = (len(rows) >= 2 and all(row.get("status") == "SIMULATED" and
+            row.get("simulation_id") == simulation_id and row.get("netlist_sha256") == netlist_hash and
+            row.get("fault_profile") == profile for row in rows) and profile_applied and
+            fault_provenance.get("status") == "ASSUMED" and bool(fault_provenance.get("source")) and
+            all(math.isfinite(value) for value in rail_values + battery_values + current_values + times) and
+            all(value > 0 for value in rail_values + battery_values) and
+            all(value >= 0 for value in current_values) and
+            times[0] <= 1e-6 and all(b > a for a, b in zip(times, times[1:])) and
+            abs(min(rail_values) - float(electrical["rail_min_v"])) <= 1e-5 and
+            abs(min(battery_values) - float(electrical["battery_min_v"])) <= 1e-5 and
+            abs(max(current_values) - float(electrical["battery_current_peak_a"])) <= 1e-5 and
+            times[-1] >= float(summary["trace_window_s"]) - 1e-5 and
+            electrical.get("simulation_id") == simulation_id and
+            electrical.get("netlist_sha256") == netlist_hash and
+            electrical.get("waveform_sha256") == waveform_hash)
+    except (KeyError, TypeError, ValueError):
+        csv_valid = False
+    provenance = summary.get("model_provenance", {}).get("brownout_threshold_v", {})
+    if (not csv_valid or provenance.get("status") != "ASSUMED" or
+            provenance.get("unit") != "V" or not provenance.get("source")):
+        return subprocess.CompletedProcess(power_cmd, 1, power_run.stdout,
+            "fresh ngspice CSV, profile, hashes, metrics, or assumed threshold provenance failed validation"), {}
+    host_cmd = [str(host_binary), "--fault", profile, "--seed", str(seed),
+                "--rail-waveform", str(csv_path), "--simulation-id", simulation_id,
+                "--netlist-sha256", netlist_hash,
+                "--brownout-threshold-v", str(provenance["value"]),
+                "--threshold-source", provenance["source"]]
+    host_run = subprocess.run(host_cmd, cwd=ROOT, capture_output=True, text=True,
+                              timeout=30, check=False)
+    payload = next((json.loads(line) for line in reversed(host_run.stdout.splitlines())
+                    if line.startswith("{")), {})
+    return host_run, payload
 
 
 def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
@@ -194,13 +279,16 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                 key = f"{scenario}_{days}d"
                 try:
                     result = subprocess.run(
-                        [str(hardware_bin), "--long-run-days", str(days), "--scenario", scenario],
+                        [str(hardware_bin), "--long-run-days", str(days), "--scenario", scenario,
+                         "--seed", str(seed)],
                         cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
                     )
                     payload = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
                     expected_ms = days * 86_400_000
                     valid = (result.returncode == 0 and payload.get("status") == "COMPLETED" and
                              payload.get("scenario") == scenario and payload.get("days") == days and
+                             payload.get("seed") == seed and payload.get("terminal_state") == "SLEEP" and
+                             payload.get("packet_crc_valid") is True and
                              payload.get("virtual_ms") == expected_ms and payload.get("steps", 0) > 0 and
                              payload.get("tx_count", 0) > 0 and payload.get("failures") == 0)
                     payload.update(status="COMPLETED" if valid else "FAILED",
@@ -248,30 +336,91 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         else "Counter rollover probe did not produce validated evidence",
     }
 
-    # Host C tests classify reset flags but cannot provoke an MCU reset. The
-    # Zephyr target build proves the IWDG code compiles for the selected board;
-    # only physical target execution can prove watchdog reset behavior.
+    # The electrical fault cases consume the same NORMAL C trace schedule as
+    # the later four-profile power stage, so prepare that input before dispatch.
+    if "NORMAL" in scenario_traces:
+        early_loads = dirs["power"] / "assumed_load_profile.json"
+        early_assumptions = dirs["power"] / "assumptions.json"
+        early_schedule = dirs["power"] / "normal" / "schedule.jsonl"
+        dump_json(early_loads, _power_load_profile(spec))
+        dump_json(early_assumptions, _power_assumptions(spec))
+        early_schedule.parent.mkdir(parents=True, exist_ok=True)
+        adapter = [sys.executable, str(ROOT / "hardware" / "spice" / "trace_adapter.py"),
+                   str(scenario_traces["NORMAL"]), "--loads", str(early_loads),
+                   "--output", str(early_schedule)]
+        _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
+
     fault_rows = [row for row in FAULT_SCENARIOS if row["host_argument"] is not None]
     remaining_faults = [row for row in FAULT_SCENARIOS if row["host_argument"] is None]
     fault_csv_rows = []
     for row in fault_rows:
-        observed = c_tests["status"] == "PASSED"
-        fault_csv_rows.append({**row, "status": "OBSERVED" if observed else "FAILED",
-                               "recovered": row["recovery_expected"] if observed else False,
-                               "seed": seed, "detail": "Dedicated C integration assertion" if observed else c_tests.get("detail", "C tests unavailable")})
+        kind, scenario = row["host_argument"].split(":", 1)
+        executable = hardware_bin if kind == "integration" else host_demo
+        try:
+            if kind == "electrical":
+                result, payload = _run_electrical_fault(
+                    scenario, dirs["power"] / "normal" / "schedule.jsonl",
+                    dirs["power"] / "assumptions.json", dirs["power"] / "faults" / scenario,
+                    host_demo, seed)
+            else:
+                command = ([str(executable), "--fault-scenario", scenario, "--seed", str(seed)]
+                           if kind == "integration" else
+                           [str(executable), "--fault", scenario, "--seed", str(seed)])
+                result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                                        timeout=30, check=False)
+                payload = next((json.loads(line) for line in reversed(result.stdout.splitlines())
+                                if line.startswith("{")), {})
+            recovered = payload.get("recovered") is True
+            valid = (result.returncode == 0 and payload.get("injection_applied") is True and
+                     payload.get("fault") == row["fault"] and payload.get("seed") == seed and
+                     payload.get("attempts", 0) > 0 and
+                     payload.get("terminal_state") == row["terminal_state"] and
+                     payload.get("trace_event") == row["trace_event"] and
+                     payload.get("trace_event_count", 0) > 0 and
+                     recovered == row["recovery_expected"] and bool(payload.get("evidence")))
+            if kind == "electrical":
+                try:
+                    threshold = float(payload["brownout_threshold_v"])
+                    crossing_v = float(payload["rail_crossing_v"])
+                    recovery_v = float(payload["rail_recovery_v"])
+                    crossing_s = float(payload["rail_crossing_s"])
+                    recovery_s = float(payload["rail_recovery_s"])
+                    valid = valid and payload.get("brownout_causally_observed") is True and \
+                        payload.get("reset_cause") == "brownout" and \
+                        payload.get("post_recovery_beacon_observed") is True and \
+                        payload.get("brownout_threshold_status") == "ASSUMED" and \
+                        bool(payload.get("brownout_threshold_source")) and \
+                        crossing_v < threshold <= recovery_v and \
+                        recovery_s > crossing_s and \
+                        payload.get("trace_event") == "BROWNOUT" and \
+                        payload.get("simulation_id") and len(payload["simulation_id"]) == 64
+                except (KeyError, TypeError, ValueError):
+                    valid = False
+            fault_csv_rows.append({**row, **payload,
+                "status": ("RECOVERED" if valid and recovered else "OBSERVED" if valid else "FAILED"),
+                "recovered": recovered if valid else False, "seed": seed,
+                "return_code": result.returncode,
+                "detail": payload.get("evidence") or result.stderr[-1000:] or "missing structured evidence"})
+        except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+            fault_csv_rows.append({**row, "status": "FAILED", "recovered": False,
+                                   "seed": seed, "return_code": None, "detail": str(exc)})
     for row in remaining_faults:
-        fault_csv_rows.append({**row, "status": "BLOCKED", "recovered": False, "seed": seed, "detail": row["blocker"]})
+        fault_csv_rows.append({**row, "status": "BLOCKED", "recovered": False, "seed": seed,
+            "injection_applied": False, "trace_event_count": 0, "evidence": "",
+            "return_code": None, "detail": row["blocker"]})
     fault_csv = output / "fault_scenarios.csv"
     with fault_csv.open("w", newline="", encoding="utf-8") as stream:
-        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail"]
+        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail", "injection_applied", "trace_event_count", "evidence", "return_code", "reset_approach", "cause_source", "watchdog_causally_observed", "reset_cause_independently_observed", "physical_watchdog_validated", "post_init_beacon_observed", "simulation_id", "netlist_sha256", "reset_cause", "reset_cause_source", "brownout_causally_observed", "brownout_threshold_v", "brownout_threshold_status", "brownout_threshold_source", "rail_min_v", "rail_crossing_v", "rail_crossing_s", "rail_crossing_ms", "rail_recovery_v", "rail_recovery_s", "rail_recovered_ms", "post_recovery_beacon_observed"]
         writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows({key: row.get(key) for key in fields} for row in fault_csv_rows)
-    host_faults = [row["fault"] for row in fault_rows] if c_tests["status"] == "PASSED" else []
+    host_faults = [row["fault"] for row in fault_csv_rows if row["status"] in ("RECOVERED", "OBSERVED")]
+    failed_faults = [row["fault"] for row in fault_csv_rows if row["status"] == "FAILED"]
+    blocked_faults = [row["fault"] for row in fault_csv_rows if row["status"] == "BLOCKED"]
     stages["adversarial_fault_injection"] = {
-        "status": "PARTIAL" if c_tests["status"] == "PASSED" else "NOT_AVAILABLE",
+        "status": "COMPLETED" if not blocked_faults and not failed_faults else "PARTIAL",
         "required": True, "completed_host_cases": host_faults,
-        "pending_cases": [row["fault"] for row in remaining_faults],
+        "pending_cases": blocked_faults, "failed_cases": failed_faults,
         "fault_csv": str(fault_csv), "fault_results": fault_csv_rows,
         "watchdog_target_build": {
             "status": "CONFIGURED_AND_COMPILED" if stages["zephyr_firmware"]["status"] == "PASSED" else "NOT_VERIFIED",
@@ -279,7 +428,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "result_class": "TARGET_FIRMWARE_BUILD_EVIDENCE",
             "detail": "The NUCLEO-L031K6 image configures the STM32 IWDG and reports/clears reset flags; no physical watchdog reset was triggered",
         },
-        "detail": "Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, and TX/RX IRQ deadlines. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",
+        "detail": "Electrical outcomes require a fresh hash-validated ngspice waveform to cross the sourced assumed brownout threshold, recover above it, and produce a post-reinitialization CRC-valid beacon. Synthetic reset probes do not claim watchdog expiration, CPU lockup, or independent reset-cause observation.",
     }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"
@@ -363,6 +512,9 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
                          "--output", str(scenario_dir)]
+            ngspice_bin = os.environ.get("NGSPICE_BIN")
+            if ngspice_bin:
+                power_cmd += ["--ngspice", ngspice_bin]
             power_cmd += _repeat_period_arguments(spec)
             powered = _run_command("power", power_cmd, ROOT, timeout_s=1800)
             result_path = scenario_dir / "summary.json"
