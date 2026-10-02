@@ -7,6 +7,7 @@ import importlib
 import json
 import math
 import os
+import re
 from importlib import metadata
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,12 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                    adapter_name: str | None = None) -> dict[str, Any]:
     caps = capabilities or detect_capabilities()
     adapter_name = adapter_name or os.environ.get("RIOSE_SIONNA_ADAPTER")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    # Prevent artifacts from an earlier successful run being mistaken for the
+    # results of a skipped or failed run.
+    for scenario in SCENARIOS:
+        (output_dir / f"{scenario.lower()}.json").unlink(missing_ok=True)
+    (output_dir / "obstacle.obj").unlink(missing_ok=True)
     rows: list[dict[str, Any]] = []
     eligible = bool(caps.get("CUDA_AVAILABLE") and caps.get("SIONNA_AVAILABLE"))
     for scenario in SCENARIOS:
@@ -87,6 +94,11 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                 and type(evidence["frequency_hz"]) in (int, float)
                 and math.isfinite(evidence["frequency_hz"])
                 and evidence["frequency_hz"] > 0
+                and _valid_optional_sha256(evidence["spec_sha256"], required=spec_path is not None)
+                and _valid_optional_sha256(
+                    evidence["obstacle_sha256"],
+                    required=scenario == "TAG_TO_RECEIVER_WITH_OBSTACLE",
+                )
             )
             if not valid_metrics or not valid_evidence:
                 rows.append({**base, "status": "FAILED",
@@ -107,9 +119,14 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                 "status": status, "required": False, "capabilities": caps,
                 "scenarios": rows, "physical_hardware_used": False,
                 "limitations": ["Sionna RT results are exploratory and do not replace openEMS or physical RF validation."]}
-    output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "sionna_experiment.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return manifest
+
+
+def _valid_optional_sha256(value: Any, *, required: bool) -> bool:
+    if value is None:
+        return not required
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
 
 def main(argv: list[str] | None = None) -> int:

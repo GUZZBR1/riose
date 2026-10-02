@@ -129,13 +129,16 @@ It records the 10 m, obstacle, and orientation-variant scenarios. CPU-only or
 missing-Sionna environments mark them `SKIPPED_OPTIONAL` with null metrics. If
 CUDA and Sionna RT are present, the built-in `PathSolver` runs each scenario
 with the frequency in `hardware/spec.yaml` and writes one scenario JSON beside
-the aggregate manifest. The obstacle case uses one generated dielectric panel;
-the orientation case rotates the tag model by 90 degrees. These are small
+the aggregate manifest. The obstacle case uses one generated planar dielectric
+panel with the 10 cm slab thickness assigned to its radio material (the mesh
+is deliberately not a closed box, which would apply material thickness
+repeatedly); the orientation case rotates the tag model by 90 degrees. These are small
 sensitivity experiments, not a farm scene or validated ear-tag antenna model.
 Sionna RT selects its supported Mitsuba backend automatically. The manifest
 records the Sionna version, GPU/CUDA capabilities, solver variant, deterministic
-seed, path count, summed path-coefficient power, frequency, spec hash, and
-obstacle mesh hash. The summed power is a solver-derived path sensitivity
+seed, tag/receiver positions, tag orientation, antenna pattern, obstacle
+material/dimensions, path count, summed path-coefficient power, frequency, spec
+hash, and obstacle mesh hash. The summed power is a solver-derived path sensitivity
 metric; it is not a calibrated RSS measurement. An optional
 `RIOSE_SIONNA_ADAPTER` can still override the built-in runner by exposing
 `simulate(scenario, spec_path, output_dir)` and returning `COMPLETED`, metrics,

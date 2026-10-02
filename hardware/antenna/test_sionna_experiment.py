@@ -2,6 +2,8 @@ import json
 import sys
 import types
 
+import pytest
+
 from hardware.antenna import sionna_experiment as experiment
 from hardware.antenna import sionna_adapter as adapter
 
@@ -27,7 +29,8 @@ def test_gpu_capability_runs_builtin_sionna_adapter(tmp_path, monkeypatch):
     calls = []
 
     def simulate(**kwargs):
-        calls.append(kwargs["scenario"])
+        scenario = kwargs["scenario"]
+        calls.append(scenario)
         return {
             "status": "COMPLETED",
             "metrics": {"path_count": 1, "tag_receiver_distance_m": 10.0,
@@ -35,7 +38,8 @@ def test_gpu_capability_runs_builtin_sionna_adapter(tmp_path, monkeypatch):
             "evidence": {"solver": "Sionna RT PathSolver", "solver_version": "test",
                          "mitsuba_variant": "cuda_ad_mono_polarized", "seed": 42,
                          "deterministic": True, "frequency_hz": 915000000.0,
-                         "spec_sha256": None, "obstacle_sha256": None},
+                         "spec_sha256": None,
+                         "obstacle_sha256": "a" * 64 if scenario == "TAG_TO_RECEIVER_WITH_OBSTACLE" else None},
         }
 
     monkeypatch.setattr(adapter, "simulate", simulate)
@@ -57,7 +61,13 @@ def test_invalid_adapter_completion_is_not_promoted_to_simulated(tmp_path, monke
                for row in result["scenarios"])
 
 
-def test_obstacle_scene_uses_scene_object_position_property(tmp_path, monkeypatch):
+@pytest.mark.parametrize("scenario,orientation,has_obstacle", [
+    ("TAG_TO_RECEIVER_10M", 0.0, False),
+    ("TAG_TO_RECEIVER_WITH_OBSTACLE", 0.0, True),
+    ("TAG_TO_RECEIVER_ORIENTATION_VARIANT", 1.5707963267948966, False),
+])
+def test_builtin_scenarios_capture_geometry_and_valid_paths(
+        tmp_path, monkeypatch, scenario, orientation, has_obstacle):
     class FakeScene:
         def __init__(self):
             self.items = []
@@ -80,6 +90,7 @@ def test_obstacle_scene_uses_scene_object_position_property(tmp_path, monkeypatc
             tensor = lambda values: types.SimpleNamespace(numpy=lambda: values)
             return types.SimpleNamespace(
                 interactions=types.SimpleNamespace(shape=(1, 1, 1, 1, 1, 2)),
+                valid=types.SimpleNamespace(numpy=lambda: [True, False]),
                 a=(tensor([0.3, 0.4]), tensor([0.0, 0.0])),
             )
 
@@ -101,11 +112,63 @@ def test_obstacle_scene_uses_scene_object_position_property(tmp_path, monkeypatc
     monkeypatch.setitem(sys.modules, "mitsuba", fake_mitsuba)
 
     output = tmp_path / "scenarios"
-    result = adapter.simulate(scenario="TAG_TO_RECEIVER_WITH_OBSTACLE",
+    result = adapter.simulate(scenario=scenario,
                               spec_path=None, output_dir=output)
-    obstacle = next(item for item in fake_scene.items if isinstance(item, FakeSceneObject))
-    assert obstacle.position == (5.0, 0.0, 1.5)
-    assert result["metrics"]["path_count"] == 2
+    obstacles = [item for item in fake_scene.items if isinstance(item, FakeSceneObject)]
+    assert len(obstacles) == int(has_obstacle)
+    if has_obstacle:
+        obstacle = obstacles[0]
+        assert obstacle.position == (5.0, 0.0, 1.5)
+    assert result["metrics"]["path_count"] == 1
     assert result["metrics"]["summed_path_coefficient_power_linear"] == 0.25
-    assert (output / "obstacle.obj").is_file()
-    assert (output / "tag_to_receiver_with_obstacle.json").is_file()
+    assert result["evidence"]["tag_orientation_rad"] == [0.0, 0.0, orientation]
+    assert result["evidence"]["tag_position_m"] == [0.0, 0.0, 1.5]
+    assert result["evidence"]["receiver_position_m"] == [10.0, 0.0, 1.5]
+    if has_obstacle:
+        assert (output / "obstacle.obj").is_file()
+        mesh = (output / "obstacle.obj").read_text()
+        assert mesh.count("v ") == 4 and mesh.count("f ") == 2
+        assert result["evidence"]["obstacle_dimensions_m"]["thickness"] == 0.1
+        assert result["evidence"]["obstacle_sha256"]
+
+
+def test_skipped_run_removes_artifacts_from_earlier_simulation(tmp_path):
+    stale_scenario = tmp_path / f"{experiment.SCENARIOS[0].lower()}.json"
+    stale_mesh = tmp_path / "obstacle.obj"
+    stale_scenario.write_text('{"status":"COMPLETED"}')
+    stale_mesh.write_text("old mesh")
+
+    result = experiment.run_experiment(
+        tmp_path,
+        capabilities={"GPU_AVAILABLE": False, "GPU_TYPE": "NONE_DETECTED",
+                      "CUDA_AVAILABLE": False, "SIONNA_AVAILABLE": False},
+    )
+
+    assert result["status"] == "SKIPPED_OPTIONAL"
+    assert not stale_scenario.exists()
+    assert not stale_mesh.exists()
+
+
+def test_spec_run_requires_spec_hash_from_adapter(tmp_path, monkeypatch):
+    caps = {"GPU_AVAILABLE": True, "GPU_TYPE": "test-gpu",
+            "CUDA_AVAILABLE": True, "SIONNA_AVAILABLE": True}
+    bad_adapter = types.SimpleNamespace(simulate=lambda **kwargs: {
+        "status": "COMPLETED",
+        "metrics": {"path_count": 1, "tag_receiver_distance_m": 10.0,
+                    "summed_path_coefficient_power_linear": 0.25},
+        "evidence": {"solver": "Sionna RT PathSolver", "solver_version": "test",
+                     "mitsuba_variant": "cuda_ad_mono_polarized", "seed": 42,
+                     "deterministic": True, "frequency_hz": 915000000.0,
+                     "spec_sha256": None,
+                     "obstacle_sha256": "a" * 64 if kwargs["scenario"] == "TAG_TO_RECEIVER_WITH_OBSTACLE" else None},
+    })
+    monkeypatch.setitem(sys.modules, "bad_provenance_adapter", bad_adapter)
+    spec = tmp_path / "antenna.yaml"
+    spec.write_text("antenna: {}\n")
+
+    result = experiment.run_experiment(tmp_path / "out", spec_path=spec,
+                                       capabilities=caps,
+                                       adapter_name="bad_provenance_adapter")
+
+    assert result["status"] == "PARTIAL_OR_BLOCKED"
+    assert all(row["status"] == "FAILED" for row in result["scenarios"])

@@ -19,23 +19,16 @@ SCENARIO_SETTINGS = {
     "TAG_TO_RECEIVER_ORIENTATION_VARIANT": {"obstacle": False, "orientation_rad": math.pi / 2},
 }
 
-# A 10 cm thick, 4 m wide, 3 m high rectangular obstacle centered between
-# tag and receiver. Its generic dielectric parameters are sensitivity inputs.
+# A 4 m wide, 3 m high planar panel centered between tag and receiver. The
+# material thickness models the 10 cm slab; closed-box faces would apply it
+# repeatedly and double-count transmission through the panel.
 OBSTACLE_OBJ = """\
-v -0.05 -2 -1.5
-v 0.05 -2 -1.5
-v 0.05 2 -1.5
-v -0.05 2 -1.5
-v -0.05 -2 1.5
-v 0.05 -2 1.5
-v 0.05 2 1.5
-v -0.05 2 1.5
-f 1 4 3 2
-f 5 6 7 8
-f 1 2 6 5
-f 2 3 7 6
-f 3 4 8 7
-f 4 1 5 8
+v 0 -2 -1.5
+v 0 2 -1.5
+v 0 2 1.5
+v 0 -2 1.5
+f 1 2 3
+f 1 3 4
 """
 
 
@@ -100,8 +93,8 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         scene, max_depth=2, max_num_paths_per_src=1_000, samples_per_src=10_000,
         synthetic_array=True, seed=42,
     )
-    interactions = paths.interactions
-    path_count = int(interactions.shape[-1])
+    valid_paths = np.asarray(paths.valid.numpy(), dtype=bool)
+    path_count = int(np.count_nonzero(valid_paths))
     real = np.asarray(paths.a[0].numpy(), dtype=float)
     imag = np.asarray(paths.a[1].numpy(), dtype=float)
     path_coefficient_power = float(np.square(real).sum() + np.square(imag).sum())
@@ -117,6 +110,16 @@ def simulate(*, scenario: str, spec_path: Path | None, output_dir: Path) -> dict
         "deterministic": True,
         "frequency_hz": frequency_hz,
         "scene": "empty free-space scene plus optional single rectangular sensitivity obstacle",
+        "tag_position_m": [0.0, 0.0, 1.5],
+        "tag_orientation_rad": [0.0, 0.0, settings["orientation_rad"]],
+        "receiver_position_m": [10.0, 0.0, 1.5],
+        "antenna_pattern": "dipole",
+        "antenna_polarization": "V",
+        "obstacle_position_m": [5.0, 0.0, 1.5] if settings["obstacle"] else None,
+        "obstacle_dimensions_m": {"width": 4.0, "height": 3.0, "thickness": 0.1} if settings["obstacle"] else None,
+        "obstacle_material": {"relative_permittivity": 5.0, "conductivity_s_per_m": 0.01} if settings["obstacle"] else None,
+        "solver_settings": {"max_depth": 2, "max_num_paths_per_src": 1000,
+                            "samples_per_src": 10000, "synthetic_array": True},
         "obstacle_sha256": obstacle_hash,
         "spec_sha256": spec_hash,
     }
