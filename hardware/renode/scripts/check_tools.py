@@ -21,7 +21,19 @@ def main() -> int:
             continue
         print(f"{tool.upper().replace('-', '_')}_AVAILABLE=true")
         print(f"{tool.upper().replace('-', '_')}_PATH={path}")
-        version_command = [sys.executable, "-m", "robot", "--version"] if tool == "renode-test" else [path, "--version"]
+        if tool == "renode-test":
+            # Renode's wrapper chooses this runner by host OS (see tests/common.sh):
+            # `python3` on POSIX and `py -3` on Windows. Check that interpreter,
+            # since Robot may be installed there but not in this script's Python.
+            runner = ["py", "-3"] if sys.platform == "win32" else ["python3"]
+            runner_path = shutil.which(runner[0])
+            if runner_path is None:
+                print("ROBOT_FRAMEWORK_VERSION=unknown (Renode Python runner unavailable)")
+                continue
+            version_command = [*runner, "-m", "robot", "--version"]
+            print(f"RENODE_TEST_PYTHON={runner_path}")
+        else:
+            version_command = [path, "--version"]
         result = subprocess.run(version_command, capture_output=True, text=True)
         version = (result.stdout or result.stderr).strip().splitlines()
         version_label = "ROBOT_FRAMEWORK_VERSION" if tool == "renode-test" else f"{tool.upper().replace('-', '_')}_VERSION"

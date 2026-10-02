@@ -187,10 +187,10 @@ static int imu_read_fn(void *context, tag_imu_sample_t *sample)
     for (size_t axis = 0; axis < 3; ++axis) {
         const int16_t raw16 = (int16_t)((uint16_t)data[axis * 2] |
                                ((uint16_t)data[axis * 2 + 1] << 8));
-        /* LIS2DW12 14-bit output is left-aligned; +/-2 g sensitivity is
-         * 0.061 mg per 12-bit sample. Return integer mg to the HAL contract. */
+        /* CTRL1 selects low-power 12-bit output, left-aligned in OUT_x. At
+         * +/-2 g the LIS2DW12 sensitivity is 0.976 mg/LSB. */
         const int32_t raw12 = raw16 >> 4;
-        const int16_t mg = (int16_t)((raw12 * 61) / 1000);
+        const int16_t mg = (int16_t)((raw12 * 976) / 1000);
         if (axis == 0) sample->x_mg = mg;
         else if (axis == 1) sample->y_mg = mg;
         else sample->z_mg = mg;
