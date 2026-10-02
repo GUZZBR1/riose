@@ -7,6 +7,14 @@ represented here.
 
 ## Platform support finding
 
+The inherited Renode L071 platform normally runs an `ApplySVD` command against
+an upstream STM32L0 SVD URL during initialization. That SVD supplies debugger
+register names and peripheral metadata; it does not drive emulated behavior.
+This platform overrides the inherited `sysbus` init hook and keeps its address
+range tags, so headless smoke tests do not download external SVD data at
+runtime. The CPU and peripheral models still come from the installed Renode
+release.
+
 Renode upstream currently provides a `platforms/cpus/stm32l071.repl` Cortex-M0+
 SoC model, but no STM32L031 platform was found. This scaffold reuses that L071
 peripheral set to exercise an L0-family firmware path. The L071 platform has
@@ -18,17 +26,58 @@ software abstractions. STOP/deep-sleep current and real wake latency are not
 modeled. The existing Zephyr `native_sim` path remains the fast software-only
 test path.
 
-The SX1262 responder implements deterministic SPI command framing for status,
-standby/sleep, IRQ setup/read/clear, FIFO read/write, TX completion and RX
-timeout. `HoldBusy`, `SuppressIRQ` and `DropSPI` are fault hooks. TX completion
-is advanced by subsequent SPI traffic rather than a modeled RF oscillator or
-Renode timer; exact elapsed TX timing is therefore not yet trustworthy.
-The LIS2DW12 responder implements address-pointer I2C register accesses, WHO_AM_I,
-motion-profile sample data, wake-source clearing and INT1 routing. `FailI2C`
-produces a one-transaction bad read (not a standards-accurate electrical NACK),
-and `HoldIRQ` suppresses its interrupt pin. Both responders are scoped
-approximations; compare them with `hardware/models/{sx1262,lis2dw12}` C models
-before treating them as equivalent. The C models remain the reference behavior.
+The SX1262 responder implements the SPI command subset used by the current
+firmware: status, standby/sleep, LoRa configuration, buffer bases, FIFO,
+IRQ-mask routing, TX completion, and bounded RX timeout. It rejects unsupported
+commands and fixed-length command frames with a fault counter/status. `HoldBusy`,
+`SuppressIRQ`, and `DropSPI` are fault hooks. While `HoldBusy` is active, TX/RX
+starts fail with `CMD_FAILED` and schedule no operation. TX completion and RX timeout use
+Renode's virtual clock (64 kHz, matching the SX126x 15.625-us timeout tick), so
+firmware polling does not advance radio time by an arbitrary amount per byte.
+TX completion is a deterministic logical event; no RF waveform or peer is
+modeled, so RX ends in timeout and never synthesizes `RX_DONE`. When a malformed
+streamed command is detected at chip-select release, its status is available to
+a following `GET_STATUS`; the byte already shifted during that same SPI frame
+cannot be changed retroactively. The C callback can report the error in the
+same returned transfer buffer because it receives the complete frame at once.
+
+The LIS2DW12 responder implements address-pointer I2C register accesses,
+WHO_AM_I, motion-profile sample data, wake-source clearing, and INT1 routing.
+`FailI2C` produces a one-transaction bad read (not a standards-accurate
+electrical NACK), and `HoldIRQ` suppresses its interrupt pin. Both responders
+are scoped approximations, not electrical models.
+
+## SX1262 comparison with the C model
+
+| Behavior | C model (MVP1 host model) | Renode model | Match or difference |
+| --- | --- | --- | --- |
+| SPI commands and fixed lengths | Whole-frame transfer callback; validates exact fixed lengths | Byte-stream peripheral; validates at chip-select release | Same supported opcodes/lengths; error status is observable on the next `GET_STATUS` because shifted bytes cannot be changed retroactively |
+| FIFO | 256-byte array; 8-bit offset wraps | 256-byte array; 8-bit offset wraps | Match; read/write and `0xFF` wrap are tested |
+| State/reset | Standby/sleep/TX/RX state; reset clears configuration, FIFO, IRQ and pending operations | Standby/sleep/TX/RX state; active-low GPIO reset clears configuration, FIFO, IRQ and timer | Match for logical state; Renode supplies the reset pin and virtual timer |
+| BUSY | No BUSY pin or timing | BUSY is high during TX/RX and can be held high by a fault hook | Intentional Renode-only pin behavior |
+| IRQ | Global and DIO1 masks gate logical IRQ result | Global and DIO1 masks drive DIO1 GPIO; suppression hook can hide the pin | Match for DIO1; fault hook is Renode-only |
+| TX | Completion uses configured latency; equal/earlier radio timeout wins | One-shot `LimitTimer` uses Renode virtual time; equal/earlier timeout wins | Same deadline decision; C advances in integer milliseconds while Renode uses 15.625-us ticks |
+| RX | Logical receive window always ends with timeout; continuous RX capped at one second | Logical receive window always ends with timeout; continuous RX capped at one virtual second | Match; neither invents an over-the-air packet or `RX_DONE` |
+| Sleep/standby | Cancels active logical TX/RX and clears pending timeout | Cancels and resets the active Renode timer | Match; time granularity differs |
+| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF` for a dropped byte | Models a failed response, not a virtual-time SPI controller timeout |
+
+`hardware/models/sx1262` remains the firmware-host reference for command bytes,
+configuration state, FIFO contents, IRQ status, and logical TX/RX outcomes.
+The C model rounds radio timeouts up to an integer millisecond; Renode uses
+15.625-us virtual ticks. The C continuous-RX case is bounded to one second,
+matching Renode. Both complete TX against the captured latency deadline and
+apply the same timeout tie policy. Renode is the source of evidence for actual
+virtual-time scheduling and BUSY pin behavior; the C smoke is not used to claim
+those Renode properties.
+
+Neither model generates received RF payloads, RSSI, CRC outcomes, RF power,
+analog behavior, or propagation. The models perform no RF-power or analog
+inference. The Renode Robot suite drives the radio peripheral byte by byte and
+tests config, FIFO including address wrap, virtual TX_DONE and timeout, IRQ
+read/clear/routing, malformed frame sizes, reset, BUSY, and fault hooks. It does
+not verify STM32 SPI chip-select waveforms or a complete firmware recovery
+cycle. No Zephyr ELF was supplied in the test environment, so the optional
+firmware-load case is skipped.
 
 ## Headless use
 

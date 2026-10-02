@@ -24,7 +24,7 @@ jobs:
           uv sync --locked --extra dev
           uv pip install --python .venv/bin/python -r requirements-cad.txt
       - name: Export STEP and STL headlessly
-        run: .venv/bin/python -m pytest -q hardware/mechanical/tests/test_model.py -k headless_step_stl_export_and_provenance
+        run: .venv/bin/python -m pytest -q hardware/mechanical/tests/test_model.py -k 'headless_step_stl_export_and_provenance or current_candidate_step_stl_uses_spec_positions_and_provenance or current_candidate_coordinate_overrides_change_real_step'
         env:
           RIOSE_REQUIRE_CADQUERY: "1"
   core:
