@@ -73,7 +73,7 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
               f"7. Frequência de ressonância/S11: openEMS `{antenna.get('status', 'NOT_RUN')}`; métricas permanecem nulas sem adaptador configurado e simulação concluída.",
               f"8. Degradação por PCB/bateria/carcaça/animal: {len(antenna_rows)} cenários listados; resultados exigem openEMS; aproximação animal é experimental.",
               f"9. Encaixe físico digital: `{'PASS' if mechanical.get('fit', {}).get('fits') else 'BLOCKED'}`; CadQuery disponível `{mechanical.get('cadquery_available', False)}`.",
-              f"10. Falhas encontradas: {summary.get('failure_count', 'ver failures.csv')} entradas; falhas de host cobertas `{', '.join(fault_stage.get('completed_host_cases', []))}`; pendentes `{', '.join(fault_stage.get('pending_cases', []))}`.",
+              f"10. Falhas encontradas: {summary.get('failure_count', 'ver failures.csv')} entradas; falhas de host cobertas `{', '.join(fault_stage.get('completed_host_cases', []))}`; pendentes `{', '.join(fault_stage.get('pending_cases', []))}`; matriz detalhada `{fault_stage.get('fault_csv', 'fault_scenarios.csv')}`.",
               "11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.",
               f"12. Parâmetros por status: `{json.dumps(summary['parameter_statuses'], sort_keys=True)}`; provenance completa na spec.",
               "13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.",

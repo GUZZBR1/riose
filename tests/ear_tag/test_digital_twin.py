@@ -4,7 +4,9 @@ import pytest
 
 from riose.digital_twin.cli import (_power_assumptions, _power_load_profile, _version_matches,
                                     _clear_previous_outputs, _report,
+                                    _long_run_energy_uah, _stack_usage,
                                     generate_motion_profiles, preflight)
+from riose.digital_twin.faults import FAULT_SCENARIOS
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
 from riose.products.ear_tag.digital_twin import cli as canonical_cli
 from riose.products.ear_tag.digital_twin.paths import resolve_user_path
@@ -218,3 +220,29 @@ def test_report_explains_missing_antenna_adapter_without_claiming_solver_absence
     }
     report = _report({}, summary)
     assert "sem adaptador configurado e simulação concluída" in report
+
+
+def test_fault_catalog_defines_injection_recovery_attempts_terminal_and_trace():
+    required = {"fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "host_argument"}
+    assert len({row["fault"] for row in FAULT_SCENARIOS}) == 11
+    assert all(required <= row.keys() for row in FAULT_SCENARIOS)
+    assert all(row["attempts"] > 0 for row in FAULT_SCENARIOS if row["host_argument"])
+    assert all(row.get("blocker") for row in FAULT_SCENARIOS if row["host_argument"] is None)
+
+
+def test_long_run_energy_integrates_assumed_currents_and_observed_packet_count():
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    one = _long_run_energy_uah(1, 100, spec)
+    two = _long_run_energy_uah(2, 200, spec)
+    assert one["status"] == "SIMULATED_FROM_ASSUMED_PROFILE"
+    assert one["value_uah"] > 0
+    assert two["value_uah"] == pytest.approx(2 * one["value_uah"])
+    assert one["packet_count"] == 100
+
+
+def test_stack_report_distinguishes_static_frames_from_runtime_high_water(tmp_path):
+    (tmp_path / "unit.su").write_text("main.c:main\t32\tstatic\nfoo.c:foo\t48\tstatic\n")
+    report = _stack_usage(tmp_path)
+    assert report["status"] == "STATIC_FRAME_USAGE"
+    assert report["max_frame_bytes"] == 48
+    assert "excludes call-chain" in report["limitation"]

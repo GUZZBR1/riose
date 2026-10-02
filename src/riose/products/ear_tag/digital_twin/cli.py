@@ -13,7 +13,7 @@ from .paths import DEFAULT_OUTPUT, DEFAULT_SPEC, ROOT, SCENARIOS
 from .power import _power_assumptions, _power_load_profile, _record
 from .preflight import _module_available, _version_matches, preflight
 from .reporting import _metrics_csv, _report
-from .runner import run_twin
+from .runner import _long_run_energy_uah, _stack_usage, run_twin
 from .spec import load_spec, parameter_statuses
 
 def main(argv: list[str] | None = None) -> int:
