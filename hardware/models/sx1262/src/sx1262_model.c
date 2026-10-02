@@ -9,6 +9,7 @@ enum {
     CMD_SET_RX = 0x82, CMD_SET_MODULATION_PARAMS = 0x8b, CMD_SET_PACKET_PARAMS = 0x8c,
     CMD_SET_TX_PARAMS = 0x8e, CMD_SET_BUFFER_BASE = 0x8f,
     CMD_CALIBRATE_IMAGE = 0x98, CMD_SET_PA_CONFIG = 0x95,
+    CMD_SET_DIO2_RF_SWITCH = 0x9d,
     CMD_GET_STATUS = 0xc0, CMD_GET_IRQ_STATUS = 0x12,
     CMD_CLEAR_IRQ_STATUS = 0x02, CMD_SET_DIO_IRQ_PARAMS = 0x08,
     CMD_WRITE_BUFFER = 0x0e, CMD_READ_BUFFER = 0x1e,
@@ -136,6 +137,10 @@ int sx1262_model_transfer(void *ctx, const uint8_t *tx, size_t tx_len,
     case CMD_SET_PACKET_TYPE:
         if (!need(tx, tx_len, 2) || (tx[1] != 0 && tx[1] != 1)) { fault(m, CMD_INVALID); break; }
         m->packet_type = tx[1];
+        break;
+    case CMD_SET_DIO2_RF_SWITCH:
+        if (!need(tx, tx_len, 2) || tx[1] > 1) { fault(m, CMD_INVALID); break; }
+        m->dio2_rf_switch_enabled = tx[1] != 0;
         break;
     case CMD_SET_RF_FREQUENCY:
         if (!need(tx, tx_len, 5)) { fault(m, CMD_INVALID); break; }

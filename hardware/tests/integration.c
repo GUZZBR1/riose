@@ -22,10 +22,6 @@ typedef struct {
     uint32_t sleep_commands;
     uint32_t tx_commands;
     uint32_t rx_commands;
-    uint32_t tx_without_selected_rf_path;
-    uint32_t rx_with_tx_rf_path;
-    uint32_t rf_path_changes;
-    bool radio_tx_path;
     uint32_t wait_calls;
     uint32_t max_wait_timeout_ms;
     uint32_t state_trace_calls;
@@ -60,11 +56,9 @@ static int virtual_spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
         case 0x84u: ++tag->sleep_commands; break;   /* SetSleep */
         case 0x83u:
             ++tag->tx_commands;
-            if (!tag->radio_tx_path) ++tag->tx_without_selected_rf_path;
             break;                                  /* SetTx */
         case 0x82u:
             ++tag->rx_commands;
-            if (tag->radio_tx_path) ++tag->rx_with_tx_rf_path;
             break;                                  /* SetRx */
         default: break;
         }
@@ -185,14 +179,6 @@ static void virtual_state_trace(void *context, tag_state_t state)
     tag->last_traced_state = state;
 }
 
-static int virtual_radio_tx_path(void *context, bool transmit)
-{
-    virtual_tag_t *tag = (virtual_tag_t *)context;
-    tag->radio_tx_path = transmit;
-    ++tag->rf_path_changes;
-    return 0;
-}
-
 static tag_hal_t virtual_hal(virtual_tag_t *tag)
 {
     const tag_hal_t hal = {
@@ -205,7 +191,6 @@ static tag_hal_t virtual_hal(virtual_tag_t *tag)
         .clock_ms = virtual_clock_ms,
         .sleep_ms = virtual_sleep_ms,
         .wait_for_event = virtual_wait_for_event,
-        .set_radio_tx_path = virtual_radio_tx_path,
         .state_trace = virtual_state_trace,
     };
     return hal;
@@ -376,14 +361,10 @@ static void test_rf_switch_tracks_tx_and_rx_modes(void)
     tag_firmware_step(&firmware); /* due beacon -> IMU_MONITORING */
     tag_firmware_step(&firmware); /* valid sample -> TX */
     assert(firmware.state == TAG_STATE_RF_TX);
-    assert(tag.radio_tx_path);
-    assert(tag.tx_without_selected_rf_path == 0u);
+    assert(tag.radio.dio2_rf_switch_enabled);
     for (unsigned i = 0; i < 10u && firmware.state == TAG_STATE_RF_TX; ++i)
         tag_firmware_step(&firmware);
     assert(firmware.state == TAG_STATE_RF_RX);
-    assert(!tag.radio_tx_path);
-    assert(tag.rx_with_tx_rf_path == 0u);
-    assert(tag.rf_path_changes >= 2u);
 }
 
 static void test_imu_failure_recovery(void)

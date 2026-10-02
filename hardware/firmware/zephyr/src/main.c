@@ -83,13 +83,6 @@ static int radio_reset_fn(void *context)
     return 0;
 }
 
-static int radio_tx_path_fn(void *context, bool transmit)
-{
-    ARG_UNUSED(context);
-    /* Semtech SX1262MB2xAS ANT SW: high selects the TX path, low selects RX. */
-    return gpio_pin_set_dt(&radio_ant_switch, transmit ? 1 : 0);
-}
-
 static int imu_write_register(uint8_t reg, uint8_t value)
 {
     const uint8_t bytes[] = {reg, value};
@@ -225,7 +218,8 @@ int main(void)
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&radio_dio1, GPIO_INPUT);
     if (rc != 0) return rc;
-    rc = gpio_pin_configure_dt(&radio_ant_switch, GPIO_OUTPUT_INACTIVE);
+    /* Shield ANT_SW is held high; SX1262 DIO2 selects TX/RX automatically. */
+    rc = gpio_pin_configure_dt(&radio_ant_switch, GPIO_OUTPUT_ACTIVE);
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&imu_int, GPIO_INPUT);
     if (rc != 0) return rc;
@@ -260,7 +254,6 @@ int main(void)
         .clock_ms = clock_ms,
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
-        .set_radio_tx_path = radio_tx_path_fn,
         .state_trace = state_trace,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);

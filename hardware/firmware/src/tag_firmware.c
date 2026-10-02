@@ -18,8 +18,6 @@ static void set_state(tag_firmware_t *fw, tag_state_t state)
 
 static void fail(tag_firmware_t *fw)
 {
-    if (fw->hal.set_radio_tx_path != NULL)
-        (void)fw->hal.set_radio_tx_path(fw->hal.context, false);
     fw->failures++;
     set_state(fw, TAG_STATE_ERROR_RECOVERY);
     fw->recovery_at_ms = now_ms(fw) + 1000u;
@@ -131,8 +129,6 @@ static void transmit(tag_firmware_t *fw)
         sizeof(fw->tx_packet), fw->config.tag_id, fw->sequence++, now_ms(fw),
         &fw->last_imu, fw->config.battery_mv, fw->behavior);
     if (len == 0u || sx1262_write_buffer(&fw->hal, 0u, fw->tx_packet, len) != 0 ||
-        (fw->hal.set_radio_tx_path != NULL &&
-         fw->hal.set_radio_tx_path(fw->hal.context, true) != 0) ||
         sx1262_set_tx(&fw->hal, 1000u) != 0) {
         fail(fw);
         return;
@@ -232,12 +228,7 @@ void tag_firmware_step(tag_firmware_t *fw)
                 break;
             }
             if ((irq & SX1262_IRQ_TX_DONE) != 0u) {
-                if (fw->hal.set_radio_tx_path != NULL &&
-                    fw->hal.set_radio_tx_path(fw->hal.context, false) != 0) {
-                    fail(fw);
-                } else {
-                    set_state(fw, TAG_STATE_RF_RX);
-                }
+                set_state(fw, TAG_STATE_RF_RX);
             } else if ((irq & SX1262_IRQ_TIMEOUT) != 0u) {
                 fail(fw);
             } else {

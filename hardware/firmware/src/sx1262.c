@@ -44,6 +44,7 @@ int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
         tx_power_dbm < -9 || tx_power_dbm > 22) return -1;
     const uint8_t standby[] = {0x00u};
     const uint8_t packet_type[] = {0x01u}; /* LoRa */
+    const uint8_t dio2_rf_switch[] = {0x01u}; /* board RF switch follows TX/RX */
     /* Semtech image-calibration bands (DS §13.1.13; reference table:
      * github.com/Lora-net/LoRaMac-node/.../src/radio/sx126x/sx126x.c). */
     uint8_t image_calibration[2] = {0u, 0u};
@@ -78,6 +79,7 @@ int sx1262_configure(const tag_hal_t *hal, uint32_t frequency_hz,
     if (command(hal, 0x80u, standby, sizeof(standby)) != 0 ||
         (calibrate_image && command(hal, 0x98u, image_calibration,
                                     sizeof(image_calibration)) != 0) ||
+        command(hal, 0x9du, dio2_rf_switch, sizeof(dio2_rf_switch)) != 0 ||
         command(hal, 0x8au, packet_type, sizeof(packet_type)) != 0 ||
         command(hal, 0x86u, rf_frequency, sizeof(rf_frequency)) != 0 ||
         command(hal, 0x8bu, modulation, sizeof(modulation)) != 0 ||

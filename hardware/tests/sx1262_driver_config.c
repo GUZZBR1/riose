@@ -54,6 +54,7 @@ int main(void)
 
     const uint8_t standby[] = {0x80, 0x00};
     const uint8_t image_cal[] = {0x98, 0xe1, 0xe9};
+    const uint8_t dio2_rf_switch[] = {0x9d, 0x01};
     const uint8_t packet_type[] = {0x8a, 0x01};
     const uint8_t frequency[] = {0x86, 0x39, 0x30, 0x00, 0x00};
     const uint8_t modulation[] = {0x8b, 0x07, 0x04, 0x01, 0x00};
@@ -62,15 +63,16 @@ int main(void)
     const uint8_t tx_params[] = {0x8e, 0x0e, 0x04};
     const uint8_t buffer_base[] = {0x8f, 0x00, 0x80};
     const uint8_t irq[] = {0x08, 0x02, 0x03, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00};
-    const uint8_t *expected[] = {standby, image_cal, packet_type, frequency,
+    const uint8_t *expected[] = {standby, image_cal, dio2_rf_switch, packet_type, frequency,
         modulation, packet, pa_config, tx_params, buffer_base, irq};
-    const size_t lengths[] = {sizeof(standby), sizeof(image_cal), sizeof(packet_type),
+    const size_t lengths[] = {sizeof(standby), sizeof(image_cal), sizeof(dio2_rf_switch), sizeof(packet_type),
         sizeof(frequency), sizeof(modulation), sizeof(packet), sizeof(pa_config),
         sizeof(tx_params), sizeof(buffer_base), sizeof(irq)};
     assert(capture.count == sizeof(expected) / sizeof(expected[0]));
     for (size_t i = 0; i < capture.count; ++i)
         expect(&capture, i, expected[i], lengths[i]);
 
-    puts("SX1262 driver config: PASS (915 MHz image calibration, SX1262 HP PA, +14 dBm bytes/order)");
+    assert(capture.radio.dio2_rf_switch_enabled);
+    puts("SX1262 driver config: PASS (915 MHz image calibration, DIO2 RF switch, SX1262 HP PA, +14 dBm)");
     return 0;
 }

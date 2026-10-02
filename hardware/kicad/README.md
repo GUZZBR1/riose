@@ -16,8 +16,9 @@ Passive 134.2 kHz animal RFID identity element: represented in architecture;
 ```
 
 The NUCLEO firmware wiring profile is written for the Semtech MB2xAS shield's
-external `ANT SW` control: shield D8 is wired to NUCLEO D8/PC15; firmware
-selects TX high and RX low. The shield and NUCLEO-32 use jumper wires, not an
+external `ANT SW` control: shield D8 is wired to NUCLEO D8/PC15 and held high.
+SX1262 DIO2 RF-switch control is enabled in radio setup so the shield routes
+TX/RX automatically. The shield and NUCLEO-32 use jumper wires, not an
 assumed mechanical stack. Use a 50-ohm load for first RF bring-up and check the
 final radio configuration against Brazilian requirements before antenna
 transmission. The +14 dBm profile is a characterization setting, not

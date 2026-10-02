@@ -66,7 +66,7 @@ printed on the actual modules and confirm each board's logic voltage first.
 | SX1262 NRESET | PA12 | D2 | NRESET |
 | SX1262 BUSY | PB0 | D3 | BUSY |
 | SX1262 DIO1 | PB1 | D6 | DIO1 |
-| SX1262 antenna switch | PC15 | D8 | ANT SW (high=TX, low=RX) |
+| SX1262 antenna switch | PC15 | D8 | ANT SW held high; SX1262 DIO2 selects TX/RX |
 | LIS2DW12 SCL | PB6 | A5 (CN4-7) | SCL |
 | LIS2DW12 SDA | PB7 | A4 (CN4-8) | SDA |
 | LIS2DW12 INT1 | PA8 | D9 | INT1 |
