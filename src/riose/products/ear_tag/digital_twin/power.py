@@ -80,6 +80,7 @@ def _power_assumptions(spec: dict[str, Any]) -> dict[str, Any]:
         "battery_voltage_v": (numeric("components.battery.nominal_voltage_v"), "V", source("components.battery.nominal_voltage_v")),
         "battery_esr_ohm": (numeric("components.battery.esr_ohm"), "ohm", source("components.battery.esr_ohm")),
         "regulator_output_v": (numeric("regulator.output_voltage_v"), "V", source("regulator.output_voltage_v")),
+        "regulator_dropout_v": (numeric("regulator.dropout_headroom_v"), "V", source("regulator.dropout_headroom_v")),
         "regulator_efficiency": (numeric("regulator.efficiency"), "fraction", source("regulator.efficiency")),
         "regulator_quiescent_ma": (numeric("regulator.quiescent_current_a") * 1000, "mA", source("regulator.quiescent_current_a") + "; converted A to mA"),
         "regulator_output_resistance_ohm": (numeric("regulator.effective_output_resistance_ohm"), "ohm", source("regulator.effective_output_resistance_ohm")),
