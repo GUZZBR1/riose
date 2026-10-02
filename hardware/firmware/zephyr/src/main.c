@@ -223,6 +223,12 @@ static uint32_t clock_ms(void *context)
     return k_uptime_get_32();
 }
 
+static uint64_t clock_us(void *context)
+{
+    ARG_UNUSED(context);
+    return (uint64_t)k_uptime_get() * 1000u;
+}
+
 static void sleep_ms(void *context, uint32_t duration_ms)
 {
     ARG_UNUSED(context);
@@ -272,7 +278,8 @@ static const char *trace_event_name(tag_trace_event_t event)
     static const char *const names[] = {
         "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
         "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
-        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP"
+        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP", "WAKE", "SPI",
+        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT"
     };
     return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
 }
@@ -280,12 +287,12 @@ static const char *trace_event_name(tag_trace_event_t event)
 static void trace_event(void *context, const tag_trace_record_t *record)
 {
     ARG_UNUSED(context);
-    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u",
+    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u,%s",
             structured_trace_sequence++,
             (unsigned long long)record->timestamp_us,
             (unsigned)record->state, trace_event_name(record->event),
             (unsigned)record->event, (unsigned)record->source, (int)record->result,
-            record->value0, record->value1, record->value2);
+            record->value0, record->value1, record->value2, record->packet_hex);
 }
 
 int main(void)
@@ -344,10 +351,11 @@ int main(void)
         .imu_irq_pending = imu_irq_pending,
         .radio_irq_pending = radio_irq_pending,
         .clock_ms = clock_ms,
+        .clock_us = clock_us,
         .sleep_ms = sleep_ms,
         .wait_for_event = wait_for_event,
         .state_trace = state_trace,
-        .trace_event = trace_event,
+        .trace_event = IS_ENABLED(CONFIG_TAG_STRUCTURED_TRACE) ? trace_event : NULL,
     };
     tag_config_t config = tag_default_config(CONFIG_TAG_ID);
     config.rf_frequency_hz = CONFIG_TAG_RF_FREQUENCY_HZ;

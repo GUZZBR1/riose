@@ -15,8 +15,10 @@ void tag_trace_emit(const tag_hal_t *hal, tag_state_t state,
 {
     if (hal == NULL || hal->trace_event == NULL) return;
     const tag_trace_record_t record = {
-        .timestamp_us = hal->clock_ms != NULL
-            ? (uint64_t)hal->clock_ms(hal->context) * 1000u : 0u,
+        .timestamp_us = hal->clock_us != NULL
+            ? hal->clock_us(hal->context)
+            : hal->clock_ms != NULL
+                ? (uint64_t)hal->clock_ms(hal->context) * 1000u : 0u,
         .state = state,
         .event = event,
         .source = source,
@@ -28,10 +30,38 @@ void tag_trace_emit(const tag_hal_t *hal, tag_state_t state,
     hal->trace_event(hal->context, &record);
 }
 
+void tag_trace_emit_packet(const tag_hal_t *hal, tag_state_t state,
+                           const uint8_t *packet, size_t length,
+                           uint32_t sequence, uint32_t behavior)
+{
+    if (hal == NULL || hal->trace_event == NULL || packet == NULL ||
+        length == 0u || length > TAG_TELEMETRY_MAX_SIZE) return;
+    static const char hex[] = "0123456789abcdef";
+    tag_trace_record_t record = {
+        .timestamp_us = hal->clock_us != NULL
+            ? hal->clock_us(hal->context)
+            : hal->clock_ms != NULL
+                ? (uint64_t)hal->clock_ms(hal->context) * 1000u : 0u,
+        .state = state,
+        .event = TAG_TRACE_PACKET_CREATED,
+        .source = TAG_TRACE_SOURCE_FIRMWARE,
+        .result = 0,
+        .value0 = (uint32_t)length,
+        .value1 = sequence,
+        .value2 = behavior,
+    };
+    for (size_t i = 0; i < length; ++i) {
+        record.packet_hex[i * 2u] = hex[packet[i] >> 4u];
+        record.packet_hex[i * 2u + 1u] = hex[packet[i] & 0x0fu];
+    }
+    hal->trace_event(hal->context, &record);
+}
+
 static void set_state(tag_firmware_t *fw, tag_state_t state)
 {
     if (fw->state == state) return;
     fw->state = state;
+    fw->hal.trace_state = state;
     tag_trace_emit(&fw->hal, state, TAG_TRACE_STATE,
                    TAG_TRACE_SOURCE_FIRMWARE, 0, (uint32_t)state,
                    (uint32_t)fw->behavior, fw->sequence);
@@ -83,6 +113,7 @@ int tag_firmware_init(tag_firmware_t *fw, const tag_hal_t *hal,
     fw->hal = *hal;
     fw->config = *config;
     fw->state = TAG_STATE_BOOT;
+    fw->hal.trace_state = TAG_STATE_BOOT;
     fw->behavior = TAG_BEHAVIOR_NORMAL;
     fw->initialized = true;
     if (fw->hal.state_trace != NULL)
@@ -175,9 +206,8 @@ static void transmit(tag_firmware_t *fw)
         return;
     }
     fw->tx_packet_len = (uint8_t)len;
-    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_PACKET_CREATED,
-                   TAG_TRACE_SOURCE_FIRMWARE, 0, (uint32_t)len,
-                   fw->sequence - 1u, (uint32_t)fw->behavior);
+    tag_trace_emit_packet(&fw->hal, fw->state, fw->tx_packet, len,
+                          fw->sequence - 1u, (uint32_t)fw->behavior);
     if (sx1262_write_buffer(&fw->hal, 0u, fw->tx_packet, len) != 0 ||
         sx1262_set_tx(&fw->hal, 1000u) != 0) {
         fail(fw);
@@ -229,10 +259,14 @@ void tag_firmware_step(tag_firmware_t *fw)
     case TAG_STATE_SLEEP:
         if (fw->hal.imu_irq_pending != NULL &&
             fw->hal.imu_irq_pending(fw->hal.context)) {
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_WAKE,
+                           TAG_TRACE_SOURCE_HAL, 0, 1u, 0u, 0u);
             set_state(fw, TAG_STATE_IMU_MONITORING);
             break;
         }
         if ((int32_t)(now_ms(fw) - fw->next_beacon_ms) >= 0) {
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_WAKE,
+                           TAG_TRACE_SOURCE_HAL, 0, 0u, 0u, 0u);
             set_state(fw, TAG_STATE_IMU_MONITORING);
             break;
         }
@@ -285,6 +319,8 @@ void tag_firmware_step(tag_firmware_t *fw)
                 fail(fw);
                 break;
             }
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_IRQ,
+                           TAG_TRACE_SOURCE_SX1262, 0, irq, 0u, 0u);
             if ((irq & SX1262_IRQ_TX_DONE) != 0u) {
                 fw->tx_irq_deadline_ms = 0u;
                 tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TX_DONE,
@@ -292,6 +328,9 @@ void tag_firmware_step(tag_firmware_t *fw)
                                fw->tx_packet_len, 0u);
                 set_state(fw, TAG_STATE_RF_RX);
             } else if ((irq & SX1262_IRQ_TIMEOUT) != 0u) {
+                tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TIMEOUT,
+                               TAG_TRACE_SOURCE_SX1262, -1, irq,
+                               fw->tx_packet_len, 0u);
                 fail(fw);
             } else {
                 fail(fw);
@@ -326,7 +365,13 @@ void tag_firmware_step(tag_firmware_t *fw)
                 fail(fw);
                 break;
             }
+            tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_IRQ,
+                           TAG_TRACE_SOURCE_SX1262, 0, irq, 0u, 0u);
             if ((irq & (SX1262_IRQ_RX_DONE | SX1262_IRQ_TIMEOUT)) != 0u) {
+                if ((irq & SX1262_IRQ_TIMEOUT) != 0u) {
+                    tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_TIMEOUT,
+                                   TAG_TRACE_SOURCE_SX1262, -1, irq, 0u, 0u);
+                }
                 tag_trace_emit(&fw->hal, fw->state, TAG_TRACE_RX_DONE,
                                TAG_TRACE_SOURCE_SX1262, 0, irq, 0u, 0u);
                 fw->rx_started = false;

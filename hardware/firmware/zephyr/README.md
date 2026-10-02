@@ -18,22 +18,35 @@ current, and interrupt timing remain unverified on silicon.
 ## Structured firmware trace
 
 The portable FSM exposes an optional non-blocking `tag_hal_t.trace_event`
-callback. Zephyr targets emit records to the console as comma-separated
+callback. `CONFIG_TAG_STRUCTURED_TRACE` controls whether the Zephyr adapters
+connect that callback; disabling it does not change FSM policy. When structured
+tracing and Zephyr logging are enabled, adapters emit records to the console as comma-separated
 `SIMULATED_TRACE,v1` lines with fields:
 
-`sequence,timestamp_us,state_id,event,event_id,source_id,result,value0,value1,value2`
+`sequence,timestamp_us,state_id,event,event_id,source_id,result,value0,value1,value2,packet_hex`
 
-The timestamp is derived from the virtual/Zephyr millisecond clock and is
-therefore quantized to 1 ms; the `_us` suffix provides a consistent unit, not
-microsecond timing precision. Event and state identifiers are the stable C
-enum values in `tag_firmware.h`. Event values carry stage-specific context:
-IMU axes (signed values represented in 32-bit two's-complement), packet length,
-sequence, behavior, TX configuration, IRQ flags, sleep duration, or failure
-count. All trace lines are labeled `SIMULATED_TRACE`; they are software/model
+The timestamp uses the 64-bit Zephyr uptime clock and is quantized to 1 ms;
+the `_us` suffix provides a consistent unit, not microsecond timing precision.
+Event and state identifiers are the stable C
+enum values in `tag_firmware.h`. `PACKET_CREATED.packet_hex` contains the exact
+transmitted bytes in lowercase hexadecimal; `value0` gives their byte length.
+Other event values carry stage-specific context: IMU axes (signed values
+represented in 32-bit two's-complement), sequence, behavior, TX configuration,
+IRQ flags, sleep duration, or failure count. `WATCHDOG` and `REBOOT` are
+reserved event IDs; this firmware has no watchdog or reboot action to report.
+All trace lines are labeled `SIMULATED_TRACE`; they are software/model
 events, not electrical measurements. Existing GPIO state-trace output remains
 available and unchanged. A null callback keeps MVP 1 integrations silent. The
 `trace_export.py` helper normalizes console captures to the shared
-`riose.firmware.trace/v1` JSONL schema and checks sequence/timestamp integrity.
+`riose.firmware.trace/v1` JSONL schema and checks sequence/timestamp integrity,
+event IDs, and packet/TX/RX ordering. The `native_sim` adapter uses the same
+versioned record layout as the board adapter. `make hardware-native-sim` captures
+a normal run and an injected IMU-failure recovery run, exporting them to
+`/tmp/riose-native-sim-trace.jsonl` and
+`/tmp/riose-native-sim-failure-trace.jsonl`; the target fails if either
+producer output cannot be parsed. The NUCLEO profile sets
+`CONFIG_LOG=n`, so its console trace records remain disabled unless logging is
+enabled for that board. GPIO state markers remain independent.
 
 `boards/native_sim_bus_emul.overlay` is an optional bus-emulator wiring template.
 The validated native_sim path uses the same standalone C peripheral models as

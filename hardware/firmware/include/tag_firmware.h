@@ -40,7 +40,13 @@ typedef enum {
     TAG_TRACE_RADIO_SLEEP,
     TAG_TRACE_ERROR,
     TAG_TRACE_RECOVERY,
-    TAG_TRACE_MCU_SLEEP
+    TAG_TRACE_MCU_SLEEP,
+    TAG_TRACE_WAKE,
+    TAG_TRACE_SPI,
+    TAG_TRACE_IRQ,
+    TAG_TRACE_TIMEOUT,
+    TAG_TRACE_WATCHDOG,
+    TAG_TRACE_REBOOT
 } tag_trace_event_t;
 
 typedef enum {
@@ -58,6 +64,7 @@ typedef struct {
     uint32_t value0;
     uint32_t value1;
     uint32_t value2;
+    char packet_hex[TAG_TELEMETRY_MAX_SIZE * 2u + 1u];
 } tag_trace_record_t;
 
 typedef enum {
@@ -95,6 +102,10 @@ typedef struct {
     void (*state_trace)(void *context, tag_state_t state);
     /* Optional structured trace sink. It must not block or retain record. */
     void (*trace_event)(void *context, const tag_trace_record_t *record);
+    /* Current FSM state lets lower-level drivers annotate bus events. */
+    tag_state_t trace_state;
+    /* Optional monotonic microsecond clock; otherwise clock_ms is scaled. */
+    uint64_t (*clock_us)(void *context);
 } tag_hal_t;
 
 typedef struct {
@@ -144,6 +155,9 @@ void tag_trace_emit(const tag_hal_t *hal, tag_state_t state,
                    tag_trace_event_t event, tag_trace_source_t source,
                    int32_t result, uint32_t value0, uint32_t value1,
                    uint32_t value2);
+void tag_trace_emit_packet(const tag_hal_t *hal, tag_state_t state,
+                           const uint8_t *packet, size_t length,
+                           uint32_t sequence, uint32_t behavior);
 
 /* Compact little-endian wire packet: version, flags, tag id, sequence,
  * uptime-ms, accel xyz in mg, battery mV, CRC-16/CCITT-FALSE. */

@@ -28,10 +28,11 @@ typedef struct {
     uint32_t max_wait_timeout_ms;
     uint32_t state_trace_calls;
     tag_state_t last_traced_state;
-    uint32_t structured_trace_counts[15];
+    uint32_t structured_trace_counts[21];
     tag_trace_record_t last_trace_record;
     bool have_trace_record;
     bool trace_timestamps_monotonic;
+    bool packet_trace_matches_firmware_bytes;
     FILE *trace_file;
     bool saw_tx_done_irq;
     bool saw_timeout_irq;
@@ -214,6 +215,16 @@ static void virtual_trace_event(void *context, const tag_trace_record_t *record)
     assert(event < sizeof(tag->structured_trace_counts) /
                     sizeof(tag->structured_trace_counts[0]));
     ++tag->structured_trace_counts[event];
+    if (record->event == TAG_TRACE_PACKET_CREATED) {
+        static const char hex[] = "0123456789abcdef";
+        bool matches = record->value0 == TAG_TELEMETRY_MAX_SIZE;
+        for (size_t i = 0; i < TAG_TELEMETRY_MAX_SIZE; ++i) {
+            matches = matches && record->packet_hex[i * 2u] == hex[tag->firmware->tx_packet[i] >> 4u] &&
+                record->packet_hex[i * 2u + 1u] == hex[tag->firmware->tx_packet[i] & 0x0fu];
+        }
+        matches = matches && record->packet_hex[TAG_TELEMETRY_MAX_SIZE * 2u] == '\0';
+        tag->packet_trace_matches_firmware_bytes = matches;
+    }
     if (tag->have_trace_record &&
         record->timestamp_us < tag->last_trace_record.timestamp_us) {
         tag->trace_timestamps_monotonic = false;
@@ -229,7 +240,7 @@ static void virtual_trace_event(void *context, const tag_trace_record_t *record)
             "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ",
             "PACKET_CREATED", "RADIO_STANDBY", "TX_START", "TX_DONE",
             "RX_START", "RX_DONE", "RADIO_SLEEP", "ERROR", "RECOVERY",
-            "MCU_SLEEP"
+            "MCU_SLEEP", "WAKE", "SPI", "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT"
         };
         static const char *const sources[] = {"INVALID", "FIRMWARE", "SX1262", "HAL"};
         const unsigned state = (unsigned)record->state;
@@ -240,12 +251,14 @@ static void virtual_trace_event(void *context, const tag_trace_record_t *record)
             ",\"state\":\"%s\",\"state_id\":%u,\"event\":\"%s\","
             "\"event_id\":%u,\"source\":\"%s\",\"source_id\":%u,"
             "\"result\":%" PRId32 ",\"value0\":%" PRIu32
-            ",\"value1\":%" PRIu32 ",\"value2\":%" PRIu32 "}\n",
+            ",\"value1\":%" PRIu32 ",\"value2\":%" PRIu32
+            ",\"packet_hex\":\"%s\"}\n",
             tag->trace_sequence++, record->timestamp_us,
             state < sizeof(states) / sizeof(states[0]) ? states[state] : "UNKNOWN",
             state, event < sizeof(events) / sizeof(events[0]) ? events[event] : "UNKNOWN",
             event, source < sizeof(sources) / sizeof(sources[0]) ? sources[source] : "UNKNOWN",
-            source, record->result, record->value0, record->value1, record->value2);
+            source, record->result, record->value0, record->value1,
+            record->value2, record->packet_hex);
     }
 }
 
@@ -451,6 +464,10 @@ static void test_structured_trace_covers_virtual_tx_cycle(void)
     assert(firmware.packets_sent == 1u);
     assert(tag.structured_trace_counts[TAG_TRACE_IMU_READ] > 0u);
     assert(tag.structured_trace_counts[TAG_TRACE_PACKET_CREATED] == 1u);
+    assert(tag.packet_trace_matches_firmware_bytes);
+    assert(tag.structured_trace_counts[TAG_TRACE_WAKE] > 0u);
+    assert(tag.structured_trace_counts[TAG_TRACE_SPI] > 0u);
+    assert(tag.structured_trace_counts[TAG_TRACE_IRQ] >= 2u);
     assert(tag.structured_trace_counts[TAG_TRACE_RADIO_STANDBY] == 1u);
     assert(tag.structured_trace_counts[TAG_TRACE_TX_START] == 1u);
     assert(tag.structured_trace_counts[TAG_TRACE_TX_DONE] == 1u);
@@ -458,6 +475,37 @@ static void test_structured_trace_covers_virtual_tx_cycle(void)
     assert(tag.structured_trace_counts[TAG_TRACE_RX_DONE] == 1u);
     assert(tag.structured_trace_counts[TAG_TRACE_RADIO_SLEEP] == 1u);
     assert(tag.trace_timestamps_monotonic);
+}
+
+static void test_trace_sink_does_not_change_firmware_policy(void)
+{
+    virtual_tag_t traced, untraced;
+    tag_firmware_t traced_fw, untraced_fw;
+    tag_config_t config = tag_default_config(0x5155u);
+    config.normal_beacon_ms = 20u;
+    virtual_tag_init(&traced, &traced_fw, &config, 4u);
+    virtual_tag_init(&untraced, &untraced_fw, &config, 4u);
+    untraced_fw.hal.trace_event = NULL;
+    memset(untraced.structured_trace_counts, 0, sizeof(untraced.structured_trace_counts));
+
+    for (unsigned step = 0; step < 80u; ++step) {
+        tag_firmware_step(&traced_fw);
+        tag_firmware_step(&untraced_fw);
+        if (traced_fw.packets_sent != 0u && traced_fw.state == TAG_STATE_SLEEP &&
+            untraced_fw.packets_sent != 0u && untraced_fw.state == TAG_STATE_SLEEP)
+            break;
+    }
+    assert(traced_fw.packets_sent == untraced_fw.packets_sent);
+    assert(traced_fw.failures == untraced_fw.failures);
+    assert(traced_fw.state == untraced_fw.state);
+    assert(traced_fw.behavior == untraced_fw.behavior);
+    assert(traced.now_ms == untraced.now_ms);
+    assert(memcmp(traced_fw.tx_packet, untraced_fw.tx_packet,
+                  TAG_TELEMETRY_MAX_SIZE) == 0);
+    assert(traced.structured_trace_counts[TAG_TRACE_SPI] > 0u);
+    for (size_t i = 0; i < sizeof(untraced.structured_trace_counts) /
+                            sizeof(untraced.structured_trace_counts[0]); ++i)
+        assert(untraced.structured_trace_counts[i] == 0u);
 }
 
 static void test_rf_switch_tracks_tx_and_rx_modes(void)
@@ -528,6 +576,7 @@ static void test_missing_tx_done_timeout(void)
     assert(step_until_state(&firmware, TAG_STATE_ERROR_RECOVERY, 2500u));
     assert(firmware.failures >= 1u);
     assert(tag.saw_timeout_irq);
+    assert(tag.structured_trace_counts[TAG_TRACE_TIMEOUT] > 0u);
     assert(!tag.saw_tx_done_irq);
 }
 
@@ -1118,6 +1167,7 @@ int main(int argc, char **argv)
     test_hal_event_wait_sleeps_to_beacon_and_wakes_on_imu();
     test_state_trace_reports_transitions();
     test_structured_trace_covers_virtual_tx_cycle();
+    test_trace_sink_does_not_change_firmware_policy();
     test_rf_switch_tracks_tx_and_rx_modes();
     test_imu_failure_recovery();
     test_radio_fault_recovery();

@@ -19,6 +19,14 @@ def validate(path: Path) -> None:
             raise ValueError(f"{path}: sequence is not contiguous at record {sequence}")
         if record.get("status") != "SIMULATED" or not record.get("event") or not record.get("state"):
             raise ValueError(f"{path}: missing event evidence at record {sequence}")
+        packet_hex = record.get("packet_hex", "")
+        if record["event"] == "PACKET_CREATED":
+            if len(packet_hex) != int(record["value0"]) * 2 or any(
+                char not in "0123456789abcdef" for char in packet_hex
+            ):
+                raise ValueError(f"{path}: packet bytes do not match packet length at record {sequence}")
+        elif packet_hex:
+            raise ValueError(f"{path}: packet bytes appear outside PACKET_CREATED at record {sequence}")
         timestamps.append(int(record["timestamp_us"]))
     if timestamps != sorted(timestamps):
         raise ValueError(f"{path}: timestamps are not monotonic")
