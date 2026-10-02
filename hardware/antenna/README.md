@@ -127,6 +127,16 @@ python -m hardware.antenna.sionna_experiment \
 
 It records the 10 m, obstacle, and orientation-variant scenarios. CPU-only or
 missing-Sionna environments mark them `SKIPPED_OPTIONAL` with null metrics. If
-CUDA and Sionna are present, a deployment may provide `RIOSE_SIONNA_ADAPTER`
-implementing `simulate(scenario, spec_path, output_dir)`; adapter failures are
-recorded as blocked optional experiments and never alter the core gate.
+CUDA and Sionna RT are present, the built-in `PathSolver` runs each scenario
+with the frequency in `hardware/spec.yaml` and writes one scenario JSON beside
+the aggregate manifest. The obstacle case uses one generated dielectric panel;
+the orientation case rotates the tag model by 90 degrees. These are small
+sensitivity experiments, not a farm scene or validated ear-tag antenna model.
+Sionna RT selects its supported Mitsuba backend automatically. The manifest
+records the Sionna version, GPU/CUDA capabilities, solver variant, deterministic
+seed, path count, frequency, spec hash, and obstacle mesh hash. An optional
+`RIOSE_SIONNA_ADAPTER` can still override the built-in runner by exposing
+`simulate(scenario, spec_path, output_dir)` and returning `COMPLETED`, metrics,
+and solver evidence. Any failed scenario remains optional and does not change
+the core gate. Sionna RT is standalone and intentionally is not installed by
+the core project dependencies; see [NVIDIA's installation guide](https://nvlabs.github.io/sionna/installation.html).

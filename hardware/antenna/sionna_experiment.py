@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import math
 import os
 from importlib import metadata
 from pathlib import Path
@@ -24,6 +25,10 @@ def _version(package: str) -> str | None:
         return None
 
 
+def _sionna_version() -> str | None:
+    return _version("sionna-rt") or _version("sionna")
+
+
 def run_experiment(output_dir: Path, spec_path: Path | None = None,
                    capabilities: dict[str, Any] | None = None,
                    adapter_name: str | None = None) -> dict[str, Any]:
@@ -36,29 +41,57 @@ def run_experiment(output_dir: Path, spec_path: Path | None = None,
                 "gpu_type": caps.get("GPU_TYPE", "UNKNOWN"),
                 "cuda_available": bool(caps.get("CUDA_AVAILABLE")),
                 "sionna_available": bool(caps.get("SIONNA_AVAILABLE")),
-                "sionna_version": _version("sionna") if caps.get("SIONNA_AVAILABLE") else None,
+                "sionna_version": _sionna_version() if caps.get("SIONNA_AVAILABLE") else None,
                 "status": "SIMULATED"}
         if not eligible:
             rows.append({**base, "status": "SKIPPED_OPTIONAL",
                          "detail": "CUDA and Sionna RT are both required for this optional experiment",
                          "result_class": "ENVIRONMENT_CAPABILITY_ONLY", "metrics": None})
             continue
-        if not adapter_name:
-            rows.append({**base, "status": "NOT_AVAILABLE",
-                         "detail": "Sionna/CUDA detected but no RIOSE_SIONNA_ADAPTER is configured",
-                         "result_class": "NO_SIMULATION_RESULT", "metrics": None})
-            continue
         try:
-            adapter = importlib.import_module(adapter_name)
-            result = adapter.simulate(scenario=scenario, spec_path=str(spec_path) if spec_path else None,
-                                      output_dir=str(output_dir))
+            if adapter_name:
+                adapter = importlib.import_module(adapter_name)
+                result = adapter.simulate(scenario=scenario, spec_path=str(spec_path) if spec_path else None,
+                                          output_dir=str(output_dir))
+            else:
+                from . import sionna_adapter
+                result = sionna_adapter.simulate(scenario=scenario, spec_path=spec_path,
+                                                 output_dir=output_dir)
             if not isinstance(result, dict) or result.get("status") != "COMPLETED":
                 rows.append({**base, "status": "FAILED",
                              "detail": result.get("detail", "adapter did not complete") if isinstance(result, dict) else "invalid adapter response",
                              "result_class": "NO_SIMULATION_RESULT", "metrics": None})
                 continue
-            rows.append({**base, **result, "scenario": scenario,
-                         "status": "COMPLETED", "result_class": "SIMULATED"})
+            metrics = result.get("metrics")
+            evidence = result.get("evidence")
+            valid_metrics = (
+                isinstance(metrics, dict)
+                and type(metrics.get("path_count")) is int
+                and metrics["path_count"] >= 0
+                and type(metrics.get("tag_receiver_distance_m")) in (int, float)
+                and math.isclose(metrics["tag_receiver_distance_m"], 10.0)
+            )
+            evidence_fields = ("solver", "solver_version", "mitsuba_variant", "seed",
+                               "deterministic", "frequency_hz", "spec_sha256", "obstacle_sha256")
+            valid_evidence = (
+                isinstance(evidence, dict)
+                and all(field in evidence for field in evidence_fields)
+                and all(isinstance(evidence[field], str) and evidence[field]
+                        for field in ("solver", "solver_version", "mitsuba_variant"))
+                and evidence["seed"] == 42
+                and evidence["deterministic"] is True
+                and type(evidence["frequency_hz"]) in (int, float)
+                and math.isfinite(evidence["frequency_hz"])
+                and evidence["frequency_hz"] > 0
+            )
+            if not valid_metrics or not valid_evidence:
+                rows.append({**base, "status": "FAILED",
+                             "detail": "Sionna adapter returned incomplete metrics or solver evidence",
+                             "result_class": "NO_SIMULATION_RESULT", "metrics": None})
+                continue
+            rows.append({**base, "status": "COMPLETED", "result_class": "SIMULATED",
+                         "detail": result.get("detail", ""), "metrics": metrics,
+                         "evidence": evidence})
         except Exception as exc:  # optional plugin failures are recorded, never promoted to core failures
             rows.append({**base, "status": "FAILED", "detail": f"{type(exc).__name__}: {exc}",
                          "result_class": "NO_SIMULATION_RESULT", "metrics": None})
