@@ -71,6 +71,7 @@ SX1262 TX Completes On Virtual Time And Routes DIO1 IRQ
     Execute Command    sysbus.spi1.radio TxLatencyMs 7
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    sysbus.spi1.radio TxLatencyMs 30
     ${busy}=    Execute Command    sysbus.spi1.radio BusyAsserted
     ${busy}=    Strip String    ${busy}
     Should Be Equal    ${busy}    True
@@ -171,6 +172,8 @@ SX1262 Rejects Malformed Frames And Reset Clears State
     Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${status_after_fault}    28    base=16
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
+    Send SX1262 Command    0x86    0x39    0x30    0x00    0x00
+    Send SX1262 Command    0x0E    0x00    0xA5
     Send SX1262 Command    0x83    0x00    0x00    0x00
     Execute Command    sysbus.spi1.radio OnGPIO 0 false
     Execute Command    emulation RunFor "0.030"
@@ -180,13 +183,74 @@ SX1262 Rejects Malformed Frames And Reset Clears State
     ${mode_after_reset}=    Execute Command    sysbus.spi1.radio CurrentMode
     Should Be Equal As Integers    ${faults_after_reset}    0    base=16
     Should Be Equal As Integers    ${mode_after_reset}    20    base=16
+    ${frequency_after_reset}=    Execute Command    sysbus.spi1.radio RfFrequencyWord
+    ${busy_after_reset}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy_after_reset}=    Strip String    ${busy_after_reset}
+    Should Be Equal As Integers    ${frequency_after_reset}    00000000    base=16
+    Should Be Equal    ${busy_after_reset}    False
+    Execute Command    sysbus.spi1.radio Transmit 0x1E
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${fifo_after_reset}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Should Be Equal As Integers    ${fifo_after_reset}    00    base=16
+    Execute Command    sysbus.spi1.radio Transmit 0x83
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
+    Execute Command    emulation RunFor "0.030"
+    ${irq_before_pending_reset}=    Execute Command    sysbus.spi1.radio IRQStatus
+    Should Be Equal As Integers    ${irq_before_pending_reset}    0001    base=16
+    Execute Command    sysbus.spi1.radio OnGPIO 0 false
+    ${irq_pending_reset}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${mode_pending_reset}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${irq_pending_reset}    0000    base=16
+    Should Be Equal As Integers    ${mode_pending_reset}    20    base=16
 
+SX1262 Sleep And Standby Transitions Cancel Pending RX
+    [Setup]    Create RIOSE Platform
+    ${initial_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${initial_mode}    20    base=16
+    Send SX1262 Command    0x84    0x04
+    ${sleep_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${sleep_mode}    00    base=16
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    ${sleep_faults}=    Execute Command    sysbus.spi1.radio FaultCount
+    ${sleep_mode_after_tx}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${sleep_faults}    1
+    Should Be Equal As Integers    ${sleep_mode_after_tx}    00    base=16
+    Send SX1262 Command    0x80    0x00
+    ${standby_rc}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${standby_rc}    20    base=16
+    Send SX1262 Command    0x82    0x00    0x00    0x40
+    ${rx_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    Should Be Equal As Integers    ${rx_mode}    50    base=16
+    Send SX1262 Command    0x80    0x01
+    ${standby_xosc}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${busy_after_standby}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy_after_standby}=    Strip String    ${busy_after_standby}
+    Should Be Equal As Integers    ${standby_xosc}    30    base=16
+    Should Be Equal    ${busy_after_standby}    False
+    Execute Command    emulation RunFor "0.002"
+    ${irq_after_cancel}=    Execute Command    sysbus.spi1.radio IRQStatus
+    Should Be Equal As Integers    ${irq_after_cancel}    0000    base=16
 SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     [Setup]    Create RIOSE Platform
     Execute Command    sysbus.spi1.radio HoldBusy true
     ${busy_stuck}=    Execute Command    sysbus.spi1.radio BusyAsserted
     ${busy_stuck}=    Strip String    ${busy_stuck}
     Should Be Equal    ${busy_stuck}    True
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    emulation RunFor "0.030"
+    ${stuck_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${stuck_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${stuck_tx_count}=    Execute Command    sysbus.spi1.radio TxCount
+    ${stuck_fault_count}=    Execute Command    sysbus.spi1.radio FaultCount
+    Should Be Equal As Integers    ${stuck_mode}    20    base=16
+    Should Be Equal As Integers    ${stuck_irq}    0000    base=16
+    Should Be Equal As Integers    ${stuck_tx_count}    0
+    Should Be Equal As Integers    ${stuck_fault_count}    1
     Execute Command    sysbus.spi1.radio HoldBusy false
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
