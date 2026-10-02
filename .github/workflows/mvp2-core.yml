@@ -1,0 +1,31 @@
+name: MVP 2 digital twin core
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.7"
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install locked Python dependencies
+        run: uv sync --locked --extra dev
+      - name: Validate hardware spec provenance
+        run: uv run python -m riose.digital_twin validate-spec
+      - name: Probe optional headless tools
+        run: uv run python -m riose.digital_twin preflight
+      - name: Python test suite
+        run: uv run pytest -q
+      - name: C firmware and virtual model tests
+        run: make hardware-test
