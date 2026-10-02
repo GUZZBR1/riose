@@ -43,6 +43,8 @@ int main(void)
     const uint8_t later_timeout_tx[] = {0x83, 0x00, 0x02, 0x00}; /* 8 ms > TX latency */
     const uint8_t start_sleep[] = {0x84, 0x04};
     const uint8_t read_back[] = {0x1e, 0x00, 0x00, 0x00, 0x00, 0x00};
+    const uint8_t fifo_wrap[] = {0x0e, 0xff, 0xaa, 0xbb};
+    const uint8_t read_wrap[] = {0x1e, 0xff, 0x00, 0x00, 0x00};
 
     sx1262_model_init(&radio);
     radio.tx_latency_ms = 7;
@@ -59,6 +61,9 @@ int main(void)
 
     assert(spi_transfer(&radio, read_back, sizeof(read_back), rx, sizeof(read_back)) == 0);
     assert(rx[3] == 0xc1 && rx[4] == 0x7a && rx[5] == 0x05);
+    command(fifo_wrap, sizeof(fifo_wrap));
+    assert(spi_transfer(&radio, read_wrap, sizeof(read_wrap), rx, sizeof(read_wrap)) == 0);
+    assert(rx[3] == 0xaa && rx[4] == 0xbb);
     assert(spi_transfer(&radio, start_tx, sizeof(start_tx), rx, sizeof(start_tx)) == 0);
     assert(radio.tx_pending && radio.mode == SX1262_MODE_TX && radio.tx_count == 1);
     sx1262_model_advance(&radio, 6);
@@ -146,8 +151,13 @@ int main(void)
       assert(spi_transfer(&radio, overlong, sizeof(overlong), rx, sizeof(overlong)) == 0);
       assert(radio.fault_count == 2 && (rx[1] & 0x0e) == 0x08); }
 
+    /* Reset clears configuration/FIFO/IRQ and any active radio timer. */
+    command(payload, sizeof(payload));
+    assert(radio.fifo[0] == 0xc1);
     sx1262_model_reset(&radio);
     assert(radio.mode == SX1262_MODE_STANDBY_RC && radio.irq_status == 0);
+    assert(radio.rf_frequency_word == 0 && radio.packet_type == 0);
+    assert(radio.tx_base == 0 && radio.rx_base == 0 && radio.fifo[0] == 0);
     assert(radio.tx_latency_ms == 7 && !radio.tx_pending && !radio.rx_pending);
 
     puts("SX1262 model smoke: PASS (configuration, FIFO, virtual-time outcomes, IRQ routing, reset/sleep and malformed commands)");

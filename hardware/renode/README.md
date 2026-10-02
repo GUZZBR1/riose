@@ -7,6 +7,14 @@ represented here.
 
 ## Platform support finding
 
+The inherited Renode L071 platform normally runs an `ApplySVD` command against
+an upstream STM32L0 SVD URL during initialization. That SVD supplies debugger
+register names and peripheral metadata; it does not drive emulated behavior.
+This platform overrides the inherited `sysbus` init hook and keeps its address
+range tags, so headless smoke tests do not download external SVD data at
+runtime. The CPU and peripheral models still come from the installed Renode
+release.
+
 Renode upstream currently provides a `platforms/cpus/stm32l071.repl` Cortex-M0+
 SoC model, but no STM32L031 platform was found. This scaffold reuses that L071
 peripheral set to exercise an L0-family firmware path. The L071 platform has
@@ -40,28 +48,35 @@ are scoped approximations, not electrical models.
 
 ## SX1262 comparison with the C model
 
+| Behavior | C model (MVP1 host model) | Renode model | Match or difference |
+| --- | --- | --- | --- |
+| SPI commands and fixed lengths | Whole-frame transfer callback; validates exact fixed lengths | Byte-stream peripheral; validates at chip-select release | Same supported opcodes/lengths; error status is observable on the next `GET_STATUS` because shifted bytes cannot be changed retroactively |
+| FIFO | 256-byte array; 8-bit offset wraps | 256-byte array; 8-bit offset wraps | Match; read/write and `0xFF` wrap are tested |
+| State/reset | Standby/sleep/TX/RX state; reset clears configuration, FIFO, IRQ and pending operations | Standby/sleep/TX/RX state; active-low GPIO reset clears configuration, FIFO, IRQ and timer | Match for logical state; Renode supplies the reset pin and virtual timer |
+| BUSY | No BUSY pin or timing | BUSY is high during TX/RX and can be held high by a fault hook | Intentional Renode-only pin behavior |
+| IRQ | Global and DIO1 masks gate logical IRQ result | Global and DIO1 masks drive DIO1 GPIO; suppression hook can hide the pin | Match for DIO1; fault hook is Renode-only |
+| TX | Completion uses configured latency; equal/earlier radio timeout wins | One-shot `LimitTimer` uses Renode virtual time; equal/earlier timeout wins | Same deadline decision; C advances in integer milliseconds while Renode uses 15.625-us ticks |
+| RX | Logical receive window always ends with timeout; continuous RX capped at one second | Logical receive window always ends with timeout; continuous RX capped at one virtual second | Match; neither invents an over-the-air packet or `RX_DONE` |
+| Sleep/standby | Cancels active logical TX/RX and clears pending timeout | Cancels and resets the active Renode timer | Match; time granularity differs |
+| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF` for a dropped byte | Models a failed response, not a virtual-time SPI controller timeout |
+
 `hardware/models/sx1262` remains the firmware-host reference for command bytes,
 configuration state, FIFO contents, IRQ status, and logical TX/RX outcomes.
-The Renode and C models share the supported firmware command subset and test
-matching TX_DONE, TX timeout, RX timeout, FIFO, IRQ routing, and malformed-frame
-vectors. Renode uses 15.625-us virtual ticks; the C model exposes integer
-milliseconds and rounds timeouts up to a millisecond. Equal TX and timeout
-deadlines produce TIMEOUT in both models. The C model's continuous RX case is
-bounded to one virtual second for deterministic host tests; Renode uses the same
-bound. Both complete TX according to the earlier TX-latency or radio-timeout
-deadline, including when virtual time advances past both deadlines at once.
+The C model rounds radio timeouts up to an integer millisecond; Renode uses
+15.625-us virtual ticks. The C continuous-RX case is bounded to one second,
+matching Renode. Both complete TX against the captured latency deadline and
+apply the same timeout tie policy. Renode is the source of evidence for actual
+virtual-time scheduling and BUSY pin behavior; the C smoke is not used to claim
+those Renode properties.
 
-Known intentional gaps are explicit: the C API has no BUSY pin or reset-pin
-timing, while Renode models BUSY during TX/RX and an active-low reset input;
-Renode additionally exposes fault hooks for stuck BUSY, missing IRQ, and dropped
-SPI response. Neither model generates received RF payloads, CRC outcomes, RF
-power, analog behavior, or propagation. These outputs are logical simulations,
-not measured radio behavior. `hardware/renode/tests/platform-smoke.robot` calls
-the SPI peripheral byte-by-byte and checks configuration state, FIFO round-trip,
-virtual-time TX_DONE and timeout, IRQ read/clear and routing, malformed frames,
-reset, and fault hooks. Those direct peripheral tests do not prove the STM32 SPI
-controller's chip-select waveform or a complete firmware recovery cycle.
-`hardware/models/sx1262` contains matching CPU-only model scenarios.
+Neither model generates received RF payloads, RSSI, CRC outcomes, RF power,
+analog behavior, or propagation. The models perform no RF-power or analog
+inference. The Renode Robot suite drives the radio peripheral byte by byte and
+tests config, FIFO including address wrap, virtual TX_DONE and timeout, IRQ
+read/clear/routing, malformed frame sizes, reset, BUSY, and fault hooks. It does
+not verify STM32 SPI chip-select waveforms or a complete firmware recovery
+cycle. No Zephyr ELF was supplied in the test environment, so the optional
+firmware-load case is skipped.
 
 ## Headless use
 

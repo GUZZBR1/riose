@@ -5,6 +5,15 @@
 // behavior only until an L031-specific validated platform is available.
 using "platforms/cpus/stm32l071.repl"
 
+// Replace the upstream SVD download init hook. These tags only name address
+// ranges in the debugger; they do not affect emulation or peripheral behavior.
+sysbus:
+    init:
+        Tag <0x40026000, 0x400263FF> "AES"
+        Tag <0x40015800, 0x40015BFF> "DBGMCU"
+        Tag <0x40011C00, 0x40011FFF> "Firewall"
+        Tag <0x40002C00, 0x40002FFF> "WWDG"
+
 // Compile and register the C# peripherals before the platform resolves
 // their types. A monitor-level include in the .resc file runs too late.
 cpu:

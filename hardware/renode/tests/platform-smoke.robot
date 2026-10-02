@@ -1,6 +1,7 @@
 *** Settings ***
 Documentation     Headless smoke and SX1262 protocol checks for the RIOSE Renode platform.
 Library           RenodeLibrary
+Library           String
 
 *** Variables ***
 ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
@@ -24,52 +25,55 @@ SX1262 Config And FIFO Use SPI Command Bytes
     Send SX1262 Command    0x86    0x39    0x30    0x00    0x00
     Send SX1262 Command    0x8F    0x00    0x80
     Send SX1262 Command    0x0E    0x20    0xC1    0x7A    0x05
-    ${radio_frequency}=    Execute Command    radio RfFrequencyWord
-    ${packet_type}=    Execute Command    radio PacketType
-    ${tx_base}=    Execute Command    radio TxBase
-    ${rx_base}=    Execute Command    radio RxBase
+    ${radio_frequency}=    Execute Command    sysbus.spi1.radio RfFrequencyWord
+    ${packet_type}=    Execute Command    sysbus.spi1.radio PacketType
+    ${tx_base}=    Execute Command    sysbus.spi1.radio TxBase
+    ${rx_base}=    Execute Command    sysbus.spi1.radio RxBase
     Should Be Equal As Integers    ${radio_frequency}    39300000    base=16
     Should Be Equal As Integers    ${packet_type}    01    base=16
     Should Be Equal As Integers    ${tx_base}    00    base=16
     Should Be Equal As Integers    ${rx_base}    80    base=16
-    Execute Command    radio Transmit 0x1E
-    Execute Command    radio Transmit 0x20
-    Execute Command    radio Transmit 0x00
-    ${first_fifo_byte}=    Execute Command    radio Transmit 0x00
-    ${second_fifo_byte}=    Execute Command    radio Transmit 0x00
-    ${third_fifo_byte}=    Execute Command    radio Transmit 0x00
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio Transmit 0x1E
+    Execute Command    sysbus.spi1.radio Transmit 0x20
+    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${first_fifo_byte}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${second_fifo_byte}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${third_fifo_byte}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${first_fifo_byte}    C1    base=16
     Should Be Equal As Integers    ${second_fifo_byte}    7A    base=16
     Should Be Equal As Integers    ${third_fifo_byte}    05    base=16
     [Setup]    Create RIOSE Platform
 
 SX1262 TX Completes On Virtual Time And Routes DIO1 IRQ
-    Execute Command    radio TxLatencyMs 7
+    Execute Command    sysbus.spi1.radio TxLatencyMs 7
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
-    ${busy}=    Execute Command    radio BusyAsserted
+    ${busy}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy}=    Strip String    ${busy}
     Should Be Equal    ${busy}    True
     Execute Command    emulation RunFor "0.006"
-    ${pending_mode}=    Execute Command    radio CurrentMode
+    ${pending_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
     Should Be Equal As Integers    ${pending_mode}    60    base=16
     Execute Command    emulation RunFor "0.001"
-    ${done_mode}=    Execute Command    radio CurrentMode
-    ${irq_status}=    Execute Command    radio IRQStatus
-    ${irq}=    Execute Command    radio IRQAsserted
+    ${done_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${irq_status}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${irq}=    Strip String    ${irq}
     Should Be Equal As Integers    ${done_mode}    20    base=16
     Should Be Equal As Integers    ${irq_status}    0001    base=16
     Should Be Equal    ${irq}    True
-    Execute Command    radio Transmit 0x12
-    ${status}=    Execute Command    radio Transmit 0x00
-    ${irq_msb}=    Execute Command    radio Transmit 0x00
-    ${irq_lsb}=    Execute Command    radio Transmit 0x00
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio Transmit 0x12
+    ${status}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${irq_msb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${irq_lsb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${status}    22    base=16
     Should Be Equal As Integers    ${irq_msb}    00    base=16
     Should Be Equal As Integers    ${irq_lsb}    01    base=16
     Send SX1262 Command    0x02    0x00    0x01
-    ${cleared_irq}=    Execute Command    radio IRQAsserted
+    ${cleared_irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${cleared_irq}=    Strip String    ${cleared_irq}
     Should Be Equal    ${cleared_irq}    False
     [Setup]    Create RIOSE Platform
 
@@ -78,102 +82,105 @@ SX1262 TX Timeout And RX Window Are Distinct
     Send SX1262 Command    0x08    0x02    0x01    0x02    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x01
     Execute Command    emulation RunFor "0.000015625"
-    ${tx_irq}=    Execute Command    radio IRQStatus
+    ${tx_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${tx_irq}    0200    base=16
-    Execute Command    radio Transmit 0x12
-    ${tx_status}=    Execute Command    radio Transmit 0x00
-    ${tx_irq_msb}=    Execute Command    radio Transmit 0x00
-    ${tx_irq_lsb}=    Execute Command    radio Transmit 0x00
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio Transmit 0x12
+    ${tx_status}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${tx_irq_msb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${tx_irq_lsb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${tx_status}    22    base=16
     Should Be Equal As Integers    ${tx_irq_msb}    02    base=16
     Should Be Equal As Integers    ${tx_irq_lsb}    00    base=16
     Send SX1262 Command    0x02    0x03    0xFF
     Send SX1262 Command    0x83    0x00    0x07    0x80
     Execute Command    emulation RunFor "0.030"
-    ${equal_deadline_irq}=    Execute Command    radio IRQStatus
+    ${equal_deadline_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${equal_deadline_irq}    0200    base=16
     Send SX1262 Command    0x02    0x03    0xFF
     Send SX1262 Command    0x82    0x00    0x00    0x40
     Execute Command    emulation RunFor "0.001"
-    ${rx_irq}=    Execute Command    radio IRQStatus
+    ${rx_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${rx_irq}    0200    base=16
-    Execute Command    radio Transmit 0x12
-    ${rx_status}=    Execute Command    radio Transmit 0x00
-    ${rx_irq_msb}=    Execute Command    radio Transmit 0x00
-    ${rx_irq_lsb}=    Execute Command    radio Transmit 0x00
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio Transmit 0x12
+    ${rx_status}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${rx_irq_msb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    ${rx_irq_lsb}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${rx_status}    22    base=16
     Should Be Equal As Integers    ${rx_irq_msb}    02    base=16
     Should Be Equal As Integers    ${rx_irq_lsb}    00    base=16
     Send SX1262 Command    0x02    0x03    0xFF
     Send SX1262 Command    0x82    0x00    0x00    0x00
     Execute Command    emulation RunFor "0.999"
-    ${continuous_mode}=    Execute Command    radio CurrentMode
+    ${continuous_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
     Should Be Equal As Integers    ${continuous_mode}    50    base=16
     Execute Command    emulation RunFor "0.001"
-    ${continuous_irq}=    Execute Command    radio IRQStatus
+    ${continuous_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${continuous_irq}    0200    base=16
     Send SX1262 Command    0x02    0x03    0xFF
     Send SX1262 Command    0x82    0x00    0x00    0x40
     Send SX1262 Command    0x80    0x00
     Execute Command    emulation RunFor "0.001"
-    ${cancelled_rx_irq}=    Execute Command    radio IRQStatus
+    ${cancelled_rx_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${cancelled_rx_irq}    0000    base=16
     Send SX1262 Command    0x82    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
     Execute Command    emulation RunFor "0.030"
-    ${replacement_tx_irq}=    Execute Command    radio IRQStatus
+    ${replacement_tx_irq}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${replacement_tx_irq}    0001    base=16
 
 SX1262 Rejects Malformed Frames And Reset Clears State
     [Setup]    Create RIOSE Platform
     Send SX1262 Command    0x86    0x39
-    ${faults_after_short}=    Execute Command    radio FaultCount
+    ${faults_after_short}=    Execute Command    sysbus.spi1.radio FaultCount
     Send SX1262 Command    0xFF
-    ${faults_after_unknown}=    Execute Command    radio FaultCount
+    ${faults_after_unknown}=    Execute Command    sysbus.spi1.radio FaultCount
     Send SX1262 Command    0x83    0x00    0x00    0x00    0x00
-    ${faults_after_long}=    Execute Command    radio FaultCount
+    ${faults_after_long}=    Execute Command    sysbus.spi1.radio FaultCount
     Send SX1262 Command    0x80    0x00    0x00
-    ${faults_after_overlong}=    Execute Command    radio FaultCount
+    ${faults_after_overlong}=    Execute Command    sysbus.spi1.radio FaultCount
     Should Be Equal As Integers    ${faults_after_short}    1    base=16
     Should Be Equal As Integers    ${faults_after_unknown}    2    base=16
     Should Be Equal As Integers    ${faults_after_long}    3    base=16
     Should Be Equal As Integers    ${faults_after_overlong}    4    base=16
-    Execute Command    radio Transmit 0xC0
-    ${status_after_fault}=    Execute Command    radio Transmit 0x00
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio Transmit 0xC0
+    ${status_after_fault}=    Execute Command    sysbus.spi1.radio Transmit 0x00
+    Execute Command    sysbus.spi1.radio FinishTransmission
     Should Be Equal As Integers    ${status_after_fault}    28    base=16
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
-    Execute Command    radio OnGPIO 0 false
+    Execute Command    sysbus.spi1.radio OnGPIO 0 false
     Execute Command    emulation RunFor "0.030"
-    ${irq_after_reset}=    Execute Command    radio IRQStatus
+    ${irq_after_reset}=    Execute Command    sysbus.spi1.radio IRQStatus
     Should Be Equal As Integers    ${irq_after_reset}    0000    base=16
-    ${faults_after_reset}=    Execute Command    radio FaultCount
-    ${mode_after_reset}=    Execute Command    radio CurrentMode
+    ${faults_after_reset}=    Execute Command    sysbus.spi1.radio FaultCount
+    ${mode_after_reset}=    Execute Command    sysbus.spi1.radio CurrentMode
     Should Be Equal As Integers    ${faults_after_reset}    0    base=16
     Should Be Equal As Integers    ${mode_after_reset}    20    base=16
 
 SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     [Setup]    Create RIOSE Platform
-    Execute Command    radio HoldBusy true
-    ${busy_stuck}=    Execute Command    radio BusyAsserted
+    Execute Command    sysbus.spi1.radio HoldBusy true
+    ${busy_stuck}=    Execute Command    sysbus.spi1.radio BusyAsserted
+    ${busy_stuck}=    Strip String    ${busy_stuck}
     Should Be Equal    ${busy_stuck}    True
-    Execute Command    radio HoldBusy false
+    Execute Command    sysbus.spi1.radio HoldBusy false
     Send SX1262 Command    0x08    0x00    0x01    0x00    0x01    0x00    0x00    0x00    0x00
     Send SX1262 Command    0x83    0x00    0x00    0x00
     Execute Command    emulation RunFor "0.030"
-    ${routed_irq}=    Execute Command    radio IRQAsserted
+    ${routed_irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${routed_irq}=    Strip String    ${routed_irq}
     Should Be Equal    ${routed_irq}    True
-    Execute Command    radio SuppressIRQ true
-    ${suppressed_irq}=    Execute Command    radio IRQAsserted
+    Execute Command    sysbus.spi1.radio SuppressIRQ true
+    ${suppressed_irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${suppressed_irq}=    Strip String    ${suppressed_irq}
     Should Be Equal    ${suppressed_irq}    False
-    Execute Command    radio SuppressIRQ false
-    Execute Command    radio DropSPI true
-    ${dropped_byte}=    Execute Command    radio Transmit 0xC0
+    Execute Command    sysbus.spi1.radio SuppressIRQ false
+    Execute Command    sysbus.spi1.radio DropSPI true
+    ${dropped_byte}=    Execute Command    sysbus.spi1.radio Transmit 0xC0
     Should Be Equal As Integers    ${dropped_byte}    FF    base=16
-    Execute Command    radio DropSPI false
+    Execute Command    sysbus.spi1.radio DropSPI false
 
 *** Keywords ***
 Create RIOSE Platform
@@ -183,6 +190,6 @@ Create RIOSE Platform
 Send SX1262 Command
     [Arguments]    @{bytes}
     FOR    ${byte}    IN    @{bytes}
-        Execute Command    radio Transmit ${byte}
+        Execute Command    sysbus.spi1.radio Transmit ${byte}
     END
-    Execute Command    radio FinishTransmission
+    Execute Command    sysbus.spi1.radio FinishTransmission
