@@ -42,6 +42,8 @@ Overrides retain the original unit and are marked `SIMULATED` with their CLI
 source in the report. Every STEP/STL has a `.provenance.json` sidecar. CAD
 export is refused when the report contains a clash or fit blocker. The CLI
 still writes the JSON report for diagnosis, then exits nonzero for blocked fit.
+Output paths are checked before writing so report, CAD, provenance, and source
+specification files cannot overwrite one another.
 
 The report contains component bounding boxes, cavity fit checks, pairwise
 bounding-box clearances, estimated volume/mass by part and center of mass,

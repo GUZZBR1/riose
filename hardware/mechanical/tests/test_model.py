@@ -73,6 +73,16 @@ def test_antenna_keepout_clash_with_battery_fails():
     assert "battery envelope violates antenna keepout" in report["fit"]["issues"]
 
 
+def test_sub_clearance_distance_to_keepout_fails():
+    spec = load_spec(ROOT / "fixtures/fitting_spec.yaml")
+    spec["mechanical"]["battery"]["diameter_mm"]["value"] = 1.0
+    spec["mechanical"]["battery"]["length_mm"]["value"] = 1.0
+    spec["mechanical"]["antenna"]["height_mm"]["value"] = 17.75
+    report = build_report(spec)
+    assert report["fit"]["fits"] is False
+    assert any("minimum antenna-keepout clearance violated: mcu" in issue for issue in report["fit"]["issues"])
+
+
 def test_measured_dimension_is_rejected():
     spec = load_spec(ROOT / "fixtures/fitting_spec.yaml")
     spec["mechanical"]["enclosure"]["width_mm"]["status"] = "MEASURED"
@@ -149,6 +159,18 @@ def test_cli_parameter_override_changes_artifact(tmp_path):
     assert json.loads(baseline_path.read_text()) != json.loads(changed_path.read_text())
 
 
+def test_cli_rejects_output_path_collisions_without_clobbering(tmp_path):
+    spec = ROOT / "fixtures/fitting_spec.yaml"
+    shared = tmp_path / "shared.output"
+    shared.write_text("preserve this file")
+    assert main(["--spec", str(spec), "--output", str(shared), "--step", str(shared)]) == 2
+    assert shared.read_text() == "preserve this file"
+
+    original_spec = spec.read_text()
+    assert main(["--spec", str(spec), "--output", str(spec)]) == 2
+    assert spec.read_text() == original_spec
+
+
 def test_invalid_clearance_override_is_rejected():
     with pytest.raises(SpecError, match="positive"):
         apply_overrides(load_spec(ROOT / "fixtures/fitting_spec.yaml"), ["mechanical.minimum_clearance_mm=0"])
@@ -187,6 +209,9 @@ def test_headless_step_stl_export_and_provenance(tmp_path):
     changed_stl = changed_step.with_suffix(".stl")
     assert step.is_file() and step.stat().st_size > 0
     assert step.read_text(encoding="ascii").startswith("ISO-10303-21;")
+    step_text = step.read_text(encoding="ascii")
+    for part_name in ("enclosure_shell", "pcb", "battery", "mcu", "radio", "imu", "antenna"):
+        assert part_name in step_text
     assert step.with_suffix(".stl").stat().st_size > 0
     import cadquery as cq
     original_width = cq.importers.importStep(str(step)).val().BoundingBox().xlen
@@ -207,3 +232,17 @@ def test_headless_step_stl_export_and_provenance(tmp_path):
         provenance = json.loads(artifact.with_suffix(artifact.suffix + ".provenance.json").read_text())
         assert provenance["analysis"] == "SIMULATED"
         assert provenance["physical_validation"] == "NOT_PERFORMED"
+    changed_provenance = json.loads(changed_step.with_suffix(".step.provenance.json").read_text())
+    assert changed_provenance["inputs"]["mechanical.enclosure.width_mm"]["source"].startswith("CLI override:")
+    assert changed_provenance["inputs"]["mechanical.enclosure.width_mm"]["status"] == "SIMULATED"
+
+    imported = cq.importers.importStep(str(step))
+    solids = imported.solids().vals()
+    assert len(solids) == 7
+    assert all(shape.isValid() for shape in solids)
+    assert any(
+        abs(shape.BoundingBox().xlen - 20) < 1e-6
+        and abs(shape.BoundingBox().ylen - 8) < 1e-6
+        and abs(shape.BoundingBox().zlen - 8) < 1e-6
+        for shape in solids
+    )

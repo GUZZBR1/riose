@@ -238,11 +238,15 @@ def build_report(spec: dict[str, Any]) -> dict[str, Any]:
     if (ab["x"][0] < board.x - board.width / 2 - 1e-9 or ab["x"][1] > board.x + board.width / 2 + 1e-9
             or ab["y"][0] < board.y - board.height / 2 - 1e-9 or ab["y"][1] > board.y + board.height / 2 + 1e-9):
         issues.append("antenna footprint exceeds PCB envelope")
-    for box in boxes[3:6]:
+    for box in (boxes[2], *boxes[3:6]):
+        distance = _box_distance(box, antenna_keepout)
         if _overlap(box, antenna_keepout):
-            issues.append(f"{box.name} package violates antenna keepout")
-    if _overlap(boxes[2], antenna_keepout):
-        issues.append("battery envelope violates antenna keepout")
+            issues.append(f"{box.name} envelope violates antenna keepout")
+        elif distance + 1e-9 < clearance.value:
+            issues.append(
+                f"minimum antenna-keepout clearance violated: {box.name} "
+                f"({distance:.3f} mm < {clearance.value:.3f} mm)"
+            )
     # Check solid part overlaps, with PCB/component contact intentionally allowed.
     physical = [box for box in boxes if box.name not in {"enclosure", "antenna_keepout"}]
     wall_clearances = {box.name: _wall_clearances(box, inner_w, inner_h, et.value - wall.value) for box in physical}
@@ -449,7 +453,7 @@ def export_cad(report: dict[str, Any], step_output: Path, stl_output: Path | Non
     assembly.add(shell, name="enclosure_shell")
     shapes.append(shell.val())
     step_output.parent.mkdir(parents=True, exist_ok=True)
-    cq.exporters.export(cq.Compound.makeCompound(shapes), str(step_output), exportType="STEP")
+    assembly.export(str(step_output), exportType="STEP")
     provenance = {
         "analysis": "SIMULATED",
         "physical_validation": "NOT_PERFORMED",
@@ -474,12 +478,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--set", dest="overrides", action="append", default=[], metavar="PATH=VALUE", help="Override a numeric spec value (repeatable); provenance is marked SIMULATED")
     args = parser.parse_args(argv)
     try:
+        step_path = args.step or (args.stl.with_suffix(".step") if args.stl else None)
+        stl_path = args.stl or (step_path.with_suffix(".stl") if step_path else None)
+        planned_outputs = [args.output]
+        if step_path and stl_path:
+            planned_outputs.extend((step_path, stl_path,
+                                    step_path.with_suffix(step_path.suffix + ".provenance.json"),
+                                    stl_path.with_suffix(stl_path.suffix + ".provenance.json")))
+        resolved_outputs = [path.expanduser().resolve() for path in planned_outputs]
+        if len(resolved_outputs) != len(set(resolved_outputs)):
+            raise SpecError("Report, CAD and provenance output paths must be distinct")
+        input_path = args.spec.expanduser().resolve()
+        if input_path in resolved_outputs:
+            raise SpecError("Output paths must not overwrite the input hardware specification")
         report = build_report(apply_overrides(load_spec(args.spec), args.overrides))
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         if args.step or args.stl:
-            step_path = args.step or args.stl.with_suffix(".step")
-            stl_path = args.stl or step_path.with_suffix(".stl")
+            assert step_path is not None and stl_path is not None
             export_cad(report, step_path, stl_path)
     except (SpecError, OSError) as exc:
         print(f"mechanical model error: {exc}", file=sys.stderr)

@@ -29,6 +29,26 @@ def hardware_integration_executable(environ: dict[str, str] | None = None) -> Pa
     return build_dir.expanduser().resolve() / "hardware_integration"
 
 
+def _classify_mechanical_result(mech: dict[str, Any], geometry: dict[str, Any]) -> dict[str, Any]:
+    """Preserve fit diagnostics when fail-closed CAD export rejects geometry."""
+    fit = geometry.get("fit", {})
+    if not fit.get("fits", False):
+        mech["status"] = "FAILED"
+        reason = ("CAD export blocked by fit failures" if geometry.get("cadquery_available")
+                  else "fit failures; CadQuery unavailable, export was not attempted")
+        mech["detail"] += f"; {reason}"
+    elif not geometry.get("cadquery_available"):
+        mech["status"] = "NOT_AVAILABLE"
+        mech["detail"] += "; CadQuery STEP export unavailable"
+    elif mech.get("status") != "PASSED":
+        mech["status"] = "FAILED"
+        command_error = mech.get("stderr") or mech.get("stdout") or "CAD command failed"
+        mech["detail"] = f"Mechanical report/export command failed: {command_error[-1000:]}"
+    else:
+        mech["status"] = "COMPLETED"
+    return mech
+
+
 def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     # Child tools run from ROOT, so normalize both user paths against the
     # invoking process before any subprocess receives them.
@@ -215,15 +235,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             mech["cadquery_available"] = geometry.get("cadquery_available", False)
             mech["dimensions_status"] = geometry.get("specification_statuses", [])
             mech["result_class"] = "SIMULATED_GEOMETRY_ESTIMATE"
-            if not geometry.get("cadquery_available"):
-                mech["status"] = "NOT_AVAILABLE"
-                mech["detail"] += "; CadQuery STEP export unavailable"
-            elif mech.get("status") != "PASSED":
-                mech["status"] = "FAILED"
-                command_error = mech.get("stderr") or mech.get("stdout") or "CAD command failed"
-                mech["detail"] = f"Mechanical report/export command failed: {command_error[-1000:]}"
-            else:
-                mech["status"] = "COMPLETED" if geometry.get("fit", {}).get("fits") else "FAILED"
+            mech = _classify_mechanical_result(mech, geometry)
         stages["mechanical"] = mech
     else:
         stages["mechanical"] = {"status": "NOT_AVAILABLE", "required": True,
