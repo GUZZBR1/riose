@@ -31,10 +31,17 @@ one firmware TX/RX/sleep cycle with a `SIMULATED native_sim cycle PASS` log.
 A hardware-target run requires an actual LIS2DW12 responder/device returning
 `WHO_AM_I=0x44`.
 
-For a physical board, replace the DTS overlay and configure GPIO polarity/pins,
-SPI timing, I2C address, oscillator/antenna, radio regional parameters, and
-interrupt wiring for that board. The 915 MHz default is a prototype setting,
-not a regulatory approval or validated RF design.
+For a physical board, supply a board-specific DTS overlay defining
+`tag-radio`, `tag-imu`, `tag-radio-reset`, `tag-radio-busy`, `tag-radio-dio1`,
+and `tag-imu-int`. `tag-radio-busy` must be an active-high GPIO connected to
+the SX1262 BUSY output. The physical SPI adapter waits for BUSY to deassert
+before every command, polling at 1 ms intervals for at most 100 ms; a stuck
+line returns `-ETIMEDOUT` without clocking SPI. No physical GPIO number or
+board pin mapping is prescribed here: choose pins for the selected board and
+module in its overlay. Also configure GPIO polarity, SPI timing, I2C address,
+oscillator/antenna, radio regional parameters, and interrupt wiring for that
+board. The 915 MHz default is a prototype setting, not a regulatory approval
+or validated RF design.
 
 Zephyr native_sim has documented SPI, I2C and GPIO emulation support; the bus
 emulators still require peripheral-specific responder implementations:

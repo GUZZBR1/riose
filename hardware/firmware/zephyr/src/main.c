@@ -14,8 +14,9 @@
 LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
 
 #if !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio), okay) || \
-    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay)
-#error "Add tag-radio and tag-imu devicetree aliases for this board"
+    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay) || \
+    !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio_busy), okay)
+#error "Add tag-radio, tag-imu, and tag-radio-busy devicetree aliases for this board"
 #endif
 
 static const struct spi_dt_spec radio_spi = SPI_DT_SPEC_GET(
@@ -24,6 +25,8 @@ static const struct spi_dt_spec radio_spi = SPI_DT_SPEC_GET(
 static const struct i2c_dt_spec imu_i2c = I2C_DT_SPEC_GET(DT_ALIAS(tag_imu));
 static const struct gpio_dt_spec radio_reset =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_reset), gpios);
+static const struct gpio_dt_spec radio_busy =
+    GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_busy), gpios);
 static const struct gpio_dt_spec radio_dio1 =
     GPIO_DT_SPEC_GET(DT_ALIAS(tag_radio_dio1), gpios);
 static const struct gpio_dt_spec imu_int =
@@ -36,6 +39,19 @@ static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
     if (tx == NULL || rx == NULL || tx_len == 0 || tx_len != rx_len) {
         return -EINVAL;
     }
+
+    /* SX1262 drives BUSY high while it cannot accept another command. Check
+     * before every transaction, including the first one after reset. */
+    const int64_t deadline = k_uptime_get() + 100;
+    int busy;
+    do {
+        busy = gpio_pin_get_dt(&radio_busy);
+        if (busy < 0) return busy;
+        if (busy == 0) break;
+        k_msleep(1);
+    } while (k_uptime_get() < deadline);
+    if (busy != 0) return -ETIMEDOUT;
+
     struct spi_buf tx_buf = {.buf = (void *)tx, .len = tx_len};
     struct spi_buf rx_buf = {.buf = rx, .len = rx_len};
     const struct spi_buf_set tx_set = {.buffers = &tx_buf, .count = 1};
@@ -125,12 +141,15 @@ static void sleep_ms(void *context, uint32_t duration_ms)
 int main(void)
 {
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
-        !gpio_is_ready_dt(&radio_reset) || !gpio_is_ready_dt(&radio_dio1) ||
+        !gpio_is_ready_dt(&radio_reset) || !gpio_is_ready_dt(&radio_busy) ||
+        !gpio_is_ready_dt(&radio_dio1) ||
         !gpio_is_ready_dt(&imu_int)) {
         LOG_ERR("A required SPI, I2C, or GPIO device is not ready");
         return -ENODEV;
     }
     int rc = gpio_pin_configure_dt(&radio_reset, GPIO_OUTPUT_INACTIVE);
+    if (rc != 0) return rc;
+    rc = gpio_pin_configure_dt(&radio_busy, GPIO_INPUT);
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&radio_dio1, GPIO_INPUT);
     if (rc != 0) return rc;

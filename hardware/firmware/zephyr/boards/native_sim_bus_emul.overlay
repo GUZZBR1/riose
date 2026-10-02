@@ -27,6 +27,7 @@
 		tag-radio = &tag_radio;
 		tag-imu = &tag_imu;
 		tag-radio-reset = &tag_radio_reset;
+		tag-radio-busy = &tag_radio_busy;
 		tag-radio-dio1 = &tag_radio_dio1;
 		tag-imu-int = &tag_imu_int;
 	};
@@ -34,6 +35,10 @@
 	tag_radio_reset: radio-reset {
 		compatible = "riose,tag-gpio";
 		gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+	};
+	tag_radio_busy: radio-busy {
+		compatible = "riose,tag-gpio";
+		gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
 	};
 	tag_radio_dio1: radio-dio1 {
 		compatible = "riose,tag-gpio";

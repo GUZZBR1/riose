@@ -30,6 +30,20 @@ The wake line is disabled for the long mixed and stationary runs so these measur
 
 The default normal cadence is 900 s (96 transmissions/day). ACTIVE transmits each 60 s and ALERT each 10 s, but only during a two-minute burst when each state is entered; if the state remains active, the tag returns to the 15-minute heartbeat. A three-hour stationary period below the configured four-hour stillness alarm produced 12 packets. A three-hour forced ACTIVE period produced 14 packets. A full 24-hour stationary profile crossed the assumed four-hour threshold and produced 108 packets. The mixed 24-hour movement profile produced 128 packets. These deterministic results cover the software cadence policy only; they do not establish biological alarm thresholds or actual battery use.
 
+### Explicit duty-cycle profiles
+
+`integration.c` also runs five isolated profiles with exact TX-count assertions. The short bursts count transmissions in the half-open interval `[event start, event start + 120 s)`, so a packet exactly at the two-minute boundary is excluded from the burst count.
+
+| Profile | Configuration and window | Observed TX | Meaning |
+|---|---|---:|---|
+| NORMAL | Stationary 24 h; stillness alarm moved beyond the run; 900-s normal cadence | 96 | Exact baseline: one initial beacon and then every 15 minutes. |
+| ACTIVE burst | Forced ACTIVE for 2 min; 60-s active cadence | 2 | TX at 0 and 60 s. The boundary sample is outside this count. |
+| ALERT burst | ALERT from the start; 10-s alert cadence | 12 | TX from 0 through 110 s. A TX at 120 s belongs to the post-burst path. |
+| Repeated ACTIVE events | Default 15-min normal cadence; each forced episode lasts 2 min; then stationary; 24 h | 85 events, 255 TX | 3.54 events/hour. Each event yields two burst TX plus a due TX at the 2-min boundary. |
+| Pathological ALERT | ALERT held continuously for 3 h; 10-s alert cadence and then 900-s normal cadence | 24 | 13 TX through the 120-s boundary, then 11 sparse heartbeats. |
+
+The repeated-event case represents an aggressive but cadence-limited schedule: event starts are 17 minutes apart (2-minute event window plus a 15-minute normal interval), not arbitrarily injected at a higher rate than the firmware can sample. The pathological ALERT case shows the finite alert burst returning to sparse heartbeats even while ALERT remains latched. Both are simulated software profiles and use the configured classifier/timers; neither is a physiological threshold or measured radio current.
+
 These results are deterministic software simulation results, not measurements of a physical sensor, radio, battery, or animal.
 
 ## Limits and blockers

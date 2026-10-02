@@ -492,6 +492,139 @@ static void test_stationary_24h_beacon_baseline(void)
     assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
 }
 
+static void disable_imu_wake_irq(virtual_tag_t *tag)
+{
+    const uint8_t irq_route_off = 0u;
+    assert(lis2dw12_i2c_write(&tag->imu, LIS2DW12_REG_CTRL4_INT1_PAD_CTRL,
+                              &irq_route_off, 1u) == LIS2DW12_OK);
+}
+
+static void run_to_time(tag_firmware_t *firmware, virtual_tag_t *tag,
+                        uint32_t target_ms)
+{
+    tag->stop_at_ms = target_ms;
+    for (uint32_t steps = 0u; tag->now_ms < target_ms && steps < 100000u; ++steps) {
+        tag_firmware_step(firmware);
+        assert(firmware->state != TAG_STATE_ERROR_RECOVERY);
+    }
+    assert(tag->now_ms == target_ms);
+    tag->stop_at_ms = 0u;
+}
+
+static void run_until_packet(tag_firmware_t *firmware, uint32_t prior_packets)
+{
+    for (uint32_t steps = 0u; firmware->packets_sent == prior_packets &&
+         steps < 10000u; ++steps) {
+        tag_firmware_step(firmware);
+        assert(firmware->state != TAG_STATE_ERROR_RECOVERY);
+    }
+    assert(firmware->packets_sent == prior_packets + 1u);
+}
+
+static void test_normal_24h_exact_budget(void)
+{
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1101u);
+    config.still_alert_after_ms = DAY_MS + 1u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    disable_imu_wake_irq(&tag);
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_STATIONARY);
+    run_to_time(&firmware, &tag, DAY_MS);
+    assert(firmware.packets_sent == 96u);
+    assert(firmware.behavior == TAG_BEHAVIOR_STILL);
+    printf("NORMAL 24h: TX=%" PRIu32 " expected=96 (900-s cadence)\n",
+           firmware.packets_sent);
+}
+
+static void test_active_burst_two_minutes(void)
+{
+    const uint32_t burst_ms = 120000u;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1102u);
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    disable_imu_wake_irq(&tag);
+    tag.force_active_sample = true;
+    tag_firmware_step(&firmware); /* BOOT */
+    tag_firmware_step(&firmware); /* SELF_TEST */
+    run_until_packet(&firmware, 0u);
+    run_to_time(&firmware, &tag, burst_ms);
+    assert(firmware.behavior == TAG_BEHAVIOR_ACTIVE);
+    assert(firmware.packets_sent == 2u); /* t=0 and t=60 s; boundary excluded */
+    printf("ACTIVE burst 2 min: TX=%" PRIu32 " expected=2 (60-s cadence)\n",
+           firmware.packets_sent);
+}
+
+static void test_alert_burst_two_minutes(void)
+{
+    const uint32_t burst_ms = 120000u;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1103u);
+    config.still_alert_after_ms = 0u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    disable_imu_wake_irq(&tag);
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_STATIONARY);
+    run_to_time(&firmware, &tag, burst_ms);
+    assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
+    assert(firmware.packets_sent == 12u); /* t=0 through t=110 s */
+    printf("ALERT burst 2 min: TX=%" PRIu32 " expected=12 (10-s cadence)\n",
+           firmware.packets_sent);
+}
+
+static void test_repeated_active_events_per_hour(void)
+{
+    /* Worst case at field defaults: each event occupies the complete bounded
+     * burst, then stationary behavior resumes until the next 15-min sample. */
+    const uint32_t event_window_ms = 120000u;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1104u);
+    config.still_alert_after_ms = DAY_MS + 1u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    disable_imu_wake_irq(&tag);
+
+    uint32_t events = 0u;
+    while (tag.now_ms < DAY_MS) {
+        tag.force_active_sample = true;
+        const uint32_t before_event = firmware.packets_sent;
+        run_until_packet(&firmware, before_event);
+        ++events;
+        const uint32_t event_end = tag.now_ms + event_window_ms;
+        run_to_time(&firmware, &tag, event_end);
+        tag.force_active_sample = false;
+        /* The due sample at the burst boundary returns to stationary and
+         * transmits once; it starts the normal heartbeat timer again. */
+        run_until_packet(&firmware, firmware.packets_sent);
+        if (firmware.next_beacon_ms >= DAY_MS) break;
+        run_to_time(&firmware, &tag, firmware.next_beacon_ms);
+    }
+    assert(events == 85u);
+    assert(firmware.packets_sent == 255u);
+    printf("Repeated ACTIVE events 24h: events=%" PRIu32 " (~%.2f/hour) TX=%"
+           PRIu32 " expected=85 events/255 TX\n", events,
+           (double)events * 3600000.0 / (double)DAY_MS, firmware.packets_sent);
+}
+
+static void test_pathological_alert_for_three_hours(void)
+{
+    const uint32_t duration_ms = 3u * 60u * 60u * 1000u;
+    virtual_tag_t tag;
+    tag_firmware_t firmware;
+    tag_config_t config = tag_default_config(1105u);
+    config.still_alert_after_ms = 0u;
+    virtual_tag_init(&tag, &firmware, &config, 4u);
+    disable_imu_wake_irq(&tag);
+    lis2dw12_set_motion(&tag.imu, LIS2DW12_MOTION_STATIONARY);
+    run_to_time(&firmware, &tag, duration_ms);
+    assert(firmware.behavior == TAG_BEHAVIOR_ALERT);
+    assert(firmware.packets_sent == 24u);
+    printf("Pathological ALERT 3h: TX=%" PRIu32
+           " expected=24 (13 including burst-end boundary + 11 normal heartbeats)\n",
+           firmware.packets_sent);
+}
+
 int main(void)
 {
     test_boot_packet_sleep_and_wake();
@@ -502,7 +635,12 @@ int main(void)
     test_healthy_stationary_below_alarm_threshold();
     test_prolonged_active_burst_is_bounded();
     test_stationary_24h_beacon_baseline();
-    puts("Hardware integration: 8 scenarios passed");
+    test_normal_24h_exact_budget();
+    test_active_burst_two_minutes();
+    test_alert_burst_two_minutes();
+    test_repeated_active_events_per_hour();
+    test_pathological_alert_for_three_hours();
+    puts("Hardware integration: 13 scenarios passed");
     puts("Power coverage: battery voltage is a static telemetry input only; brownout is unsupported by tag_hal_t.");
     return 0;
 }
