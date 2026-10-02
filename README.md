@@ -113,8 +113,10 @@ The run writes machine-readable outputs under `results/mvp2/` and
 `docs/mvp2-digital-twin-report.md`. Missing Renode, ngspice, CadQuery, openEMS,
 or a configured openEMS solver adapter is reported as unavailable; missing
 solvers never produce invented electrical or RF metrics. GPU/Sionna is only an
-`OPTIONAL_GPU_EXPERIMENT`. The initial fit calculation flags the assumed
-battery and antenna keepout as not fitting. No parameter may be marked
+`OPTIONAL_GPU_EXPERIMENT`. The current assumed mechanical candidate passes its
+bounding-box fit checks with separate PCB and battery bays, 0.5 mm clearance,
+and an 18.5 mm enclosure depth. This is only a simulated layout estimate; it
+does not validate terminals, tolerances, retention, or physical assembly. No parameter may be marked
 `MEASURED`; dimensions, antenna and fit still require review before a READY
 gate can be reached. See [`hardware/spec.yaml`](hardware/spec.yaml) for the
 candidate architecture and provenance.

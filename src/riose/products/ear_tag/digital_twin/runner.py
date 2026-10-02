@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .execution import _clear_previous_outputs, _run_command, _write_empty_csv
+from .faults import FAULT_SCENARIOS
 from .motion import generate_motion_profiles
 from .paths import ROOT, SCENARIOS, resolve_user_path
 from .power import _power_assumptions, _power_load_profile, _repeat_period_arguments
@@ -27,6 +28,45 @@ def hardware_integration_executable(environ: dict[str, str] | None = None) -> Pa
     source = os.environ if environ is None else environ
     build_dir = Path(source.get("HARDWARE_TEST_BUILD_DIR", str(DEFAULT_HARDWARE_TEST_BUILD_DIR)))
     return build_dir.expanduser().resolve() / "hardware_integration"
+
+
+def _stack_usage(build_dir: Path) -> dict[str, Any]:
+    reports = list(build_dir.rglob("*.su"))
+    frames: list[int] = []
+    for report in reports:
+        for line in report.read_text(errors="replace").splitlines():
+            fields = line.split("\t")
+            if len(fields) >= 2 and fields[1].isdigit():
+                frames.append(int(fields[1]))
+    return {"status": "STATIC_FRAME_USAGE" if frames else "NOT_AVAILABLE",
+            "max_frame_bytes": max(frames) if frames else None,
+            "report_count": len(reports),
+            "limitation": "excludes call-chain and runtime high-water usage"}
+
+
+def _long_run_energy_uah(days: int, packets: int, spec: dict[str, Any]) -> dict[str, Any]:
+    from .power import _record
+
+    seconds = days * 86_400
+    sleep_ma = (_record(spec, "components.mcu.stop_current_ma") +
+                _record(spec, "components.imu.low_power_current_ma") +
+                _record(spec, "components.radio.sleep_current_ma") +
+                _record(spec, "regulator.quiescent_current_a") * 1000)
+    awake_delta = max(0.0, _record(spec, "components.mcu.run_current_ma") -
+                     _record(spec, "components.mcu.stop_current_ma"))
+    tx_delta = max(0.0, _record(spec, "components.radio.tx_stress_current_ma") -
+                   _record(spec, "components.radio.sleep_current_ma"))
+    rx_delta = max(0.0, _record(spec, "components.radio.rx_current_ma") -
+                   _record(spec, "components.radio.sleep_current_ma"))
+    per_packet_mas = (awake_delta * _record(spec, "power_profiles.mcu_awake_s_per_event") +
+                      tx_delta * _record(spec, "components.radio.tx_duration_s") +
+                      rx_delta * _record(spec, "components.radio.rx_window_s") +
+                      _record(spec, "power_profiles.imu_sample_current_ma") *
+                      _record(spec, "power_profiles.mcu_awake_s_per_event"))
+    value = (sleep_ma * seconds + packets * per_packet_mas) / 3.6
+    return {"status": "SIMULATED_FROM_ASSUMED_PROFILE", "value_uah": value,
+            "window_s": seconds, "packet_count": packets,
+            "provenance": "hardware/spec.yaml ASSUMED currents and durations; not measured"}
 
 
 def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
@@ -158,10 +198,20 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                         cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
                     )
                     payload = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
-                    long_run_results[key] = {**payload,
-                        "status": payload.get("status", "FAILED") if result.returncode == 0 else "FAILED",
-                        "return_code": result.returncode,
-                    }
+                    expected_ms = days * 86_400_000
+                    valid = (result.returncode == 0 and payload.get("status") == "COMPLETED" and
+                             payload.get("scenario") == scenario and payload.get("days") == days and
+                             payload.get("virtual_ms") == expected_ms and payload.get("steps", 0) > 0 and
+                             payload.get("tx_count", 0) > 0 and payload.get("failures") == 0)
+                    payload.update(status="COMPLETED" if valid else "FAILED",
+                                   return_code=result.returncode, seed=seed,
+                                   virtual_elapsed_ms=payload.get("virtual_ms"),
+                                   packets=payload.get("tx_count", 0),
+                                   energy=_long_run_energy_uah(days, payload.get("tx_count", 0), spec),
+                                   stack_usage=_stack_usage(hardware_build_dir))
+                    if not valid:
+                        payload["validation_error"] = "C result failed status/profile/window/steps/packets/failure checks"
+                    long_run_results[key] = payload
                 except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
                     long_run_results[key] = {"status": "FAILED", "detail": str(exc)}
     all_long_runs = len(long_run_results) == 12 and all(
@@ -174,26 +224,62 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                   else "One or more NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE runs for 1/7/30 days failed",
     }
 
+    host_demo = hardware_build_dir / "firmware" / "tag_host_demo"
+    rollover: dict[str, Any] = {"status": "NOT_AVAILABLE", "required": True}
+    if c_tests["status"] == "PASSED" and host_demo.is_file():
+        try:
+            wrapped = subprocess.run(
+                [str(host_demo), "--long-run-days", "1", "--scenario", "NORMAL",
+                 "--seed", str(seed), "--start-time-ms", "4294900000",
+                 "--start-sequence", "4294967295"],
+                cwd=ROOT, capture_output=True, text=True, timeout=120, check=False,
+            )
+            data = json.loads(wrapped.stdout.strip().splitlines()[-1])
+            valid = (wrapped.returncode == 0 and data.get("status") == "COMPLETED" and
+                     data.get("failures") == 0 and data.get("packets", 0) > 0 and
+                     data.get("timer_wraps", 0) >= 1 and data.get("sequence_wraps", 0) >= 1)
+            rollover = {**data, "status": "PASSED" if valid else "FAILED",
+                        "return_code": wrapped.returncode, "seed": seed}
+        except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError, IndexError) as exc:
+            rollover = {"status": "FAILED", "detail": str(exc), "required": True}
+    stages["timer_and_sequence_rollover"] = {
+        **rollover, "result_class": "SIMULATED_SOFTWARE_RUN",
+        "detail": "Counter rollover exercised from near uint32 limits" if rollover.get("status") == "PASSED"
+        else "Counter rollover probe did not produce validated evidence",
+    }
+
     # Host C tests classify reset flags but cannot provoke an MCU reset. The
     # Zephyr target build proves the IWDG code compiles for the selected board;
     # only physical target execution can prove watchdog reset behavior.
-    host_faults = ["one_shot_i2c_failure_recovery", "one_shot_spi_failure_recovery",
-                   "late_tx_done_timeout_recovery", "digital_fault_crc_corruption",
-                   "digital_fault_sx1262_busy_stuck", "digital_fault_irq_missing",
-                   "digital_reset_cause_flag_classification"]
-    remaining_faults = ["battery_voltage_drop", "high_esr", "regulator_instability",
-                        "watchdog_reset_executed_on_target", "unexpected_reboot"]
+    fault_rows = [row for row in FAULT_SCENARIOS if row["host_argument"] is not None]
+    remaining_faults = [row for row in FAULT_SCENARIOS if row["host_argument"] is None]
+    fault_csv_rows = []
+    for row in fault_rows:
+        observed = c_tests["status"] == "PASSED"
+        fault_csv_rows.append({**row, "status": "OBSERVED" if observed else "FAILED",
+                               "recovered": row["recovery_expected"] if observed else False,
+                               "seed": seed, "detail": "Dedicated C integration assertion" if observed else c_tests.get("detail", "C tests unavailable")})
+    for row in remaining_faults:
+        fault_csv_rows.append({**row, "status": "BLOCKED", "recovered": False, "seed": seed, "detail": row["blocker"]})
+    fault_csv = output / "fault_scenarios.csv"
+    with fault_csv.open("w", newline="", encoding="utf-8") as stream:
+        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail"]
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows({key: row.get(key) for key in fields} for row in fault_csv_rows)
+    host_faults = [row["fault"] for row in fault_rows] if c_tests["status"] == "PASSED" else []
     stages["adversarial_fault_injection"] = {
         "status": "PARTIAL" if c_tests["status"] == "PASSED" else "NOT_AVAILABLE",
-        "required": True, "completed_host_cases": host_faults if c_tests["status"] == "PASSED" else [],
-        "pending_cases": remaining_faults,
+        "required": True, "completed_host_cases": host_faults,
+        "pending_cases": [row["fault"] for row in remaining_faults],
+        "fault_csv": str(fault_csv), "fault_results": fault_csv_rows,
         "watchdog_target_build": {
             "status": "CONFIGURED_AND_COMPILED" if stages["zephyr_firmware"]["status"] == "PASSED" else "NOT_VERIFIED",
             "timeout_ms": 10_000,
             "result_class": "TARGET_FIRMWARE_BUILD_EVIDENCE",
             "detail": "The NUCLEO-L031K6 image configures the STM32 IWDG and reports/clears reset flags; no physical watchdog reset was triggered",
         },
-        "detail": "Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, TX/RX IRQ deadlines, and deterministic reset-flag classification. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",
+        "detail": "Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, and TX/RX IRQ deadlines. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",
     }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"
@@ -329,9 +415,8 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                                           "detail": "Four scenario traces could not be generated"}
 
     failures: list[dict[str, Any]] = []
-    failures.extend({"scenario": "adversarial_fault_injection", "failure": case,
-                     "detail": "NOT_RUN: persistent fault injection is not implemented in the configured backend",
-                     "status": "NOT_RUN"} for case in remaining_faults)
+    failures.extend({"scenario": "adversarial_fault_injection", "failure": row["fault"],
+                     "detail": row["blocker"], "status": "BLOCKED"} for row in remaining_faults)
     failures.extend({"scenario": name, "failure": result.get("status", "FAILED"),
                      "detail": result.get("detail", "long virtual run did not complete"),
                      "status": "NOT_RUN"}
@@ -363,7 +448,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     gate = evaluate_gate(spec, stages, required_stage_names=(
         "zephyr_firmware", "renode_firmware", "long_duration_1_7_30_days",
-        "adversarial_fault_injection", "four_power_scenarios", "mechanical",
+        "timer_and_sequence_rollover", "adversarial_fault_injection", "four_power_scenarios", "mechanical",
         "antenna", "power",
     ))
     summary = {"schema_version": "riose.mvp2.digital-twin/v1", "milestone": "MVP2_DIGITAL_TWIN",

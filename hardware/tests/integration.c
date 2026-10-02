@@ -854,6 +854,7 @@ static int run_long_virtual_scenario(const char *scenario, uint32_t days)
     disable_imu_wake_irq(&tag);
     tag.force_active_sample = strcmp(scenario, "ACTIVE") == 0 ||
                               strcmp(scenario, "WORST_REASONABLE_CASE") == 0;
+    tag.stop_at_ms = target_ms;
 
     uint32_t steps = 0u;
     while (tag.now_ms < target_ms && steps < 2000000u) {
