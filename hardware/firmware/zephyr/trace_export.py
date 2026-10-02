@@ -60,7 +60,9 @@ def _context(record: dict[str, Any], index: int) -> None:
         "RECOVERY": ({7}, {1}), "MCU_SLEEP": ({2, 7}, {3}), "WAKE": ({2}, {3}),
         "SPI": (any_state, {2}), "IRQ": ({4, 5}, {2}),
         "TIMEOUT": ({4}, {1, 2}) if state == 4 else ({5}, {1, 2}),
-        "WATCHDOG": ({1}, {3}), "REBOOT": ({1}, {3}),
+        # main.c reports the preceding reset immediately after init, while
+        # the current FSM state is still BOOT.
+        "WATCHDOG": ({0, 1}, {3}), "REBOOT": ({0, 1}, {3}),
         "TRACE_END": (any_state, {3}),
     }
     states, sources = contexts[event]

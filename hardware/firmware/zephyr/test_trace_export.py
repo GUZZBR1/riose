@@ -236,3 +236,12 @@ def test_jsonl_rejects_malformed_and_blank_lines(tmp_path):
 def test_watchdog_and_reboot_are_schema_supported_but_not_fabricated():
     records = parse_console(_console(_full_trace()))
     assert not any(record["event"] in {"WATCHDOG", "REBOOT"} for record in records)
+
+
+@pytest.mark.parametrize("event", ["WATCHDOG", "REBOOT"])
+def test_reported_reset_cause_is_valid_while_firmware_remains_in_boot(event):
+    records = _full_trace()
+    records.insert(2, _event(event, "BOOT", "HAL", value0=0x10, value1=2))
+    for sequence, row in enumerate(records):
+        row["sequence"] = sequence
+    assert validate_records(records) is None
