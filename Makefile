@@ -22,7 +22,20 @@ hardware-demo: hardware-test
 
 hardware-native-sim:
 	west build -b native_sim/native/64 -d /tmp/riose-ear-tag-native-sim hardware/firmware/zephyr
-	west build -d /tmp/riose-ear-tag-native-sim -t run
+	west build -d /tmp/riose-ear-tag-native-sim -t run > /tmp/riose-native-sim.log 2>&1 || { cat /tmp/riose-native-sim.log; exit 1; }
+	cat /tmp/riose-native-sim.log
+	python3 hardware/firmware/zephyr/trace_export.py /tmp/riose-native-sim.log --output /tmp/riose-native-sim-trace.jsonl
+	west build -d /tmp/riose-ear-tag-native-sim -t run > /tmp/riose-native-sim-repeat.log 2>&1 || { cat /tmp/riose-native-sim-repeat.log; exit 1; }
+	python3 hardware/firmware/zephyr/trace_export.py /tmp/riose-native-sim-repeat.log --output /tmp/riose-native-sim-repeat-trace.jsonl
+	python3 hardware/firmware/zephyr/check_trace_determinism.py /tmp/riose-native-sim-trace.jsonl /tmp/riose-native-sim-repeat-trace.jsonl
+	west build -b native_sim/native/64 -d /tmp/riose-ear-tag-native-sim-failure hardware/firmware/zephyr -- -DEXTRA_CONF_FILE=boards/native_sim_imu_failure.conf
+	west build -d /tmp/riose-ear-tag-native-sim-failure -t run > /tmp/riose-native-sim-failure.log 2>&1 || { cat /tmp/riose-native-sim-failure.log; exit 1; }
+	cat /tmp/riose-native-sim-failure.log
+	python3 hardware/firmware/zephyr/trace_export.py /tmp/riose-native-sim-failure.log --output /tmp/riose-native-sim-failure-trace.jsonl
+	west build -b native_sim/native/64 -d /tmp/riose-ear-tag-native-sim-trace-disabled hardware/firmware/zephyr -- -DEXTRA_CONF_FILE=boards/native_sim_trace_disabled.conf
+	west build -d /tmp/riose-ear-tag-native-sim-trace-disabled -t run > /tmp/riose-native-sim-trace-disabled.log 2>&1 || { cat /tmp/riose-native-sim-trace-disabled.log; exit 1; }
+	grep -q 'SIMULATED native_sim cycle PASS' /tmp/riose-native-sim-trace-disabled.log
+	! grep -q 'SIMULATED_TRACE,' /tmp/riose-native-sim-trace-disabled.log
 
 # Renode is an optional digital platform smoke test. It loads the surrogate
 # platform and custom peripheral models; it does not claim STM32L031 fidelity.

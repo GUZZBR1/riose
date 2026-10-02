@@ -33,6 +33,9 @@ add_test(NAME firmware_trace_schema
     ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(firmware_trace_schema PROPERTIES
   DEPENDS "firmware_trace_normal;firmware_trace_active;firmware_trace_alert;firmware_trace_worst_reasonable_case")
+add_test(NAME firmware_trace_determinism
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_trace_determinism.py
+    $<TARGET_FILE:hardware_integration>)
 foreach(days 1 7 30)
   foreach(scenario NORMAL ACTIVE ALERT WORST_REASONABLE_CASE)
     string(TOLOWER ${scenario} scenario_slug)

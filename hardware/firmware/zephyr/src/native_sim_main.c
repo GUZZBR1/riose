@@ -15,10 +15,17 @@ extern void nsi_exit(int exit_code);
 
 static sx1262_model_t radio;
 static lis2dw12_model_t imu;
+static uint32_t structured_trace_sequence;
 
 static uint32_t now_ms(void)
 {
     return k_uptime_get_32();
+}
+
+static uint64_t now_us(void *context)
+{
+    ARG_UNUSED(context);
+    return (uint64_t)k_uptime_get() * 1000u;
 }
 
 static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
@@ -40,6 +47,13 @@ static int radio_reset(void *context)
 static int imu_read(void *context, tag_imu_sample_t *sample)
 {
     ARG_UNUSED(context);
+#if IS_ENABLED(CONFIG_TAG_NATIVE_SIM_INJECT_IMU_FAILURE)
+    static bool fail_once = true;
+    if (fail_once) {
+        fail_once = false;
+        return -EIO;
+    }
+#endif
     uint8_t bytes[6];
     lis2dw12_tick(&imu, 20u);
     if (lis2dw12_i2c_read(&imu, LIS2DW12_REG_OUT_X_L, bytes, sizeof(bytes)) != LIS2DW12_OK) {
@@ -83,7 +97,8 @@ static const char *trace_event_name(tag_trace_event_t event)
     static const char *const names[] = {
         "INVALID", "BOOT", "MCU_INIT", "STATE", "IMU_READ", "PACKET_CREATED",
         "RADIO_STANDBY", "TX_START", "TX_DONE", "RX_START", "RX_DONE",
-        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP"
+        "RADIO_SLEEP", "ERROR", "RECOVERY", "MCU_SLEEP", "WAKE", "SPI",
+        "IRQ", "TIMEOUT", "WATCHDOG", "REBOOT", "TRACE_END"
     };
     return (unsigned)event < ARRAY_SIZE(names) ? names[event] : "UNKNOWN";
 }
@@ -91,11 +106,13 @@ static const char *trace_event_name(tag_trace_event_t event)
 static void trace_event(void *context, const tag_trace_record_t *record)
 {
     ARG_UNUSED(context);
-    LOG_INF("SIMULATED_TRACE,%llu,%u,%s,%u,%d,%u,%u,%u",
+    LOG_INF("SIMULATED_TRACE,v1,%u,%llu,%u,%s,%u,%u,%d,%u,%u,%u,%s",
+            structured_trace_sequence++,
             (unsigned long long)record->timestamp_us,
             (unsigned)record->state, trace_event_name(record->event),
-            (unsigned)record->source, (int)record->result,
-            record->value0, record->value1, record->value2);
+            (unsigned)record->event, (unsigned)record->source,
+            (int)record->result,
+            record->value0, record->value1, record->value2, record->packet_hex);
 }
 
 static void sleep_ms(void *context, uint32_t duration_ms)
@@ -121,8 +138,9 @@ int main(void)
         .imu_irq_pending = imu_irq_pending,
         .radio_irq_pending = radio_irq_pending,
         .clock_ms = clock_ms,
+        .clock_us = now_us,
         .sleep_ms = sleep_ms,
-        .trace_event = trace_event,
+        .trace_event = IS_ENABLED(CONFIG_TAG_STRUCTURED_TRACE) ? trace_event : NULL,
     };
     tag_config_t config = tag_default_config(0x12345678u);
     config.normal_beacon_ms = 100u;
@@ -141,7 +159,9 @@ int main(void)
             break;
         }
     }
-    const bool valid = firmware.packets_sent == 1u && firmware.failures == 0u &&
+    const bool failures_valid = IS_ENABLED(CONFIG_TAG_NATIVE_SIM_INJECT_IMU_FAILURE)
+        ? firmware.failures > 0u : firmware.failures == 0u;
+    const bool valid = firmware.packets_sent == 1u && failures_valid &&
                        tag_telemetry_crc_valid(radio.fifo, TAG_TELEMETRY_MAX_SIZE) &&
                        radio.mode == SX1262_MODE_SLEEP;
     if (!valid) {
@@ -149,8 +169,10 @@ int main(void)
                 firmware.packets_sent, firmware.failures, firmware.state, radio.mode);
         nsi_exit(-EIO);
     }
-    LOG_INF("SIMULATED native_sim cycle PASS: TX=%u packet=%uB CRC valid; SX1262 asleep",
-            firmware.packets_sent, TAG_TELEMETRY_MAX_SIZE);
+    tag_trace_emit(&hal, firmware.state, TAG_TRACE_END, TAG_TRACE_SOURCE_HAL,
+                   0, firmware.packets_sent, firmware.failures, 0u);
+    LOG_INF("SIMULATED native_sim cycle PASS: TX=%u packet=%uB failures=%u; SX1262 asleep",
+            firmware.packets_sent, TAG_TELEMETRY_MAX_SIZE, firmware.failures);
     nsi_exit(0);
     return 0;
 }

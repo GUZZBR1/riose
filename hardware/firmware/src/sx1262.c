@@ -23,15 +23,17 @@ static int transfer(const tag_hal_t *hal, const uint8_t *tx, size_t n,
     }
     uint8_t discard[260];
     if (rx == NULL) rx = discard;
-    if (hal->spi_transfer(hal->context, tx, n, rx, n) != 0) return -1;
+    int result = hal->spi_transfer(hal->context, tx, n, rx, n);
     /* SX126x status command bits are 0x08 (invalid) and 0x0a (failed).
      * Timeout from a completed SetTx is also an error to the firmware. */
-    if (n > 1u) {
+    if (result == 0 && n > 1u) {
         const uint8_t command_status = (uint8_t)(rx[1] & 0x0eu);
         if (command_status == 0x06u || command_status == 0x08u ||
-            command_status == 0x0au) return -1;
+            command_status == 0x0au) result = -1;
     }
-    return 0;
+    tag_trace_emit(hal, hal->trace_state, TAG_TRACE_SPI,
+                   TAG_TRACE_SOURCE_SX1262, result, tx[0], (uint32_t)n, 0u);
+    return result == 0 ? 0 : -1;
 }
 
 static int command(const tag_hal_t *hal, uint8_t opcode,
