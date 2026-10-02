@@ -9,7 +9,7 @@
 
 typedef enum { PROFILE_NORMAL, PROFILE_ACTIVE, PROFILE_ALERT, PROFILE_WORST } profile_t;
 typedef enum { FAULT_NONE, FAULT_SPI_ONCE, FAULT_IMU_ONCE, FAULT_IRQ_STUCK,
-               FAULT_WATCHDOG, FAULT_UNEXPECTED_REBOOT } fault_t;
+               FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION, FAULT_SYNTHETIC_RESET_CLASSIFICATION } fault_t;
 
 typedef struct {
     uint32_t time_ms;
@@ -150,50 +150,53 @@ static bool run_reset_fault(fault_t fault, host_board_t *board, tag_firmware_t *
     for (unsigned i = 0; i < 6u; ++i) tag_firmware_step(fw);
     if (fw->state != TAG_STATE_SLEEP) return false;
 
-    const uint32_t cause = fault == FAULT_WATCHDOG
+    /* This probe injects classification flags; no independent watchdog or reset source exists here. */
+    const uint32_t cause = fault == FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION
         ? TAG_RESET_CAUSE_WATCHDOG : TAG_RESET_CAUSE_CPU_LOCKUP;
     uint32_t elapsed_ms = 0u;
-    const uint32_t watchdog_timeout_ms = 50u;
-    if (fault == FAULT_WATCHDOG) {
-        /* Advance a virtual watchdog deadline while its feed is deliberately
-         * withheld. The timeout is a host-model assumption, not target timing. */
-        while (elapsed_ms < watchdog_timeout_ms) {
+    const uint32_t synthetic_delay_ms = 50u;
+    if (fault == FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION) {
+        /* Synthetic delay only: it does not arm, feed, or expire a watchdog. */
+        while (elapsed_ms < synthetic_delay_ms) {
             advance_ms(board, 10u);
             elapsed_ms += 10u;
         }
     } else {
-        /* Inject an unplanned CPU lockup/reset after the initial boot cycle. */
+        /* Synthetic delay only: no CPU lockup or independent reset is modeled. */
         elapsed_ms = 1u;
         advance_ms(board, elapsed_ms);
     }
 
-    if (tag_reset_cause_classify(cause) != (fault == FAULT_WATCHDOG
+    if (tag_reset_cause_classify(cause) != (fault == FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION
             ? TAG_RESET_KIND_WATCHDOG : TAG_RESET_KIND_OTHER)) return false;
     board->irq = 0u;
     board->irq_high = false;
     board->packet_len = 0u;
     if (tag_firmware_init(fw, hal, config) != 0) return false;
 
-    /* Policy: discard volatile state, cold boot, then resume the normal beacon
-     * schedule. Success requires a post-reset packet and terminal SLEEP. */
+    /* Reinitialize the firmware and verify post-init output; this is not a reset source. */
     for (unsigned i = 0; i < 4096u; ++i) {
         tag_firmware_step(fw);
         if (fw->packets_sent > 0u && fw->state == TAG_STATE_SLEEP) break;
     }
-    const bool recovered = board->boot_events >= 2u && fw->failures == 0u &&
+    const bool post_init_valid = board->boot_events >= 2u && fw->failures == 0u &&
         fw->packets_sent > 0u && fw->state == TAG_STATE_SLEEP &&
         tag_telemetry_crc_valid(board->packet, board->packet_len);
     printf("{\"status\":\"%s\",\"fault\":\"%s\",\"injection_applied\":true,"
-           "\"recovered\":%s,\"attempts\":1,\"terminal_state\":\"%s\","
+           "\"recovered\":false,\"attempts\":1,\"terminal_state\":\"%s\","
            "\"trace_event\":\"BOOT\",\"trace_event_count\":%u,\"seed\":%u,"
-           "\"reset_cause\":\"%s\",\"elapsed_before_reset_ms\":%u,"
-           "\"post_reset_packets\":%u,\"evidence\":\"virtual reset observed; cold-boot policy resumed packet schedule\"}\n",
-           recovered ? "RECOVERED" : "FAILED",
-           fault == FAULT_WATCHDOG ? "watchdog_reset" : "unexpected_reboot",
-           recovered ? "true" : "false", state_name(fw->state), board->boot_events - 1u,
-           board->seed, tag_reset_kind_name(tag_reset_cause_classify(cause)), elapsed_ms,
-           fw->packets_sent);
-    return recovered;
+           "\"reset_cause\":\"%s\",\"cause_source\":\"TEST_INJECTED_CLASSIFICATION_FLAG\","
+           "\"reset_approach\":\"SYNTHETIC_REINITIALIZATION\",\"elapsed_before_reset_ms\":%u,"
+           "\"post_init_packets\":%u,\"post_init_beacon_observed\":%s,"
+           "\"watchdog_causally_observed\":false,\"reset_cause_independently_observed\":false,"
+           "\"physical_watchdog_validated\":false,"
+           "\"evidence\":\"synthetic delay; test-invoked tag_firmware_init; injected classification flag; BOOT and post-init beacon observed\"}\n",
+           post_init_valid ? "OBSERVED" : "FAILED",
+           fault == FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION ? "synthetic_watchdog_classification_probe" : "synthetic_reset_classification_probe",
+           state_name(fw->state), board->boot_events - 1u, board->seed,
+           tag_reset_kind_name(tag_reset_cause_classify(cause)), elapsed_ms,
+           fw->packets_sent, post_init_valid ? "true" : "false");
+    return post_init_valid;
 }
 
 int main(int argc, char **argv)
@@ -219,8 +222,8 @@ int main(int argc, char **argv)
             if (strcmp(name, "spi_timeout_once") == 0) fault = FAULT_SPI_ONCE;
             else if (strcmp(name, "imu_i2c_timeout_once") == 0) fault = FAULT_IMU_ONCE;
             else if (strcmp(name, "irq_missing") == 0) fault = FAULT_IRQ_STUCK;
-            else if (strcmp(name, "watchdog_reset") == 0) fault = FAULT_WATCHDOG;
-            else if (strcmp(name, "unexpected_reboot") == 0) fault = FAULT_UNEXPECTED_REBOOT;
+            else if (strcmp(name, "synthetic_watchdog_classification_probe") == 0) fault = FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION;
+            else if (strcmp(name, "synthetic_reset_classification_probe") == 0) fault = FAULT_SYNTHETIC_RESET_CLASSIFICATION;
             else return 64;
         } else return 64;
     }
@@ -239,7 +242,7 @@ int main(int argc, char **argv)
     fw.sequence = start_sequence;
 
     if (!is_long_run) {
-        if (fault == FAULT_WATCHDOG || fault == FAULT_UNEXPECTED_REBOOT)
+        if (fault == FAULT_SYNTHETIC_WATCHDOG_CLASSIFICATION || fault == FAULT_SYNTHETIC_RESET_CLASSIFICATION)
             return run_reset_fault(fault, &board, &fw, &hal, &cfg) ? 0 : 2;
         for (unsigned i = 0; i < 6u; ++i) tag_firmware_step(&fw);
         if (fault != FAULT_NONE) board.inject_enabled = true;

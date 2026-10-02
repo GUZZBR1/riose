@@ -230,6 +230,17 @@ def test_fault_catalog_defines_injection_recovery_attempts_terminal_and_trace():
     assert all(row.get("blocker") for row in FAULT_SCENARIOS if row["host_argument"] is None)
 
 
+def test_reset_cases_are_synthetic_classification_probes_not_recovery_claims():
+    probes = {row["fault"]: row for row in FAULT_SCENARIOS
+              if row["fault"].startswith("synthetic_")}
+    assert set(probes) == {"synthetic_watchdog_classification_probe",
+                           "synthetic_reset_classification_probe"}
+    assert all(not row["recovery_expected"] for row in probes.values())
+    assert all(row["host_argument"].startswith("host:") for row in probes.values())
+    assert "classification flag" in probes["synthetic_watchdog_classification_probe"]["injection"]
+    assert "firmware init" in probes["synthetic_reset_classification_probe"]["injection"]
+
+
 def test_long_run_energy_integrates_assumed_currents_and_observed_packet_count():
     spec, _ = load_spec(ROOT / "hardware/spec.yaml")
     one = _long_run_energy_uah(1, 100, spec)

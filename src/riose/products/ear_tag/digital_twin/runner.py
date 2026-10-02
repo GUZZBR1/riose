@@ -288,7 +288,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "return_code": None, "detail": row["blocker"]})
     fault_csv = output / "fault_scenarios.csv"
     with fault_csv.open("w", newline="", encoding="utf-8") as stream:
-        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail", "injection_applied", "trace_event_count", "evidence", "return_code"]
+        fields = ["fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "status", "recovered", "seed", "detail", "injection_applied", "trace_event_count", "evidence", "return_code", "reset_approach", "cause_source", "watchdog_causally_observed", "reset_cause_independently_observed", "physical_watchdog_validated", "post_init_beacon_observed"]
         writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows({key: row.get(key) for key in fields} for row in fault_csv_rows)
@@ -306,7 +306,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             "result_class": "TARGET_FIRMWARE_BUILD_EVIDENCE",
             "detail": "The NUCLEO-L031K6 image configures the STM32 IWDG and reports/clears reset flags; no physical watchdog reset was triggered",
         },
-        "detail": "Fault rows come from per-case structured execution evidence; unavailable IMU-validity and analog coupling remain explicitly blocked",
+        "detail": "Fault rows come from per-case structured execution evidence. Synthetic reinitialization probes do not claim watchdog expiration, CPU lockup, or independently observed reset cause; all three analog feedback scenarios remain BLOCKED.",
     }
 
     mechanical_report = dirs["mechanical"] / "geometry.json"

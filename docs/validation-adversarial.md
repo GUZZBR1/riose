@@ -29,8 +29,13 @@ attempt count, terminal state, trace event, observed recovery flag, and status.
 The suite currently covers one-shot SPI and I2C/IMU-read recovery, TX-done
 timeout recovery, SX1262 BUSY timeout and retry, missing IRQ deadline recovery,
 and CRC rejection followed by a valid frame. Analog voltage/ESR/regulator
-feedback, a physical watchdog reset, and unexpected-reset supervision remain
-`BLOCKED`; they are not recorded as recovered. The suite therefore reports
+feedback remains `BLOCKED`. The two reset rows are named
+`synthetic_watchdog_classification_probe` and
+`synthetic_reset_classification_probe`: they inject a classification flag and
+call `tag_firmware_init`, then observe BOOT and post-init packet behavior. They
+do not model an independent reset source, watchdog expiration, CPU lockup, or
+independent reset-cause observation; `recovered` remains false. Physical MCU
+watchdog/reset behavior is not validated. The suite therefore reports
 `PARTIAL` until those electrical/reset interfaces are available.
 
 All runs use host software models only. They require neither GPU nor physical

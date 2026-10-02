@@ -29,8 +29,8 @@ FAULT_SCENARIOS: tuple[dict[str, Any], ...] = (
     {"fault": "regulator_instability", "injection": "Perturb regulator output under load", "recovery_expected": False,
      "attempts": 0, "terminal_state": "BLOCKED", "trace_event": "BROWNOUT", "host_argument": None,
      "blocker": "Electrical model has no firmware feedback interface"},
-    {"fault": "watchdog_reset", "injection": "Withhold feed until 50 ms virtual watchdog expires", "recovery_expected": True,
-     "attempts": 1, "terminal_state": "SLEEP", "trace_event": "BOOT", "host_argument": "host:watchdog_reset"},
-    {"fault": "unexpected_reboot", "injection": "Inject CPU-lockup reset after initial boot cycle", "recovery_expected": True,
-     "attempts": 1, "terminal_state": "SLEEP", "trace_event": "BOOT", "host_argument": "host:unexpected_reboot"},
+    {"fault": "synthetic_watchdog_classification_probe", "injection": "Advance synthetic host time, inject watchdog classification flag, call firmware init", "recovery_expected": False,
+     "attempts": 1, "terminal_state": "SLEEP", "trace_event": "BOOT", "host_argument": "host:synthetic_watchdog_classification_probe"},
+    {"fault": "synthetic_reset_classification_probe", "injection": "Advance synthetic host time, inject CPU-lockup classification flag, call firmware init", "recovery_expected": False,
+     "attempts": 1, "terminal_state": "SLEEP", "trace_event": "BOOT", "host_argument": "host:synthetic_reset_classification_probe"},
 )
