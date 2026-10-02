@@ -17,6 +17,7 @@ mechanical:
     height_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}
     thickness_mm: {value: 0.2, unit: mm, source: test fixture, status: ASSUMED}
     keepout_mm: {value: 1, unit: mm, source: test fixture, status: ASSUMED}
+  minimum_clearance_mm: {value: 0.5, unit: mm, source: test fixture, status: ASSUMED}
   components:
     mcu:
       width_mm: {value: 4, unit: mm, source: test fixture, status: ASSUMED}

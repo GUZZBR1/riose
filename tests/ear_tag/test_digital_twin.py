@@ -84,6 +84,33 @@ def test_runner_uses_the_configured_hardware_test_build_directory(tmp_path):
     }) == tmp_path / "custom build" / "hardware_integration"
 
 
+def test_mechanical_fit_failure_keeps_specific_report_diagnostics():
+    from riose.products.ear_tag.digital_twin.runner import _classify_mechanical_result
+
+    result = _classify_mechanical_result(
+        {"status": "FAILED", "detail": "battery envelope exceeds enclosure cavity",
+         "stderr": "mechanical model error: CAD export blocked"},
+        {"cadquery_available": True,
+         "fit": {"fits": False, "issues": ["battery envelope exceeds enclosure cavity"]}},
+    )
+    assert result["status"] == "FAILED"
+    assert "battery envelope exceeds enclosure cavity" in result["detail"]
+    assert "Mechanical report/export command failed" not in result["detail"]
+
+
+def test_mechanical_fit_failure_takes_precedence_when_cadquery_is_unavailable():
+    from riose.products.ear_tag.digital_twin.runner import _classify_mechanical_result
+
+    result = _classify_mechanical_result(
+        {"status": "NOT_AVAILABLE", "detail": "battery outside cavity"},
+        {"cadquery_available": False,
+         "fit": {"fits": False, "issues": ["battery outside cavity"]}},
+    )
+    assert result["status"] == "FAILED"
+    assert "battery outside cavity" in result["detail"]
+    assert "CadQuery unavailable, export was not attempted" in result["detail"]
+
+
 @pytest.mark.parametrize("module", ["riose.products.ear_tag.digital_twin", "riose.digital_twin"])
 def test_canonical_and_legacy_module_commands(module):
     import json
