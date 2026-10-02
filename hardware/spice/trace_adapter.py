@@ -19,6 +19,8 @@ class TraceConversionError(ValueError):
 
 
 def _number(value: Any, label: str) -> float:
+    if isinstance(value, bool):
+        raise TraceConversionError(f"{label} must be numeric, not boolean")
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
@@ -32,6 +34,8 @@ def _load_config(loads: dict[str, dict[str, Any]], key: str) -> dict[str, Any] |
     config = loads.get(key)
     if config is None:
         return None
+    if not isinstance(config, dict):
+        raise TraceConversionError(f"{key}: load profile entry must be an object")
     if config.get("current_status") != "ASSUMED":
         raise TraceConversionError(f"{key}: current_status must be ASSUMED")
     if not config.get("source"):
@@ -45,6 +49,8 @@ def _load_config(loads: dict[str, dict[str, Any]], key: str) -> dict[str, Any] |
 
 
 def _duration(config: dict[str, Any], key: str, measured_interval_s: float) -> tuple[float, str]:
+    if measured_interval_s < 0:
+        raise TraceConversionError(f"{key}: trace interval cannot be negative")
     if measured_interval_s > 0:
         return measured_interval_s, "TRACE_TIMESTAMP"
     fallback = config.get("fallback_duration_s")
@@ -78,6 +84,8 @@ def trace_to_schedule(records: list[dict[str, Any]],
     previous_us = -1
     previous_sequence = -1
     for index, record in enumerate(records, start=1):
+        if not isinstance(record, dict):
+            raise TraceConversionError(f"record {index}: expected a JSON object")
         if record.get("status") != "SIMULATED":
             raise TraceConversionError(f"record {index}: expected status=SIMULATED")
         timestamp_us = _number(record.get("timestamp_us"), f"record {index}.timestamp_us")
@@ -97,6 +105,28 @@ def trace_to_schedule(records: list[dict[str, Any]],
                 raise TraceConversionError(f"record {index}: sequence must be contiguous from zero")
             previous_sequence = sequence
         parsed.append({**record, "_timestamp_s": timestamp_us / 1_000_000.0})
+
+    pending_radio = None
+    radio_pairs = {"TX_START": "TX_DONE", "RX_START": "RX_DONE"}
+    for index, record in enumerate(parsed, start=1):
+        event = record["event"]
+        if event in radio_pairs:
+            if pending_radio is not None:
+                raise TraceConversionError(f"record {index}: radio intervals overlap ({pending_radio} already active)")
+            pending_radio = event
+        elif event in radio_pairs.values():
+            expected_start = next(start for start, end in radio_pairs.items() if end == event)
+            if pending_radio != expected_start:
+                raise TraceConversionError(f"record {index}: {event} does not close the active radio interval")
+            pending_radio = None
+
+    trace_start_s = parsed[0]["_timestamp_s"]
+    if any("sequence" in record for record in parsed) and not all(
+            "sequence" in record for record in parsed):
+        raise TraceConversionError("sequence must be present on every trace record or none")
+    # Work in trace-relative time so every scenario profile starts at t=0.
+    for record in parsed:
+        record["_timestamp_s"] -= trace_start_s
 
     rows: list[dict[str, Any]] = []
 
@@ -127,7 +157,7 @@ def trace_to_schedule(records: list[dict[str, Any]],
         key = f"state:{state}"
         config = _load_config(loads, key)
         if config is None:
-            continue
+            raise TraceConversionError(f"{key}: load profile entry is required to cover the trace state")
         start = record["_timestamp_s"]
         if i + 1 < len(state_records):
             elapsed = state_records[i + 1]["_timestamp_s"] - start
@@ -138,12 +168,16 @@ def trace_to_schedule(records: list[dict[str, Any]],
             if elapsed == 0:
                 continue
         else:
-            sleep = next((r for r in parsed if r["event"] == "MCU_SLEEP" and
-                          r["state"] == state and r.get("value0") is not None), None)
-            elapsed = (_number(sleep["value0"], "MCU_SLEEP.value0") / 1000.0
-                       if sleep is not None else 0.0)
+            sleep = next((r for r in reversed(parsed) if r["event"] == "MCU_SLEEP" and
+                          r["state"] == state and r.get("value0") is not None and
+                          r["_timestamp_s"] >= start), None)
+            if sleep is None:
+                # A final state marker has no measured dwell. Do not turn the
+                # load profile's assumed fallback into time absent from trace.
+                continue
+            elapsed = _number(sleep["value0"], "MCU_SLEEP.value0") / 1000.0
             append(key, state, state, start, elapsed,
-                   "TRACE_EVENT_PAYLOAD" if sleep is not None and elapsed > 0 else None)
+                   "TRACE_EVENT_PAYLOAD" if elapsed > 0 else None)
             continue
         append(key, state, state, start, elapsed)
 
@@ -153,15 +187,33 @@ def trace_to_schedule(records: list[dict[str, Any]],
                                           ("RX_START", "RX_DONE", "RX")):
         key = f"pair:{start_event}:{end_event}"
         config = _load_config(loads, key)
-        if config is None:
-            continue
         starts = [r for r in parsed if r["event"] == start_event]
         ends = [r for r in parsed if r["event"] == end_event]
+        if (starts or ends) and config is None:
+            raise TraceConversionError(f"{key}: load profile entry is required to cover radio intervals")
+        if config is None:
+            continue
         if len(starts) != len(ends):
             raise TraceConversionError(
                 f"{label} trace has {len(starts)} start(s) and {len(ends)} end(s); cannot infer interval"
             )
-        for start, end in zip(starts, ends):
+        pending = None
+        intervals = []
+        for record in parsed:
+            if record["event"] == start_event:
+                if pending is not None:
+                    raise TraceConversionError(f"{label} trace has overlapping or nested start markers")
+                pending = record
+            elif record["event"] == end_event:
+                if pending is None:
+                    raise TraceConversionError(f"{label} trace has an end marker without a preceding start")
+                if record["_timestamp_s"] < pending["_timestamp_s"]:
+                    raise TraceConversionError(f"{label} end marker cannot precede its start")
+                intervals.append((pending, record))
+                pending = None
+        if pending is not None:
+            raise TraceConversionError(f"{label} trace has a start marker without a following end")
+        for start, end in intervals:
             elapsed = end["_timestamp_s"] - start["_timestamp_s"]
             interval_state = "RF_TX" if label == "TX" else "RF_RX"
             append(key, label, interval_state, start["_timestamp_s"], elapsed)
@@ -178,6 +230,18 @@ def trace_to_schedule(records: list[dict[str, Any]],
         append(key, str(record["event"]), str(record["state"]),
                record["_timestamp_s"], 0.0)
 
+    if not rows:
+        raise TraceConversionError("load profile produced no intervals for this trace")
+    terminal_sleep = parsed[-1] if parsed[-1]["event"] == "MCU_SLEEP" else None
+    trace_end_s = parsed[-1]["_timestamp_s"]
+    if terminal_sleep is not None and terminal_sleep.get("value0") is not None:
+        sleep_s = _number(terminal_sleep["value0"], "MCU_SLEEP.value0") / 1000.0
+        if sleep_s > 0:
+            trace_end_s += sleep_s
+    for row in rows:
+        row["trace_window_start_s"] = 0.0
+        row["trace_window_end_s"] = trace_end_s
+        row["trace_source_start_s"] = trace_start_s
     return sorted(rows, key=lambda row: (row["timestamp_s"], row["component"], row["event"]))
 
 
@@ -203,11 +267,11 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path,
                         help="power-tool-compatible schedule JSONL output")
     args = parser.parse_args()
-    records = [json.loads(line) for line in args.trace.read_text().splitlines() if line.strip()]
     try:
+        records = [json.loads(line) for line in args.trace.read_text().splitlines() if line.strip()]
         loads = read_load_profile(args.loads)
         rows = trace_to_schedule(records, loads)
-    except TraceConversionError as exc:
+    except (TraceConversionError, json.JSONDecodeError, OSError) as exc:
         parser.error(str(exc))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w") as stream:

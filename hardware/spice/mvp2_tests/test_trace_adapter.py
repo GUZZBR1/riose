@@ -54,6 +54,12 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         loads = {
             "state:SLEEP": {"component": "mcu_sleep", "load_current_ma": 0.01,
                              "current_status": "ASSUMED", "source": "test fixture"},
+            "state:IMU_MONITORING": {"component": "mcu", "load_current_ma": 1,
+                                      "current_status": "ASSUMED", "source": "test fixture"},
+            "state:RF_TX": {"component": "mcu", "load_current_ma": 1,
+                             "current_status": "ASSUMED", "source": "test fixture"},
+            "state:RF_RX": {"component": "mcu", "load_current_ma": 1,
+                             "current_status": "ASSUMED", "source": "test fixture"},
             "pair:TX_START:TX_DONE": {"component": "sx1262_tx", "load_current_ma": 20,
                                       "current_status": "ASSUMED", "source": "test fixture"},
             "pair:RX_START:RX_DONE": {"component": "sx1262_rx", "load_current_ma": 5,
@@ -114,6 +120,74 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
                    record(1, "STATE", "RF_TX", sequence=3)]
         with self.assertRaisesRegex(adapter.TraceConversionError, "contiguous"):
             adapter.trace_to_schedule(records, {})
+
+    def test_radio_pairs_reject_orphan_nested_and_reordered_markers(self):
+        config = {"pair:TX_START:TX_DONE": {
+            "component": "radio", "load_current_ma": 10, "current_status": "ASSUMED",
+            "source": "test fixture", "fallback_duration_s": 0.001,
+            "duration_status": "ASSUMED", "duration_source": "test fixture"}}
+        cases = [
+            [record(0, "TX_DONE", "RF_TX"), record(1, "TX_START", "RF_TX")],
+            [record(0, "TX_START", "RF_TX"), record(1, "TX_START", "RF_TX"),
+             record(2, "TX_DONE", "RF_TX"), record(3, "TX_DONE", "RF_TX")],
+            [record(0, "TX_START", "RF_TX"), record(1, "TX_DONE", "RF_TX"),
+             record(2, "TX_DONE", "RF_TX")],
+        ]
+        for trace in cases:
+            with self.subTest(trace=[row["event"] for row in trace]):
+                with self.assertRaises(adapter.TraceConversionError):
+                    adapter.trace_to_schedule(trace, config)
+
+    def test_crossed_radio_types_and_boolean_timestamps_are_rejected(self):
+        crossed = [record(0, "TX_START", "RF_TX"), record(1, "RX_START", "RF_RX"),
+                   record(2, "TX_DONE", "RF_TX"), record(3, "RX_DONE", "RF_RX")]
+        with self.assertRaisesRegex(adapter.TraceConversionError, "radio intervals overlap"):
+            adapter.trace_to_schedule(crossed, {})
+        with self.assertRaisesRegex(adapter.TraceConversionError, "not boolean"):
+            adapter.trace_to_schedule([{**record(0, "STATE", "SLEEP"), "timestamp_us": True}], {})
+
+    def test_trace_relative_window_includes_terminal_sleep_payload(self):
+        trace = [record(100, "STATE", "SLEEP", sequence=0),
+                 record(110, "STATE", "RF_TX", sequence=1),
+                 record(120, "TX_START", "RF_TX", sequence=2),
+                 record(130, "TX_DONE", "RF_TX", sequence=3),
+                 record(130, "STATE", "SLEEP", sequence=4),
+                 record(130, "MCU_SLEEP", "SLEEP", value0=1000, sequence=5)]
+        loads = {
+            "state:SLEEP": {"component": "mcu", "load_current_ma": 0.01,
+                             "current_status": "ASSUMED", "source": "test fixture"},
+            "state:RF_TX": {"component": "mcu", "load_current_ma": 1,
+                             "current_status": "ASSUMED", "source": "test fixture"},
+            "pair:TX_START:TX_DONE": {"component": "radio", "load_current_ma": 10,
+                                      "current_status": "ASSUMED", "source": "test fixture"},
+        }
+        rows = adapter.trace_to_schedule(trace, loads)
+        self.assertTrue(all(row["trace_window_start_s"] == 0 for row in rows))
+        self.assertTrue(all(row["trace_window_end_s"] == 1.03 for row in rows))
+        tx = next(row for row in rows if row["event"] == "TX")
+        self.assertAlmostEqual(tx["timestamp_s"], 0.02)
+        self.assertAlmostEqual(tx["duration_s"], 0.01)
+
+    def test_unmodeled_trace_state_is_not_silently_dropped(self):
+        trace = [record(0, "STATE", "BOOT"), record(1, "STATE", "SLEEP")]
+        loads = {"state:SLEEP": {"component": "mcu", "load_current_ma": 0.01,
+                                 "current_status": "ASSUMED", "source": "test fixture"}}
+        with self.assertRaisesRegex(adapter.TraceConversionError, "state:BOOT.*required"):
+            adapter.trace_to_schedule(trace, loads)
+
+    def test_terminal_state_without_dwell_does_not_use_profile_fallback(self):
+        trace = [record(0, "STATE", "BOOT"), record(10, "STATE", "SLEEP")]
+        loads = {
+            "state:BOOT": {"component": "mcu", "load_current_ma": 1,
+                           "current_status": "ASSUMED", "source": "test fixture"},
+            "state:SLEEP": {"component": "mcu", "load_current_ma": 0.01,
+                             "fallback_duration_s": 900, "duration_status": "ASSUMED",
+                             "current_status": "ASSUMED", "source": "test fixture"},
+        }
+        rows = adapter.trace_to_schedule(trace, loads)
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0]["duration_s"], 0.01)
+        self.assertAlmostEqual(rows[0]["trace_window_end_s"], 0.01)
 
 
 if __name__ == "__main__":
