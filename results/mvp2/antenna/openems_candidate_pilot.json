@@ -1,0 +1,125 @@
+{
+  "evidence_class": "FAILED_EXPLORATORY_SIMULATION",
+  "status": "FAILED_CONVERGENCE",
+  "scenario": "ANTENNA_FREE_SPACE",
+  "candidate_name": "planar_four_run_monopole_v1",
+  "candidate_status": "ASSUMED",
+  "candidate_model_path": "hardware/antenna/candidate_model.json",
+  "candidate_model_sha256": "a30ddcf170977ca0c3cb2cf5640193429e8d05393e2759b6589e16ce52a58aa7",
+  "spec_sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
+  "target_frequency_hz": 915000000,
+  "criteria": {
+    "max_adjacent_s11_delta_db": 1.0,
+    "max_adjacent_resonance_delta_fraction": 0.02,
+    "fdtd_energy_end_criteria_db": -40.0
+  },
+  "meshes": [
+    {
+      "resolution_mm": 4.0,
+      "cells": 75348,
+      "resonant_frequency_hz": 1992870000,
+      "s11_min_db": -0.888,
+      "input_impedance_real_ohm": 60.74,
+      "input_impedance_imag_ohm": 231.0,
+      "vswr_min": 19.58,
+      "efficiency_fraction": 0.00226,
+      "gain_dbi": -24.61
+    },
+    {
+      "resolution_mm": 2.0,
+      "cells": 367500,
+      "resonant_frequency_hz": 2245410000,
+      "s11_min_db": -11.983,
+      "input_impedance_real_ohm": 30.73,
+      "input_impedance_imag_ohm": -6.63,
+      "vswr_min": 1.67,
+      "efficiency_fraction": 0.00233,
+      "gain_dbi": -25.28
+    },
+    {
+      "resolution_mm": 1.0,
+      "cells": 2322540,
+      "resonant_frequency_hz": 2034960000,
+      "s11_min_db": -1.6814337122877392,
+      "input_impedance_real_ohm": 284.4621315077259,
+      "input_impedance_imag_ohm": 255.6534934292698,
+      "vswr_min": 10.36377144832268,
+      "efficiency_fraction": 0.0003205428806823217,
+      "gain_dbi": -29.582385206212013,
+      "fdtd_end_criteria_reached": true,
+      "timesteps": 28968
+    }
+  ],
+  "adjacent_comparisons": [
+    {
+      "coarse_mm": 4.0,
+      "fine_mm": 2.0,
+      "s11_delta_db": 11.095,
+      "resonance_delta_fraction": 0.126719,
+      "converged": false
+    },
+    {
+      "coarse_mm": 2.0,
+      "fine_mm": 1.0,
+      "s11_delta_db": 10.301566,
+      "resonance_delta_fraction": 0.093760,
+      "converged": false
+    }
+  ],
+  "failure_mode_checks": [
+    {
+      "scenario": "ANTENNA_WITH_BATTERY",
+      "first_mesh_resolution_mm": 4.0,
+      "first_mesh_cells": 63168,
+      "fdtd_timestep_limit": 160000,
+      "fdtd_end_criteria_reached": false,
+      "fine_mesh_started": false,
+      "result_class": "NO_SIMULATION_RESULT",
+      "reported_rf_metrics": null
+    }
+  ],
+  "completed_but_unconverged_scenarios": [
+    {
+      "scenario": "ANTENNA_WITH_PCB",
+      "solver_energy_criterion_reached_on_both_meshes": true,
+      "coarse": {"resolution_mm": 4.0, "cells": 81216,
+                 "s11_minimum_hz": 1971825000, "s11_min_db": -1.4919039611},
+      "fine": {"resolution_mm": 2.0, "cells": 383724,
+               "s11_minimum_hz": 2034960000, "s11_min_db": -2.5497807392},
+      "s11_delta_db": 1.057877,
+      "resonance_delta_fraction": 0.031025,
+      "converged": false,
+      "accepted_rf_metrics": null
+    },
+    {
+      "scenario": "ANTENNA_WITH_ENCLOSURE",
+      "solver_energy_criterion_reached_on_both_meshes": true,
+      "coarse": {"resolution_mm": 4.0, "cells": 105840,
+                 "s11_minimum_hz": 2077050000, "s11_min_db": -3.2945201021},
+      "fine": {"resolution_mm": 2.0, "cells": 505760,
+               "s11_minimum_hz": 2034960000, "s11_min_db": -1.9409442192},
+      "s11_delta_db": 1.353576,
+      "resonance_delta_fraction": 0.020683,
+      "converged": false,
+      "accepted_rf_metrics": null
+    },
+    {
+      "scenario": "ANTENNA_NEAR_ANIMAL_APPROXIMATION",
+      "solver_energy_criterion_reached_on_both_meshes": true,
+      "coarse": {"resolution_mm": 4.0, "cells": 88128,
+                 "s11_minimum_hz": 1971825000, "s11_min_db": -0.7704307639},
+      "fine": {"resolution_mm": 2.0, "cells": 434214,
+               "s11_minimum_hz": 2034960000, "s11_min_db": -1.9407478987},
+      "s11_delta_db": 1.170317,
+      "resonance_delta_fraction": 0.031025,
+      "converged": false,
+      "accepted_rf_metrics": null
+    }
+  ],
+  "limitations": [
+    "All five scenarios were exercised in isolated runs, but none produced accepted RF metrics: the battery case stopped at the FDTD energy limit and the other four failed mesh convergence.",
+    "The source geometry and materials are assumptions, not a routed design or characterized stackup.",
+    "Results do not establish antenna performance and cannot pass the prototype gate.",
+    "Raw solver directories were kept under temporary paths and are not included as release artifacts."
+  ]
+}

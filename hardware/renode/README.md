@@ -46,6 +46,13 @@ renode --console --disable-xwt -e 'include @hardware/renode/riose_stm32l0.resc'
 renode-test hardware/renode/tests/platform-smoke.robot
 ```
 
+The repository target `make hardware-renode-test` runs the tool probe and
+headless smoke suite when both Renode commands are installed; otherwise it
+prints an explicit `SKIPPED` line so this optional tool does not block the
+core firmware gate. The CI invokes the same target. The current Robot suite
+proves platform/peripheral registration only; its firmware-load case remains
+skipped unless `RIOSE_ZEPHYR_ELF` points to a compatible STM32L0 ELF.
+
 For no-GUI execution in CI, use the console/headless switches above. The
 Robot smoke test can load the platform without firmware; its second case is
 skipped unless an ELF path is provided. A valid firmware ELF must be compiled

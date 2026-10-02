@@ -1,13 +1,10 @@
 scenario,failure,detail,status
-adversarial_fault_injection,sx1262_busy_stuck,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
-adversarial_fault_injection,irq_missing,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
-adversarial_fault_injection,crc_corruption,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
 adversarial_fault_injection,battery_voltage_drop,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
 adversarial_fault_injection,high_esr,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
 adversarial_fault_injection,regulator_instability,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
-adversarial_fault_injection,watchdog_reset,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
+adversarial_fault_injection,watchdog_reset_executed_on_target,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
 adversarial_fault_injection,unexpected_reboot,NOT_RUN: persistent fault injection is not implemented in the configured backend,NOT_RUN
-adversarial_fault_injection,PARTIAL,Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models,SIMULATED_OR_TOOLCHAIN_BLOCKER
-mechanical,FAILED,battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery,SIMULATED_OR_TOOLCHAIN_BLOCKER
-mechanical,envelope_fit,"[""battery envelope exceeds enclosure cavity"", ""antenna_keepout envelope exceeds enclosure cavity"", ""antenna keepout exceeds PCB envelope"", ""unexpected envelope overlap: pcb / battery""]",SIMULATED
+adversarial_fault_injection,PARTIAL,"Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, TX/RX IRQ deadlines, and deterministic reset-flag classification. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract",SIMULATED_OR_TOOLCHAIN_BLOCKER
+mechanical,FAILED,battery envelope exceeds enclosure cavity; unexpected envelope overlap: pcb / battery,SIMULATED_OR_TOOLCHAIN_BLOCKER
+mechanical,envelope_fit,"[""battery envelope exceeds enclosure cavity"", ""unexpected envelope overlap: pcb / battery""]",SIMULATED
 antenna,PARTIAL_OR_BLOCKED,"ANTENNA_FREE_SPACE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_PCB: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_BATTERY: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_ENCLOSURE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_NEAR_ANIMAL_APPROXIMATION: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured)",SIMULATED_OR_TOOLCHAIN_BLOCKER

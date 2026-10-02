@@ -31,7 +31,7 @@
       "value": "meandered_quarter_wave_monopole"
     }
   },
-  "created_utc": "2026-10-02T14:56:09.191075+00:00",
+  "created_utc": "2026-10-02T19:03:34.836187+00:00",
   "experiment": "RIOSE_MVP2_OPENEMS_ANTENNA",
   "geometry_contract": {
     "consumed_geometry": "Adapter may consume mechanical PCB, battery, and enclosure records or a validated mesh export.",
@@ -196,7 +196,7 @@
     "python_bindings_available": true
   },
   "spec_provenance": {
-    "path": "hardware/spec.yaml",
+    "path": "/home/lucas_coimbra/.codex/worktrees/0208/riose/hardware/spec.yaml",
     "sha256": "60e0f22cef0930fb29ac577df8a14ba96cf1e05b582d936c8bb9b5c1b98b3d51",
     "status": "LOADED"
   },

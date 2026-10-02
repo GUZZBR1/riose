@@ -1,9 +1,14 @@
 from inspect import signature
 
+import numpy as np
 import pytest
 
-from cattle_rf.contracts import Anchor, Estimate, GroundTruth, RFObservation
+from cattle_rf.contracts import Anchor, Estimate, FarmConfig, GroundTruth, RFObservation
 from cattle_rf.localization import METHODS, estimate, evaluate, train_fingerprint_model
+from riose.products.livestock_tracking.localization import (
+    fingerprint_training_matrices,
+    train_fingerprint_model_from_matrices,
+)
 
 
 ANCHORS = [
@@ -92,12 +97,56 @@ def test_fingerprint_train_and_inference_keeps_truth_out_of_predict_api():
         observations += make_observations(x, y, idx)
         truth.append(GroundTruth(idx, "tag-1", x, y))
     model = train_fingerprint_model(observations, truth, ANCHORS, "extra_trees", random_state=1)
+    X, y = fingerprint_training_matrices(observations, truth, ANCHORS)
+    matrix_model = train_fingerprint_model_from_matrices(
+        X, y, ANCHORS, "extra_trees", random_state=1)
+    assert np.array_equal(model.estimator.predict(X), matrix_model.estimator.predict(X))
     assert "ground_truth" not in signature(model.predict).parameters
     prediction = estimate(make_observations(35, 45, 9), ANCHORS, "extra_trees",
                           fingerprint_models={"extra_trees": model})[0]
     assert prediction.x is not None and prediction.y is not None
     unavailable = estimate(make_observations(), ANCHORS, "gradient_boosting")[0]
     assert unavailable.x is None
+
+
+def test_domain_randomized_matrices_are_deterministic_and_retain_each_episode_sample(monkeypatch):
+    pytest.importorskip("sklearn")
+    from riose.products.livestock_tracking.application import pipeline
+
+    config = FarmConfig(animal_count=1, anchor_count=1, duration_s=30,
+                        sample_period_s=30, seed=29)
+    anchors = [Anchor("only", 500.0, 500.0)]
+    real_simulate = pipeline.simulate_episode
+    generated = []
+
+    def record_episode(*args, **kwargs):
+        episode = real_simulate(*args, **kwargs)
+        generated.append((len(episode.observations), len(episode.ground_truth),
+                          episode.metadata["seed"]))
+        return episode
+
+    monkeypatch.setattr(pipeline, "simulate_episode", record_episode)
+    first_X, first_y = pipeline.domain_randomized_training_matrices(config, anchors)
+    first_generated = list(generated)
+    generated.clear()
+
+    legacy_observations, legacy_truth = pipeline.domain_randomized_training_data(config, anchors)
+    legacy_generated = list(generated)
+    generated.clear()
+    legacy_X, legacy_y = fingerprint_training_matrices(
+        legacy_observations, legacy_truth, anchors)
+
+    second_X, second_y = pipeline.domain_randomized_training_matrices(config, anchors)
+
+    assert len(first_generated) == len(generated) == 3
+    assert len(legacy_generated) == 3
+    assert [seed for _, _, seed in first_generated] == [seed for _, _, seed in generated]
+    assert first_X.shape[0] == first_generated[0][1]
+    assert first_y.shape == (first_X.shape[0], 2)
+    assert np.array_equal(first_X, legacy_X)
+    assert np.array_equal(first_y, legacy_y)
+    assert np.array_equal(first_X, second_X)
+    assert np.array_equal(first_y, second_y)
 
 
 def test_gradient_boosting_fingerprint_supports_two_coordinate_output():

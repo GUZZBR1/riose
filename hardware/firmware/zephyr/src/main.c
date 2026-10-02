@@ -4,18 +4,75 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/hwinfo.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/watchdog.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #include "tag_firmware.h"
+#include "tag_reset_cause.h"
 
 LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
 
 K_SEM_DEFINE(tag_event_sem, 0, 1);
+#define TAG_WATCHDOG_TIMEOUT_MS 10000u
+#define TAG_WATCHDOG_FEED_SLICE_MS 5000u
+#define TAG_RESET_FLAGS_KNOWN_MASK ((1u << 9) - 1u)
 static struct gpio_callback imu_gpio_cb;
 static struct gpio_callback radio_gpio_cb;
+
+#if defined(CONFIG_WATCHDOG)
+static const struct device *const tag_watchdog = DEVICE_DT_GET(DT_NODELABEL(iwdg));
+static int tag_watchdog_channel = -1;
+
+static int watchdog_start(void)
+{
+    if (!device_is_ready(tag_watchdog)) return -ENODEV;
+    const struct wdt_timeout_cfg timeout = {
+        .window = {.min = 0u, .max = TAG_WATCHDOG_TIMEOUT_MS},
+        .callback = NULL,
+    };
+    tag_watchdog_channel = wdt_install_timeout(tag_watchdog, &timeout);
+    if (tag_watchdog_channel < 0) return tag_watchdog_channel;
+    const int rc = wdt_setup(tag_watchdog, 0u);
+    if (rc != 0) {
+        tag_watchdog_channel = -1;
+        return rc;
+    }
+    LOG_INF("MCU watchdog active, timeout_ms=%u", TAG_WATCHDOG_TIMEOUT_MS);
+    return 0;
+}
+
+static int watchdog_feed(void)
+{
+    return tag_watchdog_channel < 0 ? -ENODEV
+        : wdt_feed(tag_watchdog, tag_watchdog_channel);
+}
+#else
+static int watchdog_start(void) { return 0; }
+static int watchdog_feed(void) { return 0; }
+#endif
+
+static void report_and_clear_reset_cause(void)
+{
+#if defined(CONFIG_HWINFO)
+    uint32_t cause = 0u;
+    const int rc = hwinfo_get_reset_cause(&cause);
+    if (rc != 0) {
+        LOG_WRN("MCU_RESET_CAUSE unavailable (%d)", rc);
+        return;
+    }
+    const tag_reset_kind_t kind = tag_reset_cause_classify(cause);
+    LOG_INF("MCU_RESET_CAUSE,flags=0x%08x,kind=%s,unknown_bits=0x%08x",
+            cause, tag_reset_kind_name(kind), cause & ~TAG_RESET_FLAGS_KNOWN_MASK);
+    const int clear_rc = hwinfo_clear_reset_cause();
+    if (clear_rc != 0) LOG_WRN("Could not clear reset-cause flags (%d)", clear_rc);
+#else
+    LOG_INF("MCU_RESET_CAUSE unavailable in this backend");
+#endif
+}
 
 #if !DT_NODE_HAS_STATUS(DT_ALIAS(tag_radio), okay) || \
     !DT_NODE_HAS_STATUS(DT_ALIAS(tag_imu), okay) || \
@@ -54,23 +111,17 @@ static int spi_transfer(void *context, const uint8_t *tx, size_t tx_len,
         return -EINVAL;
     }
 
-    /* SX1262 drives BUSY high while it cannot accept another command. Check
-     * before every transaction, including the first one after reset. */
-    const int64_t deadline = k_uptime_get() + 100;
-    int busy;
-    do {
-        busy = gpio_pin_get_dt(&radio_busy);
-        if (busy < 0) return busy;
-        if (busy == 0) break;
-        k_msleep(1);
-    } while (k_uptime_get() < deadline);
-    if (busy != 0) return -ETIMEDOUT;
-
     struct spi_buf tx_buf = {.buf = (void *)tx, .len = tx_len};
     struct spi_buf rx_buf = {.buf = rx, .len = rx_len};
     const struct spi_buf_set tx_set = {.buffers = &tx_buf, .count = 1};
     const struct spi_buf_set rx_set = {.buffers = &rx_buf, .count = 1};
     return spi_transceive_dt(&radio_spi, &tx_set, &rx_set);
+}
+
+static int radio_busy_fn(void *context)
+{
+    ARG_UNUSED(context);
+    return gpio_pin_get_dt(&radio_busy);
 }
 
 static int radio_reset_fn(void *context)
@@ -193,7 +244,18 @@ static void wait_for_event(void *context, uint32_t timeout_ms)
     /* Level check closes the gap between the FSM's IRQ check and taking the
      * semaphore. INT1/DIO1 callbacks then wake the MCU without periodic polls. */
     if (gpio_pin_get_dt(&imu_int) > 0 || gpio_pin_get_dt(&radio_dio1) > 0) return;
-    (void)k_sem_take(&tag_event_sem, K_MSEC(timeout_ms));
+    const int64_t deadline = k_uptime_get() + timeout_ms;
+    while (true) {
+        const int64_t remaining = deadline - k_uptime_get();
+        if (remaining <= 0) return;
+        const uint32_t slice = (uint32_t)MIN(remaining, TAG_WATCHDOG_FEED_SLICE_MS);
+        if (k_sem_take(&tag_event_sem, K_MSEC(slice)) == 0) return;
+        const int rc = watchdog_feed();
+        if (rc != 0) {
+            LOG_ERR("Watchdog feed failed while waiting for event (%d)", rc);
+            return;
+        }
+    }
 }
 
 static void state_trace(void *context, tag_state_t state)
@@ -228,6 +290,12 @@ static void trace_event(void *context, const tag_trace_record_t *record)
 
 int main(void)
 {
+    report_and_clear_reset_cause();
+    int rc = watchdog_start();
+    if (rc != 0) {
+        LOG_ERR("MCU watchdog initialization failed (%d)", rc);
+        return rc;
+    }
     if (!spi_is_ready_dt(&radio_spi) || !i2c_is_ready_dt(&imu_i2c) ||
         !gpio_is_ready_dt(&radio_reset) || !gpio_is_ready_dt(&radio_busy) ||
         !gpio_is_ready_dt(&radio_dio1) || !gpio_is_ready_dt(&radio_ant_switch) ||
@@ -235,7 +303,7 @@ int main(void)
         LOG_ERR("A required SPI, I2C, or GPIO device is not ready");
         return -ENODEV;
     }
-    int rc = gpio_pin_configure_dt(&radio_reset, GPIO_OUTPUT_INACTIVE);
+    rc = gpio_pin_configure_dt(&radio_reset, GPIO_OUTPUT_INACTIVE);
     if (rc != 0) return rc;
     rc = gpio_pin_configure_dt(&radio_busy, GPIO_INPUT);
     if (rc != 0) return rc;
@@ -271,6 +339,7 @@ int main(void)
         .context = NULL,
         .spi_transfer = spi_transfer,
         .radio_reset = radio_reset_fn,
+        .radio_busy = radio_busy_fn,
         .imu_read = imu_read_fn,
         .imu_irq_pending = imu_irq_pending,
         .radio_irq_pending = radio_irq_pending,
@@ -289,6 +358,13 @@ int main(void)
     if (rc != 0) return rc;
     LOG_INF("C tag firmware started (tag id %u)", config.tag_id);
 
-    while (true) tag_firmware_step(&firmware);
+    while (true) {
+        tag_firmware_step(&firmware);
+        rc = watchdog_feed();
+        if (rc != 0) {
+            LOG_ERR("Watchdog feed failed after firmware step (%d)", rc);
+            return rc;
+        }
+    }
     return 0;
 }

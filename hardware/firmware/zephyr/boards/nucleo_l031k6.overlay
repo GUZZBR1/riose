@@ -73,6 +73,11 @@
 	status = "okay";
 };
 
+/* Independent watchdog uses the same always-on LSI source. */
+&iwdg {
+	status = "okay";
+};
+
 &rtc {
 	clocks = <&rcc STM32_CLOCK(APB1, 28U)>, <&rcc STM32_SRC_LSI RTC_SEL(2)>;
 	status = "okay";

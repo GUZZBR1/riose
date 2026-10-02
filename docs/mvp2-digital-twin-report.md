@@ -23,8 +23,8 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 | host_trace_export | PASSED |  |
 | firmware_scenarios | COMPLETED | C FSM traces exported for all four requested profiles |
 | long_duration_1_7_30_days | COMPLETED | 12 deterministic FSM long runs completed |
-| adversarial_fault_injection | PARTIAL | Host C models cover transient I2C/SPI/TX timeout recovery; persistent pin and analog power faults require Renode or electrical models |
-| mechanical | FAILED | battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery |
+| adversarial_fault_injection | PARTIAL | Host C tests cover transient I2C/SPI/TX recovery, CRC rejection, bounded SX1262 BUSY wait, TX/RX IRQ deadlines, and deterministic reset-flag classification. The Zephyr target build configures the MCU watchdog, but reset behavior is not physically executed. Analog power faults require electrical models; unexpected reboot needs a persistent expected-reset contract |
+| mechanical | FAILED | battery envelope exceeds enclosure cavity; unexpected envelope overlap: pcb / battery |
 | antenna | PARTIAL_OR_BLOCKED | ANTENNA_FREE_SPACE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_PCB: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_BATTERY: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_WITH_ENCLOSURE: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured); ANTENNA_NEAR_ANIMAL_APPROXIMATION: ADAPTER_NOT_CONFIGURED (Bindings detected, but RIOSE_OPENEMS_ADAPTER is not configured) |
 | power | COMPLETED | Four scenario rail simulations completed |
 | four_power_scenarios | COMPLETED | NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed |
@@ -44,11 +44,11 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 3. Energia digital estimada na janela observada: `0.514252 µAh` pela integração SIMULATED de correntes ASSUMED/trace; ngspice: EXECUTED.
 4. Estabilidade do rail: ngspice `EXECUTED`; sem medição física ou resultado de rail quando não executado.
 5. Evento com maior carga integrada: `TX` / `sx1262` (0.375 µAh) na janela simulada.
-6. A antena cabe: análise geométrica `FAILED`; battery envelope exceeds enclosure cavity; antenna_keepout envelope exceeds enclosure cavity; antenna keepout exceeds PCB envelope; unexpected envelope overlap: pcb / battery.
-7. Frequência de ressonância/S11: openEMS `PARTIAL_OR_BLOCKED`; métricas permanecem nulas sem adaptador configurado e simulação concluída.
+6. A antena cabe: análise geométrica `FAILED`; battery envelope exceeds enclosure cavity; unexpected envelope overlap: pcb / battery.
+7. Frequência de ressonância/S11: os cinco cenários da execução integrada ficaram sem métricas porque o adaptador foi mantido desligado. Rodadas isoladas exercitaram os cinco cenários: quatro chegaram ao critério do solver, mas falharam convergência; o caso da bateria parou no limite de passos e não publicou métricas. Evidência resumida em `results/mvp2/antenna/openems_candidate_pilot.json`.
 8. Degradação por PCB/bateria/carcaça/animal: 5 cenários listados; resultados exigem openEMS; aproximação animal é experimental.
 9. Encaixe físico digital: `BLOCKED`; CadQuery disponível `True`.
-10. Falhas encontradas: 12 entradas; falhas de host cobertas `one_shot_i2c_failure_recovery, one_shot_spi_failure_recovery, late_tx_done_timeout_recovery`; pendentes `sx1262_busy_stuck, irq_missing, crc_corruption, battery_voltage_drop, high_esr, regulator_instability, watchdog_reset, unexpected_reboot`.
+10. Falhas encontradas: 9 entradas; falhas de host cobertas `one_shot_i2c_failure_recovery, one_shot_spi_failure_recovery, late_tx_done_timeout_recovery, digital_fault_crc_corruption, digital_fault_sx1262_busy_stuck, digital_fault_irq_missing, digital_reset_cause_flag_classification`; pendentes `battery_voltage_drop, high_esr, regulator_instability, watchdog_reset_executed_on_target, unexpected_reboot`. O watchdog IWDG de 10 s foi configurado e compilado no build Zephyr da NUCLEO-L031K6; nenhum reset foi provocado em hardware.
 11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.
 12. Parâmetros por status: `{"ASSUMED": 77, "DATASHEET": 14, "SIMULATED": 3}`; provenance completa na spec.
 13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.

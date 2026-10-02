@@ -186,7 +186,7 @@
     },
     {
       "name": "pcb",
-      "x": -2.8000000000000007,
+      "x": -1.8000000000000007,
       "y": 0,
       "z": 1.2,
       "width": 30.0,
@@ -198,8 +198,8 @@
       "volume_mm3": 2304.0,
       "bounds_mm": {
         "x": [
-          -17.8,
-          12.2
+          -16.8,
+          13.2
         ],
         "y": [
           -24.0,
@@ -240,7 +240,7 @@
     },
     {
       "name": "mcu",
-      "x": -14.3,
+      "x": -13.3,
       "y": -20.5,
       "z": 2.8,
       "width": 7.0,
@@ -252,8 +252,8 @@
       "volume_mm3": 49.0,
       "bounds_mm": {
         "x": [
-          -17.8,
-          -10.8
+          -16.8,
+          -9.8
         ],
         "y": [
           -24.0,
@@ -267,7 +267,7 @@
     },
     {
       "name": "radio",
-      "x": -8.3,
+      "x": -7.300000000000001,
       "y": -22.0,
       "z": 2.8,
       "width": 4.0,
@@ -279,8 +279,8 @@
       "volume_mm3": 16.0,
       "bounds_mm": {
         "x": [
-          -10.3,
-          -6.300000000000001
+          -9.3,
+          -5.300000000000001
         ],
         "y": [
           -24.0,
@@ -294,7 +294,7 @@
     },
     {
       "name": "imu",
-      "x": -4.800000000000001,
+      "x": -3.8000000000000007,
       "y": -23.0,
       "z": 2.8,
       "width": 2.0,
@@ -306,8 +306,8 @@
       "volume_mm3": 2.8,
       "bounds_mm": {
         "x": [
-          -5.800000000000001,
-          -3.8000000000000007
+          -4.800000000000001,
+          -2.8000000000000007
         ],
         "y": [
           -24.0,
@@ -321,7 +321,7 @@
     },
     {
       "name": "antenna",
-      "x": -2.8000000000000007,
+      "x": -1.8000000000000007,
       "y": 17.0,
       "z": 2.8,
       "width": 28.0,
@@ -333,8 +333,8 @@
       "volume_mm3": 56.0,
       "bounds_mm": {
         "x": [
-          -16.8,
-          11.2
+          -15.8,
+          12.2
         ],
         "y": [
           12.0,
@@ -348,7 +348,7 @@
     },
     {
       "name": "antenna_keepout",
-      "x": -2.8000000000000007,
+      "x": -1.8000000000000007,
       "y": 17.0,
       "z": 2.8,
       "width": 32.0,
@@ -360,8 +360,8 @@
       "volume_mm3": 1881.6000000000001,
       "bounds_mm": {
         "x": [
-          -18.8,
-          13.2
+          -17.8,
+          14.2
         ],
         "y": [
           10.0,
@@ -378,8 +378,6 @@
     "fits": false,
     "issues": [
       "battery envelope exceeds enclosure cavity",
-      "antenna_keepout envelope exceeds enclosure cavity",
-      "antenna keepout exceeds PCB envelope",
       "unexpected envelope overlap: pcb / battery"
     ]
   },
@@ -400,7 +398,7 @@
     "status": "ASSUMED"
   },
   "center_of_mass_mm": {
-    "x_mm": -4.3555603795671,
+    "x_mm": -4.232718277721449,
     "y_mm": -0.025543530623248722,
     "z_mm": 7.43255402863981
   },
@@ -437,10 +435,12 @@
     "status": "ASSUMED"
   },
   "warnings": [
+    "Antenna keepout may extend beyond the PCB edge into empty cavity; mounted-package intersections remain fit blockers.",
     "Battery cylinder is approximated by a rectangular envelope with length along X.",
     "Bounding-box placement and mass properties are estimates; validate clearances and retention in a reviewed design.",
     "Component placement gap of 0.5 mm is an ASSUMED layout heuristic.",
-    "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface."
+    "Mounting hole position is assumed at the upper end of the enclosure; review the retention interface.",
+    "PCB is placed toward the left cavity edge to reserve the assumed right-side battery location; no PCB origin is specified."
   ],
   "cadquery_available": true
 }

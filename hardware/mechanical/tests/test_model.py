@@ -33,10 +33,33 @@ def test_real_candidate_reports_battery_fit_failure_without_rewriting_inputs():
     report = build_report(load_spec(spec_path))
     assert report["fit"]["fits"] is False
     assert any("battery" in issue for issue in report["fit"]["issues"])
-    assert any("antenna keepout" in issue for issue in report["fit"]["issues"])
+    assert not any("antenna keepout" in issue for issue in report["fit"]["issues"])
     assert {part["name"] for part in report["parts"]} >= {"antenna", "antenna_keepout"}
     assert report["envelope_mm"] == {"width": 38.0, "height": 68.0, "thickness": 15.0}
     assert report["mass_estimate_g"]["status"] == "ASSUMED"
+
+
+def test_pcb_packing_keeps_keepout_inside_cavity_without_hiding_candidate_conflicts():
+    report = build_report(load_spec(ROOT.parent.parent / "spec.yaml"))
+    issues = report["fit"]["issues"]
+    parts = {part["name"]: part for part in report["parts"]}
+
+    # The spec provides no board origin. The left-packing heuristic must leave
+    # enough cavity margin for the 32 mm keepout in the 35.6 mm cavity.
+    assert parts["pcb"]["x"] == pytest.approx(-1.8)
+    assert "antenna_keepout envelope exceeds enclosure cavity" not in issues
+    assert parts["antenna_keepout"]["bounds_mm"]["x"] == pytest.approx([-17.8, 14.2])
+
+    # Keepout may extend off the PCB into empty cavity; the antenna conductor
+    # itself must fit the board and mounted parts must remain outside the zone.
+    assert parts["antenna"]["bounds_mm"]["x"] == pytest.approx([-15.8, 12.2])
+    assert not any("violates antenna keepout" in issue for issue in issues)
+    assert not any("keepout exceeds PCB envelope" in issue for issue in issues)
+
+    # The remaining fit blockers come from the provisional package dimensions.
+    assert "battery envelope exceeds enclosure cavity" in issues
+    assert "unexpected envelope overlap: pcb / battery" in issues
+    assert report["gate"] == "NOT_READY_FOR_PHYSICAL_PROTOTYPE"
 
 
 def test_measured_dimension_is_rejected():

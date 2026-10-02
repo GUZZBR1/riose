@@ -1,5 +1,7 @@
-"""Virtual tag firmware and replaceable hardware abstractions."""
+"""Compatibility imports for canonical virtual tag firmware models."""
 
-from .tag import Activity, TagController, TagState, VirtualTagHAL
+from riose.products.livestock_tracking.firmware import (
+    Activity, TagController, TagState, VirtualTagHAL,
+)
 
 __all__ = ["Activity", "TagController", "TagState", "VirtualTagHAL"]

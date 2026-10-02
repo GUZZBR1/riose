@@ -6,9 +6,64 @@ from riose.digital_twin.cli import (_power_assumptions, _power_load_profile, _ve
                                     _clear_previous_outputs, _report,
                                     generate_motion_profiles, preflight)
 from riose.digital_twin.spec import SpecError, evaluate_gate, load_spec, validate_spec
+from riose.products.ear_tag.digital_twin import cli as canonical_cli
+from riose.products.ear_tag.digital_twin.paths import resolve_user_path
+from riose.products.ear_tag.digital_twin import spec as canonical_spec
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_legacy_modules_forward_to_canonical_objects():
+    from riose.digital_twin import cli as legacy_cli
+    from riose.digital_twin import spec as legacy_spec
+
+    assert legacy_cli.run_twin is canonical_cli.run_twin
+    assert legacy_cli.preflight is canonical_cli.preflight
+    assert legacy_cli.main is canonical_cli.main
+    for name in ("dump_json", "evaluate_gate", "load_spec", "parameter_statuses"):
+        assert getattr(legacy_cli, name) is getattr(canonical_spec, name)
+    assert legacy_spec.load_spec is canonical_spec.load_spec
+    assert legacy_spec.SpecError is canonical_spec.SpecError
+    assert legacy_spec.validate_spec is canonical_spec.validate_spec
+    assert canonical_cli.ROOT == ROOT
+    assert canonical_cli.DEFAULT_SPEC == ROOT / "hardware/spec.yaml"
+    assert canonical_cli.DEFAULT_OUTPUT == ROOT / "results/mvp2"
+
+
+def test_runner_uses_the_configured_hardware_test_build_directory(tmp_path):
+    from riose.products.ear_tag.digital_twin.runner import hardware_integration_executable
+
+    assert hardware_integration_executable({}) == Path(
+        "/tmp/riose-ear-tag-hardware-tests-v2/hardware_integration"
+    )
+    assert hardware_integration_executable({
+        "HARDWARE_TEST_BUILD_DIR": str(tmp_path / "custom build")
+    }) == tmp_path / "custom build" / "hardware_integration"
+
+
+@pytest.mark.parametrize("module", ["riose.products.ear_tag.digital_twin", "riose.digital_twin"])
+def test_canonical_and_legacy_module_commands(module):
+    import json
+    import subprocess
+    import sys
+
+    help_result = subprocess.run([sys.executable, "-m", module, "--help"], cwd=ROOT,
+                                 capture_output=True, text=True, check=False)
+    assert help_result.returncode == 0, help_result.stderr
+    assert "validate-spec" in help_result.stdout
+    assert "python -m riose.products.ear_tag.digital_twin" in help_result.stdout
+
+    validate_result = subprocess.run(
+        [sys.executable, "-m", module, "validate-spec", "--spec", "hardware/spec.yaml"],
+        cwd=ROOT, capture_output=True, text=True, check=False)
+    assert validate_result.returncode == 0, validate_result.stderr
+    assert json.loads(validate_result.stdout)["status"] == "VALID"
+
+    preflight_result = subprocess.run([sys.executable, "-m", module, "preflight"], cwd=ROOT,
+                                      capture_output=True, text=True, check=False)
+    assert preflight_result.returncode == 0, preflight_result.stderr
+    assert json.loads(preflight_result.stdout)["status"] == "ENVIRONMENT_PROBE_ONLY"
 
 
 def test_mvp2_spec_validates_and_forbids_measured_values():
@@ -115,6 +170,42 @@ def test_rerun_discards_old_stage_outputs_before_invoking_tools(tmp_path):
         path.write_text("stale success")
     _clear_previous_outputs(*stale)
     assert all(not path.exists() for path in stale)
+
+
+def test_user_paths_are_resolved_from_invoking_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert resolve_user_path(Path("inputs/spec.yaml")) == (tmp_path / "inputs/spec.yaml").resolve()
+    assert resolve_user_path(Path("results/mvp2")).is_absolute()
+
+
+def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, monkeypatch):
+    import shutil
+
+    from riose.products.ear_tag.digital_twin import runner
+
+    shutil.copy2(ROOT / "hardware/spec.yaml", tmp_path / "spec.yaml")
+    (tmp_path / "docs").mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "preflight", lambda: {
+        "platform": "test", "commands": {}, "modules": {}, "gpu": {"GPU_AVAILABLE": False},
+    })
+    commands = []
+
+    def unavailable(name, command, cwd, **kwargs):
+        commands.append((name, command, cwd))
+        return {"status": "NOT_AVAILABLE", "detail": "test stub", "required": True}
+
+    monkeypatch.setattr(runner, "_run_command", unavailable)
+    summary = runner.run_twin(Path("spec.yaml"), Path("relative-output"))
+
+    assert summary["spec_path"] == str((tmp_path / "spec.yaml").resolve())
+    assert summary["outputs"]["root"] == str((tmp_path / "relative-output").resolve())
+    antenna_command = next(command for name, command, _ in commands if name == "antenna")
+    spec_argument = antenna_command[antenna_command.index("--spec") + 1]
+    output_argument = antenna_command[antenna_command.index("--output") + 1]
+    assert Path(spec_argument).is_absolute()
+    assert Path(output_argument).is_absolute()
 
 
 def test_report_explains_missing_antenna_adapter_without_claiming_solver_absence():

@@ -5,6 +5,9 @@ cattle without GPS on each animal. The core is a reproducible CPU simulation;
 all outputs are labeled by evidence status. Simulated results are not field
 validation.
 
+The product boundaries, proposed package layout, migration sequence, and
+current memory policy are documented in [`docs/architecture.md`](docs/architecture.md).
+
 ## Status
 
 The CPU-first MVP is implemented and runs locally. It includes a seeded farm
@@ -60,7 +63,7 @@ dated sources.
 
 ## Virtual hardware tag
 
-The new C hardware MVP is isolated under [`hardware/`](hardware/reports/mvp-hardware-report.md)
+The new C hardware MVP is documented in [`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md)
 and does not replace the RF localization simulator above. It contains a
 portable firmware FSM, SX1262 SPI command model, LIS2DW12 register/IRQ model,
 24-byte telemetry with CRC-16, an integration harness, and a configurable
@@ -98,10 +101,13 @@ firmware models. The commercial Allflex dimensions are only an `ASSUMED` scale
 reference, not approved RIOSE geometry. Run:
 
 ```sh
-uv run python -m riose.digital_twin validate-spec
-uv run python -m riose.digital_twin preflight
-uv run python -m riose.digital_twin run
+uv run python -m riose.products.ear_tag.digital_twin validate-spec
+uv run python -m riose.products.ear_tag.digital_twin preflight
+uv run python -m riose.products.ear_tag.digital_twin run
 ```
+
+The previous `python -m riose.digital_twin` command remains available as a
+compatibility entry point.
 
 The run writes machine-readable outputs under `results/mvp2/` and
 `docs/mvp2-digital-twin-report.md`. Missing Renode, ngspice, CadQuery, openEMS,

@@ -7,6 +7,20 @@ static int transfer(const tag_hal_t *hal, const uint8_t *tx, size_t n,
 {
     if (hal == NULL || hal->spi_transfer == NULL || n == 0u || n > 260u)
         return -1;
+    if (hal->radio_busy != NULL) {
+        bool ready = false;
+        for (uint32_t elapsed = 0u; elapsed < SX1262_BUSY_TIMEOUT_MS; ++elapsed) {
+            const int busy = hal->radio_busy(hal->context);
+            if (busy < 0) return -1;
+            if (busy == 0) {
+                ready = true;
+                break;
+            }
+            if (hal->sleep_ms == NULL) return -1;
+            hal->sleep_ms(hal->context, 1u);
+        }
+        if (!ready) return -1;
+    }
     uint8_t discard[260];
     if (rx == NULL) rx = discard;
     if (hal->spi_transfer(hal->context, tx, n, rx, n) != 0) return -1;
