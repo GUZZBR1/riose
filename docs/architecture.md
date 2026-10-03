@@ -160,3 +160,24 @@ The current episode API intentionally returns in-memory tuples for reproducible
 small-to-medium experiments. Converting the simulator to streaming is a later
 design step because localization, evaluation, and dashboard behavior currently
 consume complete episodes.
+
+## Behavior observation persistence
+
+Classified behavior is stored in the livestock-tracking `Store` SQLite database
+as an append-only `behavior_observations` history. Each row references the
+canonical `animals.animal_id`, records its observation time (Unix seconds in
+UTC), optional end time, optional confidence, model version, source identifier,
+observation kind, and the existing `EvidenceStatus`. Confidence is a producer
+confidence value in `[0, 1]`; it is not converted to or represented as a
+calibrated probability. Predictions require a model version. Manual annotations
+and ground truth use distinct observation kinds and may omit it.
+
+The additive `CREATE TABLE IF NOT EXISTS` schema change preserves existing
+SQLite rows. A required producer idempotency key is unique per animal: retrying
+the same key with identical content returns the original row, while different
+content under that key is rejected. Different keys preserve legitimate events
+at the same timestamp; ordering is timestamp then insertion id. History reads
+are bounded and paginated. Only bounded identifiers/provenance are stored;
+raw sensor payloads and XYZ samples are not copied into this table. A
+`SIMULATED` or `EXPERIMENTAL` status remains as written through storage and API
+reads.

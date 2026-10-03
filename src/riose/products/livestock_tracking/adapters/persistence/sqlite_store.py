@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable
 
+from ...domain.behavior import BehaviorObservation
 from ...domain.identity import append_event
 
 if TYPE_CHECKING:
@@ -54,6 +56,30 @@ CREATE TABLE IF NOT EXISTS debug_truth (
 CREATE TABLE IF NOT EXISTS run_metrics (
   key TEXT PRIMARY KEY, value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS behavior_observations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  animal_id TEXT NOT NULL,
+  timestamp_s REAL NOT NULL,
+  end_timestamp_s REAL,
+  behavior TEXT NOT NULL,
+  confidence REAL,
+  model_version TEXT,
+  source TEXT NOT NULL,
+  observation_kind TEXT NOT NULL,
+  evidence_status TEXT NOT NULL,
+  sensor_position TEXT,
+  idempotency_key TEXT NOT NULL,
+  persisted_at REAL NOT NULL,
+  UNIQUE(animal_id,idempotency_key),
+  FOREIGN KEY(animal_id) REFERENCES animals(animal_id),
+  CHECK(timestamp_s >= 0),
+  CHECK(end_timestamp_s IS NULL OR end_timestamp_s >= timestamp_s),
+  CHECK(confidence IS NULL OR (confidence >= 0 AND confidence <= 1)),
+  CHECK(observation_kind IN ('PREDICTION','GROUND_TRUTH','MANUAL_ANNOTATION')),
+  CHECK(evidence_status IN ('VALIDATED','SIMULATED','ASSUMED','EXPERIMENTAL','FUTURE'))
+);
+CREATE INDEX IF NOT EXISTS idx_behavior_history
+  ON behavior_observations(animal_id,timestamp_s,id);
 """
 
 
@@ -296,3 +322,118 @@ class Store:
     def get_metrics(self) -> dict[str, Any]:
         with self._lock:
             return {row["key"]: json.loads(row["value"]) for row in self.connection.execute("SELECT * FROM run_metrics")}
+
+    def save_behavior_observation(
+        self, observation: BehaviorObservation
+    ) -> tuple[dict[str, Any], bool]:
+        """Persist an observation once per animal/idempotency key.
+
+        Reusing a key with identical content is an idempotent retry. Reusing it
+        with different content fails instead of silently rewriting provenance.
+        Distinct keys preserve legitimate same-time observations.
+        """
+        with self._lock:
+            try:
+                self.connection.execute("BEGIN IMMEDIATE")
+                existing = self.connection.execute(
+                    "SELECT * FROM behavior_observations WHERE animal_id=? AND idempotency_key=?",
+                    (observation.animal_id, observation.idempotency_key),
+                ).fetchone()
+                expected = _behavior_values(observation)
+                if existing is not None:
+                    if any(existing[key] != value for key, value in expected.items()):
+                        raise ValueError("idempotency_key already exists with different observation data")
+                    self.connection.commit()
+                    return dict(existing), False
+                import time
+
+                columns = ",".join((*expected.keys(), "persisted_at"))
+                marks = ",".join("?" for _ in range(len(expected) + 1))
+                self.connection.execute(
+                    f"INSERT INTO behavior_observations({columns}) VALUES({marks})",
+                    (*expected.values(), time.time()),
+                )
+                row = self.connection.execute(
+                    "SELECT * FROM behavior_observations WHERE animal_id=? AND idempotency_key=?",
+                    (observation.animal_id, observation.idempotency_key),
+                ).fetchone()
+                self.connection.commit()
+                return dict(row), True
+            except Exception:
+                self.connection.rollback()
+                raise
+
+    def behavior_history(
+        self,
+        animal_id: str,
+        *,
+        start_s: float | None = None,
+        end_s: float | None = None,
+        behavior: str | None = None,
+        source: str | None = None,
+        model_version: str | None = None,
+        evidence_status: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]] | None:
+        """Return an animal's behavior history in deterministic time order."""
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("limit must be an integer in [1, 1000]")
+        if type(offset) is not int or offset < 0:
+            raise ValueError("offset must be a non-negative integer")
+        if any(not _valid_behavior_time(value) for value in (start_s, end_s)):
+            raise ValueError("time filters must be finite Unix timestamps >= 0")
+        if start_s is not None and end_s is not None and end_s < start_s:
+            raise ValueError("end_s must be >= start_s")
+        clauses = ["animal_id=?"]
+        args: list[Any] = [animal_id]
+        for column, value, operator in (
+            ("timestamp_s", start_s, ">="),
+            ("timestamp_s", end_s, "<="),
+            ("behavior", behavior, "="),
+            ("source", source, "="),
+            ("model_version", model_version, "="),
+            ("evidence_status", evidence_status, "="),
+        ):
+            if value is not None:
+                clauses.append(f"{column}{operator}?")
+                args.append(value)
+        args.extend((limit, offset))
+        with self._lock:
+            if self.connection.execute("SELECT 1 FROM animals WHERE animal_id=?", (animal_id,)).fetchone() is None:
+                return None
+            rows = self.connection.execute(
+                "SELECT id,animal_id,timestamp_s,end_timestamp_s,behavior,confidence,model_version,"
+                "source,observation_kind,evidence_status,sensor_position,idempotency_key,persisted_at "
+                f"FROM behavior_observations WHERE {' AND '.join(clauses)} "
+                "ORDER BY timestamp_s,id LIMIT ? OFFSET ?",
+                args,
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+
+def _valid_behavior_time(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def _behavior_values(observation: BehaviorObservation) -> dict[str, Any]:
+    return {
+        "animal_id": observation.animal_id,
+        "timestamp_s": float(observation.timestamp_s),
+        "end_timestamp_s": None if observation.end_timestamp_s is None else float(observation.end_timestamp_s),
+        "behavior": observation.behavior,
+        "confidence": None if observation.confidence is None else float(observation.confidence),
+        "model_version": observation.model_version,
+        "source": observation.source,
+        "observation_kind": observation.observation_kind,
+        "evidence_status": observation.evidence_status.value,
+        "sensor_position": observation.sensor_position,
+        "idempotency_key": observation.idempotency_key,
+    }
