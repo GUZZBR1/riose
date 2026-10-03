@@ -165,3 +165,11 @@ sleep and IRQ handling remain unproven. The state assertion is intentionally
 retained, and a skipped case is likewise not evidence of boot, sleep, or IRQ
 handling. `native_sim` remains a separate software/model path and does not
 demonstrate Renode firmware execution or electrical behavior.
+
+As a diagnostic, the Renode profile's main stack was raised from the physical
+board fragment's 1 KiB to 2 KiB and then 3 KiB. The same state assertion failed
+at both sizes. `hello_world`, a `k_msleep(2/5)` probe, and a bounded
+`k_sem_take` plus `k_sleep` probe passed for 2 seconds on the same platform.
+The profile keeps the project's 2 KiB `prj.conf` value; the 3 KiB diagnostic
+used 5,000 of 8,192 bytes of RAM. These checks narrow the failure to the full
+firmware path, but do not identify its exact cause.
