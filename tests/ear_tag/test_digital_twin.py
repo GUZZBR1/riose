@@ -313,6 +313,45 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
                for argument in zephyr_command)
 
 
+def test_run_preserves_antenna_mesh_refinement_in_summary_and_report(tmp_path, monkeypatch):
+    import json
+
+    from riose.products.ear_tag.digital_twin import runner
+
+    (tmp_path / "docs").mkdir()
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "hardware_integration_executable",
+                        lambda environ=None: tmp_path / "missing-hardware-integration")
+    monkeypatch.setattr(runner, "preflight", lambda: {
+        "platform": "test", "commands": {}, "modules": {},
+        "gpu": {"GPU_AVAILABLE": False},
+    })
+    refinement = {"status": "NOT_RUN", "converged": False,
+                  "detail": "coarse/fine comparison is required"}
+
+    def run_command(name, command, cwd, **kwargs):
+        if name == "antenna":
+            output = Path(command[command.index("--output") + 1])
+            (output / "antenna_experiments.json").write_text(json.dumps({
+                "status": "PARTIAL_OR_BLOCKED", "result_class": "NO_SIMULATION_RESULT",
+                "scenarios": [{"scenario": "ANTENNA_FREE_SPACE", "status": "COMPLETED"}],
+                "mesh_refinement": refinement, "limitations": ["mesh refinement pending"],
+            }))
+            return {"status": "FAILED", "return_code": 2, "required": True}
+        return {"status": "NOT_AVAILABLE", "detail": "test stub", "required": True}
+
+    monkeypatch.setattr(runner, "_run_command", run_command)
+    output = tmp_path / "output"
+    summary = runner.run_twin(ROOT / "hardware/spec.yaml", output)
+
+    assert summary["stages"]["antenna"]["mesh_refinement"] == refinement
+    persisted = json.loads((output / "integration" / "summary.json").read_text())
+    assert persisted["stages"]["antenna"]["mesh_refinement"] == refinement
+    report = (tmp_path / "docs" / "mvp2-digital-twin-report.md").read_text()
+    assert "comparação numérica de malha: NOT_RUN" in report
+    assert "passaram a comparação numérica de malha" not in report
+
+
 def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():
     summary = {
         "gate": {"state": "NOT_READY_FOR_PHYSICAL_PROTOTYPE", "blockers": []},
@@ -366,11 +405,13 @@ def test_report_summarizes_completed_antenna_scenarios_without_claiming_physical
         "stages": {"antenna": {"status": "PARTIAL_OR_BLOCKED", "scenarios": [
             {"scenario": "ANTENNA_WITH_ENCLOSURE", "status": "COMPLETED"},
             {"scenario": "ANTENNA_WITH_BATTERY", "status": "FAILED"},
-        ]}},
+        ], "mesh_refinement": {"status": "NOT_RUN", "converged": False}}},
         "spec_sha256": "test",
         "environment": {"platform": "test", "gpu": {}},
         "parameter_statuses": {},
     }
     report = _report({}, summary)
-    assert "1/2 cenários passaram a comparação numérica de malha" in report
+    assert "1/2 cenários têm execução temporal COMPLETED" in report
+    assert "comparação numérica de malha: NOT_RUN" in report
+    assert "passaram a comparação numérica de malha" not in report
     assert "não validam desempenho físico" in report

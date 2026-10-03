@@ -18,7 +18,7 @@ ALLOWED_UNITS = {
     "A", "F", "Hz", "MHz", "GHz", "S/m", "V", "mV", "uV", "dB", "dBm",
     "degC", "g/cm3", "mA", "uA", "mAh", "uAh", "mm", "cm", "m", "in",
     "ohm", "kOhm", "part_number", "percent", "ratio", "reference", "s", "ms",
-    "us", "topology", "mg", "g", "kg", "m/s2", "fraction", "text",
+    "us", "topology", "mg", "g", "kg", "m/s2", "fraction", "text", "count", "deg",
 }
 
 

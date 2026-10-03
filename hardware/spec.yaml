@@ -91,6 +91,10 @@ materials:
   pcb_density_g_cm3: {value: 1.85, unit: g/cm3, source: "Homogenized FR-4 placeholder", status: ASSUMED}
   battery_density_g_cm3: {value: 2.5, unit: g/cm3, source: "Cell package average placeholder", status: ASSUMED}
   component_density_g_cm3: {value: 2.0, unit: g/cm3, source: "Component package average placeholder", status: ASSUMED}
+  pcb_relative_permittivity: {value: 4.3, unit: ratio, source: "Generic FR-4 RF placeholder; use laminate stackup data before design sign-off", status: ASSUMED}
+  pcb_loss_tangent: {value: 0.02, unit: ratio, source: "Generic FR-4 loss placeholder; not laminate characterization", status: ASSUMED}
+  battery_relative_permittivity: {value: 3.0, unit: ratio, source: "Homogeneous battery-envelope sensitivity placeholder; not cell RF characterization", status: ASSUMED}
+  battery_conductivity_s_m: {value: 0.1, unit: S/m, source: "Homogeneous battery-envelope sensitivity placeholder; not cell RF characterization", status: ASSUMED}
   enclosure_relative_permittivity: {value: 3.5, unit: ratio, source: "Generic TPU placeholder; not material characterization", status: ASSUMED}
   enclosure_conductivity_s_m: {value: 0.01, unit: S/m, source: "Loss placeholder; not material characterization", status: ASSUMED}
   animal_approx_relative_permittivity: {value: 50.0, unit: ratio, source: "Homogeneous animal-proximity sensitivity placeholder; not ear tissue data", status: ASSUMED}
@@ -104,7 +108,38 @@ antenna:
   element_length_mm: {value: 82.0, unit: mm, source: "Initial electrical path length before tuning", status: ASSUMED}
   trace_width_mm: {value: 1.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
   feed_mm: {value: 2.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
+  feed_gap_mm: {value: 0.5, unit: mm, source: "Provisional lumped-feed gap used by the free-space reference; requires feed review", status: ASSUMED}
+  conductor_thickness_mm: {value: 0.035, unit: mm, source: "Nominal copper foil thickness used only for exploratory EM geometry", status: ASSUMED}
   clearance_mm: {value: 2.0, unit: mm, source: "Initial keepout assumption", status: ASSUMED}
+  meander_turns: {value: 4, unit: count, source: "Initial compact reference routing choice; requires RF/layout review", status: ASSUMED}
+  sweeps:
+    material:
+      parameter: materials.enclosure_relative_permittivity
+      scenario: ANTENNA_WITH_ENCLOSURE
+      values:
+        - {value: 2.8, unit: ratio, source: "ASSUMED sensitivity sweep around generic enclosure dielectric", status: ASSUMED}
+        - {value: 3.5, unit: ratio, source: "Central spec nominal generic TPU placeholder", status: ASSUMED}
+        - {value: 4.2, unit: ratio, source: "ASSUMED sensitivity sweep around generic enclosure dielectric", status: ASSUMED}
+    thickness:
+      parameter: mechanical.enclosure.wall_thickness_mm
+      scenario: ANTENNA_WITH_ENCLOSURE
+      values:
+        - {value: 0.8, unit: mm, source: "ASSUMED enclosure wall sensitivity sweep", status: ASSUMED}
+        - {value: 1.2, unit: mm, source: "Central spec nominal provisional enclosure wall", status: ASSUMED}
+        - {value: 1.6, unit: mm, source: "ASSUMED enclosure wall sensitivity sweep", status: ASSUMED}
+    gap:
+      parameter: antenna.feed_gap_mm
+      scenario: ANTENNA_WITH_PCB
+      values:
+        - {value: 0.3, unit: mm, source: "ASSUMED lumped-feed gap sensitivity sweep", status: ASSUMED}
+        - {value: 0.5, unit: mm, source: "Central spec nominal provisional feed gap", status: ASSUMED}
+        - {value: 0.8, unit: mm, source: "ASSUMED lumped-feed gap sensitivity sweep", status: ASSUMED}
+    animal_orientation:
+      parameter: antenna.animal_orientation_deg
+      scenario: ANTENNA_NEAR_ANIMAL_APPROXIMATION
+      values:
+        - {value: 0, unit: deg, source: "ASSUMED axis-aligned homogeneous dielectric sensitivity case", status: ASSUMED}
+        - {value: 90, unit: deg, source: "ASSUMED orthogonal homogeneous dielectric sensitivity case", status: ASSUMED}
 
 power_profiles:
   mcu_awake_s_per_event: {value: 0.03, unit: s, source: "MVP1 configured profile, assumed", status: ASSUMED}
