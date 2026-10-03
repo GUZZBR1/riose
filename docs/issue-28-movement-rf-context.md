@@ -97,10 +97,25 @@ must not be generalized beyond these cases.
 - Not tested: concurrent live sensors, synchronized hardware clock calibration,
   or field performance.
 
+## Red-team results
+
+- Packet loss and missing RF remain observability states; neither becomes
+  immobility.
+- RSSI is kept as the RF signal measurement and is not converted to an exact
+  range. Position changes do not alter the movement classification.
+- Old movement cannot align with a current RF epoch outside tolerance; different
+  clock IDs and cross-tag identities are rejected.
+- Unknown anchors are rejected when the caller supplies its anchor inventory;
+  conflicting duplicate packets invalidate the RF epoch.
+- A low-quality or missing position stays non-semantic, and simulated source
+  status remains simulated in the derived evidence.
+
 ## Verification
 
 Focused tests cover available/missing source combinations, packet loss, stale
 and low-quality data, temporal boundary and mismatch, incompatible clocks,
 duplicates, out-of-order input, cross-tag protection, optional anchor checks,
 localization quality, unknown movement, provenance/evidence preservation,
-baseline comparison, determinism, and offline use.
+baseline comparison, determinism, and offline use. Command:
+`.venv/bin/python -m pytest -q` — **591 passed, 7 skipped**. Also verified with
+`compileall` and `git diff --check`.
