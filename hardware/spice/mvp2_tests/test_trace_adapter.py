@@ -243,6 +243,18 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(adapter.TraceConversionError, "cannot also be point loads"):
             adapter.trace_to_schedule(radio_trace, radio_loads)
 
+    def test_hardware_bus_and_trace_lifecycle_markers_are_structural(self):
+        trace = [record(0, "STATE", "SLEEP"), record(0, "SPI", "SLEEP"),
+                 record(1, "IRQ", "SLEEP"), record(1, "TIMEOUT", "SLEEP"),
+                 record(2, "WAKE", "SLEEP"), record(2, "TRACE_END", "SLEEP"),
+                 record(3, "MCU_SLEEP", "SLEEP", value0=100)]
+        loads = {"state:SLEEP": {"component": "mcu", "load_current_ma": 0.01,
+                                 "current_status": "ASSUMED", "source": "test fixture"}}
+        rows = adapter.trace_to_schedule(trace, loads)
+        coverage = rows[0]["trace_event_coverage"]
+        for event in ("SPI", "IRQ", "TIMEOUT", "WAKE", "TRACE_END"):
+            self.assertEqual(coverage[event]["handling"], "STRUCTURAL_MARKER_NO_SEPARATE_LOAD")
+
     def test_point_event_interval_cannot_extend_beyond_trace_window(self):
         trace = [record(0, "IMU_READ", "IMU_MONITORING")]
         loads = {"event:IMU_READ": {

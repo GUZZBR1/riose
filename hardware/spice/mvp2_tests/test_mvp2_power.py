@@ -135,6 +135,24 @@ class TraceDrivenPowerTests(unittest.TestCase):
         self.assertIn("meas tran rail_min", deck)
         self.assertIn("Ibattery battery 0 PWL(", deck)
         self.assertIn("tran 0.0002 2 0 0.0002", deck)
+        self.assertIn("Breg reg_src 0", deck)
+        self.assertIn("v(battery)-0.2", deck)
+
+    def test_electrical_fault_profiles_are_connected_to_rail_and_assumed(self):
+        for profile in ("voltage_drop", "high_esr", "regulator_instability"):
+            with self.subTest(profile=profile):
+                deck = power.generate_netlist(self.rows, self.assumptions, fault_profile=profile)
+                self.assertIn(f"profile={profile}", deck)
+                self.assertIn("Breg reg_src 0", deck)
+                self.assertIn("Rcell cell_src battery", deck)
+        voltage = power.generate_netlist(self.rows, self.assumptions, fault_profile="voltage_drop")
+        self.assertIn("drop=1.2 V", voltage)
+        high_esr = power.generate_netlist(self.rows, self.assumptions, fault_profile="high_esr")
+        self.assertIn("RBAT=40", high_esr)
+        unstable = power.generate_netlist(self.rows, self.assumptions, fault_profile="regulator_instability")
+        self.assertIn("sin(2*pi*100*time)", unstable)
+        with self.assertRaisesRegex(ValueError, "unsupported electrical fault"):
+            power.generate_netlist(self.rows, self.assumptions, fault_profile="invented")
 
     def test_schedule_rejects_negative_or_zero_intervals(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -186,7 +204,7 @@ class TraceDrivenPowerTests(unittest.TestCase):
             deck.write_text(".param VREG=3.3\n.tran 0.1 2 0 0.1\n")
             completed = __import__("subprocess").CompletedProcess([], 0, "rail_min = 3.1\nrail_max = 3.3\nbattery_min = 3.5\nbattery_current_peak = -0.02\n", "")
             def run(*args, **kwargs):
-                (Path(tmp) / "power_waveform.dat").write_text("0 3.3 -0.01\n1 3.1 -0.02\n2 3.3 -0.01\n")
+                (Path(tmp) / "power_waveform.dat").write_text("0 3.3 3.6 -0.01\n1 3.1 3.5 -0.02\n2 3.3 3.6 -0.01\n")
                 return completed
             with patch.object(power.shutil, "which", return_value="ngspice"), patch.object(power.subprocess, "run", side_effect=run):
                 result = power._run_ngspice(deck, None, self.rows)
@@ -219,7 +237,7 @@ class TraceDrivenPowerTests(unittest.TestCase):
                 "rail_min = 3.1\nrail_max = 3.3\nbattery_min = 3.5\nbattery_current_peak = -0.02\n", "")
             with patch.object(power.shutil, "which", return_value="ngspice"), patch.object(
                     power.subprocess, "run", side_effect=lambda *args, **kwargs: (
-                        (Path(tmp) / "power_waveform.dat").write_text("0 3.3 -0.01\n"), completed)[1]):
+                        (Path(tmp) / "power_waveform.dat").write_text("0 3.3 3.6 -0.01\n"), completed)[1]):
                 result = power._run_ngspice(deck, None, self.rows)
             self.assertEqual(result["status"], "INVALID_OUTPUT")
             self.assertIsNone(result["rail_min_v"])
@@ -228,9 +246,9 @@ class TraceDrivenPowerTests(unittest.TestCase):
     def test_waveform_truncation_malformed_rows_and_nan_are_invalid(self):
         measurement_log = "rail_min = 3.1\nrail_max = 3.3\nbattery_min = 3.5\nbattery_current_peak = -0.02\n"
         for waveform in (
-            "0 3.3 -0.01\n1 3.1 -0.02\n",  # truncated before .tran stop=2
-            "0 3.3 -0.01\nnot-a-sample\n2 3.3 -0.01\n",
-            "0 3.3 -0.01\n1 nan -0.02\n2 3.3 -0.01\n",
+            "0 3.3 3.6 -0.01\n1 3.1 3.5 -0.02\n",  # truncated before .tran stop=2
+            "0 3.3 3.6 -0.01\nnot-a-sample\n2 3.3 3.6 -0.01\n",
+            "0 3.3 3.6 -0.01\n1 nan 3.5 -0.02\n2 3.3 3.6 -0.01\n",
         ):
             with self.subTest(waveform=waveform), tempfile.TemporaryDirectory() as tmp:
                 deck = Path(tmp) / "power_trace.cir"
@@ -254,7 +272,7 @@ class TraceDrivenPowerTests(unittest.TestCase):
             completed = __import__("subprocess").CompletedProcess([], 0,
                 "rail_min = 3.1\nrail_max = 3.3\nbattery_min = 3.5\nbattery_current_peak = -0.02\n", "")
             def succeeds(*args, **kwargs):
-                waveform.write_text("0 3.3 -0.01\n1 3.1 -0.02\n2 3.3 -0.01\n")
+                waveform.write_text("0 3.3 3.6 -0.01\n1 3.1 3.5 -0.02\n2 3.3 3.6 -0.01\n")
                 return completed
             with patch.object(power.shutil, "which", return_value="ngspice"), patch.object(
                     power.subprocess, "run", side_effect=succeeds):

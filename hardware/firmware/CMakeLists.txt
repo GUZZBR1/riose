@@ -29,3 +29,11 @@ add_test(NAME tag_host_counter_wrap
 add_test(NAME tag_host_fault_spi_timeout COMMAND tag_host_demo --fault spi_timeout_once --seed 7)
 add_test(NAME tag_host_fault_i2c_timeout COMMAND tag_host_demo --fault imu_i2c_timeout_once --seed 7)
 add_test(NAME tag_host_fault_irq_missing COMMAND tag_host_demo --fault irq_missing --seed 7)
+add_test(NAME tag_host_synthetic_watchdog_classification
+         COMMAND tag_host_demo --fault synthetic_watchdog_classification_probe --seed 4242)
+set_tests_properties(tag_host_synthetic_watchdog_classification PROPERTIES
+    PASS_REGULAR_EXPRESSION "status.*OBSERVED.*recovered.*false.*SYNTHETIC_REINITIALIZATION.*watchdog_causally_observed.*false.*reset_cause_independently_observed.*false.*physical_watchdog_validated.*false")
+add_test(NAME tag_host_synthetic_reset_classification
+         COMMAND tag_host_demo --fault synthetic_reset_classification_probe --seed 4242)
+set_tests_properties(tag_host_synthetic_reset_classification PROPERTIES
+    PASS_REGULAR_EXPRESSION "status.*OBSERVED.*recovered.*false.*SYNTHETIC_REINITIALIZATION.*watchdog_causally_observed.*false.*reset_cause_independently_observed.*false.*physical_watchdog_validated.*false")

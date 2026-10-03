@@ -121,6 +121,38 @@ def test_gpu_capabilities_report_is_optional_and_machine_readable():
     assert report["result_status"] == "ENVIRONMENT_CAPABILITY_ONLY"
 
 
+def test_sionna_rt_cuda_backend_does_not_require_pytorch(monkeypatch):
+    from hardware.antenna import capabilities
+
+    fake_sionna = types.ModuleType("sionna")
+    fake_sionna.__path__ = []
+    fake_sionna_rt = types.ModuleType("sionna.rt")
+    fake_mitsuba = types.SimpleNamespace(variant=lambda: "cuda_ad_mono_polarized")
+    monkeypatch.setitem(sys.modules, "sionna", fake_sionna)
+    monkeypatch.setitem(sys.modules, "sionna.rt", fake_sionna_rt)
+    monkeypatch.setitem(sys.modules, "mitsuba", fake_mitsuba)
+    monkeypatch.setitem(sys.modules, "drjit", types.SimpleNamespace(
+        JitBackend=types.SimpleNamespace(CUDA="cuda"),
+        has_backend=lambda backend: backend == "cuda",
+    ))
+    monkeypatch.setattr(capabilities.importlib.util, "find_spec",
+                        lambda name: object() if name == "sionna.rt" else None)
+    monkeypatch.setattr(capabilities.shutil, "which", lambda name: None)
+
+    report = capabilities.detect_capabilities()
+    assert report["SIONNA_AVAILABLE"] is True
+    assert report["CUDA_AVAILABLE"] is True
+    assert report["DRJIT_CUDA_AVAILABLE"] is True
+    assert report["MITSUBA_VARIANT"] == "cuda_ad_mono_polarized"
+
+    monkeypatch.setattr(fake_mitsuba, "variant", lambda: "llvm_ad_mono_polarized")
+    cpu_variant_report = capabilities.detect_capabilities()
+    assert cpu_variant_report["SIONNA_AVAILABLE"] is True
+    assert cpu_variant_report["DRJIT_CUDA_AVAILABLE"] is True
+    assert cpu_variant_report["CUDA_AVAILABLE"] is False
+    assert cpu_variant_report["status"] == "SKIPPED_OPTIONAL"
+
+
 def test_openems_adapter_cannot_mark_incomplete_metrics_as_completed(tmp_path, monkeypatch):
     monkeypatch.setattr(antenna_run, "_openems_available", lambda: (True, None))
     monkeypatch.setenv("RIOSE_OPENEMS_ADAPTER", "openems_test_adapter")

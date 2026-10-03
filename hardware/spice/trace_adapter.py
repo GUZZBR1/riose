@@ -184,13 +184,10 @@ def trace_to_schedule(records: list[dict[str, Any]],
             continue
         append(key, state, state, start, elapsed)
 
-    # These point markers occur inside the modeled MCU/radio state or paired
-    # radio windows. Give them explicit coverage without adding overlapping
-    # point-current intervals that would double-count those modeled loads.
     structural_events = {
         "BOOT", "MCU_INIT", "PACKET_CREATED", "RADIO_STANDBY", "RADIO_SLEEP",
-        "ERROR", "RECOVERY", "MCU_SLEEP", "STATE", "SPI", "IRQ", "WAKE",
-        "TIMEOUT", "TRACE_END",
+        "ERROR", "RECOVERY", "MCU_SLEEP", "STATE", "SPI", "IRQ", "TIMEOUT",
+        "WAKE", "TRACE_END",
     }
     event_coverage: dict[str, dict[str, Any]] = {}
     for record in parsed:

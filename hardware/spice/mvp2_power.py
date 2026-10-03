@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import shutil
@@ -191,13 +192,13 @@ def _validated_period(rows: list[dict], period_s: float | None) -> float | None:
 def _validate_assumptions(assumptions: dict, overrides: dict[str, float] | None = None) -> None:
     overrides = overrides or {}
     values = {key: _value(assumptions, key, overrides.get(key)) for key in (
-        "battery_voltage_v", "battery_esr_ohm", "regulator_output_v",
+        "battery_voltage_v", "battery_esr_ohm", "regulator_output_v", "regulator_dropout_v",
         "regulator_efficiency", "regulator_quiescent_ma",
         "regulator_output_resistance_ohm", "output_capacitance_f",
         "idle_current_ma", "brownout_threshold_v", "pwl_edge_s")}
     expected_units = {
         "battery_voltage_v": "V", "battery_esr_ohm": "ohm",
-        "regulator_output_v": "V", "regulator_efficiency": "fraction",
+        "regulator_output_v": "V", "regulator_dropout_v": "V", "regulator_efficiency": "fraction",
         "regulator_quiescent_ma": "mA", "regulator_output_resistance_ohm": "ohm",
         "output_capacitance_f": "F", "idle_current_ma": "mA",
         "brownout_threshold_v": "V", "pwl_edge_s": "s",
@@ -212,6 +213,8 @@ def _validate_assumptions(assumptions: dict, overrides: dict[str, float] | None 
             raise ValueError(f"{key} unit must be {expected_units[key]}")
     if values["battery_voltage_v"] <= 0 or values["regulator_output_v"] <= 0:
         raise ValueError("battery and regulator voltages must be positive")
+    if values["regulator_dropout_v"] < 0:
+        raise ValueError("regulator dropout voltage must be nonnegative")
     if values["battery_esr_ohm"] < 0 or values["regulator_output_resistance_ohm"] < 0:
         raise ValueError("resistances must be nonnegative")
     if not 0 < values["regulator_efficiency"] <= 1:
@@ -414,7 +417,8 @@ def pwl_points(rows: list[dict], assumptions: dict, period_s: float | None = Non
 
 
 def generate_netlist(rows: list[dict], assumptions: dict, period_s: float | None = None,
-                     overrides: dict[str, float] | None = None, data_path: str = "power_waveform.dat") -> str:
+                     overrides: dict[str, float] | None = None, data_path: str = "power_waveform.dat",
+                     fault_profile: str | None = None) -> str:
     overrides = overrides or {}
     period_s = _validated_period(rows, period_s)
     _validate_assumptions(assumptions, overrides)
@@ -426,6 +430,14 @@ def generate_netlist(rows: list[dict], assumptions: dict, period_s: float | None
     rout = _value(assumptions, "regulator_output_resistance_ohm")
     cap = _value(assumptions, "output_capacitance_f", overrides.get("output_capacitance_f"))
     brownout = _value(assumptions, "brownout_threshold_v")
+    dropout = _value(assumptions, "regulator_dropout_v")
+    profiles = {"voltage_drop", "high_esr", "regulator_instability"}
+    if fault_profile is not None and fault_profile not in profiles:
+        raise ValueError(f"unsupported electrical fault profile: {fault_profile}")
+    if fault_profile == "high_esr":
+        esr = 40.0  # synthetic assumed stress injection, not cell characterization
+    drop_v = 1.2 if fault_profile == "voltage_drop" else 0.0
+    instability_v = 0.8 if fault_profile == "regulator_instability" else 0.0
     # The transient models the observed firmware window only. A declared repeat
     # period belongs to the analytical daily extrapolation, not a 900-second
     # electrical transient with no additional observed events.
@@ -433,17 +445,25 @@ def generate_netlist(rows: list[dict], assumptions: dict, period_s: float | None
     pwl = " ".join(f"{t:.12g} {i:.12g}" for t, i in points)
     max_time = points[-1][0]
     step = max(min(max_time / 10000, 1e-3), 1e-7)
-    # Convert rail power to average battery current using the assumed converter efficiency.
+    # Convert rail power to average battery current using assumed converter efficiency.
     ibat_points = " ".join(f"{t:.12g} {i*vreg/(vbat*efficiency)+iq:.12g}" for t, i in points)
+    tx_rows = [r for r in rows if str(r.get("event", "")).upper().startswith("TX")]
+    fault_start = max(1e-6, min((float(r["timestamp_s"]) for r in tx_rows), default=0.0))
+    fault_end = max((float(r["end_s"]) for r in tx_rows), default=max_time)
+    battery_source = (f"PWL(0 {vbat:.12g} {fault_start:.12g} {vbat:.12g} "
+                      f"{fault_start+1e-6:.12g} {vbat-drop_v:.12g} "
+                      f"{fault_end:.12g} {vbat-drop_v:.12g} {fault_end+1e-6:.12g} {vbat:.12g} "
+                      f"{max_time:.12g} {vbat:.12g})") if drop_v else "DC {VBAT}"
     return f"""* RIOSE MVP2 power twin -- SIMULATED; all component/regulator/cell values ASSUMED.
-* Average regulator abstraction. Not a switching-regulator, cell, PCB, or physical validation model.
+* Causally coupled averaged rail/headroom model; not switching-regulator or physical validation.
 .param VBAT={vbat:.12g} RBAT={esr:.12g} VREG={vreg:.12g} RREG={rout:.12g} COUT={cap:.12g}
 .param BROWNOUT={brownout:.12g} EFF={efficiency:.12g}
-Vcell cell_src 0 DC {{VBAT}}
+Vcell cell_src 0 {battery_source}
 Rcell cell_src battery {{RBAT}}
 Ibattery battery 0 PWL({ibat_points})
-* Rail transient is an averaged ideal source plus assumed output resistance/capacitance.
-Vreg reg_src 0 DC {{VREG}}
+* Synthetic profile={fault_profile or 'NONE'}; drop={drop_v:.6g} V, regulator perturbation={instability_v:.6g} V.
+* The regulator holds VREG only while battery input has the assumed dropout headroom.
+Breg reg_src 0 V={{min(VREG,max(0,v(battery)-{dropout:.12g}+{instability_v:.12g}*u(i(Iload)-0.01)*sin(2*pi*100*time)))}}
 Rreg reg_src rail {{RREG}}
 Cout rail 0 {{COUT}} IC={{VREG}}
 Iload rail 0 PWL({pwl})
@@ -455,14 +475,15 @@ meas tran rail_min MIN v(rail)
 meas tran rail_max MAX v(rail)
 meas tran battery_min MIN v(battery)
 meas tran battery_current_peak MIN i(Vcell)
-wrdata {data_path} v(rail) i(Vcell)
+wrdata {data_path} v(rail) v(battery) i(Vcell)
 quit
 .endc
 .end
 """
 
 
-def _run_ngspice(deck: Path, binary: str | None, rows: list[dict]) -> dict:
+def _run_ngspice(deck: Path, binary: str | None, rows: list[dict],
+                 fault_profile: str | None = None) -> dict:
     waveform = deck.parent / "power_waveform.dat"
     electrical_csv = deck.parent / "electrical_trace.csv"
     waveform.unlink(missing_ok=True)
@@ -505,12 +526,12 @@ def _run_ngspice(deck: Path, binary: str | None, rows: list[dict]) -> dict:
             fields = line.split()
             if not fields:
                 continue
-            if len(fields) != 3:
-                raise ValueError(f"waveform row {line_number} must have exactly three columns")
-            values = [float(value) for value in fields[:3]]
+            if len(fields) != 4:
+                raise ValueError(f"waveform row {line_number} must have exactly four columns")
+            values = [float(value) for value in fields[:4]]
             if not all(math.isfinite(value) for value in values):
                 raise ValueError("waveform contains a non-finite sample")
-            waveform_points.append((values[0], values[1], values[2]))
+            waveform_points.append((values[0], values[1], values[2], values[3]))
         if len(waveform_points) < 2 or any(b[0] <= a[0] for a, b in zip(waveform_points, waveform_points[1:])):
             raise ValueError("waveform has fewer than two increasing-time samples")
         tran_match = re.search(r"^\s*\.?(?:tran)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)", netlist_text,
@@ -526,15 +547,19 @@ def _run_ngspice(deck: Path, binary: str | None, rows: list[dict]) -> dict:
             raise ValueError("waveform is truncated before the transient stop time")
         observed_min = min(point[1] for point in waveform_points)
         observed_max = max(point[1] for point in waveform_points)
+        observed_battery_min = min(point[2] for point in waveform_points)
         measured_min = measurement("rail_min")
         measured_max = measurement("rail_max")
         tolerance = max(1e-6, abs(vreg or 1.0) * 1e-5)
         if (measured_min is not None and abs(measured_min - observed_min) > tolerance or
                 measured_max is not None and abs(measured_max - observed_max) > tolerance):
             raise ValueError("waveform rail extrema disagree with ngspice measurements")
+        measured_battery_min = measurement("battery_min")
+        if measured_battery_min is not None and abs(measured_battery_min - observed_battery_min) > tolerance:
+            raise ValueError("waveform battery extrema disagree with ngspice measurements")
         if vreg is not None:
             schedule_end = _trace_window(rows)[1]
-            recovery = next((t - schedule_end for t, voltage, _ in waveform_points
+        recovery = next((t - schedule_end for t, voltage, _, _ in waveform_points
                              if t >= schedule_end and voltage >= 0.99 * vreg), None)
     except (ValueError, OSError) as exc:
         validation_error = str(exc)
@@ -584,12 +609,21 @@ def _run_ngspice(deck: Path, binary: str | None, rows: list[dict]) -> dict:
             "log": "ngspice.log", "trace": "power_waveform.dat",
             "note": "Average regulator model; recovery is found from the raw waveform after the last schedule interval."}
     if status == "PASS":
+        netlist_sha256 = hashlib.sha256(deck.read_bytes()).hexdigest()
+        waveform_sha256 = hashlib.sha256(waveform.read_bytes()).hexdigest()
+        simulation_id = hashlib.sha256((netlist_sha256 + waveform_sha256).encode()).hexdigest()
         write_csv(deck.parent / "electrical_trace.csv", [
-            {"timestamp_s": t, "rail_voltage_v": voltage,
+            {"simulation_id": simulation_id, "netlist_sha256": netlist_sha256,
+             "fault_profile": fault_profile or "NONE",
+             "timestamp_s": t, "rail_voltage_v": voltage,
+             "battery_terminal_voltage_v": battery_v,
              "battery_current_a": abs(current), "status": "SIMULATED"}
-            for t, voltage, current in waveform_points
+            for t, voltage, battery_v, current in waveform_points
         ])
         result["electrical_trace_csv"] = "electrical_trace.csv"
+        result["simulation_id"] = simulation_id
+        result["netlist_sha256"] = netlist_sha256
+        result["waveform_sha256"] = waveform_sha256
     return result
 
 
@@ -736,6 +770,8 @@ def main(argv=None) -> int:
     parser.add_argument("--period-unit", default="s", help="Repeat period unit (the trace API uses seconds)")
     parser.add_argument("--output", type=Path, default=Path("results/mvp2/power"))
     parser.add_argument("--ngspice", help="ngspice executable; auto-detected when omitted")
+    parser.add_argument("--fault-profile", choices=("voltage_drop", "high_esr", "regulator_instability"),
+                        help="synthetic ASSUMED electrical stress coupled into the battery-to-rail model")
     args = parser.parse_args(argv)
     args.output.mkdir(parents=True, exist_ok=True)
     clear_run_outputs(args.output)
@@ -751,12 +787,21 @@ def main(argv=None) -> int:
         result = analyze_schedule(rows, assumptions, period_s, args.period_source,
                                   args.period_status, args.period_unit)
         deck = args.output / "power_trace.cir"
-        deck.write_text(generate_netlist(rows, assumptions, period_s))
+        deck.write_text(generate_netlist(rows, assumptions, period_s, fault_profile=args.fault_profile))
     except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
         _write_failure_summary(args.output, "INVALID_INPUT", str(exc))
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    result["ngspice"] = _run_ngspice(deck, args.ngspice, rows)
+    result["fault_profile"] = args.fault_profile
+    result["fault_profile_provenance"] = ({
+        "status": "ASSUMED",
+        "source": "synthetic fault injection used to test causal rail feedback; not a component characterization",
+        "voltage_drop_amplitude_v": 1.2 if args.fault_profile == "voltage_drop" else 0.0,
+        "high_esr_value_ohm": 40.0 if args.fault_profile == "high_esr" else None,
+        "regulator_perturbation_amplitude_v": 0.8 if args.fault_profile == "regulator_instability" else 0.0,
+        "regulator_perturbation_frequency_hz": 100.0 if args.fault_profile == "regulator_instability" else None,
+    } if args.fault_profile else None)
+    result["ngspice"] = _run_ngspice(deck, args.ngspice, rows, args.fault_profile)
     result["ngspice"].update({
         "brownout_threshold_v_assumed": _value(assumptions, "brownout_threshold_v"),
         "brownout_threshold_provenance": assumptions["brownout_threshold_v"],
@@ -768,8 +813,12 @@ def main(argv=None) -> int:
         result["ngspice"]["functional_margin_status"] = "SIMULATED_VS_ASSUMED_FUNCTIONAL_LIMIT"
     else:
         result["ngspice"]["functional_margin_status"] = "NOT_AVAILABLE_WITHOUT_VALID_SIMULATION"
-    result["sweep"] = execute_parameter_sweep(
+    result["sweep"] = (execute_parameter_sweep(
         rows, assumptions, args.output / "sweeps", period_s, args.ngspice)
+        if args.fault_profile is None else {
+            "status": "NOT_RUN_FOR_FAULT_INTEGRATION", "case_count": 0,
+            "attempted_case_count": 0, "executed_case_count": 0,
+            "not_modeled_axes": [], "cases": []})
     for case in result["sweep"]["cases"]:
         if "ngspice" in case:
             case["ngspice"]["version"] = result["ngspice"]["version"]

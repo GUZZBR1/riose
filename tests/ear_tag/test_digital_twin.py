@@ -85,6 +85,33 @@ def test_runner_uses_the_configured_hardware_test_build_directory(tmp_path):
     }) == tmp_path / "custom build" / "hardware_integration"
 
 
+def test_mechanical_fit_failure_keeps_specific_report_diagnostics():
+    from riose.products.ear_tag.digital_twin.runner import _classify_mechanical_result
+
+    result = _classify_mechanical_result(
+        {"status": "FAILED", "detail": "battery envelope exceeds enclosure cavity",
+         "stderr": "mechanical model error: CAD export blocked"},
+        {"cadquery_available": True,
+         "fit": {"fits": False, "issues": ["battery envelope exceeds enclosure cavity"]}},
+    )
+    assert result["status"] == "FAILED"
+    assert "battery envelope exceeds enclosure cavity" in result["detail"]
+    assert "Mechanical report/export command failed" not in result["detail"]
+
+
+def test_mechanical_fit_failure_takes_precedence_when_cadquery_is_unavailable():
+    from riose.products.ear_tag.digital_twin.runner import _classify_mechanical_result
+
+    result = _classify_mechanical_result(
+        {"status": "NOT_AVAILABLE", "detail": "battery outside cavity"},
+        {"cadquery_available": False,
+         "fit": {"fits": False, "issues": ["battery outside cavity"]}},
+    )
+    assert result["status"] == "FAILED"
+    assert "battery outside cavity" in result["detail"]
+    assert "CadQuery unavailable, export was not attempted" in result["detail"]
+
+
 @pytest.mark.parametrize("module", ["riose.products.ear_tag.digital_twin", "riose.digital_twin"])
 def test_canonical_and_legacy_module_commands(module):
     import json
@@ -253,13 +280,15 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
 
     shutil.copy2(ROOT / "hardware/spec.yaml", tmp_path / "spec.yaml")
     (tmp_path / "docs").mkdir()
+    (tmp_path / "zephyr").mkdir()
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(runner, "ROOT", tmp_path)
     monkeypatch.setattr(runner, "preflight", lambda: {
-        "platform": "test", "commands": {},
+        "platform": "test", "commands": {"west": "west"},
         "modules": {"openEMS": True, "CSXCAD": True},
         "gpu": {"GPU_AVAILABLE": False},
     })
+    monkeypatch.setenv("ZEPHYR_BASE", str(tmp_path / "zephyr"))
     commands = []
     command_envs = {}
 
@@ -279,6 +308,9 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     assert Path(spec_argument).is_absolute()
     assert Path(output_argument).is_absolute()
     assert command_envs["antenna"]["RIOSE_OPENEMS_ADAPTER"] == "hardware.antenna.openems_adapter"
+    zephyr_command = next(command for name, command, _ in commands if name == "zephyr_build")
+    assert any(argument.startswith("-DEXTRA_CONF_FILE=") and argument.endswith("nucleo_l031k6_renode.conf")
+               for argument in zephyr_command)
 
 
 def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():
@@ -295,10 +327,21 @@ def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():
 
 def test_fault_catalog_defines_injection_recovery_attempts_terminal_and_trace():
     required = {"fault", "injection", "recovery_expected", "attempts", "terminal_state", "trace_event", "host_argument"}
-    assert len({row["fault"] for row in FAULT_SCENARIOS}) == 11
+    assert len({row["fault"] for row in FAULT_SCENARIOS}) == 10
     assert all(required <= row.keys() for row in FAULT_SCENARIOS)
     assert all(row["attempts"] > 0 for row in FAULT_SCENARIOS if row["host_argument"])
     assert all(row.get("blocker") for row in FAULT_SCENARIOS if row["host_argument"] is None)
+
+
+def test_reset_cases_are_synthetic_classification_probes_not_recovery_claims():
+    probes = {row["fault"]: row for row in FAULT_SCENARIOS
+              if row["fault"].startswith("synthetic_")}
+    assert set(probes) == {"synthetic_watchdog_classification_probe",
+                           "synthetic_reset_classification_probe"}
+    assert all(not row["recovery_expected"] for row in probes.values())
+    assert all(row["host_argument"].startswith("host:") for row in probes.values())
+    assert "classification flag" in probes["synthetic_watchdog_classification_probe"]["injection"]
+    assert "firmware init" in probes["synthetic_reset_classification_probe"]["injection"]
 
 
 def test_long_run_energy_integrates_assumed_currents_and_observed_packet_count():

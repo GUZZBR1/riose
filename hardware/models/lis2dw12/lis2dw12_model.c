@@ -22,17 +22,6 @@ static int32_t wave(int amplitude, uint32_t frequency_millihz,
     return (sample * amplitude) / 1024;
 }
 
-static uint32_t next_random(lis2dw12_model_t *model)
-{
-    /* xorshift32: compact, portable and deterministic across host toolchains. */
-    uint32_t value = model->random_state;
-    value ^= value << 13u;
-    value ^= value >> 17u;
-    value ^= value << 5u;
-    model->random_state = value;
-    return value;
-}
-
 static void store_axis(lis2dw12_model_t *model, unsigned axis)
 {
     const uint8_t low_register = (uint8_t)(LIS2DW12_REG_OUT_X_L + (axis * 2u));
@@ -44,6 +33,32 @@ static void store_axis(lis2dw12_model_t *model, unsigned axis)
 static bool odr_enabled(const lis2dw12_model_t *model)
 {
     return (model->registers[LIS2DW12_REG_CTRL1] & 0xf0u) != 0u;
+}
+
+static uint32_t odr_period_ms(const lis2dw12_model_t *model)
+{
+    /* CTRL1 ODR codes depend on MODE/LP_MODE; this clock has a 1 ms floor. */
+    static const uint16_t high_performance_period_ms[10] = {
+        0u, 80u, 80u, 40u, 20u, 10u, 5u, 3u, 2u, 1u,
+    };
+    static const uint16_t low_power_period_ms[10] = {
+        0u, 625u, 80u, 40u, 20u, 10u, 5u, 5u, 5u, 5u,
+    };
+    const unsigned odr = (model->registers[LIS2DW12_REG_CTRL1] >> 4u) & 0x0fu;
+    if (odr >= 10u) return 0u;
+    const unsigned mode = (model->registers[LIS2DW12_REG_CTRL1] >> 2u) & 0x03u;
+    if (mode == 0x01u) return high_performance_period_ms[odr];
+    if (mode != 0x00u) return 0u; /* on-demand and reserved modes are not free-running */
+    if (odr == 1u && (model->registers[LIS2DW12_REG_CTRL1] & 0x03u) != 0u) return 80u;
+    return low_power_period_ms[odr];
+}
+
+static unsigned output_resolution_bits(const lis2dw12_model_t *model)
+{
+    const unsigned ctrl1 = model->registers[LIS2DW12_REG_CTRL1];
+    const unsigned mode = (ctrl1 >> 2u) & 0x03u;
+    const unsigned lp_mode = ctrl1 & 0x03u;
+    return (mode == 0x00u || mode == 0x02u) && lp_mode == 0u ? 12u : 14u;
 }
 
 static unsigned full_scale_g(const lis2dw12_model_t *model)
@@ -62,10 +77,12 @@ int16_t lis2dw12_axis_raw(const lis2dw12_model_t *model, unsigned axis)
     int32_t raw = ((int32_t)model->acceleration_mg[axis] * 32768) / denominator;
     if (raw > 32767) raw = 32767;
     if (raw < -32768) raw = -32768;
+    const int32_t quantum = 1 << (16u - output_resolution_bits(model));
+    raw = (raw / quantum) * quantum; /* output words are left-aligned 12/14-bit values */
     return (int16_t)raw;
 }
 
-static void update_irq(lis2dw12_model_t *model)
+static void update_irq(lis2dw12_model_t *model, uint64_t samples_elapsed)
 {
     const int threshold_mg = (int)(((uint32_t)(model->registers[LIS2DW12_REG_WAKE_UP_THS] & 0x3fu) *
                                    full_scale_g(model) * 1000u) / 64u);
@@ -75,18 +92,50 @@ static void update_irq(lis2dw12_model_t *model)
         if (delta < 0) delta = -delta;
         if (delta > peak_delta) peak_delta = delta;
     }
-    /* ST LIS2DW12: CTRL4.INT1_WU is bit 5 (0x20); CTRL7.INTERRUPTS_ENABLE
-     * is also bit 5 (0x20). See AN5038, wake-up interrupt configuration. */
+    /* CTRL4.INT1_WU and CTRL7.INTERRUPTS_ENABLE are both bit 5. */
     const bool wake_routed =
         (model->registers[LIS2DW12_REG_CTRL4_INT1_PAD_CTRL] & 0x20u) != 0u;
     const bool interrupts_enabled =
         (model->registers[LIS2DW12_REG_CTRL7] & 0x20u) != 0u;
-    if (wake_routed && interrupts_enabled && threshold_mg > 0 &&
-        peak_delta >= threshold_mg && !model->irq_latched) {
+    bool event = false;
+    if (interrupts_enabled && threshold_mg > 0 && peak_delta >= threshold_mg) {
+        model->registers[LIS2DW12_REG_WAKE_UP_SRC] |= 0x08u; /* WU_IA */
+        model->registers[LIS2DW12_REG_ALL_INT_SRC] |= 0x02u; /* WU_IA */
+        model->registers[LIS2DW12_REG_STATUS] |= LIS2DW12_STATUS_WAKE_UP;
+        event = wake_routed;
+    }
+
+    const bool sleep_enabled = interrupts_enabled &&
+        (model->registers[LIS2DW12_REG_WAKE_UP_THS] & LIS2DW12_WAKE_UP_SLEEP_ON) != 0u;
+    if (sleep_enabled && threshold_mg > 0 && peak_delta < threshold_mg) {
+        const uint64_t still_total = (uint64_t)model->still_samples + samples_elapsed;
+        model->still_samples = still_total > UINT32_MAX ? UINT32_MAX : (uint32_t)still_total;
+        const unsigned duration_code = model->registers[LIS2DW12_REG_WAKE_UP_DUR] & 0x0fu;
+        const uint32_t required_samples = duration_code == 0u ? 16u : duration_code * 512u;
+        if (model->still_samples >= required_samples &&
+            (model->registers[LIS2DW12_REG_STATUS] & LIS2DW12_STATUS_SLEEP_STATE) == 0u) {
+            model->registers[LIS2DW12_REG_STATUS] |= LIS2DW12_STATUS_SLEEP_STATE;
+            model->registers[LIS2DW12_REG_ALL_INT_SRC] |= 0x20u; /* SLEEP_CHANGE_IA */
+            if ((model->registers[LIS2DW12_REG_CTRL5_INT2_PAD_CTRL] & 0x40u) != 0u) {
+                event = true;
+            }
+        }
+    } else {
+        const bool was_asleep =
+            (model->registers[LIS2DW12_REG_STATUS] & LIS2DW12_STATUS_SLEEP_STATE) != 0u;
+        model->still_samples = 0u;
+        model->registers[LIS2DW12_REG_STATUS] &= (uint8_t)~LIS2DW12_STATUS_SLEEP_STATE;
+        if (was_asleep &&
+            (model->registers[LIS2DW12_REG_CTRL5_INT2_PAD_CTRL] & 0x40u) != 0u) {
+            model->registers[LIS2DW12_REG_ALL_INT_SRC] |= 0x20u;
+            event = true;
+        }
+    }
+
+    if (event && !model->irq_latched) {
         model->irq_latched = true;
-        model->registers[LIS2DW12_REG_WAKE_UP_SRC] = 0x08u; /* WU_IA */
-        model->registers[LIS2DW12_REG_ALL_INT_SRC] |= 0x08u;
-        if (model->irq_callback != NULL) {
+        if (model->irq_pin_stuck) model->irq_output_stuck = true;
+        if (!model->irq_pin_absent && model->irq_callback != NULL) {
             model->irq_callback(model->irq_user_data);
         }
     }
@@ -99,17 +148,13 @@ void lis2dw12_init(lis2dw12_model_t *model,
     if (model == NULL) return;
     memset(model, 0, sizeof(*model));
     model->registers[LIS2DW12_REG_WHO_AM_I] = LIS2DW12_WHO_AM_I_VALUE;
-    model->registers[LIS2DW12_REG_WAKE_UP_THS] = 0x02u;
+    model->registers[LIS2DW12_REG_CTRL2] = LIS2DW12_CTRL2_IF_ADD_INC;
     model->acceleration_mg[2] = 1000;
     model->previous_acceleration_mg[2] = 1000;
     model->motion = LIS2DW12_MOTION_STATIONARY;
-    model->random_state = 0x6d2b79f5u;
     model->irq_callback = irq_callback;
     model->irq_user_data = irq_user_data;
     model->initialized = true;
-    store_axis(model, 0u);
-    store_axis(model, 1u);
-    store_axis(model, 2u);
 }
 
 static lis2dw12_result_t bus_check(lis2dw12_model_t *model,
@@ -128,7 +173,7 @@ static lis2dw12_result_t bus_check(lis2dw12_model_t *model,
     }
     if (model->timeout_transactions > 0u) {
         --model->timeout_transactions;
-        return LIS2DW12_ETIMEOUT;
+        return LIS2DW12_ETIMEDOUT;
     }
     return LIS2DW12_OK;
 }
@@ -166,6 +211,12 @@ lis2dw12_result_t lis2dw12_i2c_write(lis2dw12_model_t *model,
             reg == LIS2DW12_REG_WAKE_UP_SRC || reg == LIS2DW12_REG_ALL_INT_SRC) {
             continue;
         }
+        if (reg == LIS2DW12_REG_CTRL2 && (source[i] & LIS2DW12_CTRL2_SOFT_RESET) != 0u) {
+            const lis2dw12_irq_callback_t callback = model->irq_callback;
+            void *user_data = model->irq_user_data;
+            lis2dw12_init(model, callback, user_data);
+            continue;
+        }
         model->registers[reg] = source[i];
     }
     return LIS2DW12_OK;
@@ -173,25 +224,35 @@ lis2dw12_result_t lis2dw12_i2c_write(lis2dw12_model_t *model,
 
 void lis2dw12_set_motion(lis2dw12_model_t *model, lis2dw12_motion_t motion)
 {
-    if (model == NULL || motion > LIS2DW12_MOTION_RANDOM_MOVEMENT) return;
+    if (model == NULL || motion > LIS2DW12_MOTION_ABNORMAL) return;
     model->motion = motion;
-}
-
-void lis2dw12_set_motion_seed(lis2dw12_model_t *model, uint32_t seed)
-{
-    if (model == NULL) return;
-    model->random_state = seed == 0u ? 0x6d2b79f5u : seed;
 }
 
 void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
 {
     if (model == NULL || !model->initialized) return;
     model->elapsed_ms += elapsed_ms;
-    if (!odr_enabled(model)) return;
+    if (!odr_enabled(model)) {
+        model->sample_elapsed_ms = 0u;
+        return;
+    }
+    const uint32_t sample_period_ms = odr_period_ms(model);
+    if (sample_period_ms == 0u) {
+        model->sample_elapsed_ms = 0u;
+        return;
+    }
+    model->sample_elapsed_ms += elapsed_ms;
+    if (model->sample_elapsed_ms < sample_period_ms) return;
+    const uint64_t samples_elapsed = model->sample_elapsed_ms / sample_period_ms;
+    model->sample_elapsed_ms %= sample_period_ms;
 
     model->previous_acceleration_mg[0] = model->acceleration_mg[0];
     model->previous_acceleration_mg[1] = model->acceleration_mg[1];
     model->previous_acceleration_mg[2] = model->acceleration_mg[2];
+    if (samples_elapsed > 1u) {
+        const uint64_t skipped = samples_elapsed - 1u;
+        model->sample_number += skipped > UINT32_MAX ? UINT32_MAX : (uint32_t)skipped;
+    }
     switch (model->motion) {
     case LIS2DW12_MOTION_STATIONARY:
         model->acceleration_mg[0] = 0;
@@ -218,42 +279,27 @@ void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
         model->acceleration_mg[1] = ((model->sample_number % 4u) == 0u) ? -1100 : 900;
         model->acceleration_mg[2] = ((model->sample_number % 4u) == 0u) ? 2100 : -1700;
         break;
-    case LIS2DW12_MOTION_IMPACT:
-        /* Illustrative periodic impulse. This is a test vector, not cattle data. */
-        if ((model->sample_number % 16u) == 0u) {
-            model->acceleration_mg[0] = 1800;
-            model->acceleration_mg[1] = -1400;
-            model->acceleration_mg[2] = 2400;
-        } else {
-            model->acceleration_mg[0] = 0;
-            model->acceleration_mg[1] = 0;
-            model->acceleration_mg[2] = 1000;
-        }
-        break;
-    case LIS2DW12_MOTION_RANDOM_MOVEMENT:
-        /* Seeded bounded samples in mg; deterministic for a seed and tick sequence. */
-        model->acceleration_mg[0] = (int16_t)((int32_t)(next_random(model) % 1801u) - 900);
-        model->acceleration_mg[1] = (int16_t)((int32_t)(next_random(model) % 1201u) - 600);
-        model->acceleration_mg[2] = (int16_t)(1000 + (int32_t)(next_random(model) % 1001u) - 500);
-        break;
     }
     ++model->sample_number;
     for (unsigned axis = 0; axis < 3u; ++axis) store_axis(model, axis);
     model->registers[LIS2DW12_REG_STATUS] |= 0x01u; /* data-ready */
-    update_irq(model);
+    update_irq(model, samples_elapsed);
 }
 
 bool lis2dw12_irq_pending(const lis2dw12_model_t *model)
 {
-    return model != NULL && model->irq_latched;
+    return model != NULL && !model->irq_pin_absent &&
+           (model->irq_latched || model->irq_output_stuck);
 }
 
 void lis2dw12_clear_irq(lis2dw12_model_t *model)
 {
     if (model == NULL) return;
     model->irq_latched = false;
+    if (!model->irq_pin_stuck) model->irq_output_stuck = false;
     model->registers[LIS2DW12_REG_WAKE_UP_SRC] = 0u;
-    model->registers[LIS2DW12_REG_ALL_INT_SRC] &= (uint8_t)~0x08u;
+    model->registers[LIS2DW12_REG_ALL_INT_SRC] &= (uint8_t)~0x22u;
+    model->registers[LIS2DW12_REG_STATUS] &= (uint8_t)~LIS2DW12_STATUS_WAKE_UP;
 }
 
 void lis2dw12_fail_next_i2c(lis2dw12_model_t *model, uint32_t transactions)
@@ -264,4 +310,14 @@ void lis2dw12_fail_next_i2c(lis2dw12_model_t *model, uint32_t transactions)
 void lis2dw12_timeout_next_i2c(lis2dw12_model_t *model, uint32_t transactions)
 {
     if (model != NULL) model->timeout_transactions = transactions;
+}
+
+void lis2dw12_set_irq_faults(lis2dw12_model_t *model,
+                             bool irq_pin_absent,
+                             bool irq_pin_stuck)
+{
+    if (model == NULL) return;
+    model->irq_pin_absent = irq_pin_absent;
+    model->irq_pin_stuck = irq_pin_stuck;
+    if (!irq_pin_stuck) model->irq_output_stuck = false;
 }

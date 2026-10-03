@@ -52,6 +52,10 @@ capacitors:
 
 mechanical:
   source_reference: {value: "Allflex Monitoring Ear Tag Flex", unit: reference, source: "https://www.allflex.global/wp-content/uploads/2021/06/SH_B_Allflex_MSD_8_A4_Eng_May_21.pdf", status: ASSUMED}
+  commercial_reference_envelope:
+    width_mm: {value: 38.0, unit: mm, source: "Allflex Monitoring Ear Tag Flex commercial scale reference; not RIOSE geometry; https://www.allflex.global/wp-content/uploads/2021/06/SH_B_Allflex_MSD_8_A4_Eng_May_21.pdf", status: ASSUMED}
+    height_mm: {value: 68.0, unit: mm, source: "Allflex Monitoring Ear Tag Flex commercial scale reference; not RIOSE geometry; https://www.allflex.global/wp-content/uploads/2021/06/SH_B_Allflex_MSD_8_A4_Eng_May_21.pdf", status: ASSUMED}
+    thickness_mm: {value: 15.0, unit: mm, source: "Allflex Monitoring Ear Tag Flex commercial scale reference per Issue #9; not RIOSE geometry; https://www.allflex.global/wp-content/uploads/2021/06/SH_B_Allflex_MSD_8_A4_Eng_May_21.pdf", status: ASSUMED}
   enclosure:
     width_mm: {value: 38.0, unit: mm, source: "Commercial Allflex envelope reference; not RIOSE design", status: ASSUMED}
     height_mm: {value: 68.0, unit: mm, source: "Commercial Allflex envelope reference; not RIOSE design", status: ASSUMED}

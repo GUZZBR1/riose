@@ -156,7 +156,9 @@ static int imu_configure(void)
                                sizeof(identity));
     if (rc != 0) return rc;
     if (identity != 0x44) return -ENODEV;
-    rc = imu_write_register(0x21, 0x08); /* CTRL2: block data update */
+    /* BDU + IF_ADD_INC: the sample read below starts at OUT_X_L and fetches
+     * all six axis bytes in one I2C transaction. */
+    rc = imu_write_register(0x21, 0x0C);
     if (rc != 0) return rc;
     rc = imu_write_register(0x20, 0x14); /* CTRL1: 12.5 Hz, low-power mode */
     if (rc != 0) return rc;
@@ -193,10 +195,10 @@ static int imu_read_fn(void *context, tag_imu_sample_t *sample)
     for (size_t axis = 0; axis < 3; ++axis) {
         const int16_t raw16 = (int16_t)((uint16_t)data[axis * 2] |
                                ((uint16_t)data[axis * 2 + 1] << 8));
-        /* LIS2DW12 14-bit output is left-aligned; +/-2 g sensitivity is
-         * 0.061 mg per 12-bit sample. Return integer mg to the HAL contract. */
+        /* CTRL1 selects low-power 12-bit output, left-aligned in OUT_x. At
+         * +/-2 g the LIS2DW12 sensitivity is 0.976 mg/LSB. */
         const int32_t raw12 = raw16 >> 4;
-        const int16_t mg = (int16_t)((raw12 * 61) / 1000);
+        const int16_t mg = (int16_t)((raw12 * 976) / 1000);
         if (axis == 0) sample->x_mg = mg;
         else if (axis == 1) sample->y_mg = mg;
         else sample->z_mg = mg;

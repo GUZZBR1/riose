@@ -21,14 +21,16 @@ cpu:
         include @src/RiosePeripherals.cs
 
 radio: Riose.SX1262 @ spi1
-imu: Riose.LIS2DW12 @ i2c1 0x18
-    address: 0x18
+// The NUCLEO-L031K6 overlay routes SA0 low, selecting the 7-bit address 0x18.
+imu: Riose.LIS2DW12WakeModel @ i2c1 0x18
 
 radio:
     Busy -> gpioPortB@0
     IRQ -> gpioPortB@1
+
 imu:
-    INT1 -> gpioPortA@8
+    Interrupt1 -> gpioPortA@8
 
 gpioPortA:
+    11 -> radio@1
     12 -> radio@0
