@@ -55,7 +55,12 @@ CREATE TABLE IF NOT EXISTS run_metrics (
 
 
 class Store:
-    def __init__(self, path: str | Path = "data/cattle_rf.sqlite3") -> None:
+    def __init__(
+        self,
+        path: str | Path = "data/cattle_rf.sqlite3",
+        *,
+        enable_publication_outbox: bool = False,
+    ) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
@@ -68,6 +73,13 @@ class Store:
             # NULL marks rows written before versioned event contracts existed.
             self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
         self.connection.commit()
+        self.publication_outbox = None
+        if enable_publication_outbox:
+            from .publication_outbox import OUTBOX_SCHEMA, SQLitePublicationOutbox
+
+            self.connection.executescript(OUTBOX_SCHEMA)
+            self.connection.commit()
+            self.publication_outbox = SQLitePublicationOutbox(self)
 
     def close(self) -> None:
         with self._lock:
