@@ -186,7 +186,8 @@ def trace_to_schedule(records: list[dict[str, Any]],
 
     structural_events = {
         "BOOT", "MCU_INIT", "PACKET_CREATED", "RADIO_STANDBY", "RADIO_SLEEP",
-        "ERROR", "RECOVERY", "MCU_SLEEP", "STATE",
+        "ERROR", "RECOVERY", "MCU_SLEEP", "STATE", "SPI", "IRQ", "TIMEOUT",
+        "WAKE", "TRACE_END",
     }
     event_coverage: dict[str, dict[str, Any]] = {}
     for record in parsed:

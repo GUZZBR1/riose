@@ -7,12 +7,14 @@ Library           Collections
 *** Variables ***
 ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
+${STATIC_RESD}    %{RIOSE_LIS2DW12_STATIC_RESD=}
+${WALK_RESD}      %{RIOSE_LIS2DW12_WALK_RESD=}
 
 *** Test Cases ***
-Loads MCU Surrogate And Custom Peripherals
+Loads MCU Surrogate, SX1262 And Native LIS2DW12
     ${listing}=    Execute Command    peripherals
     Should Contain    ${listing}    SX1262
-    Should Contain    ${listing}    LIS2DW12
+    Should Contain    ${listing}    imu
     [Setup]    Create RIOSE Platform
 
 Firmware Boots Sleeps Services IRQ And Returns To Sleep
@@ -29,6 +31,28 @@ Firmware Boots Sleeps Services IRQ And Returns To Sleep
     ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
     ${irq}=    Strip String    ${irq}
     Should Be Equal    ${irq}    False
+    [Setup]    Create RIOSE Platform
+
+Native LIS2DW12 Consumes STATIC Dataset Before Firmware Starts
+    Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
+    Execute Command    allowPrivates true
+    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 0
+    Execute Command    sysbus.i2c1.imu SampleRate 12.5
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD}
+    Execute Command    emulation RunFor "0.08"
+    ${actual}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be True    abs(float($actual) - 1.0) < 0.003
+    [Setup]    Create RIOSE Platform
+
+Native LIS2DW12 Consumes WALK Dataset Before Firmware Starts
+    Skip If    '${WALK_RESD}' == ''    Set RIOSE_LIS2DW12_WALK_RESD to the WALK RESD output.
+    Execute Command    allowPrivates true
+    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 0
+    Execute Command    sysbus.i2c1.imu SampleRate 12.5
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WALK_RESD}
+    Execute Command    emulation RunFor "0.08"
+    ${actual}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be True    float($actual) > 1.05
     [Setup]    Create RIOSE Platform
 
 SX1262 Config And FIFO Use SPI Command Bytes
