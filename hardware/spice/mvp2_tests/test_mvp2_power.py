@@ -172,6 +172,114 @@ class TraceDrivenPowerTests(unittest.TestCase):
         self.assertIsNone(temperature["netlist"])
         self.assertEqual(temperature["override_provenance"]["temperature_c_assumption"]["status"], "ASSUMED")
 
+    def _with_temperature_model(self):
+        assumptions = json.loads(json.dumps(self.assumptions))
+        def record(value, unit):
+            return {"value": value, "unit": unit, "status": "ASSUMED",
+                    "source": "Synthetic unit-test coefficient; no component characterization"}
+        assumptions["temperature_model"] = {
+            "kind": "LINEAR_PARAMETER_SENSITIVITY",
+            "reference_temperature_c": record(25, "degC"),
+            "minimum_temperature_c": record(-10, "degC"),
+            "maximum_temperature_c": record(50, "degC"),
+            "coefficients": {"battery_esr_ohm": record(-0.002, "ohm/degC"),
+                             "regulator_efficiency": record(0.001, "fraction/degC"),
+                             "regulator_dropout_v": record(-0.001, "V/degC"),
+                             "output_capacitance_f": record(1e-8, "F/degC")},
+        }
+        return assumptions
+
+    def test_temperature_model_changes_electrical_parameters_and_preserves_provenance(self):
+        assumptions = self._with_temperature_model()
+        cases = power.parameter_sweep(self.rows, assumptions)
+        temperatures = [c for c in cases if "temperature_c_assumption" in c["overrides"]]
+        cold, reference, warm = temperatures
+        self.assertEqual(len(temperatures), 3)
+        resolved = cold["temperature_model"]["resolved_parameters"]
+        self.assertAlmostEqual(resolved["battery_esr_ohm"], 0.32)
+        self.assertAlmostEqual(resolved["regulator_efficiency"], 0.815)
+        self.assertAlmostEqual(resolved["regulator_dropout_v"], 0.235)
+        self.assertAlmostEqual(resolved["output_capacitance_f"], 0.00004665)
+        self.assertIn("RBAT=0.32", cold["netlist"])
+        self.assertIn("v(battery)-0.235", cold["netlist"])
+        self.assertNotEqual(cold["netlist"], warm["netlist"])
+        for key, value in reference["temperature_model"]["resolved_parameters"].items():
+            self.assertEqual(value, assumptions[key]["value"])
+        self.assertEqual(cold["status"], "PENDING_EXECUTION")
+        self.assertEqual(cold["temperature_model"]["definition"], assumptions["temperature_model"])
+        self.assertEqual(cold["temperature_model"]["reference_parameters"]["battery_esr_ohm"],
+                         assumptions["battery_esr_ohm"])
+        self.assertEqual(cold["temperature_model"]["status"],
+                         "SIMULATED_PARAMETER_SENSITIVITY_NOT_CHARACTERIZED")
+        self.assertEqual(cold["override_provenance"]["temperature_c_assumption"]["unit"], "degC")
+
+    def test_temperature_model_requires_provenance_units_and_finite_coefficients(self):
+        for field, value in (("unit", "ohm"), ("source", " "), ("status", "MEASURED"),
+                             ("value", float("nan")), ("value", True), ("value", float("inf"))):
+            assumptions = self._with_temperature_model()
+            assumptions["temperature_model"]["coefficients"]["battery_esr_ohm"][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, assumptions)
+        for field, value in (("unit", "K"), ("source", ""), ("status", "VALIDATED")):
+            assumptions = self._with_temperature_model()
+            assumptions["temperature_model"]["reference_temperature_c"][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, assumptions)
+
+    def test_temperature_model_rejects_extrapolation_and_nonphysical_parameters(self):
+        for field, value in (("minimum_temperature_c", 0), ("maximum_temperature_c", 30),
+                             ("minimum_temperature_c", -300), ("reference_temperature_c", 100)):
+            assumptions = self._with_temperature_model()
+            assumptions["temperature_model"][field]["value"] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, assumptions)
+        for key, value in (("battery_esr_ohm", 1), ("regulator_efficiency", 0.1),
+                           ("regulator_dropout_v", 1), ("output_capacitance_f", 1)):
+            assumptions = self._with_temperature_model()
+            assumptions["temperature_model"]["coefficients"][key]["value"] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, assumptions)
+
+    def test_temperature_model_rejects_missing_zero_and_unknown_sensitivities(self):
+        for model in ({}, {"kind": "invented"}, {"kind": "LINEAR_PARAMETER_SENSITIVITY"}):
+            with self.subTest(model=model), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, {**self.assumptions, "temperature_model": model})
+        for coefficients in ({}, {"invented": {}}):
+            assumptions = self._with_temperature_model()
+            assumptions["temperature_model"]["coefficients"] = coefficients
+            with self.subTest(coefficients=coefficients), self.assertRaises(ValueError):
+                power.parameter_sweep(self.rows, assumptions)
+        assumptions = self._with_temperature_model()
+        for record in assumptions["temperature_model"]["coefficients"].values():
+            record["value"] = 0
+        with self.assertRaisesRegex(ValueError, "nonzero sensitivity"):
+            power.parameter_sweep(self.rows, assumptions)
+
+    def test_configured_temperature_sweep_executes_all_cases_and_propagates_failure(self):
+        assumptions = self._with_temperature_model()
+        def passing(deck, binary, rows):
+            return {"status": "PASS", "rail_min_v": 3.2, "rail_max_v": 3.3}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(power, "_run_ngspice", side_effect=passing) as run:
+            result = power.execute_parameter_sweep(self.rows, assumptions, Path(tmp))
+        self.assertEqual(result["case_count"], 19)
+        self.assertEqual(result["attempted_case_count"], 19)
+        self.assertEqual(result["executed_case_count"], 19)
+        self.assertEqual(result["not_modeled_axes"], [])
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(run.call_count, 19)
+        temp = next(c for c in result["cases"] if "temperature_c_assumption" in c["overrides"])
+        self.assertEqual(temp["temperature_status"], "SIMULATED_WITH_DECLARED_PARAMETER_MODEL")
+        self.assertEqual(temp["temperature_model"]["definition"], assumptions["temperature_model"])
+        self.assertNotIn("netlist", temp)
+        def fail_cold(deck, binary, rows):
+            if "temperature_c_assumption--10" in str(deck):
+                return {"status": "NON_CONVERGED", "rail_min_v": None}
+            return passing(deck, binary, rows)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(power, "_run_ngspice", side_effect=fail_cold):
+            result = power.execute_parameter_sweep(self.rows, assumptions, Path(tmp))
+        self.assertEqual(result["status"], "NON_CONVERGED")
+        self.assertEqual(result["executed_case_count"], 18)
+
     def test_energy_metrics_use_assumed_rail_voltage_and_cover_event_components(self):
         result = power.analyze_schedule(self.rows, self.assumptions, period_s=10.0,
             period_source="test repeat period", period_status="ASSUMED")
@@ -324,6 +432,46 @@ class TraceDrivenPowerTests(unittest.TestCase):
         temp = next(case for case in result["cases"] if "temperature_c_assumption" in case["overrides"])
         self.assertEqual(temp["status"], "NOT_MODELED_NO_TEMPERATURE_DEPENDENCY")
         self.assertNotIn("ngspice", temp)
+
+    def test_cli_rejects_invalid_temperature_model_before_any_simulation(self):
+        assumptions = self._with_temperature_model()
+        assumptions["temperature_model"]["minimum_temperature_c"]["value"] = 0
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "output"
+            schedule = Path(tmp) / "schedule.jsonl"
+            schedule.write_text("\n".join(json.dumps(row) for row in self.rows) + "\n")
+            inputs = Path(tmp) / "assumptions.json"
+            inputs.write_text(json.dumps(assumptions))
+            with contextlib.redirect_stderr(io.StringIO()), patch.object(power, "_run_ngspice") as run:
+                code = power.main([str(schedule), "--assumptions", str(inputs), "--output", str(output)])
+            self.assertEqual(code, 2)
+            run.assert_not_called()
+            summary = json.loads((output / "summary.json").read_text())
+            self.assertEqual(summary["status"], "INVALID_INPUT")
+            self.assertFalse((output / "power_trace.cir").exists())
+
+    def test_cli_temperature_cases_keep_provenance_when_ngspice_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "output"
+            schedule = Path(tmp) / "schedule.jsonl"
+            schedule.write_text("\n".join(json.dumps(row) for row in self.rows) + "\n")
+            inputs = Path(tmp) / "assumptions.json"
+            assumptions = self._with_temperature_model()
+            inputs.write_text(json.dumps(assumptions))
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = power.main([str(schedule), "--assumptions", str(inputs), "--output", str(output),
+                                   "--ngspice", str(Path(tmp) / "missing-ngspice")])
+            self.assertEqual(code, 0)
+            summary = json.loads((output / "summary.json").read_text())
+            sweep = json.loads((output / "sweep.json").read_text())
+            self.assertEqual(sweep["status"], "TOOL_UNAVAILABLE")
+            self.assertEqual(sweep["attempted_case_count"], 19)
+            self.assertEqual(sweep["executed_case_count"], 0)
+            self.assertEqual(sweep["not_modeled_axes"], [])
+            temperature = next(c for c in sweep["cases"] if "temperature_c_assumption" in c["overrides"])
+            self.assertEqual(temperature["temperature_model"]["definition"], assumptions["temperature_model"])
+            self.assertEqual(summary["sweep"], sweep)
+            self.assertEqual(temperature["status"], "TOOL_UNAVAILABLE")
 
     def test_cli_requires_and_records_repeat_period_provenance(self):
         with tempfile.TemporaryDirectory() as tmp:
