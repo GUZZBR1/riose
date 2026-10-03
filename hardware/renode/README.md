@@ -131,3 +131,39 @@ skipped unless an ELF path is provided. A valid firmware ELF must be compiled
 for a compatible STM32L0 memory map and peripheral base addresses. The current
 board profile and Renode surrogate mismatch must be reviewed before wiring this
 into required CI.
+
+## Firmware wake-up scenario status
+
+The Renode platform uses `Riose.LIS2DW12WakeModel`, a thin adapter over
+Renode's upstream `Sensors.LIS2DW12`. It preserves upstream sample and RESD
+ingestion while adding an explicitly **SIMULATED** wake-event hook:
+`TriggerWakeup` latches `WAKE_UP_SRC.WU_IA` until that source register is read,
+then clears the pending event. The adapter routes the event through the
+sensor's inherited `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
+`CTRL7.INTERRUPTS_ENABLE` are both enabled; the platform connects that line to
+MCU PA8. The shim does not calculate threshold crossings, wake timing, or
+physical sensor dynamics. It is virtual IRQ plumbing, not a measured or
+datasheet-validated wake simulation.
+
+The optional Robot firmware case runs only when `RIOSE_ZEPHYR_ELF` is set. Use
+`boards/nucleo_l031k6_renode.conf` in addition to the physical board profile:
+it disables Zephyr PM so the STM32L071 surrogate can use its modeled periodic
+timer instead of the physical board's RTC/STOP idle path. This remains an
+STM32L071 proxy, not an exact STM32L031K6 model.
+
+The Robot suite covers both the adapter and the complete Zephyr firmware cycle.
+With the fresh Renode-profile ELF, it confirms the firmware returns to `SLEEP`
+after its first beacon. At the 250 ms checkpoint the radio reports one TX, one
+RX timeout, last command `SetSleep` (`0x84`), zero model faults, and sleep mode.
+The test then triggers the explicitly simulated wake event, verifies the
+sensor IRQ reaches PA8, and checks the model observes exactly one firmware
+read that consumes `WAKE_UP_SRC.WU_IA`. The firmware returns to `SLEEP` and the
+source IRQ is cleared.
+
+The firmware integration initially failed because PA11, the board's active-low
+SPI chip select, was not connected to the SX1262 model's chip-select GPIO. The
+model consequently kept later SPI command bytes in the first `SetStandby`
+frame. Mapping PA11 to model GPIO1 and finishing the transaction on CS
+deassertion fixed the end-to-end path. Stack-size diagnostics at 2 KiB and
+3 KiB did not fix the pre-CS-routing failure. `native_sim` remains a separate
+software/model path and does not demonstrate electrical behavior.

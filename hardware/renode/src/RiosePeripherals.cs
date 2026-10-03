@@ -45,6 +45,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         private ushort dio3Mask;
         private uint txLatencyMs = 30;
         private uint txCount;
+        private uint rxCount;
+        private uint rxTimeoutCount;
         private uint faultCount;
         private uint rfFrequencyWord;
         private byte packetType;
@@ -81,6 +83,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         public uint TxLatencyMs { get => txLatencyMs; set => txLatencyMs = Math.Max(1u, value); }
         public uint FaultCount => faultCount;
         public uint TxCount => txCount;
+        public uint RxCount => rxCount;
+        public uint RxTimeoutCount => rxTimeoutCount;
         public byte LastOpcode => opcode;
         public byte CurrentMode => mode;
         public ushort IRQStatus => irqStatus;
@@ -241,8 +245,10 @@ namespace Antmicro.Renode.Peripherals.Riose
 
         public void OnGPIO(int number, bool value)
         {
-            // GPIO 0 is the external active-low reset pin.
+            // GPIO 0 is the external active-low reset; GPIO 1 is active-low
+            // chip select, so a high level ends the current SPI command.
             if(number == 0 && !value) Reset();
+            else if(number == 1 && value) FinishTransmission();
         }
 
         public void Reset()
@@ -257,7 +263,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             mode = 0x20;
             commandStatus = CmdOk;
             irqStatus = irqMask = dio1Mask = dio2Mask = dio3Mask = 0;
-            txCount = faultCount = rfFrequencyWord = 0;
+            txCount = rxCount = rxTimeoutCount = faultCount = rfFrequencyWord = 0;
             packetType = txPower = rampTime = txBase = rxBase = 0;
             selected = operationIsRx = operationTimesOut = false;
             holdBusy = suppressIRQ = dropSPI = dio2RfSwitchEnabled = false;
@@ -306,6 +312,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             }
 
             operationIsRx = isRx;
+            if(isRx) rxCount++;
             ulong requestedTicks = ReadTimeoutTicks();
             ulong latencyTicks = (ulong)TxLatencyMs * TicksPerMillisecond;
             if(isRx && requestedTicks == 0) requestedTicks = ContinuousRxWindowTicks;
@@ -326,6 +333,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         {
             mode = 0x20;
             irqStatus |= operationTimesOut ? IrqTimeout : operationIsRx ? IrqTimeout : IrqTxDone;
+            if(operationIsRx) rxTimeoutCount++;
             commandStatus = operationTimesOut ? CmdTimeout : CmdOk;
             UpdatePins();
         }
@@ -347,6 +355,152 @@ namespace Antmicro.Renode.Peripherals.Riose
             Busy.Set(HoldBusy || mode == 0x60 || mode == 0x50);
             UpdateIRQ();
         }
+    }
+
+    // Extends Renode's upstream LIS2DW12 data/RESD model with an explicit,
+    // deterministic wake-event hook for firmware integration tests. The hook
+    // represents a SIMULATED sensor event; it does not model threshold
+    // dynamics, timing, or a measured physical wake source.
+    public sealed class LIS2DW12WakeModel : Sensors.LIS2DW12, II2CPeripheral
+    {
+        public LIS2DW12WakeModel(IMachine machine) : base(machine)
+        {
+            // The upstream implementation initializes the output scale only
+            // from Reset(); do so explicitly for platforms that do not reset
+            // devices during construction before the first sample-register read.
+            base.Reset();
+        }
+
+        public bool WakeupIRQAsserted => wakeupIRQAsserted;
+        public uint WakeupEventReadCount => wakeupEventReadCount;
+
+        public new void Write(byte[] data)
+        {
+            if(data != null && data.Length > 0)
+            {
+                registerPointer = (byte)(data[0] & 0x3F);
+                pointerSet = true;
+            }
+
+            // The sensor's serial protocol uses bit 7 of the subaddress as
+            // the multi-read flag (the firmware sends 0xA8 for OUT_X_L).
+            // The upstream model expects a plain register number, so strip
+            // protocol flags before forwarding while retaining its native
+            // register auto-increment behavior from CTRL2.IF_ADD_INC.
+            var upstreamData = (byte[])data.Clone();
+            upstreamData[0] &= 0x3F;
+            base.Write(upstreamData);
+            if(data != null && data.Length > 1 && AutoIncrement())
+            {
+                registerPointer = (byte)((registerPointer + data.Length - 1) & 0x3F);
+            }
+            if(data != null && data.Length > 1)
+            {
+                var writtenRegister = (byte)(data[0] & 0x3F);
+                for(var i = 1; i < data.Length; i++)
+                {
+                    if(writtenRegister == Control4Register)
+                    {
+                        control4 = data[i];
+                    }
+                    else if(writtenRegister == Control7Register)
+                    {
+                        control7 = data[i];
+                    }
+                    if(AutoIncrement()) writtenRegister = (byte)((writtenRegister + 1) & 0x3F);
+                }
+            }
+            UpdateWakeupIRQ();
+        }
+
+        public new byte[] Read(int count = 1)
+        {
+            var result = base.Read(count);
+            if(!pointerSet) registerPointer = 0;
+
+            for(var i = 0; i < result.Length; i++)
+            {
+                if(registerPointer == WakeupSourceRegister && wakeupPending)
+                {
+                    // The base model declares WU_IA but does not currently
+                    // generate wake events. Overlay the pending virtual source
+                    // bit in the returned register value until this read.
+                    result[i] |= WakeupInterruptActive;
+                    wakeupPending = false;
+                    wakeupEventReadCount++;
+                    UpdateWakeupIRQ();
+                }
+                if(AutoIncrement()) registerPointer = (byte)((registerPointer + 1) & 0x3F);
+            }
+            return result;
+        }
+
+        public new void FinishTransmission() => base.FinishTransmission();
+
+        public void TriggerWakeup()
+        {
+            wakeupPending = true;
+            UpdateWakeupIRQ();
+        }
+
+        public new void Reset()
+        {
+            base.Reset();
+            wakeupPending = false;
+            wakeupIRQAsserted = false;
+            wakeupEventReadCount = 0;
+            upstreamIRQAsserted = false;
+            control4 = 0;
+            control7 = 0;
+            registerPointer = 0;
+            pointerSet = false;
+        }
+
+        private bool AutoIncrement() => (RegistersCollection.Read(Control2Register) & AutoIncrementMask) != 0;
+
+        private void UpdateWakeupIRQ()
+        {
+            var routeEnabled =
+                (control4 & WakeupRouteMask) != 0 &&
+                (control7 & InterruptsEnableMask) != 0;
+            var shouldAssertWakeupIRQ = wakeupPending && routeEnabled;
+            if(shouldAssertWakeupIRQ)
+            {
+                if(!wakeupIRQAsserted)
+                {
+                    // Preserve an upstream interrupt that was already active
+                    // before the simulated wake event took ownership of INT1.
+                    upstreamIRQAsserted = Interrupt1.IsSet;
+                }
+                Interrupt1.Set(true);
+            }
+            else if(wakeupIRQAsserted)
+            {
+                // Releasing our virtual source must not clear an unrelated
+                // upstream data-ready/FIFO interrupt on the same line.
+                Interrupt1.Set(upstreamIRQAsserted);
+                upstreamIRQAsserted = false;
+            }
+            wakeupIRQAsserted = shouldAssertWakeupIRQ;
+        }
+
+        private const byte Control2Register = 0x21;
+        private const byte Control4Register = 0x23;
+        private const byte WakeupSourceRegister = 0x38;
+        private const byte Control7Register = 0x3F;
+        private const byte AutoIncrementMask = 0x04;
+        private const byte WakeupRouteMask = 0x20;
+        private const byte InterruptsEnableMask = 0x20;
+        private const byte WakeupInterruptActive = 0x08;
+
+        private byte registerPointer;
+        private bool pointerSet;
+        private bool wakeupPending;
+        private bool wakeupIRQAsserted;
+        private uint wakeupEventReadCount;
+        private bool upstreamIRQAsserted;
+        private byte control4;
+        private byte control7;
     }
 
 }
