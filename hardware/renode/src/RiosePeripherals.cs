@@ -45,6 +45,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         private ushort dio3Mask;
         private uint txLatencyMs = 30;
         private uint txCount;
+        private uint rxCount;
+        private uint rxTimeoutCount;
         private uint faultCount;
         private uint rfFrequencyWord;
         private byte packetType;
@@ -81,6 +83,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         public uint TxLatencyMs { get => txLatencyMs; set => txLatencyMs = Math.Max(1u, value); }
         public uint FaultCount => faultCount;
         public uint TxCount => txCount;
+        public uint RxCount => rxCount;
+        public uint RxTimeoutCount => rxTimeoutCount;
         public byte LastOpcode => opcode;
         public byte CurrentMode => mode;
         public ushort IRQStatus => irqStatus;
@@ -241,8 +245,10 @@ namespace Antmicro.Renode.Peripherals.Riose
 
         public void OnGPIO(int number, bool value)
         {
-            // GPIO 0 is the external active-low reset pin.
+            // GPIO 0 is the external active-low reset; GPIO 1 is active-low
+            // chip select, so a high level ends the current SPI command.
             if(number == 0 && !value) Reset();
+            else if(number == 1 && value) FinishTransmission();
         }
 
         public void Reset()
@@ -257,7 +263,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             mode = 0x20;
             commandStatus = CmdOk;
             irqStatus = irqMask = dio1Mask = dio2Mask = dio3Mask = 0;
-            txCount = faultCount = rfFrequencyWord = 0;
+            txCount = rxCount = rxTimeoutCount = faultCount = rfFrequencyWord = 0;
             packetType = txPower = rampTime = txBase = rxBase = 0;
             selected = operationIsRx = operationTimesOut = false;
             holdBusy = suppressIRQ = dropSPI = dio2RfSwitchEnabled = false;
@@ -306,6 +312,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             }
 
             operationIsRx = isRx;
+            if(isRx) rxCount++;
             ulong requestedTicks = ReadTimeoutTicks();
             ulong latencyTicks = (ulong)TxLatencyMs * TicksPerMillisecond;
             if(isRx && requestedTicks == 0) requestedTicks = ContinuousRxWindowTicks;
@@ -326,6 +333,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         {
             mode = 0x20;
             irqStatus |= operationTimesOut ? IrqTimeout : operationIsRx ? IrqTimeout : IrqTxDone;
+            if(operationIsRx) rxTimeoutCount++;
             commandStatus = operationTimesOut ? CmdTimeout : CmdOk;
             UpdatePins();
         }
@@ -364,6 +372,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         }
 
         public bool WakeupIRQAsserted => wakeupIRQAsserted;
+        public uint WakeupEventReadCount => wakeupEventReadCount;
 
         public new void Write(byte[] data)
         {
@@ -418,6 +427,7 @@ namespace Antmicro.Renode.Peripherals.Riose
                     // bit in the returned register value until this read.
                     result[i] |= WakeupInterruptActive;
                     wakeupPending = false;
+                    wakeupEventReadCount++;
                     UpdateWakeupIRQ();
                 }
                 if(AutoIncrement()) registerPointer = (byte)((registerPointer + 1) & 0x3F);
@@ -438,6 +448,7 @@ namespace Antmicro.Renode.Peripherals.Riose
             base.Reset();
             wakeupPending = false;
             wakeupIRQAsserted = false;
+            wakeupEventReadCount = 0;
             upstreamIRQAsserted = false;
             control4 = 0;
             control7 = 0;
@@ -486,6 +497,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         private bool pointerSet;
         private bool wakeupPending;
         private bool wakeupIRQAsserted;
+        private uint wakeupEventReadCount;
         private bool upstreamIRQAsserted;
         private byte control4;
         private byte control7;

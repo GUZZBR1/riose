@@ -59,9 +59,21 @@ Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Execute Command    sysbus.i2c1.imu AccelerationZ 1
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
-    # The state machine schedules its first beacon immediately after its
-    # successful self-test, so the first radio TX is expected here.
-    Firmware State Should Be    4
+    # The simulator completes TX and the bounded RX window within this
+    # interval, so the state machine should already have returned to sleep.
+    Firmware State Should Be    2
+    ${first_tx_count}=    Execute Command    sysbus.spi1.radio TxCount
+    ${first_tx_opcode}=    Execute Command    sysbus.spi1.radio LastOpcode
+    ${first_tx_faults}=    Execute Command    sysbus.spi1.radio FaultCount
+    ${first_tx_mode}=    Execute Command    sysbus.spi1.radio CurrentMode
+    ${first_rx_count}=    Execute Command    sysbus.spi1.radio RxCount
+    ${first_rx_timeout}=    Execute Command    sysbus.spi1.radio RxTimeoutCount
+    Should Be Equal As Integers    ${first_tx_count}    1
+    Should Be Equal As Integers    ${first_tx_opcode}    84    base=16
+    Should Be Equal As Integers    ${first_tx_faults}    0
+    Should Be Equal As Integers    ${first_tx_mode}    00    base=16
+    Should Be Equal As Integers    ${first_rx_count}    1
+    Should Be Equal As Integers    ${first_rx_timeout}    1
     Execute Command    emulation RunFor "2.0"
     Firmware State Should Be    2
     Execute Command    sysbus.i2c1.imu TriggerWakeup
@@ -70,8 +82,12 @@ Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Should Be Equal    ${irq}    True
     ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
     Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+    ${wake_reads_before}=    Execute Command    sysbus.i2c1.imu WakeupEventReadCount
     Execute Command    emulation RunFor "5.1"
     Firmware State Should Be    2
+    ${wake_reads_after}=    Execute Command    sysbus.i2c1.imu WakeupEventReadCount
+    ${expected_wake_reads}=    Evaluate    int($wake_reads_before.strip(), 0) + 1
+    Should Be Equal As Integers    ${wake_reads_after}    ${expected_wake_reads}
     ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
     ${irq}=    Strip String    ${irq}
     Should Be Equal    ${irq}    False

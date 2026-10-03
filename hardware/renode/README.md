@@ -151,25 +151,19 @@ it disables Zephyr PM so the STM32L071 surrogate can use its modeled periodic
 timer instead of the physical board's RTC/STOP idle path. This remains an
 STM32L071 proxy, not an exact STM32L031K6 model.
 
-The adapter-only Robot case validates INT1 routing to PA8 and the
-`WAKE_UP_SRC` read-to-clear behavior. The full firmware case is still not
-validated. With the local Zephyr 4.2.1 / Renode 1.17.0 setup, the fresh
-Renode-profile ELF starts its first beacon in `RF_TX` as expected but does not
-return to `SLEEP` after a further 2 seconds. A GDB breakpoint at Zephyr's
-`z_arm_fault` shows `EXC_RETURN=0xFFFFFFFD` selecting PSP `0x20000730`, whose
-stacked PC and xPSR are both zero. Renode also reports `CFSR=0x00020000` and
-`HFSR=0x40000000`; since the target is Cortex-M0+ / ARMv6-M, these register
-values are observations and are not used here to label a configurable
-UsageFault. The fault occurs before the test injects a wake event, so firmware
-sleep and IRQ handling remain unproven. The state assertion is intentionally
-retained, and a skipped case is likewise not evidence of boot, sleep, or IRQ
-handling. `native_sim` remains a separate software/model path and does not
-demonstrate Renode firmware execution or electrical behavior.
+The Robot suite covers both the adapter and the complete Zephyr firmware cycle.
+With the fresh Renode-profile ELF, it confirms the firmware returns to `SLEEP`
+after its first beacon. At the 250 ms checkpoint the radio reports one TX, one
+RX timeout, last command `SetSleep` (`0x84`), zero model faults, and sleep mode.
+The test then triggers the explicitly simulated wake event, verifies the
+sensor IRQ reaches PA8, and checks the model observes exactly one firmware
+read that consumes `WAKE_UP_SRC.WU_IA`. The firmware returns to `SLEEP` and the
+source IRQ is cleared.
 
-As a diagnostic, the Renode profile's main stack was raised from the physical
-board fragment's 1 KiB to 2 KiB and then 3 KiB. The same state assertion failed
-at both sizes. `hello_world`, a `k_msleep(2/5)` probe, and a bounded
-`k_sem_take` plus `k_sleep` probe passed for 2 seconds on the same platform.
-The profile keeps the project's 2 KiB `prj.conf` value; the 3 KiB diagnostic
-used 5,000 of 8,192 bytes of RAM. These checks narrow the failure to the full
-firmware path, but do not identify its exact cause.
+The firmware integration initially failed because PA11, the board's active-low
+SPI chip select, was not connected to the SX1262 model's chip-select GPIO. The
+model consequently kept later SPI command bytes in the first `SetStandby`
+frame. Mapping PA11 to model GPIO1 and finishing the transaction on CS
+deassertion fixed the end-to-end path. Stack-size diagnostics at 2 KiB and
+3 KiB did not fix the pre-CS-routing failure. `native_sim` remains a separate
+software/model path and does not demonstrate electrical behavior.

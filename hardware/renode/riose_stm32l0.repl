@@ -32,4 +32,5 @@ imu:
     Interrupt1 -> gpioPortA@8
 
 gpioPortA:
+    11 -> radio@1
     12 -> radio@0
