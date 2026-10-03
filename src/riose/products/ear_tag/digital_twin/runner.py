@@ -188,12 +188,51 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     zephyr_elf: Path | None = Path(os.environ["RIOSE_ZEPHYR_ELF"]) if os.environ.get("RIOSE_ZEPHYR_ELF") else None
     dump_json(dirs["integration"] / "preflight.json", env)
     motion = generate_motion_profiles(dirs["firmware"] / "motion_profiles.csv", seed=seed)
+    dataset_names = ("STATIC", "WALK", "RUN", "IMPACT", "RANDOM_MOVEMENT")
+    dataset_manifest = ROOT / "hardware" / "models" / "lis2dw12" / "datasets" / "manifest.json"
+    dataset_script = ROOT / "hardware" / "renode" / "scripts" / "dataset_to_resd.py"
+    dataset_dir = dirs["firmware"] / "lis2dw12-datasets"
+    dataset_results: dict[str, dict[str, Any]] = {}
+    renode_command = env.get("commands", {}).get("renode")
+    if renode_command and dataset_script.is_file() and dataset_manifest.is_file():
+        renode_root = Path(renode_command).resolve().parent
+        for dataset_name in dataset_names:
+            dataset_output = dataset_dir / f"{dataset_name.lower()}.resd"
+            converted = _run_command(
+                "lis2dw12_dataset",
+                [sys.executable, str(dataset_script), dataset_name,
+                 "--manifest", str(dataset_manifest), "--output", str(dataset_output),
+                 "--renode-home", str(renode_root)],
+                ROOT, timeout_s=120,
+            )
+            metadata_path = dataset_output.with_suffix(dataset_output.suffix + ".json")
+            valid = converted["status"] == "PASSED" and dataset_output.is_file() and metadata_path.is_file()
+            dataset_results[dataset_name] = {
+                "status": "COMPLETED" if valid else "FAILED",
+                "output": str(dataset_output) if valid else None,
+                "metadata": str(metadata_path) if valid else None,
+                "detail": converted.get("stderr", "")[-1200:] if not valid else "SIMULATED dataset converted and validated",
+            }
+    else:
+        dataset_results = {name: {"status": "NOT_AVAILABLE", "detail": "Renode and dataset converter are required"}
+                           for name in dataset_names}
+    datasets_complete = all(item.get("status") == "COMPLETED" for item in dataset_results.values())
+    lis2dw12_stage = {
+        "status": "PARTIAL" if datasets_complete else "FAILED",
+        "required": True, "result_class": "SIMULATED_SENSOR_DATA",
+        "provenance": "SIMULATED", "profiles": dataset_results,
+        "detail": ("All five acceleration datasets converted to checked Renode RESD files and STATIC/WALK were "
+                   "loaded during firmware I2C reads, but raw sample-value propagation is not validated (observed Z=0)")
+        if datasets_complete
+        else "One or more LIS2DW12 datasets could not be converted; Renode sensor integration is incomplete",
+    }
     from hardware.antenna.sionna_experiment import run_experiment as run_sionna_experiment
     sionna = run_sionna_experiment(dirs["antenna"] / "sionna", spec_path=spec_path,
                                   capabilities=env["gpu"])
 
     stages: dict[str, dict[str, Any]] = {
         "synthetic_motion": motion,
+        "lis2dw12_datasets": lis2dw12_stage,
         "gpu_optional": {**env["gpu"], "required": False,
                           "result_class": "ENVIRONMENT_CAPABILITY_ONLY",
                           "experiment_status": sionna["status"],
@@ -213,9 +252,12 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     zephyr_base = os.environ.get("ZEPHYR_BASE")
     if env["commands"].get("west") and zephyr_base and Path(zephyr_base).is_dir():
+        renode_conf = ROOT / "hardware" / "firmware" / "zephyr" / "boards" / "nucleo_l031k6_renode.conf"
         zephyr_build = _run_command("zephyr_build", [env["commands"]["west"], "build",
             "-b", "nucleo_l031k6", str(ROOT / "hardware" / "firmware" / "zephyr"),
-            "-d", str(dirs["firmware"] / "zephyr-build")], ROOT, timeout_s=1800)
+            "-d", str(dirs["firmware"] / "zephyr-build"), "--",
+            f"-DEXTRA_CONF_FILE={renode_conf}"],
+            ROOT, timeout_s=1800)
         elf = dirs["firmware"] / "zephyr-build" / "zephyr" / "zephyr.elf"
         elf_built = zephyr_build["status"] == "PASSED" and elf.is_file()
         if elf_built:
@@ -235,14 +277,57 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         robot_env = os.environ.copy()
         if firmware_configured and zephyr_elf is not None:
             robot_env["RIOSE_ZEPHYR_ELF"] = str(zephyr_elf.resolve())
+        if datasets_complete:
+            robot_env["RIOSE_LIS2DW12_STATIC_RESD"] = dataset_results["STATIC"]["output"]
+            robot_env["RIOSE_LIS2DW12_WALK_RESD"] = dataset_results["WALK"]["output"]
         check = _run_command("renode_smoke", [env["commands"]["renode-test"], str(robot)], ROOT,
                              timeout_s=180, env=robot_env)
         output_text = check.get("stdout", "") + check.get("stderr", "")
-        check["status"] = "PASSED" if check["status"] == "PASSED" and firmware_configured else (
-            "PARTIAL" if check["status"] == "PASSED" else check["status"]
+        required_robot_cases = ("Firmware Boots Sleeps Services IRQ And Returns To Sleep",
+                                "Firmware Reads LIS2DW12 While STATIC RESD Is Loaded",
+                                "Firmware Reads LIS2DW12 While WALK RESD Is Loaded")
+        robot_cases_passed = all(
+            any(case in line and "Finished test" in line and "OK" in line
+                and "skipped" not in line.lower()
+                for line in output_text.splitlines())
+            for case in required_robot_cases
         )
-        check["detail"] = ("Renode platform smoke and Zephyr ELF execution completed" if firmware_configured
-                            else "Renode platform/peripheral smoke ran; firmware execution is pending RIOSE_ZEPHYR_ELF")
+        observed_raw_z: dict[str, int] = {}
+        for profile in ("STATIC", "WALK"):
+            marker = f"SIMULATED_{profile}_RESD_RAW_Z="
+            for line in output_text.splitlines():
+                if marker in line:
+                    value_text = line.split(marker, 1)[1].strip().split()[0].strip(",;")
+                    try:
+                        observed_raw_z[profile] = int(value_text, 0)
+                    except ValueError:
+                        pass
+        dataset_values_verified = (
+            14500 <= observed_raw_z.get("STATIC", 0) < 18000
+            and observed_raw_z.get("WALK", 0) > 17500
+        )
+        if datasets_complete and robot_cases_passed and dataset_values_verified:
+            lis2dw12_stage["status"] = "COMPLETED"
+            lis2dw12_stage["detail"] = "All five RESD profiles converted; firmware consumed distinct STATIC/WALK outputs"
+            lis2dw12_stage["observed_raw_z"] = observed_raw_z
+        elif datasets_complete:
+            lis2dw12_stage["status"] = "PARTIAL"
+            lis2dw12_stage["detail"] = (
+                "All five RESD profiles converted and firmware read the sensor, but distinct STATIC/WALK values "
+                f"were not verified (raw Z observations: {observed_raw_z or 'missing'})"
+            )
+            lis2dw12_stage["observed_raw_z"] = observed_raw_z
+        if check["status"] == "PASSED" and firmware_configured and datasets_complete and robot_cases_passed:
+            check["status"] = "PASSED"
+            check["detail"] = ("Renode firmware sleep/wake cycle passed; STATIC/WALK RESD were loaded and the firmware "
+                               "read the sensor, but raw dataset-value propagation remains unverified")
+        elif check["status"] == "PASSED":
+            check["status"] = "PARTIAL"
+            check["detail"] = ("Renode platform smoke ran, but firmware, LIS2DW12 dataset conversion, or required Robot cases "
+                               "were not fully validated")
+        if not datasets_complete:
+            check["status"] = "FAILED"
+            check["detail"] = lis2dw12_stage["detail"]
         check["firmware_elf_supplied"] = firmware_configured
         check["firmware_elf"] = str(zephyr_elf.resolve()) if firmware_configured and zephyr_elf else None
         check["log_excerpt"] = output_text[-1000:]
@@ -481,7 +566,14 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     antenna_manifest = dirs["antenna"] / "antenna_experiments.json"
     antenna_csv = dirs["antenna"] / "antenna.csv"
     _clear_previous_outputs(antenna_manifest, antenna_csv)
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
+    antenna_env = os.environ.copy()
+    if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
+            and env["modules"].get("CSXCAD")):
+        # The repository ships this adapter. Select it automatically when the
+        # matching solver bindings are present so the one-command twin run
+        # actually attempts openEMS instead of stopping at ADAPTER_NOT_CONFIGURED.
+        antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
+    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800, env=antenna_env)
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
@@ -505,6 +597,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     power_scenarios: dict[str, dict[str, Any]] = {}
     schedule_statuses: dict[str, str] = {}
+    schedule_details: dict[str, dict[str, Any]] = {}
     if scenario_traces and (ROOT / "hardware" / "spice" / "trace_adapter.py").exists():
         loads_path = dirs["power"] / "assumed_load_profile.json"
         dump_json(loads_path, _power_load_profile(spec))
@@ -518,9 +611,15 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             adapted = _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
             if adapted["status"] != "PASSED" or not schedule_path.is_file():
                 schedule_statuses[scenario] = "FAILED"
-                power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": "Trace conversion failed"}
+                detail = adapted.get("stderr") or adapted.get("detail") or "trace adapter did not produce a schedule"
+                schedule_details[scenario] = {
+                    "status": adapted["status"], "return_code": adapted.get("return_code"),
+                    "detail": detail[-2000:], "command": adapted.get("command"),
+                }
+                power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": detail[-2000:]}
                 continue
             schedule_statuses[scenario] = "PASSED"
+            schedule_details[scenario] = {"status": "PASSED", "path": str(schedule_path)}
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
                          "--output", str(scenario_dir)]
@@ -581,7 +680,8 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             status == "PASSED" for status in schedule_statuses.values()
         )
         stages["trace_schedule"] = {"status": "PASSED" if schedules_complete else "FAILED",
-                                     "required": True, "scenarios": schedule_statuses}
+                                     "required": True, "scenarios": schedule_statuses,
+                                     "details": schedule_details}
     else:
         stages["power"] = {"status": "NOT_AVAILABLE", "required": True,
                             "detail": "Firmware traces and the trace-to-power adapter are required"}
@@ -621,7 +721,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         writer.writerows(failures)
 
     gate = evaluate_gate(spec, stages, required_stage_names=(
-        "zephyr_firmware", "renode_firmware", "long_duration_1_7_30_days",
+        "zephyr_firmware", "renode_firmware", "lis2dw12_datasets", "long_duration_1_7_30_days",
         "timer_and_sequence_rollover", "adversarial_fault_injection", "four_power_scenarios", "mechanical",
         "antenna", "power",
     ))

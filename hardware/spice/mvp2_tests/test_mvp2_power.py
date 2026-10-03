@@ -339,6 +339,7 @@ class TraceDrivenPowerTests(unittest.TestCase):
                 self.assertEqual(power.main([
                     str(schedule), "--period-s", "10", "--period-source", "test fixture",
                     "--period-status", "ASSUMED",
+                    "--ngspice", str(Path(tmp) / "missing-ngspice"),
                     "--output", str(output)]), 0)
             summary = json.loads((output / "summary.json").read_text())
             self.assertEqual(summary["repeat_period_provenance"]["source"], "test fixture")

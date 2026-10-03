@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 
 import pytest
@@ -214,6 +215,31 @@ def test_motion_inputs_are_seeded_and_explicitly_synthetic(tmp_path):
     assert "animal_measurement" in first.read_text()
 
 
+def test_motion_dataset_profiles_include_seed_rate_units_and_simulated_status(tmp_path):
+    output = tmp_path / "motion.csv"
+    metadata = generate_motion_profiles(output, seed=31, sample_rate_hz=25.0,
+                                        samples_per_profile=3)
+    with output.open(newline="", encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))
+
+    profiles = {row["profile"] for row in rows}
+    assert profiles == {"STATIC", "WALK", "RUN", "IMPACT", "RANDOM_MOVEMENT"}
+    assert len(rows) == 15
+    assert set(rows[0]) >= {"timestamp_s", "sample_rate_hz", "seed", "x_mg", "y_mg", "z_mg",
+                            "status", "animal_measurement"}
+    assert all(row["sample_rate_hz"] == "25.0" for row in rows)
+    assert all(row["seed"] == "31" for row in rows)
+    assert all(row["status"] == "SIMULATED" for row in rows)
+    assert all(row["animal_measurement"] == "False" for row in rows)
+    assert metadata["profiles"] == sorted(profiles, key=("STATIC", "WALK", "RUN", "IMPACT", "RANDOM_MOVEMENT").index)
+    assert metadata["sample_rate_hz"] == 25.0
+    assert metadata["seed"] == 31
+    assert metadata["result_class"] == "SIMULATED"
+    assert metadata["physical_hardware_used"] is False
+    assert all(float(row["timestamp_s"]) == pytest.approx(int(row["sample_index"]) / 25.0)
+               for row in rows)
+
+
 def test_preflight_reports_versions_without_requiring_optional_solvers():
     report = preflight()
     assert report["status"] == "ENVIRONMENT_PROBE_ONLY"
@@ -254,15 +280,21 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
 
     shutil.copy2(ROOT / "hardware/spec.yaml", tmp_path / "spec.yaml")
     (tmp_path / "docs").mkdir()
+    (tmp_path / "zephyr").mkdir()
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(runner, "ROOT", tmp_path)
     monkeypatch.setattr(runner, "preflight", lambda: {
-        "platform": "test", "commands": {}, "modules": {}, "gpu": {"GPU_AVAILABLE": False},
+        "platform": "test", "commands": {"west": "west"},
+        "modules": {"openEMS": True, "CSXCAD": True},
+        "gpu": {"GPU_AVAILABLE": False},
     })
+    monkeypatch.setenv("ZEPHYR_BASE", str(tmp_path / "zephyr"))
     commands = []
+    command_envs = {}
 
     def unavailable(name, command, cwd, **kwargs):
         commands.append((name, command, cwd))
+        command_envs[name] = kwargs.get("env")
         return {"status": "NOT_AVAILABLE", "detail": "test stub", "required": True}
 
     monkeypatch.setattr(runner, "_run_command", unavailable)
@@ -275,6 +307,10 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     output_argument = antenna_command[antenna_command.index("--output") + 1]
     assert Path(spec_argument).is_absolute()
     assert Path(output_argument).is_absolute()
+    assert command_envs["antenna"]["RIOSE_OPENEMS_ADAPTER"] == "hardware.antenna.openems_adapter"
+    zephyr_command = next(command for name, command, _ in commands if name == "zephyr_build")
+    assert any(argument.startswith("-DEXTRA_CONF_FILE=") and argument.endswith("nucleo_l031k6_renode.conf")
+               for argument in zephyr_command)
 
 
 def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():

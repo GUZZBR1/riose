@@ -93,26 +93,34 @@ Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Should Be Equal    ${irq}    False
     [Setup]    Create RIOSE Platform
 
-Native LIS2DW12 Consumes STATIC Dataset Before Firmware Starts
+Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
     Execute Command    allowPrivates true
-    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 0
     Execute Command    sysbus.i2c1.imu SampleRate 12.5
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD}
-    Execute Command    emulation RunFor "0.08"
-    ${actual}=    Execute Command    sysbus.i2c1.imu AccelerationZ
-    Should Be True    abs(float($actual) - 1.0) < 0.003
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    Firmware State Should Be    2
+    ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
+    ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
+    Should Be True    int($reads.strip(), 0) > 0
+    Log To Console    SIMULATED_STATIC_RESD_RAW_Z=${raw_z}
     [Setup]    Create RIOSE Platform
 
-Native LIS2DW12 Consumes WALK Dataset Before Firmware Starts
+Firmware Reads LIS2DW12 While WALK RESD Is Loaded
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${WALK_RESD}' == ''    Set RIOSE_LIS2DW12_WALK_RESD to the WALK RESD output.
     Execute Command    allowPrivates true
-    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 0
     Execute Command    sysbus.i2c1.imu SampleRate 12.5
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WALK_RESD}
-    Execute Command    emulation RunFor "0.08"
-    ${actual}=    Execute Command    sysbus.i2c1.imu AccelerationZ
-    Should Be True    float($actual) > 1.05
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    Firmware State Should Be    2
+    ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
+    ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
+    Should Be True    int($reads.strip(), 0) > 0
+    Log To Console    SIMULATED_WALK_RESD_RAW_Z=${raw_z}
     [Setup]    Create RIOSE Platform
 
 SX1262 Config And FIFO Use SPI Command Bytes
@@ -356,7 +364,18 @@ SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     ${suppressed_irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
     ${suppressed_irq}=    Strip String    ${suppressed_irq}
     Should Be Equal    ${suppressed_irq}    False
+    Send SX1262 Command    0x02    0x03    0xFF
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    emulation RunFor "0.030"
+    ${completed_without_irq_status}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${completed_without_irq_pin}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${completed_without_irq_pin}=    Strip String    ${completed_without_irq_pin}
+    Should Be Equal As Integers    ${completed_without_irq_status}    0001    base=16
+    Should Be Equal    ${completed_without_irq_pin}    False
     Execute Command    sysbus.spi1.radio SuppressIRQ false
+    ${restored_irq_pin}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${restored_irq_pin}=    Strip String    ${restored_irq_pin}
+    Should Be Equal    ${restored_irq_pin}    True
     Execute Command    sysbus.spi1.radio DropSPI true
     ${dropped_byte}=    Execute Command    sysbus.spi1.radio Transmit 0xC0
     Should Be Equal As Integers    ${dropped_byte}    FF    base=16

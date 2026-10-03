@@ -368,6 +368,10 @@ def _run_resolution(candidate: dict[str, Any], scenario: str, out_dir: Path,
     # large native FDTD field arrays. Keep both actual dimensions and the
     # explicitly estimated (not guaranteed) memory footprint in evidence.
     mesh_budget = _mesh_budget(_mesh_count(csx))
+    (root / "mesh.json").write_text(
+        json.dumps({**mesh_budget, "resolution_mm": resolution_mm}, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     solver_log_path = root / "solver.log"
     with _capture_native_output(solver_log_path):
         fdtd.Run(str(sim_dir), cleanup=True, verbose=0, numThreads=1)
@@ -382,9 +386,27 @@ def _run_resolution(candidate: dict[str, Any], scenario: str, out_dir: Path,
     s11 = (np.asarray(port.uf_ref) / np.asarray(port.uf_inc)).reshape(-1)
     zin = (np.asarray(port.uf_tot) / np.asarray(port.if_tot)).reshape(-1)
     s11_db = 20 * np.log10(np.maximum(np.abs(s11), 1e-15))
+
+    # Keep the solver's sampled curves even when they do not bracket a valid
+    # resonance. They are diagnostic evidence, not accepted antenna metrics.
+    s11_path = root / "s11.csv"
+    with s11_path.open("w", newline="") as stream:
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(["frequency_hz", "s11_real", "s11_imag", "s11_db"])
+        writer.writerows((float(freq), float(np.real(gamma)), float(np.imag(gamma)), float(db))
+                         for freq, gamma, db in zip(f, s11, s11_db, strict=True))
+    impedance_path = root / "input_impedance.csv"
+    with impedance_path.open("w", newline="") as stream:
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(["frequency_hz", "real_ohm", "imag_ohm"])
+        writer.writerows((float(freq), float(z.real), float(z.imag))
+                         for freq, z in zip(f, zin, strict=True))
     idx = int(np.nanargmin(s11_db))
     if idx == 0 or idx == len(f) - 1:
-        raise RuntimeError("S11 minimum lies on the sweep boundary; resonance is not bracketed")
+        raise RuntimeError(
+            "S11 minimum lies on the sweep boundary; resonance is not bracketed; "
+            f"solver curve retained at {s11_path}"
+        )
     resonant = float(f[idx])
     theta = np.arange(0, 181, 5, dtype=float)
     phi = np.array([0.0, 90.0, 180.0, 270.0])
@@ -398,17 +420,6 @@ def _run_resolution(candidate: dict[str, Any], scenario: str, out_dir: Path,
     gain_dbi = directivity_dbi + 10 * math.log10(efficiency) if efficiency > 0 else math.nan
     vswr = (1 + abs(s11[idx])) / max(1 - abs(s11[idx]), 1e-15)
 
-    s11_path = root / "s11.csv"
-    with s11_path.open("w", newline="") as stream:
-        writer = csv.writer(stream, lineterminator="\n")
-        writer.writerow(["frequency_hz", "s11_real", "s11_imag", "s11_db"])
-        writer.writerows((float(freq), float(np.real(gamma)), float(np.imag(gamma)), float(db))
-                         for freq, gamma, db in zip(f, s11, s11_db))
-    impedance_path = root / "input_impedance.csv"
-    with impedance_path.open("w", newline="") as stream:
-        writer = csv.writer(stream, lineterminator="\n")
-        writer.writerow(["frequency_hz", "real_ohm", "imag_ohm"])
-        writer.writerows((float(freq), float(z.real), float(z.imag)) for freq, z in zip(f, zin))
     pattern_path = root / "radiation_pattern.csv"
     with pattern_path.open("w", newline="") as stream:
         writer = csv.writer(stream, lineterminator="\n")
@@ -444,6 +455,9 @@ def _run_resolution(candidate: dict[str, Any], scenario: str, out_dir: Path,
 
 def simulate(*, spec: dict[str, Any], scenario: str, output_dir: str) -> dict[str, Any]:
     """Run two actual openEMS meshes and fail closed unless their S11 agrees."""
+    root: Path | None = None
+    candidate: dict[str, Any] | None = None
+    geometry: dict[str, Any] | None = None
     try:
         candidate = describe_candidate(spec)
         root = Path(output_dir) / scenario
@@ -480,7 +494,31 @@ def simulate(*, spec: dict[str, Any], scenario: str, output_dir: str) -> dict[st
         return {"status": "COMPLETED", "detail": "openEMS simulated ASSUMED candidate; numerical mesh comparison passed; no physical validation",
                 "metrics": clean_metrics, "evidence": evidence}
     except Exception as exc:
-        return {"status": "FAILED", "detail": f"openEMS candidate simulation failed closed: {type(exc).__name__}: {exc}"}
+        result: dict[str, Any] = {
+            "status": "FAILED",
+            "detail": f"openEMS candidate simulation failed closed: {type(exc).__name__}: {exc}",
+        }
+        if root is not None and root.is_dir() and candidate is not None and geometry is not None:
+            mesh: dict[str, Any] = {}
+            raw_files = sorted(path.relative_to(root).as_posix()
+                               for path in root.rglob("*") if path.is_file())
+            for label, resolution in zip(("coarse", "fine"), SOLVER_RESOLUTIONS_MM, strict=True):
+                mesh_path = root / f"mesh_{resolution:g}mm" / "mesh.json"
+                if mesh_path.is_file():
+                    mesh[label] = json.loads(mesh_path.read_text(encoding="utf-8"))
+            result["evidence"] = {
+                "solver_version": _openems_version(),
+                "geometry_hash": _geometry_hash(geometry),
+                "geometry_status": "ASSUMED_UNVALIDATED",
+                "candidate_model_provenance": candidate["candidate_model_provenance"],
+                "geometry": geometry,
+                "mesh": mesh,
+                "converged": False,
+                "raw_solver_files": raw_files,
+                "model_limitations": candidate["limitations"],
+                "failure_detail": result["detail"],
+            }
+        return result
 
 
 def _openems_version() -> str:

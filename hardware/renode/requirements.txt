@@ -1,0 +1,2 @@
+# Required by Renode's bundled tools/csv2resd/csv2resd.py converter.
+construct==2.10.70

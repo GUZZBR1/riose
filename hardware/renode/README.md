@@ -84,11 +84,12 @@ inference. The Renode Robot suite drives the radio peripheral byte by byte and
 tests config, FIFO including address wrap, virtual TX_DONE and timeout, IRQ
 read/clear/routing, malformed frame sizes, reset, BUSY, and fault hooks. It does
 not verify STM32 SPI chip-select waveforms or a complete firmware recovery
-cycle. No Zephyr ELF was supplied in the test environment, so the optional
-firmware-load case is skipped.
+cycle. This was an earlier run before a Zephyr ELF was supplied; see the
+firmware wake-up scenario below for the current end-to-end result.
 
 ```sh
 python hardware/models/lis2dw12/generate_datasets.py --seed 20261002
+uv pip install --python "$(command -v python)" -r hardware/renode/requirements.txt
 python hardware/renode/scripts/dataset_to_resd.py STATIC --output /tmp/static.resd
 python hardware/renode/scripts/dataset_to_resd.py WALK --output /tmp/walk.resd
 RIOSE_LIS2DW12_STATIC_RESD=/tmp/static.resd \
@@ -96,10 +97,15 @@ RIOSE_LIS2DW12_WALK_RESD=/tmp/walk.resd \
 renode-test hardware/renode/tests/platform-smoke.robot
 ```
 
-The Robot sensor tests load each RESD before emulation starts and verify distinct
-acceleration outputs from the upstream model. They enable Renode's private
-peripheral commands before setting `SampleRate`; without `allowPrivates true`,
-the model retains a zero sample frequency and rejects RESD playback.
+The converter tests validate the RESD payloads and metadata, and the Robot tests
+load STATIC and WALK streams before emulation starts. In the current
+firmware-integrated run, Zephyr reads the LIS2DW12 output registers three times
+for each stream, but the observed raw Z value is `0x00000000` for both datasets.
+That demonstrates register-read activity only; dataset values have not been
+shown to propagate into firmware-visible samples, so the integration stage
+remains partial. The Robot tests enable Renode's private peripheral commands
+before setting `SampleRate`; without `allowPrivates true`, the model retains a
+zero sample frequency and rejects RESD playback.
 
 ## Headless use
 

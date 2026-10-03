@@ -373,6 +373,8 @@ namespace Antmicro.Renode.Peripherals.Riose
 
         public bool WakeupIRQAsserted => wakeupIRQAsserted;
         public uint WakeupEventReadCount => wakeupEventReadCount;
+        public uint OutputSampleReadCount => outputSampleReadCount;
+        public int LastOutputZRaw => lastOutputZRaw;
 
         public new void Write(byte[] data)
         {
@@ -418,6 +420,11 @@ namespace Antmicro.Renode.Peripherals.Riose
             var result = base.Read(count);
             if(!pointerSet) registerPointer = 0;
 
+            if(registerPointer == OutputXLowRegister && result.Length >= 6)
+            {
+                outputSampleReadCount++;
+                lastOutputZRaw = (short)(result[4] | (result[5] << 8));
+            }
             for(var i = 0; i < result.Length; i++)
             {
                 if(registerPointer == WakeupSourceRegister && wakeupPending)
@@ -449,6 +456,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             wakeupPending = false;
             wakeupIRQAsserted = false;
             wakeupEventReadCount = 0;
+            outputSampleReadCount = 0;
+            lastOutputZRaw = 0;
             upstreamIRQAsserted = false;
             control4 = 0;
             control7 = 0;
@@ -488,6 +497,7 @@ namespace Antmicro.Renode.Peripherals.Riose
         private const byte Control4Register = 0x23;
         private const byte WakeupSourceRegister = 0x38;
         private const byte Control7Register = 0x3F;
+        private const byte OutputXLowRegister = 0x28;
         private const byte AutoIncrementMask = 0x04;
         private const byte WakeupRouteMask = 0x20;
         private const byte InterruptsEnableMask = 0x20;
@@ -498,6 +508,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         private bool wakeupPending;
         private bool wakeupIRQAsserted;
         private uint wakeupEventReadCount;
+        private uint outputSampleReadCount;
+        private int lastOutputZRaw;
         private bool upstreamIRQAsserted;
         private byte control4;
         private byte control7;
