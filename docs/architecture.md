@@ -50,6 +50,7 @@ src/riose/
       firmware/                          # virtual tag state/energy model
       cli.py                             # command composition only
     ear_tag/
+      movement_datasets/                # external bovine accelerometer catalog and provenance-preserving adapters
       digital_twin/                      # spec, readiness gate, orchestration
     <future_product>/                    # independent domain and adapters
 
@@ -90,6 +91,12 @@ flowchart LR
   PREFLIGHT --> RUN
   RUN --> HW[Optional firmware, mechanical, antenna, power tools]
   RUN --> MVP2[results/mvp2 and digital-twin report]
+
+  RAW[Public bovine accelerometer files] --> ACQ[Explicit checksum-verified acquisition]
+  ACQ --> IMMUTABLE[Local raw file]
+  IMMUTABLE --> ADAPTER[ear_tag movement_datasets adapter]
+  ADAPTER --> CANONICAL[Canonical external movement samples]
+  ADAPTER --> EVIDENCE[Shared evidence bridge]
 ```
 
 The dashboard and CLI simulation paths share the same application pipeline.
@@ -101,6 +108,12 @@ tag/timestep and the newest observation for each tag/anchor/timestep; bounded
 history queries return the most recent samples in chronological order. The MVP2 runner records each optional
 tool's status and keeps missing external solvers visible in its report and
 readiness gate.
+
+The movement-dataset adapter is a separate ear-tag product capability. It
+reads external accelerometer files without modifying them, records source
+checksums and evidence provenance, and does not depend on the digital twin's
+simulated motion or on a behavior classifier. External neck/collar captures do
+not establish ear-tag validity.
 
 | User flow | Entry point | Persistent or generated output |
 |---|---|---|
