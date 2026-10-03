@@ -42,6 +42,7 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     antenna = stages.get("antenna", {})
     antenna_rows = antenna.get("scenarios", [])
     antenna_completed = sum(row.get("status") == "COMPLETED" for row in antenna_rows)
+    antenna_sweeps = stages.get("antenna_sweeps", {})
     mesh_refinement = antenna.get("mesh_refinement", {})
     failed_checks = mechanical.get("fit", {}).get("issues", [])
     if antenna_rows:
@@ -76,7 +77,15 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     for name, result in stages.items():
         detail = str(result.get("detail", result.get("notes", ""))).replace("|", "\\|").replace("\n", " ")
         lines.append(f"| {name} | {result.get('status', 'UNKNOWN')} | {detail} |")
-    lines += ["", "## Gate e bloqueadores", ""]
+    lines += ["", "## Sensibilidade da antena", "",
+              f"- Status: `{antenna_sweeps.get('status', 'NOT_AVAILABLE')}`; "
+              f"{antenna_sweeps.get('completed_case_count', 0)}/{antenna_sweeps.get('expected_case_count', 0)} "
+              "casos configurados concluídos.",
+              f"- Status por caso: `{json.dumps(antenna_sweeps.get('status_counts', {}), sort_keys=True)}`.",
+              f"- Artefato sweeps.csv: `{antenna_sweeps.get('csv_path') or 'NOT_AVAILABLE'}`.",
+              "Os sweeps são SIMULATED e não validam desempenho físico. Sensibilidade incompleta bloqueia READY; "
+              "Sionna continua opcional.",
+              "", "## Gate e bloqueadores", ""]
     if gate["blockers"]:
         lines += [f"- {item}" for item in gate["blockers"]]
     else:

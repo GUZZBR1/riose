@@ -25,6 +25,72 @@ from .spec import dump_json, evaluate_gate, load_spec, parameter_statuses
 DEFAULT_HARDWARE_TEST_BUILD_DIR = Path("/tmp/riose-ear-tag-hardware-tests-v2")
 
 
+def _antenna_sweep_result(spec: dict[str, Any], manifest: dict[str, Any],
+                          csv_path: Path, supported: bool) -> dict[str, Any]:
+    """Require every configured sensitivity case and its fresh CSV evidence."""
+    stage: dict[str, Any] = {
+        "status": "NOT_AVAILABLE", "required": True, "supported": supported,
+        "result_class": "NO_SIMULATION_RESULT", "csv_path": str(csv_path) if csv_path.is_file() else None,
+        "case_count": 0, "completed_case_count": 0, "expected_case_count": 0,
+        "status_counts": {},
+        "detail": "Antenna CLI does not advertise --sweeps; sensitivity remains unverified",
+    }
+    if not supported:
+        return stage
+    rows = manifest.get("sweeps", [])
+    if not isinstance(rows, list) or not rows or any(not isinstance(row, dict) for row in rows):
+        stage.update(status="FAILED", detail="Requested antenna sweeps are missing from the manifest")
+        return stage
+    stage["case_count"] = len(rows)
+    stage["completed_case_count"] = sum(row.get("status") == "COMPLETED" for row in rows)
+    stage["status_counts"] = {status: sum(row.get("status", "UNKNOWN") == status for row in rows)
+                              for status in sorted({str(row.get("status", "UNKNOWN")) for row in rows})}
+    stage["cases"] = rows
+    try:
+        config = spec["antenna"]["sweeps"]
+        expected = []
+        for axis in ("material", "thickness", "gap", "animal_orientation"):
+            entry = config[axis]
+            if not entry["values"]:
+                raise ValueError(f"empty sweep axis: {axis}")
+            expected.extend((entry["scenario"], entry["parameter"], float(item["value"]), item["unit"])
+                            for item in entry["values"])
+        stage["expected_case_count"] = len(expected)
+        actual = [(row["scenario"], row["parameter"], float(row["value"]), row["unit"]) for row in rows]
+        case_ids = [row["case_id"] for row in rows]
+        if (sorted(actual) != sorted(expected) or len(set(case_ids)) != len(rows)
+                or any(not isinstance(case_id, str) or not case_id for case_id in case_ids)):
+            raise ValueError("manifest cases do not match all configured sweeps")
+        for row in rows:
+            digest = row["input_hash_sha256"]
+            if (not isinstance(digest, str) or len(digest) != 64
+                    or any(char not in "0123456789abcdef" for char in digest)):
+                raise ValueError("missing or invalid sweep input hash")
+        with csv_path.open(newline="", encoding="utf-8") as stream:
+            csv_rows = list(csv.DictReader(stream))
+        stage["csv_path"] = str(csv_path)
+        csv_cases = [(row["case_id"], row["input_hash_sha256"], row["status"],
+                      row["scenario"], row["parameter"], float(row["value"]), row["unit"])
+                     for row in csv_rows]
+        manifest_cases = [(row["case_id"], row["input_hash_sha256"], row["status"],
+                           row["scenario"], row["parameter"], float(row["value"]), row["unit"])
+                          for row in rows]
+        if sorted(csv_cases) != sorted(manifest_cases):
+            raise ValueError("sweeps.csv cases or statuses disagree with the manifest")
+    except (KeyError, TypeError, ValueError, OSError, csv.Error) as exc:
+        stage.update(status="FAILED", detail=f"Incomplete antenna sweep evidence: {exc}")
+        return stage
+    completed = stage["completed_case_count"]
+    stage["status"] = ("COMPLETED" if completed == len(rows) else
+                       "NOT_AVAILABLE" if all(row.get("status") == "NOT_AVAILABLE" for row in rows)
+                       else "PARTIAL_OR_BLOCKED")
+    stage["result_class"] = "SIMULATED" if completed else "NO_SIMULATION_RESULT"
+    stage["detail"] = (f"{completed}/{len(expected)} configured sensitivity cases completed; "
+                       f"statuses: {json.dumps(stage['status_counts'], sort_keys=True)}; "
+                       "SIMULATED results do not validate physical RF performance")
+    return stage
+
+
 def hardware_integration_executable(environ: dict[str, str] | None = None) -> Path:
     """Resolve the same configurable C integration binary used by Makefile."""
     source = os.environ if environ is None else environ
@@ -565,15 +631,22 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                    "--output", str(dirs["antenna"])]
     antenna_manifest = dirs["antenna"] / "antenna_experiments.json"
     antenna_csv = dirs["antenna"] / "antenna.csv"
-    _clear_previous_outputs(antenna_manifest, antenna_csv)
+    antenna_sweeps_csv = dirs["antenna"] / "sweeps.csv"
+    _clear_previous_outputs(antenna_manifest, antenna_csv, antenna_sweeps_csv)
     antenna_env = os.environ.copy()
     if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
             and env["modules"].get("CSXCAD")):
-        # The repository ships this adapter. Select it automatically when the
-        # matching solver bindings are present so the one-command twin run
-        # actually attempts openEMS instead of stopping at ADAPTER_NOT_CONFIGURED.
+        # Preserve the configured adapter selection for compatible CLI implementations.
         antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
+    antenna_help = _run_command("antenna_capabilities",
+                               [sys.executable, "-m", "hardware.antenna.run", "--help"],
+                               ROOT, timeout_s=30, env=antenna_env)
+    sweeps_supported = (antenna_help.get("status") == "PASSED"
+                        and "--sweeps" in antenna_help.get("stdout", "").split())
+    if sweeps_supported:
+        antenna_cmd.append("--sweeps")
     ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800, env=antenna_env)
+    ant_json: dict[str, Any] = {}
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
@@ -595,6 +668,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         ant["status"] = "FAILED"
         ant["detail"] = "Antenna runner exited successfully without producing a manifest"
     stages["antenna"] = ant
+    stages["antenna_sweeps"] = _antenna_sweep_result(spec, ant_json, antenna_sweeps_csv, sweeps_supported)
 
     power_scenarios: dict[str, dict[str, Any]] = {}
     schedule_statuses: dict[str, str] = {}
@@ -724,7 +798,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     gate = evaluate_gate(spec, stages, required_stage_names=(
         "zephyr_firmware", "renode_firmware", "lis2dw12_datasets", "long_duration_1_7_30_days",
         "timer_and_sequence_rollover", "adversarial_fault_injection", "four_power_scenarios", "mechanical",
-        "antenna", "power",
+        "antenna", "antenna_sweeps", "power",
     ))
     summary = {"schema_version": "riose.mvp2.digital-twin/v1", "milestone": "MVP2_DIGITAL_TWIN",
                "result_class": "SIMULATED", "spec_path": str(spec_path), "spec_sha256": spec_hash,
@@ -733,7 +807,8 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                "outputs": {"root": str(output), "firmware": str(dirs["firmware"]),
                          "power": str(dirs["power"]), "antenna": str(dirs["antenna"]),
                          "mechanical": str(dirs["mechanical"]), "integration": str(dirs["integration"]),
-                         "failures_csv": str(output / "failures.csv")},
+                         "failures_csv": str(output / "failures.csv"),
+                         "antenna_sweeps_csv": stages["antenna_sweeps"]["csv_path"]},
                "physical_measurements_used": False, "gpu_issue": "OPTIONAL_GPU_EXPERIMENT"}
     dump_json(output / "summary.json", summary)
     _metrics_csv(output / "metrics.csv", stages)
