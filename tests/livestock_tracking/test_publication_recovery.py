@@ -11,6 +11,7 @@ from riose.products.livestock_tracking.adapters.persistence import Store
 from riose.products.livestock_tracking.application.publication_recovery import (
     LookupNotFound,
     LookupUnavailable,
+    NonAcceptanceEvidence,
     NonAcceptanceProofKind,
     ObservedConfirmed,
     ObservedSubmitted,
@@ -69,6 +70,27 @@ def observed_submitted(**overrides):
     }
     values.update(overrides)
     return ObservedSubmitted(**values)
+
+
+class AcceptOfflineProof:
+    def verify(self, snapshot, evidence):
+        return (
+            snapshot.attempt_id == evidence.attempt_id
+            and evidence.source == "offline-fixture"
+            and evidence.evidence_reference == "preflight-1"
+        )
+
+
+def nonacceptance(*, attempt_id="attempt-1", evidence_status=EvidenceStatus.VALIDATED):
+    return ProvenNonAcceptance(
+        NonAcceptanceEvidence(
+            attempt_id,
+            NonAcceptanceProofKind.NOT_SENT,
+            "offline-fixture",
+            "preflight-1",
+            evidence_status,
+        )
+    )
 
 
 def test_crash_after_submit_resolves_submitted_without_resending():
@@ -156,29 +178,35 @@ def test_not_found_never_proves_non_acceptance_but_explicit_proof_can_allow_retr
     )
     assert not_found.decision is RecoveryDecision.WAIT
 
-    no_authority = ProvenNonAcceptance(
-        "attempt-1", NonAcceptanceProofKind.NOT_SENT, caller_authorized_retry=False
-    )
-    waiting = PublicationRecoveryService(ScriptedRecoveryLookup([no_authority])).reconcile(
+    proof = nonacceptance()
+    waiting = PublicationRecoveryService(
+        ScriptedRecoveryLookup([proof]), AcceptOfflineProof()
+    ).reconcile(
         snapshot, now=71
     )
     assert waiting.decision is RecoveryDecision.WAIT
     assert waiting.reason is RecoveryReason.RETRY_NOT_AUTHORIZED
 
-    proof = ProvenNonAcceptance(
-        "attempt-1", NonAcceptanceProofKind.NOT_SENT, caller_authorized_retry=True
-    )
-    safe = PublicationRecoveryService(ScriptedRecoveryLookup([proof])).reconcile(snapshot, now=72)
+    safe = PublicationRecoveryService(
+        ScriptedRecoveryLookup([proof]), AcceptOfflineProof()
+    ).reconcile(snapshot, now=72, authorize_retry=True)
     assert safe.decision is RecoveryDecision.SAFE_TO_RETRY
     assert safe.reason is RecoveryReason.NON_ACCEPTANCE_PROVEN
-    assert safe.snapshot.publication == snapshot.publication
+    assert safe.snapshot.publication.attempt_condition is AttemptCondition.READY
+    assert safe.snapshot.publication.attempt_id == snapshot.publication.attempt_id
+    next_attempt = transition(
+        safe.snapshot.publication,
+        BeginAttempt("attempt-2", "fake-chain", "offline"),
+        PublicationPolicy(),
+        now=73,
+    )
+    assert next_attempt.decision is TransitionDecision.APPLIED
+    assert next_attempt.snapshot.attempt_count == 2
 
 
 def test_known_submission_cannot_be_reclassified_as_not_accepted():
     snapshot = RecoverySnapshot(attempted_snapshot(submitted=True))
-    proof = ProvenNonAcceptance(
-        "attempt-1", NonAcceptanceProofKind.NOT_SENT, caller_authorized_retry=True
-    )
+    proof = nonacceptance()
     result = PublicationRecoveryService(ScriptedRecoveryLookup([proof])).reconcile(
         snapshot, now=73
     )
@@ -209,19 +237,19 @@ def test_stale_pending_observation_does_not_downgrade_confirmation():
 
 def test_nonacceptance_requires_matching_attempt_and_available_attempt_budget():
     snapshot = RecoverySnapshot(attempted_snapshot(), max_attempts=1)
-    wrong_attempt = ProvenNonAcceptance(
-        "old-attempt", NonAcceptanceProofKind.NOT_SENT, caller_authorized_retry=True
-    )
-    invalid = PublicationRecoveryService(ScriptedRecoveryLookup([wrong_attempt])).reconcile(
+    wrong_attempt = nonacceptance(attempt_id="old-attempt")
+    invalid = PublicationRecoveryService(
+        ScriptedRecoveryLookup([wrong_attempt]), AcceptOfflineProof()
+    ).reconcile(
         snapshot, now=80
     )
     assert invalid.decision is RecoveryDecision.INVALID
 
-    proof = ProvenNonAcceptance(
-        "attempt-1", NonAcceptanceProofKind.NOT_SENT, caller_authorized_retry=True
-    )
-    exhausted = PublicationRecoveryService(ScriptedRecoveryLookup([proof])).reconcile(
-        snapshot, now=81
+    proof = nonacceptance()
+    exhausted = PublicationRecoveryService(
+        ScriptedRecoveryLookup([proof]), AcceptOfflineProof()
+    ).reconcile(
+        snapshot, now=81, authorize_retry=True
     )
     assert exhausted.decision is RecoveryDecision.WAIT
     assert exhausted.reason is RecoveryReason.ATTEMPT_BUDGET_EXHAUSTED
@@ -235,6 +263,51 @@ def test_query_budget_stops_reconciliation_without_calling_lookup():
     assert result.reason is RecoveryReason.QUERY_BUDGET_EXHAUSTED
     assert result.snapshot is snapshot
     assert not lookup.lookups
+
+
+def test_reusing_a_stale_snapshot_cannot_bypass_the_service_query_budget():
+    snapshot = RecoverySnapshot(attempted_snapshot(), query_budget=2)
+    lookup = ScriptedRecoveryLookup([LookupNotFound(), LookupNotFound()])
+    service = PublicationRecoveryService(lookup)
+    first = service.reconcile(snapshot, now=92)
+    assert first.snapshot.queries_used == 1
+    stale = service.reconcile(snapshot, now=93)
+    assert stale.decision is RecoveryDecision.UNAVAILABLE
+    assert stale.reason is RecoveryReason.STALE_RECOVERY_SNAPSHOT
+    assert len(lookup.lookups) == 1
+
+
+def test_unverified_nonacceptance_cannot_authorize_a_retry():
+    snapshot = RecoverySnapshot(attempted_snapshot())
+    result = PublicationRecoveryService(
+        ScriptedRecoveryLookup([nonacceptance()])
+    ).reconcile(snapshot, now=94, authorize_retry=True)
+    assert result.decision is RecoveryDecision.INVALID
+
+
+def test_simulated_nonacceptance_cannot_authorize_a_live_retry():
+    snapshot = RecoverySnapshot(attempted_snapshot())
+    result = PublicationRecoveryService(
+        ScriptedRecoveryLookup(
+            [nonacceptance(evidence_status=EvidenceStatus.SIMULATED)],
+        ),
+        AcceptOfflineProof(),
+    ).reconcile(snapshot, now=95, authorize_retry=True)
+    assert result.decision is RecoveryDecision.INVALID
+    assert result.reason is RecoveryReason.EVIDENCE_PROVENANCE_MISMATCH
+    assert result.snapshot.publication.attempt_condition is AttemptCondition.IN_FLIGHT
+
+
+def test_general_state_machine_cannot_release_an_interrupted_attempt_for_retry():
+    interrupted = attempted_snapshot()
+    result = transition(
+        interrupted,
+        BeginAttempt("attempt-2", "fake-chain", "offline"),
+        PublicationPolicy(),
+        now=96,
+    )
+    assert result.decision is TransitionDecision.REJECTED
+    assert result.snapshot == interrupted
 
 
 def test_invalid_observation_does_not_upgrade_simulated_evidence():

@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+import re
 import secrets
 import sqlite3
 import time
 from dataclasses import dataclass
-import math
 from typing import Any, Protocol
+
+from .contracts import EvidenceStatus
 
 
 EVENT_TYPES = frozenset({
@@ -27,6 +30,9 @@ def _finite_number(value: Any) -> bool:
         return math.isfinite(value)
     except OverflowError:
         return False
+
+
+_HASH_PATTERN = re.compile(r"[0-9a-f]{64}\Z", re.ASCII)
 
 
 class BlockchainAdapter(Protocol):
@@ -49,6 +55,32 @@ class AnimalEvent:
     previous_hash: str
     hash: str
     signature: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LocalChainEvidence:
+    valid: bool
+    head_digest: str | None
+    event_count: int
+    algorithm: str = "sha256"
+    version: int = 1
+    evidence_status: EvidenceStatus = EvidenceStatus.VALIDATED
+
+    def __post_init__(self) -> None:
+        if type(self.valid) is not bool:
+            raise ValueError("valid must be a boolean")
+        if self.head_digest is not None and (
+            type(self.head_digest) is not str or _HASH_PATTERN.fullmatch(self.head_digest) is None
+        ):
+            raise ValueError("head_digest must be a lowercase SHA-256 digest")
+        if type(self.event_count) is not int or self.event_count < 0:
+            raise ValueError("event_count must be a non-negative integer")
+        if type(self.algorithm) is not str or len(self.algorithm) > 32:
+            raise ValueError("algorithm must be a bounded identifier")
+        if type(self.version) is not int or self.version < 1:
+            raise ValueError("version must be a positive integer")
+        if not isinstance(self.evidence_status, EvidenceStatus):
+            raise ValueError("evidence_status must be an EvidenceStatus")
 
 
 def canonical_event(animal_id: str, event_type: str, timestamp: float,
@@ -186,3 +218,20 @@ def verify_event_chain(connection: sqlite3.Connection, animal_id: str) -> bool:
             return False
         previous_hash = stored_hash
     return found_event
+
+
+def event_chain_evidence(
+    connection: sqlite3.Connection, animal_id: str
+) -> LocalChainEvidence | None:
+    """Return a read-only, PII-free summary of one local event chain."""
+    rows = connection.execute(
+        "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id",
+        (animal_id,),
+    ).fetchall()
+    if not rows:
+        return None
+    return LocalChainEvidence(
+        valid=verify_event_chain(connection, animal_id),
+        head_digest=str(rows[-1][0]),
+        event_count=len(rows),
+    )
