@@ -389,12 +389,14 @@ namespace Antmicro.Renode.Peripherals.Riose
         private void HandleRESDAcceleration(AccelerationSample sample, TimeInterval timestamp)
         {
             upstreamAccelerationHandler.Invoke(this, new object[] { sample, timestamp });
+            UpdateWakeupIRQ();
         }
 
         [AfterRESDSample(SampleType.Acceleration)]
         private void HandleRESDAccelerationEnded(AccelerationSample sample, TimeInterval timestamp)
         {
             upstreamAccelerationEndedHandler.Invoke(this, new object[] { sample, timestamp });
+            UpdateWakeupIRQ();
         }
 
         private static MethodInfo RequireUpstreamHandler(string name)

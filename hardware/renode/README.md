@@ -108,7 +108,11 @@ The former zero samples came from RESD callback discovery: Renode searches the
 concrete peripheral type, so the upstream LIS2DW12's private callback methods
 are not inherited by `LIS2DW12WakeModel`. The adapter declares its own attributed
 callbacks and forwards them to the upstream handlers. This retains native FIFO,
-before-stream defaults, and end-of-stream behavior. A separate Robot case checks
+before-stream defaults, and end-of-stream behavior. Each callback reapplies the
+pending simulated wake overlay after native data-ready processing, so playback
+cannot drop its INT1/PA8 line before the firmware reads the wake source. A Robot
+regression keeps a wake pending across before-, during- and after-stream ticks,
+then verifies reading the source clears the routed line. A separate case checks
 the default before playback, the first and final samples, and the return to the
 default on the next output read after the stream finishes. The bridge depends
 on two private upstream method names and fails explicitly if a future Renode

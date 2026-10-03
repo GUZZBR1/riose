@@ -1,6 +1,5 @@
 *** Settings ***
 Documentation     Headless smoke and SX1262 protocol checks for the RIOSE Renode platform.
-Library           RenodeLibrary
 Library           String
 Library           Collections
 
@@ -116,6 +115,29 @@ LIS2DW12 RESD Defaults And End Of Stream Preserve Native Behavior
     Execute Command    emulation RunFor "0.5"
     ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
     Should Be Equal As Numbers    ${z}    1
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Pending Wake Stays Routed Across RESD Lifecycle Callbacks
+    Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x3F, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD} sampleOffsetTime=-1000000000
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    # Cross before-stream, active-stream and after-stream native callbacks.
+    FOR    ${interval}    IN    0.2    1.0    12.0
+        Execute Command    emulation RunFor "${interval}"
+        ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+        Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+    END
+    Execute Command    sysbus.i2c1.imu Write [0x38]
+    ${source}=    Execute Command    sysbus.i2c1.imu Read 1
+    Should Contain    ${source}    08
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
     [Setup]    Create RIOSE Platform
 
 Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
