@@ -3,6 +3,7 @@
 // commands/registers exercised by the RIOSE Zephyr firmware.
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Antmicro.Renode.Core;
 using Antmicro.Renode.Core.Structure;
 using Antmicro.Renode.Peripherals;
@@ -11,6 +12,7 @@ using Antmicro.Renode.Peripherals.I2C;
 using Antmicro.Renode.Peripherals.SPI;
 using Antmicro.Renode.Peripherals.Timers;
 using Antmicro.Renode.Time;
+using Antmicro.Renode.Utilities.RESD;
 
 namespace Antmicro.Renode.Peripherals.Riose
 {
@@ -374,7 +376,43 @@ namespace Antmicro.Renode.Peripherals.Riose
         public bool WakeupIRQAsserted => wakeupIRQAsserted;
         public uint WakeupEventReadCount => wakeupEventReadCount;
         public uint OutputSampleReadCount => outputSampleReadCount;
+        public int LastOutputXRaw => lastOutputXRaw;
+        public int LastOutputYRaw => lastOutputYRaw;
         public int LastOutputZRaw => lastOutputZRaw;
+
+        // RESD discovers callbacks on the concrete runtime type. The upstream
+        // callbacks are private and therefore are not inherited by this shim.
+        // Forward to them so native FIFO, defaults and end-of-stream semantics
+        // remain owned by Renode rather than duplicating its sample pipeline.
+        [OnRESDSample(SampleType.Acceleration)]
+        [BeforeRESDSample(SampleType.Acceleration)]
+        private void HandleRESDAcceleration(AccelerationSample sample, TimeInterval timestamp)
+        {
+            upstreamAccelerationHandler.Invoke(this, new object[] { sample, timestamp });
+        }
+
+        [AfterRESDSample(SampleType.Acceleration)]
+        private void HandleRESDAccelerationEnded(AccelerationSample sample, TimeInterval timestamp)
+        {
+            upstreamAccelerationEndedHandler.Invoke(this, new object[] { sample, timestamp });
+        }
+
+        private static MethodInfo RequireUpstreamHandler(string name)
+        {
+            var handler = typeof(Sensors.LIS2DW12).GetMethod(name,
+                BindingFlags.Instance | BindingFlags.NonPublic, null,
+                new[] { typeof(AccelerationSample), typeof(TimeInterval) }, null);
+            if(handler == null)
+            {
+                throw new InvalidOperationException("Renode LIS2DW12 RESD callback unavailable: " + name);
+            }
+            return handler;
+        }
+
+        private static readonly MethodInfo upstreamAccelerationHandler =
+            RequireUpstreamHandler("HandleAccelerationSample");
+        private static readonly MethodInfo upstreamAccelerationEndedHandler =
+            RequireUpstreamHandler("HandleAccelerationSampleEnded");
 
         public new void Write(byte[] data)
         {
@@ -423,6 +461,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             if(registerPointer == OutputXLowRegister && result.Length >= 6)
             {
                 outputSampleReadCount++;
+                lastOutputXRaw = (short)(result[0] | (result[1] << 8));
+                lastOutputYRaw = (short)(result[2] | (result[3] << 8));
                 lastOutputZRaw = (short)(result[4] | (result[5] << 8));
             }
             for(var i = 0; i < result.Length; i++)
@@ -457,6 +497,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             wakeupIRQAsserted = false;
             wakeupEventReadCount = 0;
             outputSampleReadCount = 0;
+            lastOutputXRaw = 0;
+            lastOutputYRaw = 0;
             lastOutputZRaw = 0;
             upstreamIRQAsserted = false;
             control4 = 0;
@@ -509,6 +551,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         private bool wakeupIRQAsserted;
         private uint wakeupEventReadCount;
         private uint outputSampleReadCount;
+        private int lastOutputXRaw;
+        private int lastOutputYRaw;
         private int lastOutputZRaw;
         private bool upstreamIRQAsserted;
         private byte control4;

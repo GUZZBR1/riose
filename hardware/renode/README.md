@@ -98,14 +98,29 @@ renode-test hardware/renode/tests/platform-smoke.robot
 ```
 
 The converter tests validate the RESD payloads and metadata, and the Robot tests
-load STATIC and WALK streams before emulation starts. In the current
-firmware-integrated run, Zephyr reads the LIS2DW12 output registers three times
-for each stream, but the observed raw Z value is `0x00000000` for both datasets.
-That demonstrates register-read activity only; dataset values have not been
-shown to propagate into firmware-visible samples, so the integration stage
-remains partial. The Robot tests enable Renode's private peripheral commands
-before setting `SampleRate`; without `allowPrivates true`, the model retains a
-zero sample frequency and rejects RESD playback.
+load STATIC and WALK streams before emulation starts. With Renode 1.17.0 and a
+fresh Zephyr 4.2.1 Renode-profile ELF, the tests compare all three raw axis words
+returned to firmware against the first sample in each RESD payload. The observed
+Z words are `0x4028` (STATIC, 1.002 g) and `0x4A48` (WALK, 1.160 g); a zero or
+fallback sample now fails the comparison. These are simulated register values.
+
+The former zero samples came from RESD callback discovery: Renode searches the
+concrete peripheral type, so the upstream LIS2DW12's private callback methods
+are not inherited by `LIS2DW12WakeModel`. The adapter declares its own attributed
+callbacks and forwards them to the upstream handlers. This retains native FIFO,
+before-stream defaults, and end-of-stream behavior. A separate Robot case checks
+the default before playback, the first and final samples, and the return to the
+default on the next output read after the stream finishes. The bridge depends
+on two private upstream method names and fails explicitly if a future Renode
+release changes their signatures; rerun this suite when upgrading Renode.
+
+Playback setup uses public I2C writes to CTRL1, avoiding private `SampleRate`
+assignment and its integer rounding. The firmware currently writes `CTRL1=0x14`,
+which Renode models as 2 Hz, high-performance 14-bit output (244 ug/LSB). Its
+comment and conversion assume 12.5 Hz and 12-bit output; correcting that firmware
+configuration remains separate work. The assertions above prove transport of
+the dataset values to firmware-visible register bytes, not that firmware's
+subsequent mg conversion or classifier is calibrated correctly.
 
 ## Headless use
 
