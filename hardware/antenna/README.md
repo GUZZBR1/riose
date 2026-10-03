@@ -35,16 +35,22 @@ completed solver run records the input/spec/geometry
 hashes, solver version, mesh lines and hash, openEMS time-domain energy
 convergence statistics, and hashes of the result artifacts. Each scenario is
 run at coarse and fine mesh settings. Its metrics are accepted only when both
-runs complete and resonance differs by at most 2% and minimum S11 by at most
-1 dB. Time-domain energy convergence is checked independently for each mesh;
-the manifest preserves the grid hashes and coarse-to-fine metric deltas.
+runs complete on different mesh coordinate lines whose serialized hashes are
+recomputed and verified. Resonance must differ by at most 2%; all other reported
+RF metrics must remain within declared absolute deltas: 1 dB for S11, 5 ohm for
+input impedance, 0.5 for VSWR, 0.05 for efficiency, and 0.5 dB for gain and
+directivity. Missing metrics or matching grid hashes fail closed. These are
+numerical mesh-stability criteria, not physical acceptance thresholds.
+Time-domain energy convergence is checked independently for each mesh; the
+manifest preserves the grid hashes and coarse-to-fine metric deltas.
 The lumped port's `stop` end is placed at the ground plane per the openEMS port
 reference-plane convention. The candidate uses a parameterized partial ground
 plane that covers the complete feed trace and ends before the meander radiator;
 its dimensions remain `ASSUMED` and require RF/layout validation.
 
 Radiated power greater than accepted feed power is rejected as a physically
-invalid result. A converged FDTD run alone does not make RF metrics or the
+invalid result and classified as an RF solver-result failure, not invalid user
+input. A converged FDTD run alone does not make RF metrics or the
 physical-prototype gate ready.
 
 The runner requires the native openEMS executable and Python bindings for

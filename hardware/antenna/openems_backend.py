@@ -447,7 +447,8 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         _write_rows(s11_path, s11_output)
         _write_rows(pattern_path, pattern_rows)
     except (ValueError, TypeError, IndexError, ZeroDivisionError, FloatingPointError) as exc:
-        return {"status": "FAILED", "detail": f"invalid/missing openEMS RF result: {exc}",
+        return {"status": "FAILED", "failure_class": "SOLVER_RESULT_INVALID",
+                "detail": f"invalid/missing openEMS RF result: {exc}",
                 "metrics": None, "evidence": evidence}
     evidence["artifacts"].update({"s11_curve_sha256": _sha256(s11_path),
                                  "radiation_pattern_sha256": _sha256(pattern_path)})

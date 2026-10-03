@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 from pathlib import Path
 
@@ -10,6 +11,34 @@ from hardware.antenna import openems_backend
 from hardware.antenna.capabilities import detect_capabilities
 
 SPEC = Path("hardware/spec.yaml")
+
+
+def refinement_metrics(**overrides):
+    values = {
+        "resonant_frequency_hz": 915e6, "s11_min_db": -10.0,
+        "input_impedance_real_ohm": 50.0, "input_impedance_imag_ohm": 0.0,
+        "vswr_min": 1.0, "efficiency_fraction": 0.8, "gain_dbi": 2.0,
+        "directivity_dbi": 3.0, "s11_at_target_db": -9.0,
+        "input_impedance_real_at_target_ohm": 51.0,
+        "input_impedance_imag_at_target_ohm": 1.0, "vswr_at_target": 1.2,
+    }
+    return {**values, **overrides}
+
+
+def refinement_mesh(factor):
+    lines = {
+        "x": [0.0, 1.0, 2.0] if factor == 1.5 else [0.0, 0.5, 1.0, 1.5, 2.0],
+        "y": [0.0, 1.0],
+        "z": [0.0, 1.0],
+    }
+    cell_counts = {axis: len(values) - 1 for axis, values in lines.items()}
+    packed = json.dumps(lines, sort_keys=True, separators=(",", ":"))
+    return {
+        "lines": lines,
+        "cell_counts": cell_counts,
+        "cell_count_total": cell_counts["x"] * cell_counts["y"] * cell_counts["z"],
+        "mesh_hash_sha256": hashlib.sha256(packed.encode()).hexdigest(),
+    }
 
 
 def unavailable(monkeypatch):
@@ -134,14 +163,8 @@ def test_all_scenarios_require_converged_coarse_and_fine_meshes(tmp_path, monkey
     def simulated(*args, **kwargs):
         factor = kwargs["mesh_resolution_factor"]
         calls.append(factor)
-        return {"status": "COMPLETED", "metrics": {
-            "resonant_frequency_hz": 915e6, "s11_min_db": -10.0,
-            "input_impedance_real_ohm": 50.0, "input_impedance_imag_ohm": 0.0,
-            "vswr_min": 1.0, "efficiency_fraction": 0.8, "gain_dbi": 2.0,
-            "directivity_dbi": 3.0, "s11_at_target_db": -9.0,
-            "input_impedance_real_at_target_ohm": 51.0,
-            "input_impedance_imag_at_target_ohm": 1.0, "vswr_at_target": 1.2,
-        }, "evidence": {}}
+        return {"status": "COMPLETED", "metrics": refinement_metrics(),
+                "evidence": {"mesh": refinement_mesh(factor)}}
 
     monkeypatch.setattr(antenna_run, "simulate_scenario", simulated)
     monkeypatch.setattr(antenna_run, "_validate_completion", lambda *args, **kwargs: None)
@@ -155,15 +178,70 @@ def test_all_scenarios_require_converged_coarse_and_fine_meshes(tmp_path, monkey
 
 
 def test_mesh_refinement_fails_closed_when_solver_metrics_do_not_agree():
-    coarse = {"status": "COMPLETED", "metrics": {
-        "resonant_frequency_hz": 1_000_000_000, "s11_min_db": -6.0}}
-    fine = {"status": "COMPLETED", "metrics": {
-        "resonant_frequency_hz": 915_000_000, "s11_min_db": -10.0}}
+    coarse = {"status": "COMPLETED", "metrics": refinement_metrics(
+        resonant_frequency_hz=1_000_000_000, s11_min_db=-6.0),
+        "evidence": {"mesh": refinement_mesh(1.5)}}
+    fine = {"status": "COMPLETED", "metrics": refinement_metrics(),
+            "evidence": {"mesh": refinement_mesh(1.0)}}
     result = antenna_run._mesh_refinement(coarse, fine)
     assert result["status"] == "NON_CONVERGED"
     assert result["converged"] is False
     assert result["resonant_frequency_relative_delta"] == pytest.approx(85_000_000 / 915_000_000)
     assert result["s11_min_delta_db"] == 4.0
+
+
+def test_mesh_refinement_rejects_identical_grid_hashes():
+    same_mesh = refinement_mesh(1.5)
+    result = antenna_run._mesh_refinement(
+        {"status": "COMPLETED", "metrics": refinement_metrics(), "evidence": {"mesh": same_mesh}},
+        {"status": "COMPLETED", "metrics": refinement_metrics(), "evidence": {"mesh": same_mesh}},
+    )
+    assert result["status"] == "NON_CONVERGED"
+    assert result["converged"] is False
+    assert "same mesh hash" in result["detail"]
+
+
+@pytest.mark.parametrize("field,delta", [
+    ("gain_dbi", 0.6),
+    ("efficiency_fraction", 0.06),
+    ("input_impedance_real_ohm", 5.1),
+    ("input_impedance_imag_ohm", 5.1),
+])
+def test_mesh_refinement_checks_gain_efficiency_and_impedance(field, delta):
+    coarse_metrics = refinement_metrics()
+    fine_metrics = refinement_metrics(**{field: coarse_metrics[field] + delta})
+    result = antenna_run._mesh_refinement(
+        {"status": "COMPLETED", "metrics": coarse_metrics,
+         "evidence": {"mesh": refinement_mesh(1.5)}},
+        {"status": "COMPLETED", "metrics": fine_metrics,
+         "evidence": {"mesh": refinement_mesh(1.0)}},
+    )
+    assert result["converged"] is False
+    assert field in result["failed_metrics"]
+
+
+def test_mesh_refinement_rejects_hash_not_matching_serialized_grid():
+    forged_mesh = refinement_mesh(1.5)
+    forged_mesh["lines"]["x"][-1] = 3.0
+    result = antenna_run._mesh_refinement(
+        {"status": "COMPLETED", "metrics": refinement_metrics(), "evidence": {"mesh": refinement_mesh(1.5)}},
+        {"status": "COMPLETED", "metrics": refinement_metrics(), "evidence": {"mesh": forged_mesh}},
+    )
+    assert result["status"] == "BLOCKED"
+    assert "do not match" in result["detail"]
+
+
+def test_solver_rf_extraction_failure_is_distinguished_from_invalid_input(tmp_path, monkeypatch):
+    unavailable(monkeypatch)
+    monkeypatch.setattr(antenna_run, "expected_input_hash", lambda *args, **kwargs: "c" * 64)
+    monkeypatch.setattr(antenna_run, "simulate_scenario", lambda *args, **kwargs: {
+        "status": "FAILED", "failure_class": "SOLVER_RESULT_INVALID",
+        "detail": "radiated power exceeds accepted power", "metrics": None,
+    })
+    result = antenna_run._simulate_mesh({}, "a" * 64, {"geometry_hash_sha256": "b" * 64}, tmp_path, 1.0)
+    assert result["status"] == "FAILED"
+    assert result["failure_class"] == "SOLVER_RESULT_INVALID"
+    assert result["status"] != "INVALID_INPUT"
 
 
 def test_mesh_refinement_requires_both_native_solver_runs():
