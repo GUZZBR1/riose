@@ -16,7 +16,7 @@ from cattle_rf.api import (
 def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     app = create_app(tmp_path / "dashboard.sqlite3")
     client = TestClient(app)
-    page = client.get("/")
+    page = client.get("/demo")
     assert page.status_code == 200
     assert "Cattle RF" in page.text
     anchors = [
@@ -82,7 +82,7 @@ def test_dashboard_rerun_replaces_duplicate_visible_samples_and_keeps_latest_pag
 
 def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
     client = TestClient(create_app(tmp_path / "virtual-fence-ui.sqlite3"))
-    page = client.get("/")
+    page = client.get("/demo")
 
     assert page.status_code == 200
     assert 'id="runFence"' in page.text
@@ -90,6 +90,71 @@ def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
     assert "api/experiments/virtual-fence" in page.text
     assert "zona-central-demo" in page.text
     assert "Nenhum estímulo físico ou elétrico é produzido" in page.text
+
+
+def test_landing_page_and_static_product_assets(tmp_path):
+    client = TestClient(create_app(tmp_path / "landing.sqlite3"))
+
+    page = client.get("/")
+    assert page.status_code == 200
+    assert "RIOSE — Livestock technology" in page.text
+    assert "Machine learning-assisted self-powered ear tag for animal welfare" in page.text
+    assert 'id="inspection-toggle"' not in page.text
+    assert "turn toward the rear" in page.text
+    assert "wire routing is illustrative" in page.text
+    assert "Xiaoyu Su, Peidi Fan, Ying Liu, Jianfeng Ping, Xunjia Li and Yuxiang Pan" in page.text
+    assert "Nature Communications · 2026" in page.text
+    assert "Independent study" not in page.text
+    assert "5,399 sampling windows from three animals" in page.text
+    assert "/assets/product-scene.js" in page.text
+    assert "/assets/landing.css" in page.text
+    assert "/assets/landing.js" in page.text
+    assert "<style>" not in page.text
+    assert "<script>" not in page.text
+
+    manifesto = client.get("/manifesto")
+    assert manifesto.status_code == 200
+    assert "Manifesto — RIOSE" in manifesto.text
+    assert "The physical world takes no shortcuts." in manifesto.text
+    assert "Named after Bel Riose" in manifesto.text
+    assert "proper noun · origin" in manifesto.text
+    assert "/assets/manifesto.css" in manifesto.text
+    assert "/assets/manifesto.js" in manifesto.text
+    assert "<style>" not in manifesto.text
+    assert "<script>" not in manifesto.text
+
+    landing_css = client.get("/assets/landing.css")
+    assert landing_css.status_code == 200
+    assert ".scene-wrap" in landing_css.text
+    landing_js = client.get("/assets/landing.js")
+    assert landing_js.status_code == 200
+    assert "sceneObserver" in landing_js.text
+
+    manifesto_css = client.get("/assets/manifesto.css")
+    assert manifesto_css.status_code == 200
+    assert ".manifesto-copy" in manifesto_css.text
+    manifesto_js = client.get("/assets/manifesto.js")
+    assert manifesto_js.status_code == 200
+    assert "ascii-structure" in manifesto_js.text
+
+    scene = client.get("/assets/product-scene.js")
+    assert scene.status_code == 200
+    assert "WebGLRenderer" in scene.text
+    assert "smoothstep(faceAlignment" in scene.text
+    assert "createTechnicalAnnotations" in scene.text
+    assert "wireRoutes" in scene.text
+    assert "Circuit board" in scene.text
+    assert "PCB · concept" not in scene.text
+    assert "CONCEPT STUDY" not in scene.text
+
+    three = client.get("/assets/vendor/three.module.js")
+    assert three.status_code == 200
+    assert "Three.js Authors" in three.text
+    assert three.headers.get("content-encoding") == "gzip"
+
+    fallback = client.get("/assets/riose-ear-tag-fallback.webp")
+    assert fallback.status_code == 200
+    assert fallback.headers["content-type"] == "image/webp"
 
 
 def test_dashboard_closes_sqlite_store_on_lifespan_shutdown(tmp_path):

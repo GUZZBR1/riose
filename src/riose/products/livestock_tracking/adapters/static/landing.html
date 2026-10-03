@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f2f0">
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="modulepreload" href="/assets/product-scene.js?v=20261003-4">
+  <link rel="modulepreload" href="/assets/vendor/three.module.js">
+  <meta name="description" content="RIOSE develops radio-based technology for livestock monitoring in GPS-denied environments.">
+  <title>RIOSE — Livestock technology</title>
+  <link rel="stylesheet" href="/assets/landing.css?v=20261003-1">
+</head>
+<body>
+  <header class="floating-header" id="floating-header">
+    <a class="nav-manifesto" href="/manifesto">manifesto</a>
+    <div class="brand-meaning">
+      <button class="wordmark-trigger" type="button" aria-label="Riose — significado do nome" aria-expanded="false" aria-controls="brand-definition-panel">
+        <span class="riose-logo"><span>Riose</span><img class="riose-mark" src="/assets/riose-mark.png" alt="" aria-hidden="true" width="107" height="104"></span>
+      </button>
+      <div class="brand-definition" id="brand-definition-panel" role="note" aria-hidden="true">
+        <div class="brand-definition-content">
+          <div class="definition-heading">
+            <strong>Riose</strong>
+            <span class="pronunciation">/ˈriː.oʊs/</span>
+          </div>
+          <span class="definition-kind">proper noun · origin</span>
+          <p>Named after Bel Riose, the general from <i>Foundation</i>, himself inspired by the Byzantine commander Belisarius.</p>
+          <p class="brand-thought">A name for seeing farther, operating at the edge, and turning the unseen into knowledge.</p>
+        </div>
+      </div>
+    </div>
+    <a class="location" href="https://www.google.com/maps/search/?api=1&amp;query=Sao+Paulo%2C+Brazil" target="_blank" rel="noopener noreferrer" aria-label="Open Sao Paulo, Brazil in Google Maps">sao paulo, brazil</a>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="RIOSE livestock ear tag">
+      <div class="scene-wrap" id="scene-wrap" tabindex="0" role="group" aria-label="Interactive 3D product model" aria-describedby="scene-help">
+        <img class="scene-fallback" src="/assets/riose-ear-tag-fallback.webp" alt="Matte yellow RIOSE livestock ear tag with black attachment pin" draggable="false" fetchpriority="high" decoding="async">
+        <canvas id="product-canvas" aria-hidden="true"></canvas>
+      </div>
+      <p class="visually-hidden" id="scene-help">Drag or touch the product to rotate it. The outer shell becomes translucent as you turn toward the rear. Pause there briefly for a subtle exploded view with technical labels. The available reference shows a circuit board, a main chip, copper traces and fixing points; the wire routing is illustrative. Use arrow keys to rotate and plus or minus to zoom, or pinch on touch screens.</p>
+      <p class="visually-hidden" id="scene-status" role="status" aria-live="polite">Loading interactive product model.</p>
+    </section>
+
+    <section class="research" aria-labelledby="paper-title">
+      <article class="paper-entry">
+        <p class="paper-meta">Nature Communications · 2026</p>
+        <h1 class="paper-title" id="paper-title">Machine learning-assisted self-powered ear tag for animal welfare</h1>
+        <p class="authors">Xiaoyu Su, Peidi Fan, Ying Liu, Jianfeng Ping, Xunjia Li and Yuxiang Pan</p>
+        <p class="article-details">Nature Communications 17, 7094 (2026) · Published 02 June 2026 · DOI: 10.1038/s41467-026-73651-7</p>
+        <p class="abstract">The study presents an energy-autonomous livestock ear tag that combines motion-based and solar energy harvesting with microneedle sensors. The system tracks pH, potassium and calcium in interstitial fluid, then uses machine learning to interpret the signals as welfare-related metabolic states.</p>
+        <p class="abstract">The authors report average classification accuracy above 95% across five states, evaluated on 5,399 sampling windows from three animals using leave-one-animal-out validation. These results describe the study’s experimental cohort and are independent of the RIOSE product.</p>
+        <a class="paper-link" href="https://www.nature.com/articles/s41467-026-73651-7" target="_blank" rel="noopener noreferrer">Read paper <span aria-hidden="true">↗</span></a>
+      </article>
+    </section>
+  </main>
+
+  <script src="/assets/landing.js?v=20261003-1" defer></script>
+</body>
+</html>
