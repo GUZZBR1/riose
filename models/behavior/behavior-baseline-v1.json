@@ -1,0 +1,368 @@
+{
+  "classes": [
+    "GRAZE",
+    "REST",
+    "WALK"
+  ],
+  "confidence_semantics": "maximum model score; not a calibrated probability",
+  "evaluation": {
+    "holdout": {
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "classes": [
+        "GRAZE",
+        "REST",
+        "WALK"
+      ],
+      "confusion_matrix": [
+        [
+          8,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          0,
+          8
+        ]
+      ],
+      "macro_f1": 1.0,
+      "majority_baseline_accuracy": 0.3333333333333333,
+      "majority_baseline_metrics": {
+        "accuracy": 0.3333333333333333,
+        "balanced_accuracy": 0.3333333333333333,
+        "classes": [
+          "GRAZE",
+          "REST",
+          "WALK"
+        ],
+        "confusion_matrix": [
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ]
+        ],
+        "macro_f1": 0.16666666666666666,
+        "per_animal": {
+          "sim-animal-007": {
+            "accuracy": 0.3333333333333333,
+            "macro_f1": 0.16666666666666666,
+            "support": 12
+          },
+          "sim-animal-009": {
+            "accuracy": 0.3333333333333333,
+            "macro_f1": 0.16666666666666666,
+            "support": 12
+          }
+        },
+        "per_class": {
+          "GRAZE": {
+            "f1-score": 0.5,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "support": 8.0
+          },
+          "REST": {
+            "f1-score": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 8.0
+          },
+          "WALK": {
+            "f1-score": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 8.0
+          }
+        },
+        "support": {
+          "GRAZE": 8,
+          "REST": 8,
+          "WALK": 8
+        }
+      },
+      "per_animal": {
+        "sim-animal-007": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "support": 12
+        },
+        "sim-animal-009": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "support": 12
+        }
+      },
+      "per_class": {
+        "GRAZE": {
+          "f1-score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 8.0
+        },
+        "REST": {
+          "f1-score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 8.0
+        },
+        "WALK": {
+          "f1-score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 8.0
+        }
+      },
+      "per_dataset": {
+        "riose-behavior-synthetic-fixture-v1": {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "classes": [
+            "GRAZE",
+            "REST",
+            "WALK"
+          ],
+          "confusion_matrix": [
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              0,
+              8,
+              0
+            ],
+            [
+              0,
+              0,
+              8
+            ]
+          ],
+          "macro_f1": 1.0,
+          "per_animal": {
+            "sim-animal-007": {
+              "accuracy": 1.0,
+              "macro_f1": 1.0,
+              "support": 12
+            },
+            "sim-animal-009": {
+              "accuracy": 1.0,
+              "macro_f1": 1.0,
+              "support": 12
+            }
+          },
+          "per_class": {
+            "GRAZE": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "support": 8.0
+            },
+            "REST": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "support": 8.0
+            },
+            "WALK": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "support": 8.0
+            }
+          },
+          "support": {
+            "GRAZE": 8,
+            "REST": 8,
+            "WALK": 8
+          }
+        }
+      },
+      "support": {
+        "GRAZE": 8,
+        "REST": 8,
+        "WALK": 8
+      },
+      "test_animals_used_for_selection": false
+    },
+    "selected_validation_macro_f1": 1.0,
+    "selection_metric": "validation macro_f1; simpler model wins ties",
+    "validation_candidates": [
+      {
+        "model": "majority_baseline",
+        "validation_macro_f1": 0.16666666666666666
+      },
+      {
+        "model": "logistic_regression",
+        "validation_macro_f1": 1.0
+      },
+      {
+        "model": "decision_tree",
+        "validation_macro_f1": 1.0
+      },
+      {
+        "model": "extra_trees",
+        "validation_macro_f1": 1.0
+      }
+    ]
+  },
+  "evidence_interpretation": {
+    "clinical_diagnosis": false,
+    "ear_tag_validation": false,
+    "result_status": "SIMULATED_SOFTWARE_PIPELINE_ONLY",
+    "scientific_validation": "NOT_ASSESSED"
+  },
+  "feature_order": [
+    "accel_mean_g",
+    "accel_std_g",
+    "accel_rms_g"
+  ],
+  "feature_version": "movement-window-v1",
+  "model": {
+    "classes": [
+      "GRAZE",
+      "REST",
+      "WALK"
+    ],
+    "coef": [
+      [
+        0.36714763548169277,
+        0.32896714122258436,
+        0.09990672439127105
+      ],
+      [
+        -2.1300496069180324,
+        -2.1291327894265177,
+        -1.7935874521455133
+      ],
+      [
+        1.762901971436339,
+        1.8001656482039305,
+        1.69368072775424
+      ]
+    ],
+    "intercept": [
+      2.2851577900713833,
+      -2.262511313523927,
+      -0.02264647654745639
+    ],
+    "kind": "logistic_regression"
+  },
+  "model_type": "logistic_regression",
+  "model_version": "behavior-baseline-v1",
+  "preprocessing": {
+    "kind": "standard_scaler",
+    "mean": [
+      1.0505636850374493,
+      0.09158064963949018,
+      1.0569378867382588
+    ],
+    "scale": [
+      0.05025324530869683,
+      0.0649363102986964,
+      0.05723086681839331
+    ]
+  },
+  "provenance": {
+    "animal_count": 12,
+    "dataset_ids": [
+      "riose-behavior-synthetic-fixture-v1"
+    ],
+    "dataset_sha256": "9528443806da10f666c44ee35798a46174b19a9092268fbbed778970f17723ba",
+    "dataset_sources": {
+      "riose-behavior-synthetic-fixture-v1": {
+        "license": "UNSPECIFIED: repository has no license declaration",
+        "source": "seeded fixture generator in the RIOSE repository"
+      }
+    },
+    "evidence_statuses": [
+      "SIMULATED"
+    ],
+    "sample_rates_hz": [
+      null
+    ],
+    "sensor_positions": [
+      "UNKNOWN_SYNTHETIC"
+    ],
+    "window_count": 144
+  },
+  "schema_version": 1,
+  "split": {
+    "test": {
+      "animals": [
+        "sim-animal-007",
+        "sim-animal-009"
+      ],
+      "windows": 24
+    },
+    "train": {
+      "animals": [
+        "sim-animal-000",
+        "sim-animal-001",
+        "sim-animal-002",
+        "sim-animal-003",
+        "sim-animal-004",
+        "sim-animal-006",
+        "sim-animal-008",
+        "sim-animal-011"
+      ],
+      "windows": 96
+    },
+    "validation": {
+      "animals": [
+        "sim-animal-005",
+        "sim-animal-010"
+      ],
+      "windows": 24
+    }
+  },
+  "training_config": {
+    "candidate_models": [
+      "majority_baseline",
+      "logistic_regression",
+      "decision_tree",
+      "extra_trees"
+    ],
+    "candidate_parameters": {
+      "decision_tree": {
+        "max_depth": 4,
+        "min_samples_leaf": 2
+      },
+      "extra_trees": {
+        "max_depth": 5,
+        "min_samples_leaf": 2,
+        "n_estimators": 40
+      },
+      "logistic_regression": {
+        "C": 1.0,
+        "max_iter": 1000
+      }
+    },
+    "feature_version": "movement-window-v1",
+    "seed": 23,
+    "selection_metric": "validation macro_f1; simpler model wins ties",
+    "split": "deterministic animal-disjoint 60/20/20; validation selects candidate; test evaluated once"
+  },
+  "versions": {
+    "numpy": "2.5.3",
+    "python": "3.12.3",
+    "scikit_learn": "1.9.1"
+  }
+}
