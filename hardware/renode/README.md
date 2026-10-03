@@ -108,11 +108,14 @@ The former zero samples came from RESD callback discovery: Renode searches the
 concrete peripheral type, so the upstream LIS2DW12's private callback methods
 are not inherited by `LIS2DW12WakeModel`. The adapter declares its own attributed
 callbacks and forwards them to the upstream handlers. This retains native FIFO,
-before-stream defaults, and end-of-stream behavior. Each callback reapplies the
-pending simulated wake overlay after native data-ready processing, so playback
-cannot drop its INT1/PA8 line before the firmware reads the wake source. A Robot
-regression keeps a wake pending across before-, during- and after-stream ticks,
-then verifies reading the source clears the routed line. A separate case checks
+before-stream defaults, and end-of-stream behavior. The adapter exposes a
+separate INT1 output that continuously ORs the native INT1 level with the
+pending simulated wake source. Native data-ready callbacks therefore cannot
+pulse PA8 low while wake is latched. A GPIO transition probe verifies exactly
+one rising edge and no falling edges across before-, during- and after-stream
+ticks, followed by one falling edge when the source is read. A separate case
+checks native data-ready IRQ remains high after the wake source is cleared,
+and that reset clears the exposed output. A separate case checks
 the default before playback, the first and final samples, and the return to the
 default on the next output read after the stream finishes. The bridge depends
 on two private upstream method names and fails explicitly if a future Renode
@@ -164,7 +167,7 @@ Renode's upstream `Sensors.LIS2DW12`. It preserves upstream sample and RESD
 ingestion while adding an explicitly **SIMULATED** wake-event hook:
 `TriggerWakeup` latches `WAKE_UP_SRC.WU_IA` until that source register is read,
 then clears the pending event. The adapter routes the event through the
-sensor's inherited `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
+adapter's combined `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
 `CTRL7.INTERRUPTS_ENABLE` are both enabled; the platform connects that line to
 MCU PA8. The shim does not calculate threshold crossings, wake timing, or
 physical sensor dynamics. It is virtual IRQ plumbing, not a measured or

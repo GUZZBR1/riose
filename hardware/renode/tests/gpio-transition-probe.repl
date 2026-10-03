@@ -1,0 +1,4 @@
+irqProbe: Riose.GPIOTransitionProbe @ sysbus 0x60000000
+
+imu:
+    Interrupt1 -> gpioPortA@8 | irqProbe@0

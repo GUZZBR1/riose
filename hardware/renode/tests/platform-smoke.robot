@@ -119,6 +119,8 @@ LIS2DW12 RESD Defaults And End Of Stream Preserve Native Behavior
 
 LIS2DW12 Pending Wake Stays Routed Across RESD Lifecycle Callbacks
     Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
+    Execute Command    include @${CURDIR}/GPIOTransitionProbe.cs
+    Execute Command    machine LoadPlatformDescription @${CURDIR}/gpio-transition-probe.repl
     Configure LIS2DW12 RESD Playback
     Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
     Execute Command    sysbus.i2c1.imu FinishTransmission
@@ -131,11 +133,46 @@ LIS2DW12 Pending Wake Stays Routed Across RESD Lifecycle Callbacks
         Execute Command    emulation RunFor "${interval}"
         ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
         Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+        ${rises}=    Execute Command    sysbus.irqProbe RisingEdgeCount
+        ${falls}=    Execute Command    sysbus.irqProbe FallingEdgeCount
+        Should Be Equal As Integers    ${rises}    1
+        Should Be Equal As Integers    ${falls}    0
     END
     Execute Command    sysbus.i2c1.imu Write [0x38]
     ${source}=    Execute Command    sysbus.i2c1.imu Read 1
     Should Contain    ${source}    08
     Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
+    ${falls}=    Execute Command    sysbus.irqProbe FallingEdgeCount
+    Should Be Equal As Integers    ${falls}    1
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Native Data Ready IRQ Survives Wake Source Release
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x3F, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    # Native DRDY becomes active while the simulated wake already holds INT1.
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x21]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu AccelerationZ 1
+    Execute Command    sysbus.i2c1.imu Write [0x38]
+    Execute Command    sysbus.i2c1.imu Read 1
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${wake}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
+    Should Be Equal    ${wake.strip()}    False
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+    # Releasing only the native source must now release the exposed pin.
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    Execute Command    sysbus.i2c1.imu Reset
     ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
     Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
     [Setup]    Create RIOSE Platform
