@@ -262,7 +262,18 @@ SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     ${suppressed_irq}=    Execute Command    sysbus.spi1.radio IRQAsserted
     ${suppressed_irq}=    Strip String    ${suppressed_irq}
     Should Be Equal    ${suppressed_irq}    False
+    Send SX1262 Command    0x02    0x03    0xFF
+    Send SX1262 Command    0x83    0x00    0x00    0x00
+    Execute Command    emulation RunFor "0.030"
+    ${completed_without_irq_status}=    Execute Command    sysbus.spi1.radio IRQStatus
+    ${completed_without_irq_pin}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${completed_without_irq_pin}=    Strip String    ${completed_without_irq_pin}
+    Should Be Equal As Integers    ${completed_without_irq_status}    0001    base=16
+    Should Be Equal    ${completed_without_irq_pin}    False
     Execute Command    sysbus.spi1.radio SuppressIRQ false
+    ${restored_irq_pin}=    Execute Command    sysbus.spi1.radio IRQAsserted
+    ${restored_irq_pin}=    Strip String    ${restored_irq_pin}
+    Should Be Equal    ${restored_irq_pin}    True
     Execute Command    sysbus.spi1.radio DropSPI true
     ${dropped_byte}=    Execute Command    sysbus.spi1.radio Transmit 0xC0
     Should Be Equal As Integers    ${dropped_byte}    FF    base=16
