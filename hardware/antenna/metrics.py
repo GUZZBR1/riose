@@ -111,7 +111,7 @@ def power_metrics(accepted_power_w: float, radiated_power_w: float,
     accepted = _number(accepted_power_w, "accepted_power_w", positive=True)
     radiated = _number(radiated_power_w, "radiated_power_w", nonnegative=True)
     if radiated > accepted:
-        raise ValueError("radiated_power_w cannot exceed accepted_power_w")
+        raise ValueError(f"radiated_power_w ({radiated:.9g}) cannot exceed accepted_power_w ({accepted:.9g})")
     efficiency = radiated / accepted
     gain = None
     if directivity_dbi is not None:

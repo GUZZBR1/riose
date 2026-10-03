@@ -12,10 +12,15 @@ python -m hardware.antenna.run --spec hardware/spec.yaml --output results/mvp2/a
 The command builds CSXCAD primitives from `hardware/spec.yaml`, then runs
 openEMS headlessly. It writes `antenna_experiments.json` and `antenna.csv` with
 the five scenario IDs: free space, PCB, battery, enclosure, and experimental
-animal proximity. The Gaussian excitation and 371-point S11 sweep cover 0.65
-to 2.5 times the assumed center frequency, so resonances outside the target
-band are not silently reported as sweep-edge minima. Metrics are also sampled
-at the exact assumed center frequency. S11 curves and far-field patterns are
+animal proximity. The 371-point S11 sweep covers 0.65 to 2.5 times the assumed
+center frequency. Its Gaussian excitation extends from 0.4 to 2.8 times center
+to keep measured sweep edges away from the pulse's low-energy cutoff. Resonances
+are interpolated at input-reactance zero crossings, choosing the crossing nearest
+the assumed center frequency; S11 minima are reported separately as matching
+metrics. This distinguishes electrical resonance from a good 50-ohm match.
+An S11 magnitude that exceeds the passive limit by at most 0.05 dB is clamped to
+0 dB for roundoff and recorded in solver evidence; larger violations fail the
+run. Metrics are also sampled at the exact assumed center frequency. S11 curves and far-field patterns are
 included in JSON and saved as per-run CSV artifacts. `--sweeps` adds
 `sweeps.csv` and per-case solver artifacts. A subset run cannot mark the full
 experiment `COMPLETED`.
@@ -33,6 +38,14 @@ run at coarse and fine mesh settings. Its metrics are accepted only when both
 runs complete and resonance differs by at most 2% and minimum S11 by at most
 1 dB. Time-domain energy convergence is checked independently for each mesh;
 the manifest preserves the grid hashes and coarse-to-fine metric deltas.
+The lumped port's `stop` end is placed at the ground plane per the openEMS port
+reference-plane convention. The candidate uses a parameterized partial ground
+plane that covers the complete feed trace and ends before the meander radiator;
+its dimensions remain `ASSUMED` and require RF/layout validation.
+
+Radiated power greater than accepted feed power is rejected as a physically
+invalid result. A converged FDTD run alone does not make RF metrics or the
+physical-prototype gate ready.
 
 The runner requires the native openEMS executable and Python bindings for
 CSXCAD/openEMS. Missing pieces, failed runs, non-convergence, and invalid

@@ -180,3 +180,23 @@ def test_native_runner_rejects_hash_that_omits_solver_configuration(tmp_path):
     geometry = build_geometry(spec, SCENARIOS[0])
     with pytest.raises(ValueError, match="does not match geometry and solver configuration"):
         openems_backend.simulate_scenario(spec, "a" * 64, geometry, tmp_path, input_hash="b" * 64)
+
+
+def test_native_s11_clamps_only_tiny_passive_limit_roundoff():
+    values, clamped = openems_backend._normalize_s11_magnitude_db([-3.0, 0.01])
+    assert list(values) == [-3.0, 0.0]
+    assert clamped
+    with pytest.raises(ValueError, match="passive limit"):
+        openems_backend._normalize_s11_magnitude_db([-3.0, 0.06])
+
+
+def test_native_resonance_uses_nearest_input_reactance_zero_crossing():
+    frequency, impedance = openems_backend._reactance_resonance(
+        [800e6, 900e6, 1.0e9, 1.1e9],
+        [20 - 10j, 30 + 10j, 40 - 20j, 50 + 20j],
+        915e6,
+    )
+    assert frequency == pytest.approx(933_333_333.3333334)
+    assert impedance == pytest.approx(33.333333333333336 + 0j)
+    with pytest.raises(ValueError, match="does not cross zero"):
+        openems_backend._reactance_resonance([800e6, 900e6], [1 + 2j, 2 + 3j], 850e6)

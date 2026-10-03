@@ -23,18 +23,23 @@ C0_M_S = 299_792_458.0
 EPS0_F_M = 8.8541878128e-12
 MAX_TIME_STEPS = 300_000
 END_CRITERIA = 1e-5
-SOLVER_SETUP_VERSION = 4
+SOLVER_SETUP_VERSION = 9
 FREQUENCY_MIN_RATIO = 0.65
 FREQUENCY_MAX_RATIO = 2.5
+EXCITATION_MIN_RATIO = 0.4
+EXCITATION_MAX_RATIO = 2.8
 FREQUENCY_SAMPLE_COUNT = 371
+MAX_S11_ROUNDOFF_DB = 0.05
 MESH_BASE_MAX_CELL_WAVELENGTH_FRACTION = 1 / 20
 MESH_REFINEMENT_COARSE_FACTOR = 1.5
 EXCITATION_CONFIG = {"type": "Gaussian",
-                     "center_frequency_fraction": (FREQUENCY_MIN_RATIO + FREQUENCY_MAX_RATIO) / 2,
-                     "band_min_frequency_fraction": FREQUENCY_MIN_RATIO,
-                     "band_max_frequency_fraction": FREQUENCY_MAX_RATIO,
-                     "cutoff_frequency_fraction": (FREQUENCY_MAX_RATIO - FREQUENCY_MIN_RATIO) / 2}
-PORT_CONFIG = {"type": "z_directed_lumped_port", "cross_section": "trace_width_square"}
+                     "center_frequency_fraction": (EXCITATION_MIN_RATIO + EXCITATION_MAX_RATIO) / 2,
+                     "band_min_frequency_fraction": EXCITATION_MIN_RATIO,
+                     "band_max_frequency_fraction": EXCITATION_MAX_RATIO,
+                     "cutoff_frequency_fraction": (EXCITATION_MAX_RATIO - EXCITATION_MIN_RATIO) / 2}
+PORT_CONFIG = {"type": "z_directed_lumped_port",
+               "cross_section": "trace_width_perpendicular_to_feed_tangent",
+               "reference_plane": "stop_at_ground_plane"}
 
 
 def solver_executable() -> str | None:
@@ -152,6 +157,52 @@ def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def _normalize_s11_magnitude_db(values: Any) -> tuple[Any, bool]:
+    """Clamp only tiny passive-limit roundoff from openEMS port transforms."""
+    import numpy as np
+
+    s11_db = np.asarray(values, dtype=float)
+    if not np.all(np.isfinite(s11_db)):
+        raise ValueError("openEMS returned non-finite S11 values")
+    maximum = float(np.max(s11_db))
+    if maximum > MAX_S11_ROUNDOFF_DB:
+        raise ValueError(f"openEMS S11 exceeds the passive limit by {maximum:.6g} dB")
+    return np.minimum(s11_db, 0.0), maximum > 0.0
+
+
+def _reactance_resonance(frequencies: Any, impedance: Any,
+                         target_frequency_hz: float) -> tuple[float, complex]:
+    """Interpolate an input-reactance zero crossing nearest the target band."""
+    import numpy as np
+
+    freq = np.asarray(frequencies, dtype=float)
+    zin = np.asarray(impedance, dtype=complex)
+    if freq.ndim != 1 or zin.ndim != 1 or len(freq) != len(zin) or len(freq) < 2:
+        raise ValueError("frequency and impedance arrays must be aligned one-dimensional samples")
+    if (not np.all(np.isfinite(freq)) or not np.all(np.isfinite(zin.real))
+            or not np.all(np.isfinite(zin.imag)) or np.any(np.diff(freq) <= 0)):
+        raise ValueError("frequency and impedance samples must be finite and ordered")
+    candidates: list[tuple[float, float, complex]] = []
+    for index in range(len(freq) - 1):
+        left, right = float(zin[index].imag), float(zin[index + 1].imag)
+        if left == 0.0:
+            fraction = 0.0
+        elif right == 0.0:
+            fraction = 1.0
+        elif left * right < 0.0:
+            fraction = -left / (right - left)
+        else:
+            continue
+        crossing_frequency = float(freq[index] + fraction * (freq[index + 1] - freq[index]))
+        resistance = float(zin[index].real + fraction * (zin[index + 1].real - zin[index].real))
+        candidates.append((abs(crossing_frequency - target_frequency_hz), crossing_frequency,
+                           complex(resistance, 0.0)))
+    if not candidates:
+        raise ValueError("input reactance does not cross zero inside the configured frequency sweep")
+    _, crossing_frequency, crossing_impedance = min(candidates, key=lambda item: item[0])
+    return crossing_frequency, crossing_impedance
+
+
 @contextmanager
 def _working_directory(path: Path):
     previous = Path.cwd()
@@ -204,7 +255,9 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         "geometry_hash_sha256": geometry["geometry_hash_sha256"],
         "scenario": geometry["scenario"], "frequency_hz": geometry["antenna"]["frequency_hz"],
         "max_time_steps": MAX_TIME_STEPS, "end_criteria": END_CRITERIA,
+        "max_s11_roundoff_db": MAX_S11_ROUNDOFF_DB,
         "frequency_samples": FREQUENCY_SAMPLE_COUNT, "boundary": "PML_8 on all six faces",
+        "resonance_definition": "input_reactance_zero_crossing_nearest_target",
         "mesh_rule": "lambda/20 fine reference with explicit coarse/fine factor and 1.4 smoothing ratio",
         "mesh_resolution_factor": mesh_resolution_factor,
         "excitation": EXCITATION_CONFIG, "port": PORT_CONFIG,
@@ -238,8 +291,8 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
     csx = CSXCAD.ContinuousStructure()
     fdtd = openems_package.openEMS(NrTS=MAX_TIME_STEPS, EndCriteria=END_CRITERIA)
     frequency_hz = geometry["antenna"]["frequency_hz"]
-    excitation_center = frequency_hz * (FREQUENCY_MIN_RATIO + FREQUENCY_MAX_RATIO) / 2
-    excitation_cutoff = frequency_hz * (FREQUENCY_MAX_RATIO - FREQUENCY_MIN_RATIO) / 2
+    excitation_center = frequency_hz * (EXCITATION_MIN_RATIO + EXCITATION_MAX_RATIO) / 2
+    excitation_cutoff = frequency_hz * (EXCITATION_MAX_RATIO - EXCITATION_MIN_RATIO) / 2
     fdtd.SetGaussExcite(excitation_center, excitation_cutoff)
     fdtd.SetBoundaryCond(["PML_8"] * 6)
     fdtd.SetCSX(csx)
@@ -262,9 +315,12 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         for axis, target in enumerate((x_edges, y_edges, z_edges)):
             target.extend((primitive["start_mm"][axis], primitive["stop_mm"][axis]))
     feed_x, feed_y = geometry["antenna"]["feed_point_mm"]
-    feed_gap = geometry["antenna"]["feed_gap_mm"]
-    x_edges.extend((feed_x - feed_gap / 2, feed_x, feed_x + feed_gap / 2))
-    y_edges.extend((feed_y - feed_gap / 2, feed_y, feed_y + feed_gap / 2))
+    trace_width = geometry["antenna"]["trace_width_mm"]
+    # Keep the lumped port cross-section edges explicit in the mesh. Using
+    # only the smaller physical feed gap lets mesh smoothing collapse the
+    # snapped port's XY extent to a zero-area cell.
+    x_edges.append(feed_x)
+    y_edges.extend((feed_y - trace_width / 2, feed_y, feed_y + trace_width / 2))
     z_edges.extend((geometry["antenna"]["ground_plane_z_mm"], geometry["antenna"]["trace_z_mm"][0],
                     geometry["antenna"]["trace_z_mm"][1]))
     for axis, lines in zip("xyz", (x_edges, y_edges, z_edges)):
@@ -280,12 +336,11 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
     nf_start = [min(point[axis] for point in all_starts) - air_padding_mm for axis in range(3)]
     nf_stop = [max(point[axis] for point in all_stops) + air_padding_mm for axis in range(3)]
     nf2ff = fdtd.CreateNF2FFBox("riose_nf2ff", nf_start, nf_stop)
-    trace_width = geometry["antenna"]["trace_width_mm"]
     port = fdtd.AddLumpedPort(1, 50.0,
-                              [feed_x - trace_width / 2, feed_y - trace_width / 2,
-                               geometry["antenna"]["ground_plane_z_mm"]],
-                              [feed_x + trace_width / 2, feed_y + trace_width / 2,
+                              [feed_x, feed_y - trace_width / 2,
                                geometry["antenna"]["trace_z_mm"][1]],
+                              [feed_x, feed_y + trace_width / 2,
+                               geometry["antenna"]["ground_plane_z_mm"]],
                               "z", 1.0, priority=30, edges2grid="xy")
     xml_path = sim_dir / "antenna.xml"
     fdtd.Write2XML(str(xml_path))
@@ -322,15 +377,14 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         port.CalcPort(str(sim_dir), frequencies)
         s11_complex = np.asarray(port.uf_ref) / np.asarray(port.uf_inc)
         zin = np.asarray(port.uf_tot) / np.asarray(port.if_tot)
-        s11_db = 20 * np.log10(np.abs(s11_complex))
+        s11_db, s11_roundoff_clamped = _normalize_s11_magnitude_db(
+            20 * np.log10(np.abs(s11_complex)))
+        evidence["s11_passivity_roundoff_clamped"] = s11_roundoff_clamped
         s11_rows = [{"frequency_hz": float(frequency), "s11_db": float(db)}
                     for frequency, db in zip(frequencies, s11_db)]
         s11_rows = parse_s11_rows(s11_rows)
-        resonance_index = min(range(len(s11_rows)), key=lambda index: s11_rows[index]["s11_db"])
-        if resonance_index in (0, len(s11_rows) - 1):
-            raise ValueError("S11 minimum lies at the configured frequency sweep boundary; resonance is not bracketed")
-        resonance_hz = s11_rows[resonance_index]["frequency_hz"]
-        zin_at_resonance = complex(zin[resonance_index])
+        resonance_hz, zin_at_resonance = _reactance_resonance(
+            frequencies, zin, frequency_hz)
         nf_result = nf2ff.CalcNF2FF(str(sim_dir), resonance_hz,
                                     np.linspace(0, 180, 91), np.linspace(0, 360, 181))
         directivity_linear = float(np.asarray(nf_result.Dmax).reshape(-1)[0])
@@ -342,11 +396,14 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         if power["gain_dbi"] is None:
             raise ValueError("cannot derive gain from zero radiated power")
         summary = summarize_s11(s11_rows, impedance_ohm=zin_at_resonance)
+        summary["resonant_frequency_hz"] = resonance_hz
         target_index = min(range(len(s11_rows)),
                            key=lambda index: abs(s11_rows[index]["frequency_hz"] - frequency_hz))
         target_impedance = complex(zin[target_index])
         target_s11_db = s11_rows[target_index]["s11_db"]
         summary.update({
+            "s11_at_resonance_db": 20 * math.log10(abs(
+                (zin_at_resonance - 50.0) / (zin_at_resonance + 50.0))),
             "target_frequency_hz": frequency_hz,
             "s11_at_target_db": target_s11_db,
             "input_impedance_real_at_target_ohm": float(target_impedance.real),
@@ -357,7 +414,7 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
             summary["vswr_min"] = None
         summary.update(power)
         summary["directivity_dbi"] = directivity_dbi
-        summary["resonance_definition"] = "sampled frequency with minimum S11 magnitude in the configured band; matching-resonance proxy"
+        summary["resonance_definition"] = "linearly interpolated input-reactance zero crossing nearest the target frequency"
         summary["accepted_power_w"] = accepted_w
         summary["radiated_power_w"] = radiated_w
         s11_output = []
