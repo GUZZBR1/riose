@@ -1,0 +1,20 @@
+{
+  "adapter": "actbecalf",
+  "adapter_version": "1.0.0",
+  "canonical_label_policy": "UNKNOWN; original source label preserved",
+  "canonical_unknown_count": 3,
+  "canonical_unknown_original_label_examples": [
+    "standing",
+    "oral_manipulation_of_pen",
+    "unseen_behavior"
+  ],
+  "dataset_doi": "10.5281/zenodo.13259482",
+  "evidence_status": "SIMULATED",
+  "output_file": "actbecalf_synthetic_fixture.jsonl",
+  "output_sha256": "a330c13d82f366fb0a4b12d094f9d61a0d5b188d1e5701361f733bdf9fe82910",
+  "sample_count": 3,
+  "source_file": "actbecalf_synthetic_fixture.csv",
+  "source_md5_verified": false,
+  "source_sha256": "11698c1c9936643a00950f94ff1d4c0a9023a404dd058eb8b939210d40ea5e7b",
+  "source_url": "https://zenodo.org/records/13259482"
+}

@@ -1,0 +1,133 @@
+{
+  "catalog_version": "1.0.0",
+  "datasets": [
+    {
+      "id": "actbecalf",
+      "title": "Accelerometer-Based Multivariate Time-Series Dataset for Calf Behavior Classification",
+      "aliases": ["ActBeCalf", "AcTBeCalf"],
+      "source_url": "https://zenodo.org/records/13259482",
+      "doi": "10.5281/zenodo.13259482",
+      "version": "1.0",
+      "metadata_status": "VERIFIED_PRIMARY_SOURCE",
+      "authors": ["Oshana Dissanayake", "Sarah E. McPherson", "Joseph Allyndrée", "Emer Kennedy", "Padraig Cunningham", "Lucile Riaboff"],
+      "institutions": ["University College Dublin", "VistaMilk SFI Research Centre", "Teagasc", "Wageningen University & Research", "INRAE"],
+      "publisher_license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "access": "open",
+      "automated_download": true,
+      "redistribution": "Permitted with attribution, license link, and indication of changes.",
+      "population": "30 pre-weaned Holstein Friesian and Jersey calves in Ireland",
+      "labeled_duration": "27.4 hours",
+      "sensor": "Axivity AX3 accelerometer",
+      "sensor_position": "NECK",
+      "sample_rate_hz": 25,
+      "axis_unit": "UNKNOWN",
+      "labels": "23 behavior classes in the source ethogram; originals are preserved and canonical labels remain UNKNOWN.",
+      "source_fields": ["dateTime", "calfId", "accX", "accY", "accZ", "behaviour", "segId"],
+      "timestamp_timezone": "UNKNOWN",
+      "raw_xyz_available": true,
+      "animal_id_available": true,
+      "session_id_available": false,
+      "continuity": "UNKNOWN; the paper notes collection interruptions for recharging.",
+      "file": {
+        "name": "AcTBeCalf.csv",
+        "size_bytes": 177608717,
+        "publisher_md5": "59bd00564af64d92489485fa5a8a3960",
+        "content_url": "https://zenodo.org/api/records/13259482/files/AcTBeCalf.csv/content"
+      },
+      "references": [
+        "https://zenodo.org/api/records/13259482",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11994922/"
+      ],
+      "limitations": [
+        "The CSV unit and timestamp timezone are not documented by the publisher; values are not converted.",
+        "The source description and actual CSV header differ in capitalization; the adapter requires the actual header.",
+        "segId is a behavior segment identifier, not a verified collection session identifier.",
+        "Neck-mounted sensor observations do not validate ear-tag performance."
+      ]
+    },
+    {
+      "id": "precision-beef",
+      "title": "Precision Beef - Animal Behaviour Classification",
+      "source_url": "https://zenodo.org/records/4064802",
+      "doi": "10.5281/zenodo.4064802",
+      "version": "v1",
+      "metadata_status": "VERIFIED_PRIMARY_SOURCE",
+      "authors": ["Dejan Pavlovic", "Christopher Davison", "Andrew Hamilton", "Oskar Marko", "Robert Atkinson", "Craig Michie", "Vladimir Crnojevic", "Ivan Andonovic", "Xavier Bellekens", "Christos Tachtatzis"],
+      "institutions": ["BioSense Institute", "University of Strathclyde"],
+      "publisher_license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "access": "open",
+      "automated_download": false,
+      "download_reason": "No Precision Beef acquisition adapter is implemented in this MVP.",
+      "redistribution": "Permitted with attribution, license link, and indication of changes.",
+      "population": "18 cattle across three farm trials; breeds are not stated in the inspected primary metadata.",
+      "trials": ["1", "2", "3"],
+      "sensor": "Afimilk Silent Herdsman collar accelerometer; Rumiwatch halter supplies behavior predictions.",
+      "sensor_position": "COLLAR",
+      "sample_rate_hz": 10,
+      "axis_unit": "mg",
+      "labels": "Device predictions: 0 Other, 1 Ruminating, 2 Eating or Drinking. Class 2 remains UNKNOWN canonically.",
+      "source_fields": ["timestamp", "x", "y", "z"],
+      "timestamp_timezone": "UNKNOWN",
+      "raw_xyz_available": true,
+      "animal_id_available": true,
+      "session_id_available": true,
+      "continuity": "UNKNOWN; official readme gives recording spans, but uninterrupted sampling is not established.",
+      "publisher_checksums": [
+        {"file": "accel-02.csv", "md5": "75f692dbd5757183d4c025766ebae923"},
+        {"file": "halter-02.csv", "md5": "f933becfe7a5f9a51a0d7db7a1cd85bd"},
+        {"file": "Readme.md", "md5": "e52efa933769610b68cf7872f65479e7"}
+      ],
+      "references": [
+        "https://zenodo.org/api/records/4064802",
+        "https://zenodo.org/records/4064802/files/Readme.md?download=1"
+      ],
+      "limitations": [
+        "Labels are predictions by a separate device, not manually observed ground truth.",
+        "Drinking is deliberately merged with eating in label 2.",
+        "Accelerometer and label timestamps do not exactly coincide; any alignment policy must be explicit.",
+        "The collar is not an ear-tag."
+      ]
+    },
+    {
+      "id": "japanese-black-beef-cow-v2",
+      "title": "Japanese Black Beef Cow Behavior Classification Dataset v2",
+      "source_url": "https://zenodo.org/records/5849025",
+      "doi": "10.5281/zenodo.5849025",
+      "version": "v2.0.0",
+      "metadata_status": "VERIFIED_PRIMARY_SOURCE",
+      "authors": ["Hiroyuki Ito", "Ken-ichi Takeda", "Korkut Kaan Tokgoz", "Ludovico Minati", "Masamoto Fukawa", "Li Chao", "Jim Bartels", "Ikumi Rachi", "Sihan A"],
+      "institutions": ["Tokyo Institute of Technology", "Shinshu University", "Sabanci University"],
+      "publisher_license": "CONFLICTED",
+      "license_declarations": [
+        {"source": "Zenodo description", "license": "CC BY-NC-ND 4.0", "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.en"},
+        {"source": "Zenodo API metadata", "license": "CC BY 4.0", "url": "https://zenodo.org/api/records/5849025"}
+      ],
+      "access": "open; license declarations conflict",
+      "automated_download": false,
+      "redistribution": "Unknown until publisher resolves conflicting license declarations.",
+      "population": "6 Japanese Black cattle",
+      "labeled_duration": "197 high-quality labeled minutes",
+      "sensor": "Kionix KX122-1037, 16-bit, ±2 g",
+      "sensor_position": "NECK",
+      "sample_rate_hz": 25,
+      "axis_unit": "g",
+      "labels": ["RES", "RUS", "MOV", "GRZ", "SLT", "FES", "DRN", "LCK", "REL", "URI", "ATT", "ESC", "BMN", "ETC", "BLN"],
+      "source_fields": ["TimeStamp_UNIX", "TimeStamp_JST", "AccX", "AccY", "AccZ", "Label"],
+      "timestamp_timezone": "JST field available; continuity UNKNOWN",
+      "raw_xyz_available": true,
+      "animal_id_available": true,
+      "session_id_available": "UNKNOWN",
+      "continuity": "UNKNOWN",
+      "file": {"name": "JapaneseBlackBeefData.zip", "size_bytes": 14460415,
+                "publisher_md5": "1ba658c6091461730c57e2b378218a39"},
+      "references": ["https://zenodo.org/api/records/5849025"],
+      "limitations": [
+        "Automated acquisition and redistribution are disabled pending license clarification.",
+        "MOV means moving and does not establish walking specifically.",
+        "Neck sensor observations do not validate ear-tag performance."
+      ]
+    }
+  ]
+}
