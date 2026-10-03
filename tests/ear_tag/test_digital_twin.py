@@ -331,6 +331,30 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
                for argument in zephyr_command)
 
 
+def test_antenna_sweep_evidence_accepts_solver_csv_fields_over_default_limit(tmp_path):
+    import csv
+
+    from hardware.antenna.sweeps import plan_sweeps
+    from riose.products.ear_tag.digital_twin.runner import _antenna_sweep_result
+    from riose.products.ear_tag.digital_twin.spec import load_spec
+
+    spec, _ = load_spec(ROOT / "hardware/spec.yaml")
+    cases = [{**case, "status": "COMPLETED"} for case in plan_sweeps(spec)]
+    evidence_csv = tmp_path / "sweeps.csv"
+    fields = ["case_id", "input_hash_sha256", "status", "scenario", "parameter", "value", "unit",
+              "radiation_pattern"]
+    with evidence_csv.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for case in cases:
+            writer.writerow({**{key: case[key] for key in fields[:-1]}, "radiation_pattern": "x" * 140_000})
+
+    result = _antenna_sweep_result(spec, {"sweeps": cases}, evidence_csv, True)
+
+    assert result["status"] == "COMPLETED"
+    assert result["completed_case_count"] == result["expected_case_count"] == 11
+
+
 def test_run_preserves_antenna_mesh_refinement_in_summary_and_report(tmp_path, monkeypatch):
     import json
 
@@ -421,15 +445,17 @@ def test_report_summarizes_completed_antenna_scenarios_without_claiming_physical
     summary = {
         "gate": {"state": "NOT_READY_FOR_PHYSICAL_PROTOTYPE", "blockers": []},
         "stages": {"antenna": {"status": "PARTIAL_OR_BLOCKED", "scenarios": [
-            {"scenario": "ANTENNA_WITH_ENCLOSURE", "status": "COMPLETED"},
+            {"scenario": "ANTENNA_WITH_ENCLOSURE", "status": "COMPLETED", "resonant_frequency_hz": 706_837_500.0},
             {"scenario": "ANTENNA_WITH_BATTERY", "status": "FAILED"},
         ], "mesh_refinement": {"status": "NOT_RUN", "converged": False}}},
         "spec_sha256": "test",
         "environment": {"platform": "test", "gpu": {}},
         "parameter_statuses": {},
     }
-    report = _report({}, summary)
+    report = _report({"antenna": {"center_frequency_hz": {"value": 915_000_000}}}, summary)
     assert "1/2 cenários têm execução temporal COMPLETED" in report
     assert "comparação numérica de malha: NOT_RUN" in report
+    assert "ANTENNA_WITH_ENCLOSURE: 706.837 MHz" in report
+    assert "Assumed center-frequency target: 915.000 MHz" in report
     assert "passaram a comparação numérica de malha" not in report
     assert "não validam desempenho físico" in report
