@@ -5,6 +5,11 @@ fail-closed boundary for a future blockchain publisher. It does not publish,
 persist, sign, read keys, or accept an `AnimalEvent`; callers must provide only
 an already-computed commitment digest.
 
+For Commitment V1, that digest is produced from the local event-chain digest
+and a random local subject reference; it is not the raw event hash. The
+reference and source digest stay in the private `CommitmentV1` binding. The
+public DTO remains this exact three-field envelope.
+
 ## Exact public schema
 
 The only accepted JSON object is:
@@ -37,10 +42,11 @@ UTF-8 documents also fail. Test fixtures contain no real animal or owner data.
 
 ## Correlation and entropy limits
 
-A digest is not automatically anonymous. A commitment to a small or guessable
-input space can be tested offline, and a stable digest can correlate repeated
-records. This guard validates the envelope shape; it does not assess the
-entropy or privacy of the committed source, add a secret salt, or make legal
-anonymity claims. Callers must not put low-entropy personal attributes directly
-into a commitment and assume the digest hides them. Any future technical
-identifier or schema extension requires an explicit versioned allowlist change.
+A digest is not automatically anonymous. A leaked subject reference together
+with a source digest can enable correlation or guessing, and reusing a
+reference makes commitments linkable. This guard validates only the envelope
+shape; it does not assess source privacy or make legal anonymity claims. Keep
+the high-entropy reference local, generate one per subject, and never put raw
+personal attributes or event payloads into the public envelope. Any future
+technical identifier or schema extension requires an explicit versioned
+allowlist change.
