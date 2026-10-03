@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from ..domain.contracts import EvidenceStatus
+from ..domain.commitment import CommitmentV1, verify_commitment_v1
 from ..domain.identity import LocalChainEvidence
 from ..domain.publication import ConfirmationResult, PublicationStatus
 from ..domain.receipt import PublicationReceipt, ReceiptStatus
@@ -26,6 +27,7 @@ class VerificationReason(StrEnum):
     CONSISTENT_OBSERVATION = "CONSISTENT_OBSERVATION"
     LOCAL_CHAIN_INVALID = "LOCAL_CHAIN_INVALID"
     LOCAL_COMMITMENT_MISMATCH = "LOCAL_COMMITMENT_MISMATCH"
+    LOCAL_BINDING_MISSING = "LOCAL_BINDING_MISSING"
     RECEIPT_MISSING = "RECEIPT_MISSING"
     RECEIPT_MISMATCH = "RECEIPT_MISMATCH"
     OBSERVATION_MISSING = "OBSERVATION_MISSING"
@@ -73,6 +75,7 @@ class IntegrityVerifier:
         request: IntegrityVerificationRequest,
         *,
         local_chain: LocalChainEvidence | None,
+        commitment_binding: CommitmentV1 | None,
         receipt: PublicationReceipt | None,
         observation: ConfirmationResult | None,
     ) -> IntegrityVerificationResult:
@@ -87,7 +90,15 @@ class IntegrityVerifier:
             return self._result(request, VerificationStatus.UNAVAILABLE, VerificationReason.UNSUPPORTED_VERSION, local_chain.algorithm, local_chain.version, evidence_status)
         if not local_chain.valid:
             return self._result(request, VerificationStatus.INVALID, VerificationReason.LOCAL_CHAIN_INVALID, local_chain.algorithm, local_chain.version, evidence_status)
-        if local_chain.head_digest != request.commitment:
+        if commitment_binding is None:
+            return self._result(request, VerificationStatus.UNAVAILABLE, VerificationReason.LOCAL_BINDING_MISSING, local_chain.algorithm, local_chain.version, evidence_status)
+        if type(commitment_binding) is not CommitmentV1:
+            return self._result(request, VerificationStatus.UNAVAILABLE, VerificationReason.LOCAL_BINDING_MISSING, local_chain.algorithm, local_chain.version, evidence_status)
+        if (
+            commitment_binding.source_digest != local_chain.head_digest
+            or commitment_binding.digest != request.commitment
+            or not verify_commitment_v1(commitment_binding)
+        ):
             return self._result(request, VerificationStatus.INVALID, VerificationReason.LOCAL_COMMITMENT_MISMATCH, local_chain.algorithm, local_chain.version, evidence_status)
         if receipt is None:
             return self._result(request, VerificationStatus.UNAVAILABLE, VerificationReason.RECEIPT_MISSING, local_chain.algorithm, local_chain.version, evidence_status)

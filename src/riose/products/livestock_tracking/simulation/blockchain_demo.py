@@ -12,8 +12,8 @@ from ..application.integrity_verifier import (
     IntegrityVerificationRequest,
     IntegrityVerifier,
 )
+from ..domain.commitment import create_commitment_from_chain_evidence, public_envelope
 from ..domain.contracts import EvidenceStatus
-from ..domain.privacy import build_public_envelope
 from ..domain.publication import CommitmentPublicationRequest, publication_capabilities
 from ..domain.receipt import PublicationReceipt, ReceiptStatus
 from .blockchain import FakeBlockchainAdapter, FakeSubmitOutcome
@@ -49,15 +49,16 @@ def _run_scenario(database_path: Path) -> dict[str, object]:
         if chain is None or not chain.valid or chain.head_digest != event.hash:
             raise RuntimeError("synthetic event chain did not validate")
         simulated_chain = replace(chain, evidence_status=EvidenceStatus.SIMULATED)
+        commitment = create_commitment_from_chain_evidence(chain, "d" * 64)
         adapter = FakeBlockchainAdapter([FakeSubmitOutcome.CONFIRMED])
         request = CommitmentPublicationRequest(
-            build_public_envelope(event.hash),
+            public_envelope(commitment),
             destination="fake-chain",
             network="offline",
         )
         submitted = adapter.submit(request)
         observed = adapter.query(
-            commitment=event.hash,
+            commitment=commitment.digest,
             destination="fake-chain",
             network="offline",
             reference=submitted.reference,
@@ -67,7 +68,7 @@ def _run_scenario(database_path: Path) -> dict[str, object]:
         receipt = PublicationReceipt(
             receipt_id="demo-receipt-0001",
             version=DEMO_COMMITMENT_VERSION,
-            commitment=event.hash,
+            commitment=commitment.digest,
             destination="fake-chain",
             network="offline",
             status=ReceiptStatus.CONFIRMED,
@@ -78,12 +79,13 @@ def _run_scenario(database_path: Path) -> dict[str, object]:
         )
         stored_receipt = store.publication_receipts.save(receipt)
         verification_request = IntegrityVerificationRequest(
-            event.hash, "fake-chain", "offline", submitted.reference
+            commitment.digest, "fake-chain", "offline", submitted.reference
         )
         verifier = IntegrityVerifier()
         pre_tamper = verifier.verify(
             verification_request,
             local_chain=simulated_chain,
+            commitment_binding=commitment,
             receipt=stored_receipt,
             observation=observed,
         )
@@ -100,13 +102,14 @@ def _run_scenario(database_path: Path) -> dict[str, object]:
         post_tamper = verifier.verify(
             verification_request,
             local_chain=replace(tampered_chain, evidence_status=EvidenceStatus.SIMULATED),
+            commitment_binding=commitment,
             receipt=stored_receipt,
             observation=observed,
         )
         return {
             "scenario": "riose-blockchain-demo-v1",
             "evidence": EvidenceStatus.SIMULATED.value,
-            "commitment": event.hash,
+            "commitment": commitment.digest,
             "steps": {
                 "event": "SYNTHETIC",
                 "local_chain_before_tamper": "VALID" if before else "INVALID",
