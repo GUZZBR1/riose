@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS animal_events (
   event_id INTEGER PRIMARY KEY AUTOINCREMENT, animal_id TEXT NOT NULL,
   event_type TEXT NOT NULL, timestamp REAL NOT NULL, payload TEXT NOT NULL,
   previous_hash TEXT NOT NULL, hash TEXT NOT NULL, signature TEXT,
+  schema_version TEXT,
   FOREIGN KEY(animal_id) REFERENCES animals(animal_id)
 );
 CREATE TABLE IF NOT EXISTS telemetry (
@@ -62,6 +63,10 @@ class Store:
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys=ON")
         self.connection.executescript(SCHEMA)
+        columns = {row[1] for row in self.connection.execute("PRAGMA table_info(animal_events)")}
+        if "schema_version" not in columns:
+            # NULL marks rows written before versioned event contracts existed.
+            self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
         self.connection.commit()
 
     def close(self) -> None:
@@ -242,7 +247,8 @@ class Store:
     def events(self, limit: int = 1000) -> list[dict[str, Any]]:
         with self._lock:
             events = [dict(r) for r in self.connection.execute(
-                "SELECT * FROM animal_events ORDER BY event_id DESC LIMIT ?", (limit,))]
+                "SELECT event_id,animal_id,event_type,timestamp,payload,previous_hash,hash,signature "
+                "FROM animal_events ORDER BY event_id DESC LIMIT ?", (limit,))]
             for event in events:
                 try:
                     event["payload"] = json.loads(event["payload"])
