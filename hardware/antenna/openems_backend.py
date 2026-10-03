@@ -23,9 +23,17 @@ C0_M_S = 299_792_458.0
 EPS0_F_M = 8.8541878128e-12
 MAX_TIME_STEPS = 300_000
 END_CRITERIA = 1e-5
-SOLVER_SETUP_VERSION = 3
-EXCITATION_CONFIG = {"type": "Gaussian", "center_frequency_fraction": 1.0,
-                     "cutoff_frequency_fraction": 0.25}
+SOLVER_SETUP_VERSION = 4
+FREQUENCY_MIN_RATIO = 0.65
+FREQUENCY_MAX_RATIO = 2.5
+FREQUENCY_SAMPLE_COUNT = 371
+MESH_BASE_MAX_CELL_WAVELENGTH_FRACTION = 1 / 20
+MESH_REFINEMENT_COARSE_FACTOR = 1.5
+EXCITATION_CONFIG = {"type": "Gaussian",
+                     "center_frequency_fraction": (FREQUENCY_MIN_RATIO + FREQUENCY_MAX_RATIO) / 2,
+                     "band_min_frequency_fraction": FREQUENCY_MIN_RATIO,
+                     "band_max_frequency_fraction": FREQUENCY_MAX_RATIO,
+                     "cutoff_frequency_fraction": (FREQUENCY_MAX_RATIO - FREQUENCY_MIN_RATIO) / 2}
 PORT_CONFIG = {"type": "z_directed_lumped_port", "cross_section": "trace_width_square"}
 
 
@@ -181,20 +189,29 @@ def _mesh_metadata(mesh: Any, max_res_mm: float) -> dict[str, Any]:
 
 def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, Any],
                       output_dir: Path, overrides: dict[str, Any] | None = None,
-                      *, input_hash: str | None = None) -> dict[str, Any]:
+                      *, input_hash: str | None = None,
+                      mesh_resolution_factor: float = 1.0) -> dict[str, Any]:
     """Run one solver case and return only solver-derived metrics/evidence."""
     overrides = overrides or {}
+    if (isinstance(mesh_resolution_factor, bool)
+            or not isinstance(mesh_resolution_factor, (int, float))
+            or not math.isfinite(float(mesh_resolution_factor))
+            or mesh_resolution_factor <= 0):
+        raise ValueError("mesh_resolution_factor must be positive and finite")
+    mesh_resolution_factor = float(mesh_resolution_factor)
     config = {
         "solver_setup_version": SOLVER_SETUP_VERSION,
         "geometry_hash_sha256": geometry["geometry_hash_sha256"],
         "scenario": geometry["scenario"], "frequency_hz": geometry["antenna"]["frequency_hz"],
         "max_time_steps": MAX_TIME_STEPS, "end_criteria": END_CRITERIA,
-        "frequency_samples": 401, "boundary": "PML_8 on all six faces",
-        "mesh_rule": "lambda/20 global maximum with feature-edge grid lines and 1.4 smoothing ratio",
+        "frequency_samples": FREQUENCY_SAMPLE_COUNT, "boundary": "PML_8 on all six faces",
+        "mesh_rule": "lambda/20 fine reference with explicit coarse/fine factor and 1.4 smoothing ratio",
+        "mesh_resolution_factor": mesh_resolution_factor,
         "excitation": EXCITATION_CONFIG, "port": PORT_CONFIG,
         "overrides": overrides,
     }
-    requested_hash = expected_input_hash(spec_hash, geometry, overrides)
+    requested_hash = expected_input_hash(spec_hash, geometry, overrides,
+                                         mesh_resolution_factor=mesh_resolution_factor)
     if input_hash is not None and input_hash != requested_hash:
         raise ValueError("input_hash does not match geometry and solver configuration")
     input_hash = requested_hash
@@ -220,22 +237,27 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
     sim_dir.mkdir(parents=True, exist_ok=True)
     csx = CSXCAD.ContinuousStructure()
     fdtd = openems_package.openEMS(NrTS=MAX_TIME_STEPS, EndCriteria=END_CRITERIA)
-    fdtd.SetGaussExcite(geometry["antenna"]["frequency_hz"], geometry["antenna"]["frequency_hz"] * 0.25)
+    frequency_hz = geometry["antenna"]["frequency_hz"]
+    excitation_center = frequency_hz * (FREQUENCY_MIN_RATIO + FREQUENCY_MAX_RATIO) / 2
+    excitation_cutoff = frequency_hz * (FREQUENCY_MAX_RATIO - FREQUENCY_MIN_RATIO) / 2
+    fdtd.SetGaussExcite(excitation_center, excitation_cutoff)
     fdtd.SetBoundaryCond(["PML_8"] * 6)
     fdtd.SetCSX(csx)
     mesh = csx.GetGrid()
     mesh.SetDeltaUnit(1e-3)
     add_primitives(csx, geometry, spec)
 
-    frequency_hz = geometry["antenna"]["frequency_hz"]
-    frequency_start, frequency_stop = 0.75 * frequency_hz, 1.25 * frequency_hz
-    frequencies = np.linspace(frequency_start, frequency_stop, 401)
-    wavelength_mm = C0_M_S / frequency_stop * 1000
-    max_res_mm = wavelength_mm / 20
+    frequency_start = FREQUENCY_MIN_RATIO * frequency_hz
+    frequency_stop = FREQUENCY_MAX_RATIO * frequency_hz
+    frequencies = np.linspace(frequency_start, frequency_stop, FREQUENCY_SAMPLE_COUNT)
+    fine_grid_wavelength_mm = C0_M_S / frequency_stop * 1000
+    domain_wavelength_mm = C0_M_S / frequency_start * 1000
+    max_res_mm = (fine_grid_wavelength_mm * MESH_BASE_MAX_CELL_WAVELENGTH_FRACTION
+                  * mesh_resolution_factor)
     primitive_boxes = geometry["primitives"]
-    x_edges = [-0.5 * wavelength_mm, 0.5 * wavelength_mm]
-    y_edges = [-0.5 * wavelength_mm, 0.5 * wavelength_mm]
-    z_edges = [-wavelength_mm / 3, wavelength_mm / 2]
+    x_edges = [-0.5 * domain_wavelength_mm, 0.5 * domain_wavelength_mm]
+    y_edges = [-0.5 * domain_wavelength_mm, 0.5 * domain_wavelength_mm]
+    z_edges = [-domain_wavelength_mm / 3, domain_wavelength_mm / 2]
     for primitive in primitive_boxes:
         for axis, target in enumerate((x_edges, y_edges, z_edges)):
             target.extend((primitive["start_mm"][axis], primitive["stop_mm"][axis]))
@@ -254,7 +276,7 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
 
     all_starts = [p["start_mm"] for p in primitive_boxes]
     all_stops = [p["stop_mm"] for p in primitive_boxes]
-    air_padding_mm = wavelength_mm / 6
+    air_padding_mm = domain_wavelength_mm / 6
     nf_start = [min(point[axis] for point in all_starts) - air_padding_mm for axis in range(3)]
     nf_stop = [max(point[axis] for point in all_stops) + air_padding_mm for axis in range(3)]
     nf2ff = fdtd.CreateNF2FFBox("riose_nf2ff", nf_start, nf_stop)
@@ -305,6 +327,8 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
                     for frequency, db in zip(frequencies, s11_db)]
         s11_rows = parse_s11_rows(s11_rows)
         resonance_index = min(range(len(s11_rows)), key=lambda index: s11_rows[index]["s11_db"])
+        if resonance_index in (0, len(s11_rows) - 1):
+            raise ValueError("S11 minimum lies at the configured frequency sweep boundary; resonance is not bracketed")
         resonance_hz = s11_rows[resonance_index]["frequency_hz"]
         zin_at_resonance = complex(zin[resonance_index])
         nf_result = nf2ff.CalcNF2FF(str(sim_dir), resonance_hz,
@@ -318,6 +342,17 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
         if power["gain_dbi"] is None:
             raise ValueError("cannot derive gain from zero radiated power")
         summary = summarize_s11(s11_rows, impedance_ohm=zin_at_resonance)
+        target_index = min(range(len(s11_rows)),
+                           key=lambda index: abs(s11_rows[index]["frequency_hz"] - frequency_hz))
+        target_impedance = complex(zin[target_index])
+        target_s11_db = s11_rows[target_index]["s11_db"]
+        summary.update({
+            "target_frequency_hz": frequency_hz,
+            "s11_at_target_db": target_s11_db,
+            "input_impedance_real_at_target_ohm": float(target_impedance.real),
+            "input_impedance_imag_at_target_ohm": float(target_impedance.imag),
+            "vswr_at_target": vswr_from_s11_db(target_s11_db),
+        })
         if not math.isfinite(float(summary["vswr_min"])):
             summary["vswr_min"] = None
         summary.update(power)
@@ -368,15 +403,22 @@ def simulate_scenario(spec: dict[str, Any], spec_hash: str, geometry: dict[str, 
 
 
 def expected_input_hash(spec_hash: str, geometry: dict[str, Any],
-                        overrides: dict[str, Any] | None = None) -> str:
+                        overrides: dict[str, Any] | None = None, *,
+                        mesh_resolution_factor: float = 1.0) -> str:
     """Return the stable identity used for this exact solver configuration."""
+    if (isinstance(mesh_resolution_factor, bool)
+            or not isinstance(mesh_resolution_factor, (int, float))
+            or not math.isfinite(float(mesh_resolution_factor))
+            or mesh_resolution_factor <= 0):
+        raise ValueError("mesh_resolution_factor must be positive and finite")
     config = {
         "solver_setup_version": SOLVER_SETUP_VERSION,
         "geometry_hash_sha256": geometry["geometry_hash_sha256"],
         "scenario": geometry["scenario"], "frequency_hz": geometry["antenna"]["frequency_hz"],
         "max_time_steps": MAX_TIME_STEPS, "end_criteria": END_CRITERIA,
-        "frequency_samples": 401, "boundary": "PML_8 on all six faces",
-        "mesh_rule": "lambda/20 global maximum with feature-edge grid lines and 1.4 smoothing ratio",
+        "frequency_samples": FREQUENCY_SAMPLE_COUNT, "boundary": "PML_8 on all six faces",
+        "mesh_rule": "lambda/20 fine reference with explicit coarse/fine factor and 1.4 smoothing ratio",
+        "mesh_resolution_factor": float(mesh_resolution_factor),
         "excitation": EXCITATION_CONFIG, "port": PORT_CONFIG,
         "overrides": overrides or {},
     }

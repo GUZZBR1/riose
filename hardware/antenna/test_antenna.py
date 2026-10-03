@@ -127,16 +127,49 @@ def test_openems_run_statistics_require_energy_decay_and_headroom():
     assert absent["status"] == "NON_CONVERGED"
 
 
-def test_all_single_mesh_results_leave_refinement_gate_partial(tmp_path, monkeypatch):
+def test_all_scenarios_require_converged_coarse_and_fine_meshes(tmp_path, monkeypatch):
     unavailable(monkeypatch)
-    monkeypatch.setattr(antenna_run, "simulate_scenario", lambda *args, **kwargs: {
-        "status": "COMPLETED", "metrics": {"resonant_frequency_hz": 915e6}, "evidence": {}})
+    calls = []
+
+    def simulated(*args, **kwargs):
+        factor = kwargs["mesh_resolution_factor"]
+        calls.append(factor)
+        return {"status": "COMPLETED", "metrics": {
+            "resonant_frequency_hz": 915e6, "s11_min_db": -10.0,
+            "input_impedance_real_ohm": 50.0, "input_impedance_imag_ohm": 0.0,
+            "vswr_min": 1.0, "efficiency_fraction": 0.8, "gain_dbi": 2.0,
+            "directivity_dbi": 3.0, "s11_at_target_db": -9.0,
+            "input_impedance_real_at_target_ohm": 51.0,
+            "input_impedance_imag_at_target_ohm": 1.0, "vswr_at_target": 1.2,
+        }, "evidence": {}}
+
+    monkeypatch.setattr(antenna_run, "simulate_scenario", simulated)
     monkeypatch.setattr(antenna_run, "_validate_completion", lambda *args, **kwargs: None)
     result = antenna_run.run_experiments(SPEC, tmp_path)
     assert all(row["status"] == "COMPLETED" for row in result["scenarios"])
-    assert result["status"] == "PARTIAL_OR_BLOCKED"
-    assert result["mesh_refinement"]["status"] == "NOT_RUN"
-    assert result["mesh_refinement"]["converged"] is False
+    assert calls == [1.5, 1.0] * len(SCENARIOS)
+    assert result["status"] == "COMPLETED"
+    assert result["mesh_refinement"]["status"] == "COMPLETED"
+    assert result["mesh_refinement"]["converged"] is True
+    assert all(row["mesh_refinement"]["converged"] for row in result["scenarios"])
+
+
+def test_mesh_refinement_fails_closed_when_solver_metrics_do_not_agree():
+    coarse = {"status": "COMPLETED", "metrics": {
+        "resonant_frequency_hz": 1_000_000_000, "s11_min_db": -6.0}}
+    fine = {"status": "COMPLETED", "metrics": {
+        "resonant_frequency_hz": 915_000_000, "s11_min_db": -10.0}}
+    result = antenna_run._mesh_refinement(coarse, fine)
+    assert result["status"] == "NON_CONVERGED"
+    assert result["converged"] is False
+    assert result["resonant_frequency_relative_delta"] == pytest.approx(85_000_000 / 915_000_000)
+    assert result["s11_min_delta_db"] == 4.0
+
+
+def test_mesh_refinement_requires_both_native_solver_runs():
+    result = antenna_run._mesh_refinement({"status": "NOT_AVAILABLE"}, {"status": "COMPLETED"})
+    assert result["status"] == "BLOCKED"
+    assert result["converged"] is False
 
 
 def test_native_runner_rejects_hash_that_omits_solver_configuration(tmp_path):
