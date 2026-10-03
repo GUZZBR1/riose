@@ -6,11 +6,14 @@ the feature uses `Store(path, enable_publication_outbox=True)` and accesses its
 `publication_outbox` repository.
 
 Tickets hold only an opaque local ID, a positive envelope version, bounded
-non-empty envelope bytes (maximum 512 bytes), an availability timestamp, and
-optional local claim metadata. They do not contain animal/event rows, raw
-payloads, signer material, or network results. Callers must supply a minimized
-synthetic commitment envelope; enqueue is separate from event persistence, so
-there is an intentional crash window between the two operations.
+canonical UTF-8 JSON bytes (maximum 512 bytes), an availability timestamp, and
+optional local claim metadata. The temporary outbox fixture schema contains
+exactly `version` and a lowercase 64-character commitment digest; duplicate or
+extra keys, nested data, and non-deterministic encodings are rejected. This
+fixture is separate from the public v1 DTO and carries no algorithm or event
+data. Tickets cannot contain animal/event rows, raw payloads, signer material,
+or network results. Enqueue is separate from event persistence, so there is an
+intentional crash window between the two operations.
 
 `enqueue`, `get`, `list_pending(limit)`, and `claim_due(now, limit,
 claim_token)` are local SQLite operations. IDs conflict rather than overwrite.

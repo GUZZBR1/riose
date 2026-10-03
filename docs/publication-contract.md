@@ -16,9 +16,11 @@ are required; no implicit mainnet or default adapter exists.
 `submit` returns `SUBMITTED`, `REJECTED`, `UNAVAILABLE`, or `UNKNOWN`.
 `SubmissionResult` rejects `CONFIRMED`, so a transaction reference or send
 acceptance cannot claim confirmation. `query` is a separate operation and may
-return `CONFIRMED`, `REJECTED`, `UNAVAILABLE`, or `UNKNOWN`, correlated to the
-requested digest, destination, network, and reference. Missing observations and
-transport uncertainty are never represented as invalid commitment contents.
+return `SUBMITTED` when the referenced transaction is observed but still
+pending, `CONFIRMED` after a confirmation observation, `REJECTED`, `UNAVAILABLE`,
+or `UNKNOWN`, correlated to the requested digest, destination, network, and
+reference. Missing observations and transport uncertainty are never represented
+as invalid commitment contents.
 Reason fields are allowlisted codes rather than exception text.
 
 Every result carries an `EvidenceStatus`. A fake can report `SIMULATED`; an

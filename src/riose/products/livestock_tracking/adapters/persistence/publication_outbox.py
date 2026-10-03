@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import json
 import re
 import sqlite3
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
 MAX_OUTBOX_ENVELOPE_BYTES = 512
 MAX_OUTBOX_LIST_LIMIT = 1000
 _OPAQUE_ID_PATTERN = re.compile(r"[A-Za-z0-9._:-]{1,128}\Z", re.ASCII)
+_COMMITMENT_PATTERN = re.compile(r"[0-9a-f]{64}\Z", re.ASCII)
 
 OUTBOX_SCHEMA = """
 CREATE TABLE IF NOT EXISTS publication_outbox (
@@ -46,6 +48,32 @@ class OutboxEnvelope:
             raise ValueError("envelope data must be non-empty bytes")
         if len(self.data) > MAX_OUTBOX_ENVELOPE_BYTES:
             raise ValueError("envelope data exceeds the size limit")
+        try:
+            document = json.loads(
+                self.data.decode("utf-8", errors="strict"),
+                object_pairs_hook=_object_without_duplicate_keys,
+                parse_constant=_reject_non_json_constant,
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            raise ValueError("envelope bytes must be canonical versioned JSON") from exc
+        if (
+            type(document) is not dict
+            or frozenset(document) != {"version", "commitment"}
+            or type(document["version"]) is not int
+            or document["version"] != self.version
+            or type(document["commitment"]) is not str
+            or _COMMITMENT_PATTERN.fullmatch(document["commitment"]) is None
+        ):
+            raise ValueError("envelope must contain only version and commitment digest")
+        canonical = json.dumps(
+            {"commitment": document["commitment"], "version": self.version},
+            ensure_ascii=True,
+            allow_nan=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        if canonical != self.data:
+            raise ValueError("envelope bytes must use deterministic encoding")
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,3 +196,16 @@ def _validate_timestamp(value: float, name: str) -> None:
 def _validate_limit(limit: int) -> None:
     if type(limit) is not int or not 1 <= limit <= MAX_OUTBOX_LIST_LIMIT:
         raise ValueError("limit must be between 1 and 1000")
+
+
+def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate envelope key")
+        result[key] = value
+    return result
+
+
+def _reject_non_json_constant(_value: str) -> object:
+    raise ValueError("non-JSON number")
