@@ -579,6 +579,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
         ant["result_class"] = ant_json.get("result_class")
         ant["scenarios"] = ant_json.get("scenarios", [])
+        ant["mesh_refinement"] = ant_json.get("mesh_refinement", {})
         incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
         if incomplete:
             ant["detail"] = "; ".join(
