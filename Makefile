@@ -42,7 +42,7 @@ hardware-native-sim:
 hardware-renode-test:
 	python3 hardware/renode/scripts/check_tools.py
 	@if command -v renode >/dev/null 2>&1 && command -v renode-test >/dev/null 2>&1; then \
-		renode-test hardware/renode/tests/platform-smoke.robot; \
+		renode-test hardware/renode/tests/platform-smoke.robot hardware/renode/tests/spi-transfer-timeout.robot; \
 	else \
 		echo "SKIPPED: install renode and renode-test to run the optional platform smoke test"; \
 	fi

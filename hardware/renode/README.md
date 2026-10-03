@@ -67,7 +67,7 @@ conversion cannot leave an old RESD appearing to be current.
 | TX | Completion uses configured latency; equal/earlier radio timeout wins | One-shot `LimitTimer` uses Renode virtual time; equal/earlier timeout wins | Same deadline decision; C advances in integer milliseconds while Renode uses 15.625-us ticks |
 | RX | Logical receive window always ends with timeout; continuous RX capped at one second | Logical receive window always ends with timeout; continuous RX capped at one virtual second | Match; neither invents an over-the-air packet or `RX_DONE` |
 | Sleep/standby | Cancels active logical TX/RX and clears pending timeout | Cancels and resets the active Renode timer | Match; time granularity differs |
-| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF` for a dropped byte | Models a failed response, not a virtual-time SPI controller timeout |
+| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF`; optional `SPITransferFault` stalls controller register accesses until a virtual deadline | Dropped byte and timed controller fault are tested separately; the watchdog is simulation instrumentation |
 
 `hardware/models/sx1262` remains the firmware-host reference for command bytes,
 configuration state, FIFO contents, IRQ status, and logical TX/RX outcomes.
@@ -108,6 +108,37 @@ before setting `SampleRate`; without `allowPrivates true`, the model retains a
 zero sample frequency and rejects RESD playback.
 
 ## Headless use
+
+### Controller transfer timeout instrumentation
+
+`spi-transfer-fault.repl` is an optional platform for polling SPI fault tests.
+The wrapper forwards normal register reads and writes to Renode's native
+`STM32SPI`. With `StallTransfers` enabled, an enabled-controller write to `DR`
+starts a one-shot virtual watchdog (`TimeoutUs`, default 10,000 us). The write
+does not reach the radio. While pending, `SR.BSY` is set and `SR.RXNE`/`SR.TXE`
+are clear, and no received byte is available. At the deadline the transfer is
+aborted, `TimeoutCount` increments once, `BSY` clears and `TXE` returns. Disabling
+`SPE` or resetting the wrapper cancels the deadline. Clearing `StallTransfers`
+allows the next transfer to use the native controller normally.
+
+The watchdog and its counter are **SIMULATED test instrumentation**, not STM32
+hardware registers or a physical timeout measurement. The overlay keeps the
+native controller at debugger alias `0x40013400` and intercepts firmware's SPI1
+address `0x40013000`; the standard platform is unchanged. This optional fault
+path covers polling register accesses only, not DMA or interrupt-driven SPI.
+The test halts the CPU and checks controller state at 9 ms and exactly 10 ms,
+single expiry, register polling, cancellation, and a recovered `GetStatus`
+response. A separate case proves that `DropSPI` returns an immediate `0xFF`
+with `RXNE` set and no watchdog expiry.
+
+```sh
+renode-test hardware/renode/tests/spi-transfer-timeout.robot
+```
+
+This demonstrates controller-level timed fault injection and protocol recovery
+by the test harness. Firmware timeout/error handling and a complete Zephyr
+recovery cycle under this fault remain unverified; this evidence alone should
+not close issue #5.
 
 Renode and `renode-test` are optional local tools; this workspace does not
 vendor them. Install a Renode release and ensure `renode` and `renode-test`
