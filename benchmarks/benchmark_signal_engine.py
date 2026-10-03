@@ -9,6 +9,7 @@ import time
 import tracemalloc
 
 import numpy as np
+import scipy
 
 from riose.products.ear_tag.signal import SignalSample, SignalTrace, WindowConfig, extract_features
 
@@ -40,7 +41,8 @@ def main() -> None:
     print(json.dumps({
         "classification": "EXPERIMENTAL",
         "environment": {"platform": platform.platform(), "python": platform.python_version(),
-                        "numpy": np.__version__},
+                        "machine": platform.machine(), "numpy": np.__version__,
+                        "scipy": scipy.__version__},
         "samples": count,
         "windows_per_run": len(expected),
         "runs": len(timings_ms),
