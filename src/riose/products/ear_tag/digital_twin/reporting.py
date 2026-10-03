@@ -42,6 +42,7 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     antenna = stages.get("antenna", {})
     antenna_rows = antenna.get("scenarios", [])
     antenna_completed = sum(row.get("status") == "COMPLETED" for row in antenna_rows)
+    target_frequency_hz = spec.get("antenna", {}).get("center_frequency_hz", {}).get("value")
     antenna_sweeps = stages.get("antenna_sweeps", {})
     mesh_refinement = antenna.get("mesh_refinement", {})
     failed_checks = mechanical.get("fit", {}).get("issues", [])
@@ -51,9 +52,24 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
                               "resultados simulados não validam desempenho físico.")
         else:
             refinement_status = mesh_refinement.get("status", "NOT_REPORTED")
+            frequencies = [
+                f"{row.get('scenario')}: {float(row['resonant_frequency_hz']) / 1e6:.3f} MHz"
+                for row in antenna_rows
+                if row.get("status") == "COMPLETED"
+                and isinstance(row.get("resonant_frequency_hz"), (int, float))
+            ]
+            resonance_detail = (
+                f" Sampled solver resonances (SIMULATED; mesh convergence pending): {'; '.join(frequencies)}."
+                if frequencies else ""
+            )
+            target_detail = (
+                f" Assumed center-frequency target: {float(target_frequency_hz) / 1e6:.3f} MHz."
+                if isinstance(target_frequency_hz, (int, float)) else ""
+            )
             antenna_answer = (f"{antenna_completed}/{len(antenna_rows)} cenários têm execução temporal COMPLETED; "
                               f"comparação numérica de malha: {refinement_status}; "
-                              "resultados simulados não validam desempenho físico.")
+                              "resultados simulados não validam desempenho físico."
+                              f"{resonance_detail}{target_detail}")
     else:
         antenna_answer = antenna.get("detail", "Nenhum cenário de RF produziu resultado do solver.")
     energy_answer = (f"`{charge:.6g} µAh` pela integração SIMULATED de correntes ASSUMED/trace; "

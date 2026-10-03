@@ -6,51 +6,58 @@ Este relatório descreve um fluxo digital e SIMULATED. Nenhum hardware físico, 
 
 ## Execução
 
-- Spec SHA-256: `411580b196dada6c5125df22cdf149e46c5d05cc1fa2feea092e7203f8e48b81`
+- Spec SHA-256: `ccf31bfac66175f83e3631ba1a68d6a879a7aed78c71106a63c9c2272bd8f45f`
 - Plataforma: `Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39`
-- Parâmetros por status: `{"ASSUMED": 81, "DATASHEET": 18, "SIMULATED": 3}`
+- Parâmetros por status: `{"ASSUMED": 99, "DATASHEET": 18, "SIMULATED": 3}`
 - GPU: `{"CUDA_AVAILABLE": false, "DRJIT_CUDA_AVAILABLE": false, "GPU_AVAILABLE": false, "GPU_TYPE": "NONE_DETECTED", "MITSUBA_VARIANT": null, "SIONNA_AVAILABLE": false, "experiment": "OPTIONAL_GPU_EXPERIMENT", "result_status": "ENVIRONMENT_CAPABILITY_ONLY", "status": "SKIPPED_OPTIONAL"}`
 
 ## Estágios
 
 | Estágio | Status | Evidência/limitação |
 |---|---|---|
-| synthetic_motion | COMPLETED |  |
-| lis2dw12_datasets | PARTIAL | All five RESD profiles converted and firmware read the sensor, but distinct STATIC/WALK values were not verified (raw Z observations: {'STATIC': 0, 'WALK': 0}) |
-| gpu_optional | SKIPPED_OPTIONAL | Sionna RT is optional; no GPU scenario blocks the digital twin core |
-| mvp1_c_tests | PASSED |  |
-| zephyr_firmware | PASSED | Built target firmware for nucleo_l031k6 |
-| renode_firmware | PASSED | Renode firmware sleep/wake cycle passed; STATIC/WALK RESD were loaded and the firmware read the sensor, but raw dataset-value propagation remains unverified |
-| host_trace_export | PASSED |  |
-| firmware_scenarios | COMPLETED | C FSM traces exported for all four requested profiles |
-| long_duration_1_7_30_days | COMPLETED | 12 deterministic FSM long runs completed |
-| timer_and_sequence_rollover | PASSED | Counter rollover exercised from near uint32 limits |
 | adversarial_fault_injection | COMPLETED | Electrical outcomes require a fresh hash-validated ngspice waveform to cross the sourced assumed brownout threshold, recover above it, and produce a post-reinitialization CRC-valid beacon. Synthetic reset probes do not claim watchdog expiration, CPU lockup, or independent reset-cause observation. |
-| mechanical | COMPLETED | Bounding-box fit estimate completed |
-| antenna | PARTIAL_OR_BLOCKED | ANTENNA_FREE_SPACE: FAILED (mesh refinement did not meet declared numerical convergence criteria); ANTENNA_WITH_BATTERY: FAILED (openEMS candidate simulation failed closed: RuntimeError: openEMS did not reach the -40 dB field-energy criterion before its timestep limit; log=/tmp/riose-mvp2-final-main/antenna/ANTENNA_WITH_BATTERY/mesh_4mm/solver.log; tail: RunFDTD: Warning: Max. number of timesteps was reached before the end-criteria of -40dB was reached...  	You may want to choose a higher number of max. timesteps...  Time for 160000 iterations with 63168.00 cells : 176.32 sec Speed: 57.32 MCells/s ); ANTENNA_NEAR_ANIMAL_APPROXIMATION: FAILED (mesh refinement did not meet declared numerical convergence criteria) |
-| power | COMPLETED | Four scenario rail simulations completed |
+| antenna | PARTIAL_OR_BLOCKED | Assumed geometry and material properties are exploratory simulation inputs, not measured results. |
+| antenna_sweeps | COMPLETED | 11/11 configured sensitivity cases completed; statuses: {"COMPLETED": 11}; SIMULATED results do not validate physical RF performance |
+| firmware_scenarios | COMPLETED | C FSM traces exported for all four requested profiles |
 | four_power_scenarios | COMPLETED | NORMAL/ACTIVE/ALERT/WORST_REASONABLE_CASE were converted from firmware traces and analyzed |
+| gpu_optional | SKIPPED_OPTIONAL | Sionna RT is optional; no GPU scenario blocks the digital twin core |
+| host_trace_export | PASSED |  |
+| lis2dw12_datasets | COMPLETED | All five RESD profiles converted; firmware consumed distinct STATIC/WALK outputs |
+| long_duration_1_7_30_days | COMPLETED | 12 deterministic FSM long runs completed |
+| mechanical | COMPLETED | Bounding-box fit estimate completed |
+| mvp1_c_tests | PASSED |  |
+| power | COMPLETED | Four scenario rail simulations completed |
+| renode_firmware | PASSED | Renode firmware sleep/wake cycle passed; STATIC/WALK RESD values reached the firmware sensor registers (raw Z: {'STATIC': 16424, 'WALK': 19016}) |
+| synthetic_motion | COMPLETED |  |
+| timer_and_sequence_rollover | PASSED | Counter rollover exercised from near uint32 limits |
 | trace_schedule | PASSED |  |
+| zephyr_firmware | PASSED | Built target firmware for nucleo_l031k6 |
+
+## Sensibilidade da antena
+
+- Status: `COMPLETED`; 11/11 casos configurados concluídos.
+- Status por caso: `{"COMPLETED": 11}`.
+- Artefato sweeps.csv: `/tmp/riose-mvp2-main-run-retry/antenna/sweeps.csv`.
+Os sweeps são SIMULATED e não validam desempenho físico. Sensibilidade incompleta bloqueia READY; Sionna continua opcional.
 
 ## Gate e bloqueadores
 
 - antenna: PARTIAL_OR_BLOCKED
-- lis2dw12_datasets: PARTIAL
 
 ## Respostas técnicas
 
 1. Estabilidade do firmware: long runs C host `COMPLETED`; Zephyr `PASSED`.
-2. Coerência dos periféricos virtuais: Renode `PASSED`; Renode firmware sleep/wake cycle passed; STATIC/WALK RESD were loaded and the firmware read the sensor, but raw dataset-value propagation remains unverified.
+2. Coerência dos periféricos virtuais: Renode `PASSED`; Renode firmware sleep/wake cycle passed; STATIC/WALK RESD values reached the firmware sensor registers (raw Z: {'STATIC': 16424, 'WALK': 19016}).
 3. Energia digital estimada na janela observada: `0.878847 µAh` pela integração SIMULATED de correntes ASSUMED/trace; ngspice: PASS.
 4. Estabilidade do rail: ngspice `PASS`; sem medição física ou resultado de rail quando não executado.
 5. Evento com maior carga integrada: `TX` / `sx1262` (0.375 µAh) na janela simulada.
 6. O envelope mecânico estimado cabe: análise de caixas delimitadoras `COMPLETED`; sem conflito de envelope reportado.
-7. Frequência de ressonância/S11: openEMS `PARTIAL_OR_BLOCKED`; 2/5 cenários passaram a comparação numérica de malha; resultados simulados não validam desempenho físico.
+7. Frequência de ressonância/S11: openEMS `PARTIAL_OR_BLOCKED`; 5/5 cenários têm execução temporal COMPLETED; comparação numérica de malha: NOT_RUN; resultados simulados não validam desempenho físico. Sampled solver resonances (SIMULATED; mesh convergence pending): ANTENNA_FREE_SPACE: 1138.031 MHz; ANTENNA_WITH_PCB: 1142.606 MHz; ANTENNA_WITH_BATTERY: 686.250 MHz; ANTENNA_WITH_ENCLOSURE: 706.837 MHz; ANTENNA_NEAR_ANIMAL_APPROXIMATION: 706.837 MHz. Assumed center-frequency target: 915.000 MHz.
 8. Degradação por PCB/bateria/carcaça/animal: 5 cenários listados; resultados exigem openEMS; aproximação animal é experimental.
 9. Encaixe geométrico estimado: `PASS`; CadQuery disponível `True`. O resultado não valida montagem física.
 10. Faults: 10 cenários; 8 RECOVERED, 2 OBSERVED, 0 BLOCKED, 0 FAILED; CSV estruturado `fault_scenarios.csv`.
 11. Hipóteses a revisar: parâmetros ASSUMED e limites provisórios em hardware/spec.yaml; dimensões, antena e encaixe aguardam aprovação.
-12. Parâmetros por status: `{"ASSUMED": 81, "DATASHEET": 18, "SIMULATED": 3}`; provenance completa na spec.
+12. Parâmetros por status: `{"ASSUMED": 99, "DATASHEET": 18, "SIMULATED": 3}`; provenance completa na spec.
 13. Sem hardware real não são validados consumo, brownout, potência RF, sintonia, materiais ou comportamento animal.
 14. Este gate não é validação comercial, clínica ou de campo.
 

@@ -53,7 +53,14 @@ def test_power_metrics_reject_invalid_power(args):
 def test_pattern_rows_validate_angles_and_preserve_rows():
     rows = [{"theta_deg": 90, "phi_deg": 360, "gain_dbi": 1.25}]
     assert parse_pattern_rows(rows) == rows
+    # openEMS persists the 2π endpoint as float32 radians in its NF2FF HDF5.
+    float32_two_pi = math.degrees(6.2831854820251465)
+    assert float32_two_pi > 360
+    normalized = parse_pattern_rows([{"theta_deg": 90, "phi_deg": float32_two_pi, "gain_dbi": 1.25}])
+    assert normalized[0]["phi_deg"] == 360
     with pytest.raises(ValueError, match="theta_deg"):
         parse_pattern_rows([{"theta_deg": 181, "phi_deg": 0, "gain_dbi": 0}])
+    with pytest.raises(ValueError, match="phi_deg"):
+        parse_pattern_rows([{"theta_deg": 90, "phi_deg": 360.01, "gain_dbi": 0}])
     with pytest.raises(ValueError, match="missing columns"):
         parse_pattern_rows([{"theta_deg": 90, "phi_deg": 0}])
