@@ -134,26 +134,34 @@ into required CI.
 
 ## Firmware wake-up scenario status
 
-The optional Robot case is **not currently validated** with a Zephyr ELF. The
-board overlay selects LIS2DW12 address `0x18` (SA0 low), so the Renode instance
-uses the same address. However, the upstream `Sensors.LIS2DW12` model has no
-`INT1` GPIO or wake-injection command, so the existing `TriggerWakeup` firmware
-scenario cannot exercise a routed sensor interrupt. Do not treat a skipped case
-as evidence of firmware sleep or wake behavior.
+The Renode platform uses `Riose.LIS2DW12WakeModel`, a thin adapter over
+Renode's upstream `Sensors.LIS2DW12`. It preserves upstream sample and RESD
+ingestion while adding an explicitly **SIMULATED** wake-event hook:
+`TriggerWakeup` latches `WAKE_UP_SRC.WU_IA` until that source register is read,
+then clears the pending event. The adapter routes the event through the
+sensor's inherited `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
+`CTRL7.INTERRUPTS_ENABLE` are both enabled; the platform connects that line to
+MCU PA8. The shim does not calculate threshold crossings, wake timing, or
+physical sensor dynamics. It is virtual IRQ plumbing, not a measured or
+datasheet-validated wake simulation.
 
-There is also a timer-profile mismatch: the physical NUCLEO-L031K6 build uses
-the RTC as the low-power companion timer, while the STM32L071 Renode surrogate
-does not reproduce the needed RTC/STOP behavior. In the local Zephyr 4.2.1 and
-Renode 1.17.0 environment, the physical profile stayed in `SELF_TEST` after
-250 ms of virtual time. A diagnostic build with power management disabled
-advanced into `RF_TX` but did not complete the expected scenario. These
-results are failures, not passes; the state assertion remains in the Robot
-test until a compatible simulation profile and an interrupt-capable LIS2DW12
-model can validate it.
+The optional Robot firmware case runs only when `RIOSE_ZEPHYR_ELF` is set. Use
+`boards/nucleo_l031k6_renode.conf` in addition to the physical board profile:
+it disables Zephyr PM so the STM32L071 surrogate can use its modeled periodic
+timer instead of the physical board's RTC/STOP idle path. This remains an
+STM32L071 proxy, not an exact STM32L031K6 model.
 
-The firmware case runs only when `RIOSE_ZEPHYR_ELF` is provided. Before using
-it as evidence, build a Renode-specific profile whose clock and power behavior
-are supported by the surrogate, and provide a sensor model with a routed INT1
-line. Neither requirement is met by the upstream sensor-only platform today.
-`native_sim` remains a separate software/model path and does not demonstrate
-Renode or electrical behavior.
+The adapter-only Robot case validates INT1 routing to PA8 and the
+`WAKE_UP_SRC` read-to-clear behavior. The full firmware case is still not
+validated. With the local Zephyr 4.2.1 / Renode 1.17.0 setup, the fresh
+Renode-profile ELF starts its first beacon in `RF_TX` as expected but does not
+return to `SLEEP` after a further 2 seconds. A GDB breakpoint at Zephyr's
+`z_arm_fault` shows `EXC_RETURN=0xFFFFFFFD` selecting PSP `0x20000730`, whose
+stacked PC and xPSR are both zero. Renode also reports `CFSR=0x00020000` and
+`HFSR=0x40000000`; since the target is Cortex-M0+ / ARMv6-M, these register
+values are observations and are not used here to label a configurable
+UsageFault. The fault occurs before the test injects a wake event, so firmware
+sleep and IRQ handling remain unproven. The state assertion is intentionally
+retained, and a skipped case is likewise not evidence of boot, sleep, or IRQ
+handling. `native_sim` remains a separate software/model path and does not
+demonstrate Renode firmware execution or electrical behavior.

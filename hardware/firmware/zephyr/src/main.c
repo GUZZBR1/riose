@@ -156,7 +156,9 @@ static int imu_configure(void)
                                sizeof(identity));
     if (rc != 0) return rc;
     if (identity != 0x44) return -ENODEV;
-    rc = imu_write_register(0x21, 0x08); /* CTRL2: block data update */
+    /* BDU + IF_ADD_INC: the sample read below starts at OUT_X_L and fetches
+     * all six axis bytes in one I2C transaction. */
+    rc = imu_write_register(0x21, 0x0C);
     if (rc != 0) return rc;
     rc = imu_write_register(0x20, 0x14); /* CTRL1: 12.5 Hz, low-power mode */
     if (rc != 0) return rc;

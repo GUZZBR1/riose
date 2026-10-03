@@ -17,15 +17,59 @@ Loads MCU Surrogate, SX1262 And Native LIS2DW12
     Should Contain    ${listing}    imu
     [Setup]    Create RIOSE Platform
 
+LIS2DW12 Virtual Wake Event Routes INT1 And Read Clears Source
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x3F, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
+    ${irq}=    Strip String    ${irq}
+    Should Be Equal    ${irq}    True
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+    Execute Command    sysbus.i2c1.imu Write [0x38]
+    ${source}=    Execute Command    sysbus.i2c1.imu Read 1
+    Should Contain    ${source}    08
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
+    ${irq}=    Strip String    ${irq}
+    Should Be Equal    ${irq}    False
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Auto Increment Burst Read Returns Configured Sample
+    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 1
+    Execute Command    sysbus.i2c1.imu AccelerationZ 1
+    Execute Command    sysbus.i2c1.imu Write [0x21, 0x0C]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x20, 0x14]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0xA8]
+    ${sample}=    Execute Command    sysbus.i2c1.imu Read 6
+    Should Contain    ${sample}    0x08
+    Should Contain    ${sample}    0x40
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    [Setup]    Create RIOSE Platform
+
 Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to a Zephyr ELF built for the STM32L0 profile.
+    # A stationary 1 g sample is deterministic simulation input for boot
+    # self-test; the explicit TriggerWakeup below is a separate virtual event.
+    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 1
+    Execute Command    sysbus.i2c1.imu AccelerationZ 1
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
+    # The state machine schedules its first beacon immediately after its
+    # successful self-test, so the first radio TX is expected here.
+    Firmware State Should Be    4
+    Execute Command    emulation RunFor "2.0"
     Firmware State Should Be    2
     Execute Command    sysbus.i2c1.imu TriggerWakeup
     ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
     ${irq}=    Strip String    ${irq}
     Should Be Equal    ${irq}    True
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
     Execute Command    emulation RunFor "5.1"
     Firmware State Should Be    2
     ${irq}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
