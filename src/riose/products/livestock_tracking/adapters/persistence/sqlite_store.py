@@ -6,9 +6,12 @@ import json
 import sqlite3
 import threading
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 
 from ...domain.identity import append_event
+
+if TYPE_CHECKING:
+    from ...domain.identity import LocalChainEvidence
 
 
 SCHEMA = """
@@ -60,6 +63,7 @@ class Store:
         path: str | Path = "data/cattle_rf.sqlite3",
         *,
         enable_publication_outbox: bool = False,
+        enable_publication_receipts: bool = False,
     ) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -74,12 +78,19 @@ class Store:
             self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
         self.connection.commit()
         self.publication_outbox = None
+        self.publication_receipts = None
         if enable_publication_outbox:
             from .publication_outbox import OUTBOX_SCHEMA, SQLitePublicationOutbox
 
             self.connection.executescript(OUTBOX_SCHEMA)
             self.connection.commit()
             self.publication_outbox = SQLitePublicationOutbox(self)
+        if enable_publication_receipts:
+            from .publication_receipts import RECEIPT_SCHEMA, SQLitePublicationReceiptRepository
+
+            self.connection.executescript(RECEIPT_SCHEMA)
+            self.connection.commit()
+            self.publication_receipts = SQLitePublicationReceiptRepository(self)
 
     def close(self) -> None:
         with self._lock:
@@ -122,6 +133,12 @@ class Store:
         from ...domain.identity import verify_event_chain
         with self._lock:
             return verify_event_chain(self.connection, animal_id)
+
+    def event_chain_evidence(self, animal_id: str) -> LocalChainEvidence | None:
+        """Return a read-only summary without exposing the animal id or payload."""
+        from ...domain.identity import event_chain_evidence
+        with self._lock:
+            return event_chain_evidence(self.connection, animal_id)
 
     def get_animal(self, animal_id: str) -> dict[str, Any] | None:
         with self._lock:
