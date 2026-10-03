@@ -366,11 +366,13 @@ def test_report_summarizes_completed_antenna_scenarios_without_claiming_physical
         "stages": {"antenna": {"status": "PARTIAL_OR_BLOCKED", "scenarios": [
             {"scenario": "ANTENNA_WITH_ENCLOSURE", "status": "COMPLETED"},
             {"scenario": "ANTENNA_WITH_BATTERY", "status": "FAILED"},
-        ]}},
+        ], "mesh_refinement": {"status": "NOT_RUN", "converged": False}}},
         "spec_sha256": "test",
         "environment": {"platform": "test", "gpu": {}},
         "parameter_statuses": {},
     }
     report = _report({}, summary)
-    assert "1/2 cenários passaram a comparação numérica de malha" in report
+    assert "1/2 cenários têm execução temporal COMPLETED" in report
+    assert "comparação numérica de malha: NOT_RUN" in report
+    assert "passaram a comparação numérica de malha" not in report
     assert "não validam desempenho físico" in report

@@ -85,8 +85,17 @@ def plan_sweeps(spec: dict[str, Any], *, spec_hash: str | None = None) -> list[d
                 "provenance": status,
             }
             overrides = {target: value}
-            geometry = build_geometry(spec, scenario, overrides)
-            case["input_hash_sha256"] = expected_input_hash(spec_hash, geometry, overrides)
+            try:
+                geometry = build_geometry(spec, scenario, overrides)
+                case["input_hash_sha256"] = expected_input_hash(spec_hash, geometry, overrides)
+            except (ValueError, KeyError, TypeError) as exc:
+                # A bad override is a case-level result; preserve it in the manifest
+                # and continue planning the other values in this sweep.
+                case["status"] = "INVALID_INPUT"
+                case["detail"] = f"{type(exc).__name__}: {exc}"
+                case["input_hash_sha256"] = hashlib.sha256(json.dumps(
+                    {"spec_hash": spec_hash, "case": case}, sort_keys=True,
+                    separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
             case["case_id"] = f"{name}-{index:03d}-{case['input_hash_sha256'][:12]}"
             cases.append(case)
     return cases
@@ -97,6 +106,11 @@ def run_sweeps(spec: dict[str, Any], simulate: Callable[..., dict[str, Any]], *,
     """Run planned cases; exceptions and bad result states remain visible."""
     results = []
     for case in plan_sweeps(spec, spec_hash=spec_hash):
+        if case.get("status") == "INVALID_INPUT":
+            results.append({**case, "detail": case["detail"], "metrics": None,
+                            "evidence": None, "s11_curve": None,
+                            "radiation_pattern": None})
+            continue
         try:
             result = simulate(scenario=case["scenario"],
                               overrides={case["override_key"]: case["value"]},

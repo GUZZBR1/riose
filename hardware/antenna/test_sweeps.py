@@ -101,3 +101,32 @@ def test_sweep_hash_includes_native_solver_configuration(spec, monkeypatch):
     monkeypatch.setattr(openems_backend, "END_CRITERIA", 1e-6)
     second = plan_sweeps(spec, spec_hash=spec_hash)
     assert all(a["input_hash_sha256"] != b["input_hash_sha256"] for a, b in zip(first, second))
+
+
+def test_invalid_geometry_is_kept_as_manifest_row_and_other_cases_run(spec, monkeypatch):
+    from hardware.antenna import sweeps
+
+    original_build_geometry = sweeps.build_geometry
+    bad_gap = spec["antenna"]["sweeps"]["gap"]["values"][0]["value"]
+
+    def build_geometry_with_one_invalid_gap(current_spec, scenario, overrides=None):
+        if overrides and overrides.get("feed_gap_mm") == bad_gap:
+            raise ValueError("feed gap leaves the supported geometry")
+        return original_build_geometry(current_spec, scenario, overrides)
+
+    monkeypatch.setattr(sweeps, "build_geometry", build_geometry_with_one_invalid_gap)
+    simulated = []
+
+    def simulate(**kwargs):
+        simulated.append(kwargs["output_id"])
+        return {"status": "COMPLETED", "metrics": {}}
+
+    rows = run_sweeps(spec, simulate)
+    invalid = [row for row in rows if row["status"] == "INVALID_INPUT"]
+
+    assert len(invalid) == 1
+    assert invalid[0]["sweep"] == "gap"
+    assert "feed gap leaves" in invalid[0]["detail"]
+    assert invalid[0]["case_id"] not in simulated
+    assert len(simulated) == len(rows) - 1
+    assert all(row["status"] == "COMPLETED" for row in rows if row not in invalid)
