@@ -22,6 +22,17 @@ static int32_t wave(int amplitude, uint32_t frequency_millihz,
     return (sample * amplitude) / 1024;
 }
 
+static uint32_t next_random(lis2dw12_model_t *model)
+{
+    /* xorshift32: compact, portable and deterministic across host toolchains. */
+    uint32_t value = model->random_state;
+    value ^= value << 13u;
+    value ^= value >> 17u;
+    value ^= value << 5u;
+    model->random_state = value;
+    return value;
+}
+
 static void store_axis(lis2dw12_model_t *model, unsigned axis)
 {
     const uint8_t low_register = (uint8_t)(LIS2DW12_REG_OUT_X_L + (axis * 2u));
@@ -92,6 +103,7 @@ void lis2dw12_init(lis2dw12_model_t *model,
     model->acceleration_mg[2] = 1000;
     model->previous_acceleration_mg[2] = 1000;
     model->motion = LIS2DW12_MOTION_STATIONARY;
+    model->random_state = 0x6d2b79f5u;
     model->irq_callback = irq_callback;
     model->irq_user_data = irq_user_data;
     model->initialized = true;
@@ -113,6 +125,10 @@ static lis2dw12_result_t bus_check(lis2dw12_model_t *model,
     if (model->fail_transactions > 0u) {
         --model->fail_transactions;
         return LIS2DW12_EIO;
+    }
+    if (model->timeout_transactions > 0u) {
+        --model->timeout_transactions;
+        return LIS2DW12_ETIMEOUT;
     }
     return LIS2DW12_OK;
 }
@@ -157,8 +173,14 @@ lis2dw12_result_t lis2dw12_i2c_write(lis2dw12_model_t *model,
 
 void lis2dw12_set_motion(lis2dw12_model_t *model, lis2dw12_motion_t motion)
 {
-    if (model == NULL || motion > LIS2DW12_MOTION_ABNORMAL) return;
+    if (model == NULL || motion > LIS2DW12_MOTION_RANDOM_MOVEMENT) return;
     model->motion = motion;
+}
+
+void lis2dw12_set_motion_seed(lis2dw12_model_t *model, uint32_t seed)
+{
+    if (model == NULL) return;
+    model->random_state = seed == 0u ? 0x6d2b79f5u : seed;
 }
 
 void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
@@ -196,6 +218,24 @@ void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms)
         model->acceleration_mg[1] = ((model->sample_number % 4u) == 0u) ? -1100 : 900;
         model->acceleration_mg[2] = ((model->sample_number % 4u) == 0u) ? 2100 : -1700;
         break;
+    case LIS2DW12_MOTION_IMPACT:
+        /* Illustrative periodic impulse. This is a test vector, not cattle data. */
+        if ((model->sample_number % 16u) == 0u) {
+            model->acceleration_mg[0] = 1800;
+            model->acceleration_mg[1] = -1400;
+            model->acceleration_mg[2] = 2400;
+        } else {
+            model->acceleration_mg[0] = 0;
+            model->acceleration_mg[1] = 0;
+            model->acceleration_mg[2] = 1000;
+        }
+        break;
+    case LIS2DW12_MOTION_RANDOM_MOVEMENT:
+        /* Seeded bounded samples in mg; deterministic for a seed and tick sequence. */
+        model->acceleration_mg[0] = (int16_t)((int32_t)(next_random(model) % 1801u) - 900);
+        model->acceleration_mg[1] = (int16_t)((int32_t)(next_random(model) % 1201u) - 600);
+        model->acceleration_mg[2] = (int16_t)(1000 + (int32_t)(next_random(model) % 1001u) - 500);
+        break;
     }
     ++model->sample_number;
     for (unsigned axis = 0; axis < 3u; ++axis) store_axis(model, axis);
@@ -219,4 +259,9 @@ void lis2dw12_clear_irq(lis2dw12_model_t *model)
 void lis2dw12_fail_next_i2c(lis2dw12_model_t *model, uint32_t transactions)
 {
     if (model != NULL) model->fail_transactions = transactions;
+}
+
+void lis2dw12_timeout_next_i2c(lis2dw12_model_t *model, uint32_t transactions)
+{
+    if (model != NULL) model->timeout_transactions = transactions;
 }

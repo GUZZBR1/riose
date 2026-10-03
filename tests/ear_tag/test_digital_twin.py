@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 
 import pytest
@@ -185,6 +186,31 @@ def test_motion_inputs_are_seeded_and_explicitly_synthetic(tmp_path):
     assert first.read_bytes() == second.read_bytes()
     assert first.read_text().count("SIMULATED") == 20
     assert "animal_measurement" in first.read_text()
+
+
+def test_motion_dataset_profiles_include_seed_rate_units_and_simulated_status(tmp_path):
+    output = tmp_path / "motion.csv"
+    metadata = generate_motion_profiles(output, seed=31, sample_rate_hz=25.0,
+                                        samples_per_profile=3)
+    with output.open(newline="", encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))
+
+    profiles = {row["profile"] for row in rows}
+    assert profiles == {"STATIC", "WALK", "RUN", "IMPACT", "RANDOM_MOVEMENT"}
+    assert len(rows) == 15
+    assert set(rows[0]) >= {"timestamp_s", "sample_rate_hz", "seed", "x_mg", "y_mg", "z_mg",
+                            "status", "animal_measurement"}
+    assert all(row["sample_rate_hz"] == "25.0" for row in rows)
+    assert all(row["seed"] == "31" for row in rows)
+    assert all(row["status"] == "SIMULATED" for row in rows)
+    assert all(row["animal_measurement"] == "False" for row in rows)
+    assert metadata["profiles"] == sorted(profiles, key=("STATIC", "WALK", "RUN", "IMPACT", "RANDOM_MOVEMENT").index)
+    assert metadata["sample_rate_hz"] == 25.0
+    assert metadata["seed"] == 31
+    assert metadata["result_class"] == "SIMULATED"
+    assert metadata["physical_hardware_used"] is False
+    assert all(float(row["timestamp_s"]) == pytest.approx(int(row["sample_index"]) / 25.0)
+               for row in rows)
 
 
 def test_preflight_reports_versions_without_requiring_optional_solvers():

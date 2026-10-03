@@ -36,6 +36,7 @@ typedef enum {
     LIS2DW12_OK = 0,
     LIS2DW12_EINVAL = -1,
     LIS2DW12_EIO = -2,
+    LIS2DW12_ETIMEOUT = -3,
 } lis2dw12_result_t;
 
 typedef enum {
@@ -44,7 +45,11 @@ typedef enum {
     LIS2DW12_MOTION_WALKING,
     LIS2DW12_MOTION_RUNNING,
     LIS2DW12_MOTION_ABNORMAL,
+    LIS2DW12_MOTION_IMPACT,
+    LIS2DW12_MOTION_RANDOM_MOVEMENT,
 } lis2dw12_motion_t;
+
+#define LIS2DW12_MOTION_STATIC LIS2DW12_MOTION_STATIONARY
 
 typedef void (*lis2dw12_irq_callback_t)(void *user_data);
 
@@ -54,7 +59,9 @@ typedef struct {
     int16_t previous_acceleration_mg[3];
     uint64_t elapsed_ms;
     uint32_t sample_number;
+    uint32_t random_state;
     uint32_t fail_transactions;
+    uint32_t timeout_transactions;
     lis2dw12_motion_t motion;
     bool irq_latched;
     bool initialized;
@@ -81,12 +88,18 @@ lis2dw12_result_t lis2dw12_i2c_write(lis2dw12_model_t *model,
 void lis2dw12_tick(lis2dw12_model_t *model, uint32_t elapsed_ms);
 void lis2dw12_set_motion(lis2dw12_model_t *model, lis2dw12_motion_t motion);
 
+/* Set the reproducible seed used by RANDOM_MOVEMENT; zero selects a fixed seed. */
+void lis2dw12_set_motion_seed(lis2dw12_model_t *model, uint32_t seed);
+
 /* IRQ can be consumed as a flag by a HAL adapter; source-register reads clear it. */
 bool lis2dw12_irq_pending(const lis2dw12_model_t *model);
 void lis2dw12_clear_irq(lis2dw12_model_t *model);
 
 /* Inject failures on the next N bus transactions, then return to normal. */
 void lis2dw12_fail_next_i2c(lis2dw12_model_t *model, uint32_t transactions);
+
+/* Inject bounded I2C timeouts on upcoming transactions for recovery tests. */
+void lis2dw12_timeout_next_i2c(lis2dw12_model_t *model, uint32_t transactions);
 
 /* Raw signed 16-bit register output, left-aligned like the sensor data format. */
 int16_t lis2dw12_axis_raw(const lis2dw12_model_t *model, unsigned axis);
