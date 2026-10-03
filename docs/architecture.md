@@ -51,6 +51,7 @@ src/riose/
       cli.py                             # command composition only
     ear_tag/
       digital_twin/                      # spec, readiness gate, orchestration
+      signal/                            # offline XYZ validation and features
     <future_product>/                    # independent domain and adapters
 
 hardware/
