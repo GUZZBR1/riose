@@ -82,9 +82,48 @@ reports recovery after an observed threshold crossing, rail recovery, and a
 post-reinitialization beacon. The threshold value/provenance comes from
 `hardware/spec.yaml` and remains ASSUMED. This is a screening model, not a
 switching-regulator model, electrochemical cell model, or electrical
-validation. Temperature sweep rows are tagged as assumptions only and do not
-claim a temperature-dependent component model. Missing Renode/ngspice outputs
+validation. Without an explicitly supplied `temperature_model`, temperature
+sweep rows retain `NOT_MODELED_NO_TEMPERATURE_DEPENDENCY`. Missing Renode/ngspice outputs
 remain gate blockers in the integrated report.
+
+## Declared temperature sensitivity
+
+An assumptions file can include an optional `temperature_model` with kind
+`LINEAR_PARAMETER_SENSITIVITY`. Supply `reference_temperature_c`,
+`minimum_temperature_c`, and `maximum_temperature_c` as records containing
+`value`, `unit: "degC"`, `status` (`ASSUMED`, `DATASHEET`, or `SIMULATED`), and a
+nonempty `source`. The reference anchors the existing electrical parameters;
+the declared valid range must contain the reference and all three sweep points
+(-10, 25, and 50 degrees C). Extrapolation is rejected.
+
+The model's `coefficients` map accepts the following sourced records, using the
+same `value`/`unit`/`status`/`source` format:
+
+| Parameter | Coefficient unit |
+|---|---|
+| `battery_esr_ohm` | `ohm/degC` |
+| `regulator_efficiency` | `fraction/degC` |
+| `regulator_dropout_v` | `V/degC` |
+| `output_capacitance_f` | `F/degC` |
+
+For each supplied parameter, the sweep evaluates
+`parameter(T) = parameter(reference) + coefficient * (T - reference)` and
+validates the resulting electrical parameters before generating a deck.
+Parameters omitted from `coefficients` stay at their reference value. At least
+one coefficient must be nonzero. The temperature cases then execute ngspice
+individually; the aggregate status can be `PASS` only after every case passes.
+Simulation failures and missing ngspice keep their existing explicit statuses.
+Each case and its deck preserve the model definition, coefficient provenance,
+reference parameters, formula, and resolved values. Results carry
+`SIMULATED_PARAMETER_SENSITIVITY_NOT_CHARACTERIZED` and are not evidence of a
+measured or validated temperature response. Load currents and nominal battery
+capacity do not acquire a temperature dependency through this electrical model.
+
+The default profile supplies no temperature coefficients: the project has no
+characterized temperature response to insert. A caller must provide and label
+its own assumptions or sourced coefficients; unit-test coefficients are
+synthetic fixtures only. This support does not establish physical temperature
+behavior or remove a missing-temperature-model gate for default integrated runs.
 
 ## Tests
 

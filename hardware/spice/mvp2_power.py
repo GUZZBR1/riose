@@ -430,7 +430,7 @@ def generate_netlist(rows: list[dict], assumptions: dict, period_s: float | None
     rout = _value(assumptions, "regulator_output_resistance_ohm")
     cap = _value(assumptions, "output_capacitance_f", overrides.get("output_capacitance_f"))
     brownout = _value(assumptions, "brownout_threshold_v")
-    dropout = _value(assumptions, "regulator_dropout_v")
+    dropout = _value(assumptions, "regulator_dropout_v", overrides.get("regulator_dropout_v"))
     profiles = {"voltage_drop", "high_esr", "regulator_instability"}
     if fault_profile is not None and fault_profile not in profiles:
         raise ValueError(f"unsupported electrical fault profile: {fault_profile}")
@@ -627,6 +627,56 @@ def _run_ngspice(deck: Path, binary: str | None, rows: list[dict],
     return result
 
 
+def _temperature_parameters(assumptions: dict, temperature_c: float) -> tuple[dict, dict] | None:
+    """Apply supplied linear sensitivities without inferring physical coefficients."""
+    model = assumptions.get("temperature_model")
+    if model is None:
+        return None
+    if not isinstance(model, dict) or model.get("kind") != "LINEAR_PARAMETER_SENSITIVITY":
+        raise ValueError("temperature_model requires kind LINEAR_PARAMETER_SENSITIVITY")
+    records = ("reference_temperature_c", "minimum_temperature_c", "maximum_temperature_c")
+    temperatures = {}
+    for key in records:
+        record = model.get(key)
+        if (not isinstance(record, dict) or record.get("unit") != "degC"
+                or record.get("status") not in ("ASSUMED", "DATASHEET", "SIMULATED")
+                or not isinstance(record.get("source"), str) or not record["source"].strip()):
+            raise ValueError(f"temperature_model {key} requires degC and status/source provenance")
+        temperatures[key] = _value(model, key)
+    low, reference, high = (temperatures[key] for key in (
+        "minimum_temperature_c", "reference_temperature_c", "maximum_temperature_c"))
+    if low <= -273.15 or not low <= reference <= high or low == high:
+        raise ValueError("temperature_model requires an ordered physical temperature range containing reference")
+    if isinstance(temperature_c, bool) or not math.isfinite(temperature_c) or not low <= temperature_c <= high:
+        raise ValueError("temperature scenario outside declared temperature_model range; extrapolation forbidden")
+    coefficient_units = {"battery_esr_ohm": "ohm/degC", "regulator_efficiency": "fraction/degC",
+                         "output_capacitance_f": "F/degC", "regulator_dropout_v": "V/degC"}
+    coefficients = model.get("coefficients")
+    if not isinstance(coefficients, dict) or not coefficients:
+        raise ValueError("temperature_model requires nonempty coefficients")
+    resolved = {}
+    nonzero = False
+    for key, record in coefficients.items():
+        if key not in coefficient_units:
+            raise ValueError(f"unsupported temperature coefficient: {key}")
+        if (not isinstance(record, dict) or record.get("unit") != coefficient_units[key]
+                or record.get("status") not in ("ASSUMED", "DATASHEET", "SIMULATED")
+                or not isinstance(record.get("source"), str) or not record["source"].strip()):
+            raise ValueError(f"temperature coefficient {key} requires unit and status/source provenance")
+        coefficient = _value(coefficients, key)
+        nonzero |= coefficient != 0
+        resolved[key] = _value(assumptions, key) + coefficient * (temperature_c - reference)
+    if not nonzero:
+        raise ValueError("temperature_model requires a nonzero sensitivity; unchanged decks are not a model")
+    _validate_assumptions(assumptions, resolved)
+    provenance = {"kind": model["kind"], "status": "SIMULATED_PARAMETER_SENSITIVITY_NOT_CHARACTERIZED",
+                  "temperature_c": temperature_c, "definition": model,
+                  "formula": "parameter(T) = parameter(reference) + coefficient * (T - reference)",
+                  "reference_parameters": {key: assumptions[key] for key in coefficients},
+                  "resolved_parameters": resolved}
+    return resolved, provenance
+
+
 def parameter_sweep(rows: list[dict], assumptions: dict, period_s: float | None = None) -> list[dict]:
     """Generate deterministic sensitivity cases and their ngspice deck parameters."""
     axes = {
@@ -659,12 +709,25 @@ def parameter_sweep(rows: list[dict], assumptions: dict, period_s: float | None 
             for key, value in overrides.items()
         }
         temperature_only = "temperature_c_assumption" in overrides
+        temperature_model = (_temperature_parameters(assumptions, overrides["temperature_c_assumption"])
+                             if temperature_only else None)
+        unmodeled = temperature_only and temperature_model is None
+        if temperature_model:
+            electrical, provenance = temperature_model
+            override_provenance["temperature_c_assumption"]["unit"] = "degC"
+        else:
+            provenance = None
+        netlist = None if unmodeled else generate_netlist(adjusted, assumptions, period_s, electrical)
+        if provenance:
+            netlist = ("* Declared temperature sensitivity: " + json.dumps(provenance, sort_keys=True)
+                       + "\n" + netlist)
         output.append({"case": case["case"], "overrides": overrides,
                        "override_provenance": override_provenance,
-                       "temperature_status": "ASSUMED_SCENARIO_ONLY_NO_TEMPERATURE_MODEL" if "temperature_c_assumption" in overrides else None,
-                       "netlist": None if temperature_only else generate_netlist(adjusted, assumptions, period_s, electrical),
-                       "status": ("NOT_MODELED_NO_TEMPERATURE_DEPENDENCY" if temperature_only
-                                  else "PENDING_EXECUTION")})
+                       "temperature_status": ("ASSUMED_SCENARIO_ONLY_NO_TEMPERATURE_MODEL" if unmodeled
+                                              else "SIMULATED_WITH_DECLARED_PARAMETER_MODEL" if temperature_only else None),
+                       "temperature_model": provenance,
+                       "netlist": netlist,
+                       "status": "NOT_MODELED_NO_TEMPERATURE_DEPENDENCY" if unmodeled else "PENDING_EXECUTION"})
     return output
 
 
@@ -694,9 +757,11 @@ def execute_parameter_sweep(rows: list[dict], assumptions: dict, output_dir: Pat
         case["netlist_path"] = str(deck.relative_to(output_dir))
         del case["netlist"]
         statuses.append(result["status"])
+    unmodeled_axes = (["temperature_c_assumption"]
+                      if "NOT_MODELED_NO_TEMPERATURE_DEPENDENCY" in statuses else [])
     modeled = [status for status in statuses if status != "NOT_MODELED_NO_TEMPERATURE_DEPENDENCY"]
     if modeled and all(status == "PASS" for status in modeled):
-        status = "PASS_WITH_TEMPERATURE_AXIS_NOT_MODELED"
+        status = "PASS_WITH_TEMPERATURE_AXIS_NOT_MODELED" if unmodeled_axes else "PASS"
     elif "TOOL_UNAVAILABLE" in modeled:
         status = "TOOL_UNAVAILABLE"
     elif "NON_CONVERGED" in modeled:
@@ -710,7 +775,7 @@ def execute_parameter_sweep(rows: list[dict], assumptions: dict, output_dir: Pat
     return {"status": status, "case_count": len(cases),
             "attempted_case_count": len(modeled),
             "executed_case_count": sum(case["status"] == "PASS" for case in cases),
-            "not_modeled_axes": ["temperature_c_assumption"], "cases": cases}
+            "not_modeled_axes": unmodeled_axes, "cases": cases}
 
 
 def _ngspice_version(binary: str | None) -> str | None:
@@ -784,6 +849,9 @@ def main(argv=None) -> int:
         rows = load_schedule(args.schedule)
         assumptions = json.loads(args.assumptions.read_text())
         _validate_assumptions(assumptions)
+        if args.fault_profile is None and assumptions.get("temperature_model") is not None:
+            for temperature_c in (-10.0, 25.0, 50.0):
+                _temperature_parameters(assumptions, temperature_c)
         result = analyze_schedule(rows, assumptions, period_s, args.period_source,
                                   args.period_status, args.period_unit)
         deck = args.output / "power_trace.cir"
