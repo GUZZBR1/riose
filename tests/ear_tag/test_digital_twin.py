@@ -230,12 +230,16 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(runner, "ROOT", tmp_path)
     monkeypatch.setattr(runner, "preflight", lambda: {
-        "platform": "test", "commands": {}, "modules": {}, "gpu": {"GPU_AVAILABLE": False},
+        "platform": "test", "commands": {},
+        "modules": {"openEMS": True, "CSXCAD": True},
+        "gpu": {"GPU_AVAILABLE": False},
     })
     commands = []
+    command_envs = {}
 
     def unavailable(name, command, cwd, **kwargs):
         commands.append((name, command, cwd))
+        command_envs[name] = kwargs.get("env")
         return {"status": "NOT_AVAILABLE", "detail": "test stub", "required": True}
 
     monkeypatch.setattr(runner, "_run_command", unavailable)
@@ -248,6 +252,7 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     output_argument = antenna_command[antenna_command.index("--output") + 1]
     assert Path(spec_argument).is_absolute()
     assert Path(output_argument).is_absolute()
+    assert command_envs["antenna"]["RIOSE_OPENEMS_ADAPTER"] == "hardware.antenna.openems_adapter"
 
 
 def test_report_does_not_invent_antenna_metrics_when_scenarios_are_missing():

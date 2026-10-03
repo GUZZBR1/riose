@@ -23,6 +23,7 @@ from hardware.antenna.openems_adapter import (
     _solid_or_shell_description,
     describe_candidate,
 )
+from hardware.antenna import openems_adapter
 
 
 def test_openems_mesh_budget_allows_existing_two_mm_candidate_envelope(monkeypatch):
@@ -213,6 +214,48 @@ def test_openems_adapter_rejects_unstructured_mesh_claim(tmp_path, monkeypatch):
     row = result["scenarios"][0]
     assert row["status"] == "FAILED"
     assert "evidence.mesh.coarse" in row["detail"]
+
+
+def test_failed_openems_run_preserves_mesh_and_solver_curve_evidence(tmp_path, monkeypatch):
+    import yaml
+    from pathlib import Path
+
+    spec = yaml.safe_load(Path("hardware/spec.yaml").read_text())
+
+    def fail_after_coarse_mesh(candidate, scenario, out_dir, resolution):
+        mesh_dir = out_dir / f"mesh_{resolution:g}mm"
+        mesh_dir.mkdir(parents=True)
+        (mesh_dir / "mesh.json").write_text(json.dumps({"resolution_mm": resolution, "cells": 120}))
+        (mesh_dir / "s11.csv").write_text("frequency_hz,s11_db\n915000000,-4.0\n")
+        (mesh_dir / "solver.log").write_text("solver completed; resonance not bracketed\n")
+        raise RuntimeError("S11 minimum lies on the sweep boundary")
+
+    monkeypatch.setattr(openems_adapter, "_run_resolution", fail_after_coarse_mesh)
+    monkeypatch.setattr(openems_adapter, "_openems_version", lambda: "openEMS-test")
+    result = openems_adapter.simulate(
+        spec=spec, scenario=SCENARIOS[0], output_dir=str(tmp_path))
+    assert result["status"] == "FAILED"
+    assert "sweep boundary" in result["detail"]
+    evidence = result["evidence"]
+    assert evidence["converged"] is False
+    assert evidence["mesh"]["coarse"]["cells"] == 120
+    assert any(path.endswith("/s11.csv") for path in evidence["raw_solver_files"])
+    assert not result.get("metrics")
+
+
+def test_failed_solver_evidence_is_retained_without_promoting_metrics(tmp_path, monkeypatch):
+    monkeypatch.setattr(antenna_run, "_openems_available", lambda: (True, None))
+    monkeypatch.setenv("RIOSE_OPENEMS_ADAPTER", "openems_failed_evidence_adapter")
+    evidence = {"converged": False, "raw_solver_files": ["mesh_4mm/s11.csv"]}
+    adapter = types.SimpleNamespace(simulate=lambda **kwargs: {
+        "status": "FAILED", "detail": "resonance not bracketed", "evidence": evidence,
+    })
+    monkeypatch.setitem(sys.modules, "openems_failed_evidence_adapter", adapter)
+    result = antenna_run.run_experiments(None, tmp_path, [SCENARIOS[0]])
+    row = result["scenarios"][0]
+    assert row["status"] == "FAILED"
+    assert row["s11_min_db"] is None
+    assert row["solver_evidence"] == evidence
 
 
 def test_assumed_openems_candidate_geometry_is_explicit_and_reproducible():

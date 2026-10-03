@@ -92,6 +92,27 @@ class FirmwareTraceAdapterTests(unittest.TestCase):
         self.assertEqual(result["status"], "SIMULATED")
         self.assertGreater(result["total_charge_mah_window"], 0)
 
+    def test_firmware_control_markers_have_explicit_coverage_without_extra_loads(self):
+        marker_names = ("SPI", "IRQ", "WAKE", "TIMEOUT", "TRACE_END")
+        trace = [record(index, name, "SELF_TEST", sequence=index)
+                 for index, name in enumerate(marker_names)]
+        trace.append(record(5, "STATE", "SLEEP", sequence=5))
+        trace.append(record(6, "MCU_SLEEP", "SLEEP", value0=10, sequence=6))
+        loads = {"state:SELF_TEST": {
+            "component": "mcu", "load_current_ma": 1,
+            "current_status": "ASSUMED", "source": "test fixture",
+            "fallback_duration_s": 0.01, "duration_status": "ASSUMED",
+            "duration_source": "test fixture",
+        }, "state:SLEEP": {
+            "component": "mcu_sleep", "load_current_ma": 0.01,
+            "current_status": "ASSUMED", "source": "test fixture",
+        }}
+        rows = adapter.trace_to_schedule(trace, loads)
+        coverage = rows[0]["trace_event_coverage"]
+        for name in marker_names:
+            self.assertEqual(coverage[name]["handling"], "STRUCTURAL_MARKER_NO_SEPARATE_LOAD")
+        self.assertFalse(any(row["event"] in marker_names for row in rows))
+
     def test_zero_resolution_requires_explicit_assumed_fallback(self):
         trace = [record(10, "TX_START", "RF_TX"), record(10, "TX_DONE", "RF_TX")]
         loads = {"pair:TX_START:TX_DONE": {

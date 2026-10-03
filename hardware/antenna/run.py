@@ -253,8 +253,14 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
         result = backend.simulate(spec=spec, scenario=name, output_dir=str(output_dir))
         if not isinstance(result, dict) or result.get("status") != "COMPLETED":
             detail = result.get("detail", "solver adapter did not complete") if isinstance(result, dict) else "invalid adapter response"
-            rows.append(_scenario_row(name, "FAILED", detail, SCENARIO_ASSUMPTIONS[name],
-                                      freq, topology, element_length, feed, clearance))
+            row = _scenario_row(name, "FAILED", detail, SCENARIO_ASSUMPTIONS[name],
+                                freq, topology, element_length, feed, clearance)
+            # Preserve partial solver evidence for diagnosis while keeping all
+            # accepted RF metric fields null on a failed/non-converged run.
+            evidence = result.get("evidence") if isinstance(result, dict) else None
+            if isinstance(evidence, dict):
+                row["solver_evidence"] = evidence
+            rows.append(row)
             continue
         metrics = result.get("metrics", {})
         evidence = result.get("evidence", {})

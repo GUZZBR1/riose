@@ -109,3 +109,23 @@ def test_cli_success_means_analysis_completed_even_when_fit_is_blocked(tmp_path)
     result = json.loads(output.read_text())
     assert result["fit"]["fits"] is True
     assert result["gate"] == "CONDITIONALLY_READY_PENDING_THRESHOLD_APPROVAL"
+
+
+def test_cadquery_exports_headless_step_and_stl(tmp_path):
+    pytest.importorskip("cadquery")
+    spec_path = ROOT.parent.parent / "spec.yaml"
+    step = tmp_path / "ear_tag.step"
+    stl = tmp_path / "ear_tag.stl"
+    assert main(["--spec", str(spec_path), "--output", str(tmp_path / "geometry.json"),
+                 "--step", str(step), "--stl", str(stl)]) == 0
+    assert step.is_file() and step.stat().st_size > 0
+    assert stl.is_file() and stl.stat().st_size > 0
+
+
+def test_enclosure_spec_change_flows_into_reported_geometry():
+    spec = load_spec(ROOT.parent.parent / "spec.yaml")
+    baseline = build_report(spec)
+    spec["mechanical"]["enclosure"]["height_mm"]["value"] += 2.0
+    changed = build_report(spec)
+    assert changed["envelope_mm"]["height"] == baseline["envelope_mm"]["height"] + 2.0
+    assert changed["volume_mm3"]["enclosure"] > baseline["volume_mm3"]["enclosure"]

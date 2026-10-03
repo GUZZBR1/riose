@@ -320,7 +320,14 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     antenna_manifest = dirs["antenna"] / "antenna_experiments.json"
     antenna_csv = dirs["antenna"] / "antenna.csv"
     _clear_previous_outputs(antenna_manifest, antenna_csv)
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800)
+    antenna_env = os.environ.copy()
+    if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
+            and env["modules"].get("CSXCAD")):
+        # The repository ships this adapter. Select it automatically when the
+        # matching solver bindings are present so the one-command twin run
+        # actually attempts openEMS instead of stopping at ADAPTER_NOT_CONFIGURED.
+        antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
+    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800, env=antenna_env)
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
@@ -344,6 +351,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
 
     power_scenarios: dict[str, dict[str, Any]] = {}
     schedule_statuses: dict[str, str] = {}
+    schedule_details: dict[str, dict[str, Any]] = {}
     if scenario_traces and (ROOT / "hardware" / "spice" / "trace_adapter.py").exists():
         loads_path = dirs["power"] / "assumed_load_profile.json"
         dump_json(loads_path, _power_load_profile(spec))
@@ -357,9 +365,15 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             adapted = _run_command("trace_schedule", adapter, ROOT, timeout_s=120)
             if adapted["status"] != "PASSED" or not schedule_path.is_file():
                 schedule_statuses[scenario] = "FAILED"
-                power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": "Trace conversion failed"}
+                detail = adapted.get("stderr") or adapted.get("detail") or "trace adapter did not produce a schedule"
+                schedule_details[scenario] = {
+                    "status": adapted["status"], "return_code": adapted.get("return_code"),
+                    "detail": detail[-2000:], "command": adapted.get("command"),
+                }
+                power_scenarios[scenario] = {"status": "NOT_AVAILABLE", "detail": detail[-2000:]}
                 continue
             schedule_statuses[scenario] = "PASSED"
+            schedule_details[scenario] = {"status": "PASSED", "path": str(schedule_path)}
             power_cmd = [sys.executable, str(ROOT / "hardware" / "spice" / "mvp2_power.py"),
                          str(schedule_path), "--assumptions", str(power_assumptions_path),
                          "--output", str(scenario_dir)]
@@ -417,7 +431,8 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
             status == "PASSED" for status in schedule_statuses.values()
         )
         stages["trace_schedule"] = {"status": "PASSED" if schedules_complete else "FAILED",
-                                     "required": True, "scenarios": schedule_statuses}
+                                     "required": True, "scenarios": schedule_statuses,
+                                     "details": schedule_details}
     else:
         stages["power"] = {"status": "NOT_AVAILABLE", "required": True,
                             "detail": "Firmware traces and the trace-to-power adapter are required"}
