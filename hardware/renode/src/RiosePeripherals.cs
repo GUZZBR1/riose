@@ -3,6 +3,7 @@
 // commands/registers exercised by the RIOSE Zephyr firmware.
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Antmicro.Renode.Core;
 using Antmicro.Renode.Core.Structure;
 using Antmicro.Renode.Peripherals;
@@ -11,6 +12,7 @@ using Antmicro.Renode.Peripherals.I2C;
 using Antmicro.Renode.Peripherals.SPI;
 using Antmicro.Renode.Peripherals.Timers;
 using Antmicro.Renode.Time;
+using Antmicro.Renode.Utilities.RESD;
 
 namespace Antmicro.Renode.Peripherals.Riose
 {
@@ -361,7 +363,7 @@ namespace Antmicro.Renode.Peripherals.Riose
     // deterministic wake-event hook for firmware integration tests. The hook
     // represents a SIMULATED sensor event; it does not model threshold
     // dynamics, timing, or a measured physical wake source.
-    public sealed class LIS2DW12WakeModel : Sensors.LIS2DW12, II2CPeripheral
+    public sealed class LIS2DW12WakeModel : Sensors.LIS2DW12, II2CPeripheral, IGPIOReceiver
     {
         public LIS2DW12WakeModel(IMachine machine) : base(machine)
         {
@@ -369,12 +371,62 @@ namespace Antmicro.Renode.Peripherals.Riose
             // from Reset(); do so explicitly for platforms that do not reset
             // devices during construction before the first sample-register read.
             base.Reset();
+            // The native data-ready GPIO is an input to the adapter. Keep a
+            // separate exposed pin so native updates cannot pulse PA8 low
+            // while a simulated wake source is still latched.
+            base.Interrupt1.Connect(this, 0);
         }
 
+        public new GPIO Interrupt1 { get; } = new GPIO();
         public bool WakeupIRQAsserted => wakeupIRQAsserted;
         public uint WakeupEventReadCount => wakeupEventReadCount;
         public uint OutputSampleReadCount => outputSampleReadCount;
+        public int LastOutputXRaw => lastOutputXRaw;
+        public int LastOutputYRaw => lastOutputYRaw;
         public int LastOutputZRaw => lastOutputZRaw;
+
+        public void OnGPIO(int number, bool value)
+        {
+            if(number != 0) return;
+            upstreamIRQAsserted = value;
+            UpdateWakeupIRQ();
+        }
+
+        // RESD discovers callbacks on the concrete runtime type. The upstream
+        // callbacks are private and therefore are not inherited by this shim.
+        // Forward to them so native FIFO, defaults and end-of-stream semantics
+        // remain owned by Renode rather than duplicating its sample pipeline.
+        [OnRESDSample(SampleType.Acceleration)]
+        [BeforeRESDSample(SampleType.Acceleration)]
+        private void HandleRESDAcceleration(AccelerationSample sample, TimeInterval timestamp)
+        {
+            upstreamAccelerationHandler.Invoke(this, new object[] { sample, timestamp });
+            UpdateWakeupIRQ();
+        }
+
+        [AfterRESDSample(SampleType.Acceleration)]
+        private void HandleRESDAccelerationEnded(AccelerationSample sample, TimeInterval timestamp)
+        {
+            upstreamAccelerationEndedHandler.Invoke(this, new object[] { sample, timestamp });
+            UpdateWakeupIRQ();
+        }
+
+        private static MethodInfo RequireUpstreamHandler(string name)
+        {
+            var handler = typeof(Sensors.LIS2DW12).GetMethod(name,
+                BindingFlags.Instance | BindingFlags.NonPublic, null,
+                new[] { typeof(AccelerationSample), typeof(TimeInterval) }, null);
+            if(handler == null)
+            {
+                throw new InvalidOperationException("Renode LIS2DW12 RESD callback unavailable: " + name);
+            }
+            return handler;
+        }
+
+        private static readonly MethodInfo upstreamAccelerationHandler =
+            RequireUpstreamHandler("HandleAccelerationSample");
+        private static readonly MethodInfo upstreamAccelerationEndedHandler =
+            RequireUpstreamHandler("HandleAccelerationSampleEnded");
 
         public new void Write(byte[] data)
         {
@@ -423,6 +475,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             if(registerPointer == OutputXLowRegister && result.Length >= 6)
             {
                 outputSampleReadCount++;
+                lastOutputXRaw = (short)(result[0] | (result[1] << 8));
+                lastOutputYRaw = (short)(result[2] | (result[3] << 8));
                 lastOutputZRaw = (short)(result[4] | (result[5] << 8));
             }
             for(var i = 0; i < result.Length; i++)
@@ -457,12 +511,15 @@ namespace Antmicro.Renode.Peripherals.Riose
             wakeupIRQAsserted = false;
             wakeupEventReadCount = 0;
             outputSampleReadCount = 0;
+            lastOutputXRaw = 0;
+            lastOutputYRaw = 0;
             lastOutputZRaw = 0;
             upstreamIRQAsserted = false;
             control4 = 0;
             control7 = 0;
             registerPointer = 0;
             pointerSet = false;
+            UpdateWakeupIRQ();
         }
 
         private bool AutoIncrement() => (RegistersCollection.Read(Control2Register) & AutoIncrementMask) != 0;
@@ -472,25 +529,8 @@ namespace Antmicro.Renode.Peripherals.Riose
             var routeEnabled =
                 (control4 & WakeupRouteMask) != 0 &&
                 (control7 & InterruptsEnableMask) != 0;
-            var shouldAssertWakeupIRQ = wakeupPending && routeEnabled;
-            if(shouldAssertWakeupIRQ)
-            {
-                if(!wakeupIRQAsserted)
-                {
-                    // Preserve an upstream interrupt that was already active
-                    // before the simulated wake event took ownership of INT1.
-                    upstreamIRQAsserted = Interrupt1.IsSet;
-                }
-                Interrupt1.Set(true);
-            }
-            else if(wakeupIRQAsserted)
-            {
-                // Releasing our virtual source must not clear an unrelated
-                // upstream data-ready/FIFO interrupt on the same line.
-                Interrupt1.Set(upstreamIRQAsserted);
-                upstreamIRQAsserted = false;
-            }
-            wakeupIRQAsserted = shouldAssertWakeupIRQ;
+            wakeupIRQAsserted = wakeupPending && routeEnabled;
+            Interrupt1.Set(wakeupIRQAsserted || upstreamIRQAsserted);
         }
 
         private const byte Control2Register = 0x21;
@@ -509,6 +549,8 @@ namespace Antmicro.Renode.Peripherals.Riose
         private bool wakeupIRQAsserted;
         private uint wakeupEventReadCount;
         private uint outputSampleReadCount;
+        private int lastOutputXRaw;
+        private int lastOutputYRaw;
         private int lastOutputZRaw;
         private bool upstreamIRQAsserted;
         private byte control4;

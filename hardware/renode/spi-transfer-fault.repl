@@ -1,0 +1,10 @@
+// Keep the native controller and its radio;
+// intercept only its bus register accesses with optional fault instrumentation.
+using "riose_stm32l0.repl"
+
+// The native controller retains a debugger-only alias so Renode can register
+// its child radio. Firmware accesses the original address through the wrapper.
+spi1: @ sysbus 0x40013400
+
+spi1Fault: Riose.SPITransferFault @ sysbus 0x40013000
+    controller: spi1

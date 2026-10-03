@@ -636,9 +636,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     antenna_env = os.environ.copy()
     if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
             and env["modules"].get("CSXCAD")):
-        # The repository ships this adapter. Select it automatically when the
-        # matching solver bindings are present so the one-command twin run
-        # actually attempts openEMS instead of stopping at ADAPTER_NOT_CONFIGURED.
+        # Preserve the configured adapter selection for compatible CLI implementations.
         antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
     antenna_help = _run_command("antenna_capabilities",
                                [sys.executable, "-m", "hardware.antenna.run", "--help"],
@@ -654,6 +652,7 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
         ant["result_class"] = ant_json.get("result_class")
         ant["scenarios"] = ant_json.get("scenarios", [])
+        ant["mesh_refinement"] = ant_json.get("mesh_refinement", {})
         incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
         if incomplete:
             ant["detail"] = "; ".join(

@@ -67,7 +67,7 @@ conversion cannot leave an old RESD appearing to be current.
 | TX | Completion uses configured latency; equal/earlier radio timeout wins | One-shot `LimitTimer` uses Renode virtual time; equal/earlier timeout wins | Same deadline decision; C advances in integer milliseconds while Renode uses 15.625-us ticks |
 | RX | Logical receive window always ends with timeout; continuous RX capped at one second | Logical receive window always ends with timeout; continuous RX capped at one virtual second | Match; neither invents an over-the-air packet or `RX_DONE` |
 | Sleep/standby | Cancels active logical TX/RX and clears pending timeout | Cancels and resets the active Renode timer | Match; time granularity differs |
-| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF` for a dropped byte | Models a failed response, not a virtual-time SPI controller timeout |
+| SPI transport failure | Synchronous C callback has no timed controller transfer | `DropSPI` returns `0xFF`; optional `SPITransferFault` stalls controller register accesses until a virtual deadline | Dropped byte and timed controller fault are tested separately; the watchdog is simulation instrumentation |
 
 `hardware/models/sx1262` remains the firmware-host reference for command bytes,
 configuration state, FIFO contents, IRQ status, and logical TX/RX outcomes.
@@ -98,16 +98,69 @@ renode-test hardware/renode/tests/platform-smoke.robot
 ```
 
 The converter tests validate the RESD payloads and metadata, and the Robot tests
-load STATIC and WALK streams before emulation starts. In the current
-firmware-integrated run, Zephyr reads the LIS2DW12 output registers three times
-for each stream, but the observed raw Z value is `0x00000000` for both datasets.
-That demonstrates register-read activity only; dataset values have not been
-shown to propagate into firmware-visible samples, so the integration stage
-remains partial. The Robot tests enable Renode's private peripheral commands
-before setting `SampleRate`; without `allowPrivates true`, the model retains a
-zero sample frequency and rejects RESD playback.
+load STATIC and WALK streams before emulation starts. With Renode 1.17.0 and a
+fresh Zephyr 4.2.1 Renode-profile ELF, the tests compare all three raw axis words
+returned to firmware against the first sample in each RESD payload. The observed
+Z words are `0x4028` (STATIC, 1.002 g) and `0x4A48` (WALK, 1.160 g); a zero or
+fallback sample now fails the comparison. These are simulated register values.
+
+The former zero samples came from RESD callback discovery: Renode searches the
+concrete peripheral type, so the upstream LIS2DW12's private callback methods
+are not inherited by `LIS2DW12WakeModel`. The adapter declares its own attributed
+callbacks and forwards them to the upstream handlers. This retains native FIFO,
+before-stream defaults, and end-of-stream behavior. The adapter exposes a
+separate INT1 output that continuously ORs the native INT1 level with the
+pending simulated wake source. Native data-ready callbacks therefore cannot
+pulse PA8 low while wake is latched. A GPIO transition probe verifies exactly
+one rising edge and no falling edges across before-, during- and after-stream
+ticks, followed by one falling edge when the source is read. A separate case
+checks native data-ready IRQ remains high after the wake source is cleared,
+and that reset clears the exposed output. A separate case checks
+the default before playback, the first and final samples, and the return to the
+default on the next output read after the stream finishes. The bridge depends
+on two private upstream method names and fails explicitly if a future Renode
+release changes their signatures; rerun this suite when upgrading Renode.
+
+Playback setup uses public I2C writes to CTRL1, avoiding private `SampleRate`
+assignment and its integer rounding. The firmware currently writes `CTRL1=0x14`,
+which Renode models as 2 Hz, high-performance 14-bit output (244 ug/LSB). Its
+comment and conversion assume 12.5 Hz and 12-bit output; correcting that firmware
+configuration remains separate work. The assertions above prove transport of
+the dataset values to firmware-visible register bytes, not that firmware's
+subsequent mg conversion or classifier is calibrated correctly.
 
 ## Headless use
+
+### Controller transfer timeout instrumentation
+
+`spi-transfer-fault.repl` is an optional platform for polling SPI fault tests.
+The wrapper forwards normal register reads and writes to Renode's native
+`STM32SPI`. With `StallTransfers` enabled, an enabled-controller write to `DR`
+starts a one-shot virtual watchdog (`TimeoutUs`, default 10,000 us). The write
+does not reach the radio. While pending, `SR.BSY` is set and `SR.RXNE`/`SR.TXE`
+are clear, and no received byte is available. At the deadline the transfer is
+aborted, `TimeoutCount` increments once, `BSY` clears and `TXE` returns. Disabling
+`SPE` or resetting the wrapper cancels the deadline. Clearing `StallTransfers`
+allows the next transfer to use the native controller normally.
+
+The watchdog and its counter are **SIMULATED test instrumentation**, not STM32
+hardware registers or a physical timeout measurement. The overlay keeps the
+native controller at debugger alias `0x40013400` and intercepts firmware's SPI1
+address `0x40013000`; the standard platform is unchanged. This optional fault
+path covers polling register accesses only, not DMA or interrupt-driven SPI.
+The test halts the CPU and checks controller state at 9 ms and exactly 10 ms,
+single expiry, register polling, cancellation, and a recovered `GetStatus`
+response. A separate case proves that `DropSPI` returns an immediate `0xFF`
+with `RXNE` set and no watchdog expiry.
+
+```sh
+renode-test hardware/renode/tests/spi-transfer-timeout.robot
+```
+
+This demonstrates controller-level timed fault injection and protocol recovery
+by the test harness. Firmware timeout/error handling and a complete Zephyr
+recovery cycle under this fault remain unverified; this evidence alone should
+not close issue #5.
 
 Renode and `renode-test` are optional local tools; this workspace does not
 vendor them. Install a Renode release and ensure `renode` and `renode-test`
@@ -145,7 +198,7 @@ Renode's upstream `Sensors.LIS2DW12`. It preserves upstream sample and RESD
 ingestion while adding an explicitly **SIMULATED** wake-event hook:
 `TriggerWakeup` latches `WAKE_UP_SRC.WU_IA` until that source register is read,
 then clears the pending event. The adapter routes the event through the
-sensor's inherited `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
+adapter's combined `Interrupt1` GPIO only when `CTRL4.INT1_WU` and
 `CTRL7.INTERRUPTS_ENABLE` are both enabled; the platform connects that line to
 MCU PA8. The shim does not calculate threshold crossings, wake timing, or
 physical sensor dynamics. It is virtual IRQ plumbing, not a measured or

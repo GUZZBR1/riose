@@ -43,10 +43,17 @@ def _report(spec: dict[str, Any], summary: dict[str, Any]) -> str:
     antenna_rows = antenna.get("scenarios", [])
     antenna_completed = sum(row.get("status") == "COMPLETED" for row in antenna_rows)
     antenna_sweeps = stages.get("antenna_sweeps", {})
+    mesh_refinement = antenna.get("mesh_refinement", {})
     failed_checks = mechanical.get("fit", {}).get("issues", [])
     if antenna_rows:
-        antenna_answer = (f"{antenna_completed}/{len(antenna_rows)} cenários passaram a comparação numérica de malha; "
-                          "resultados simulados não validam desempenho físico.")
+        if mesh_refinement.get("status") == "COMPLETED" and mesh_refinement.get("converged") is True:
+            antenna_answer = (f"{antenna_completed}/{len(antenna_rows)} cenários passaram a comparação numérica de malha; "
+                              "resultados simulados não validam desempenho físico.")
+        else:
+            refinement_status = mesh_refinement.get("status", "NOT_REPORTED")
+            antenna_answer = (f"{antenna_completed}/{len(antenna_rows)} cenários têm execução temporal COMPLETED; "
+                              f"comparação numérica de malha: {refinement_status}; "
+                              "resultados simulados não validam desempenho físico.")
     else:
         antenna_answer = antenna.get("detail", "Nenhum cenário de RF produziu resultado do solver.")
     energy_answer = (f"`{charge:.6g} µAh` pela integração SIMULATED de correntes ASSUMED/trace; "

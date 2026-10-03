@@ -1,6 +1,5 @@
 *** Settings ***
 Documentation     Headless smoke and SX1262 protocol checks for the RIOSE Renode platform.
-Library           RenodeLibrary
 Library           String
 Library           Collections
 
@@ -93,11 +92,95 @@ Firmware Boots Sleeps Services IRQ And Returns To Sleep
     Should Be Equal    ${irq}    False
     [Setup]    Create RIOSE Platform
 
+LIS2DW12 RESD Defaults And End Of Stream Preserve Native Behavior
+    Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD} sampleOffsetTime=-1000000000
+    Execute Command    emulation RunFor "0.5"
+    ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be Equal As Numbers    ${z}    1
+    Execute Command    emulation RunFor "0.58"
+    ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be Equal As Numbers    ${z}    1.002
+    Execute Command    emulation RunFor "12"
+    ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    # Native bypass mode holds the final sample until the next output read.
+    Should Be Equal As Numbers    ${z}    1.001
+    Execute Command    sysbus.i2c1.imu Write [0xA8]
+    Execute Command    sysbus.i2c1.imu Read 6
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be Equal As Numbers    ${z}    1
+    # Both post-stream callbacks have fired; further time retains the default.
+    Execute Command    emulation RunFor "0.5"
+    ${z}=    Execute Command    sysbus.i2c1.imu AccelerationZ
+    Should Be Equal As Numbers    ${z}    1
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Pending Wake Stays Routed Across RESD Lifecycle Callbacks
+    Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
+    Execute Command    include @${CURDIR}/GPIOTransitionProbe.cs
+    Execute Command    machine LoadPlatformDescription @${CURDIR}/gpio-transition-probe.repl
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x3F, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD} sampleOffsetTime=-1000000000
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    # Cross before-stream, active-stream and after-stream native callbacks.
+    FOR    ${interval}    IN    0.2    1.0    12.0
+        Execute Command    emulation RunFor "${interval}"
+        ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+        Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+        ${rises}=    Execute Command    sysbus.irqProbe RisingEdgeCount
+        ${falls}=    Execute Command    sysbus.irqProbe FallingEdgeCount
+        Should Be Equal As Integers    ${rises}    1
+        Should Be Equal As Integers    ${falls}    0
+    END
+    Execute Command    sysbus.i2c1.imu Write [0x38]
+    ${source}=    Execute Command    sysbus.i2c1.imu Read 1
+    Should Contain    ${source}    08
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
+    ${falls}=    Execute Command    sysbus.irqProbe FallingEdgeCount
+    Should Be Equal As Integers    ${falls}    1
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Native Data Ready IRQ Survives Wake Source Release
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu Write [0x3F, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    # Native DRDY becomes active while the simulated wake already holds INT1.
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x21]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    Execute Command    sysbus.i2c1.imu AccelerationZ 1
+    Execute Command    sysbus.i2c1.imu Write [0x38]
+    Execute Command    sysbus.i2c1.imu Read 1
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${wake}=    Execute Command    sysbus.i2c1.imu WakeupIRQAsserted
+    Should Be Equal    ${wake.strip()}    False
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) != 0
+    # Releasing only the native source must now release the exposed pin.
+    Execute Command    sysbus.i2c1.imu Write [0x23, 0x20]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
+    Execute Command    sysbus.i2c1.imu TriggerWakeup
+    Execute Command    sysbus.i2c1.imu Reset
+    ${pa8}=    Execute Command    sysbus ReadDoubleWord 0x50000010
+    Should Be True    (int($pa8.strip(), 0) & 0x100) == 0
+    [Setup]    Create RIOSE Platform
+
 Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
-    Execute Command    allowPrivates true
-    Execute Command    sysbus.i2c1.imu SampleRate 12.5
+    Configure LIS2DW12 RESD Playback
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD}
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
@@ -105,14 +188,14 @@ Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
     ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
     ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
     Should Be True    int($reads.strip(), 0) > 0
+    Firmware LIS2DW12 Output Should Match RESD First Sample    ${STATIC_RESD}
     Log To Console    SIMULATED_STATIC_RESD_RAW_Z=${raw_z}
     [Setup]    Create RIOSE Platform
 
 Firmware Reads LIS2DW12 While WALK RESD Is Loaded
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${WALK_RESD}' == ''    Set RIOSE_LIS2DW12_WALK_RESD to the WALK RESD output.
-    Execute Command    allowPrivates true
-    Execute Command    sysbus.i2c1.imu SampleRate 12.5
+    Configure LIS2DW12 RESD Playback
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WALK_RESD}
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
@@ -120,6 +203,7 @@ Firmware Reads LIS2DW12 While WALK RESD Is Loaded
     ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
     ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
     Should Be True    int($reads.strip(), 0) > 0
+    Firmware LIS2DW12 Output Should Match RESD First Sample    ${WALK_RESD}
     Log To Console    SIMULATED_WALK_RESD_RAW_Z=${raw_z}
     [Setup]    Create RIOSE Platform
 
@@ -382,6 +466,26 @@ SX1262 Busy IRQ And SPI Fault Hooks Are Controllable
     Execute Command    sysbus.spi1.radio DropSPI false
 
 *** Keywords ***
+Configure LIS2DW12 RESD Playback
+    # Configure through the public I2C interface, rather than assigning the
+    # upstream private integer SampleRate property a fractional frequency.
+    Execute Command    sysbus.i2c1.imu Write [0x20, 0x24]
+    Execute Command    sysbus.i2c1.imu FinishTransmission
+
+Firmware LIS2DW12 Output Should Match RESD First Sample
+    [Arguments]    ${resd}
+    ${payload}=    Evaluate    pathlib.Path($resd).read_bytes()    modules=pathlib
+    ${metadata_size}=    Evaluate    struct.unpack_from('<Q', $payload, 37)[0]    modules=struct
+    ${ug}=    Evaluate    struct.unpack_from('<iii', $payload, 45 + $metadata_size)    modules=struct
+    # The existing firmware writes CTRL1=0x14, which Renode models as
+    # high-performance 14-bit output at +/-2 g (244 ug/LSB, left-shift 2).
+    FOR    ${axis}    ${index}    IN    X    0    Y    1    Z    2
+        ${actual}=    Execute Command    sysbus.i2c1.imu LastOutput${axis}Raw
+        ${actual}=    Evaluate    (int($actual.strip(), 0) + 2**31) % 2**32 - 2**31
+        ${expected}=    Evaluate    int($ug[int($index)] / 244) * 4
+        Should Be Equal As Integers    ${actual}    ${expected}
+    END
+
 Create RIOSE Platform
     Execute Command    mach create
     Execute Command    machine LoadPlatformDescription @${PLATFORM}
