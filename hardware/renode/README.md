@@ -132,27 +132,28 @@ for a compatible STM32L0 memory map and peripheral base addresses. The current
 board profile and Renode surrogate mismatch must be reviewed before wiring this
 into required CI.
 
-## Firmware wake-up scenario
+## Firmware wake-up scenario status
 
-The Robot smoke test loads the platform without firmware. Its firmware case is
-skipped unless RIOSE_ZEPHYR_ELF points to an ELF compiled for the NUCLEO-L031K6
-profile. That case advances 100 ms of guest virtual time, injects a routed
-LIS2DW12 wake event, and checks that firmware consumes the interrupt. Renode's
-emulation RunFor command advances guest time deterministically without waiting
-for the same amount of host wall time. This does not validate electrical timing
-or STOP current behavior.
+The optional Robot case is **not currently validated** with a Zephyr ELF. The
+board overlay selects LIS2DW12 address `0x18` (SA0 low), so the Renode instance
+uses the same address. However, the upstream `Sensors.LIS2DW12` model has no
+`INT1` GPIO or wake-injection command, so the existing `TriggerWakeup` firmware
+scenario cannot exercise a routed sensor interrupt. Do not treat a skipped case
+as evidence of firmware sleep or wake behavior.
 
-Build the physical Zephyr profile in a configured Zephyr workspace, then run:
+There is also a timer-profile mismatch: the physical NUCLEO-L031K6 build uses
+the RTC as the low-power companion timer, while the STM32L071 Renode surrogate
+does not reproduce the needed RTC/STOP behavior. In the local Zephyr 4.2.1 and
+Renode 1.17.0 environment, the physical profile stayed in `SELF_TEST` after
+250 ms of virtual time. A diagnostic build with power management disabled
+advanced into `RF_TX` but did not complete the expected scenario. These
+results are failures, not passes; the state assertion remains in the Robot
+test until a compatible simulation profile and an interrupt-capable LIS2DW12
+model can validate it.
 
-    west build -b nucleo_l031k6 -d build/tag-nucleo-l031k6 hardware/firmware/zephyr
-    export RIOSE_ZEPHYR_ELF="$PWD/build/tag-nucleo-l031k6/zephyr/zephyr.elf"
-    make hardware-renode-test
-
-The platform wires the MCU model's GPIO, SPI, I2C, timer/RTC and interrupt
-controllers to the protocol responders. The Robot case verifies startup and IMU
-IRQ-driven return to sleep only. A full temporal trace, timer-driven wake, exact
-L031 flash/RAM limits, clock-tree fidelity and STOP/deep-sleep electrical
-behavior remain outside the evidence produced by this surrogate and require
-additional target-specific validation before claiming full MCU equivalence.
-native_sim remains a separate fast software/model test path and does not
-represent Renode or electrical simulation.
+The firmware case runs only when `RIOSE_ZEPHYR_ELF` is provided. Before using
+it as evidence, build a Renode-specific profile whose clock and power behavior
+are supported by the surrogate, and provide a sensor model with a routed INT1
+line. Neither requirement is met by the upstream sensor-only platform today.
+`native_sim` remains a separate software/model path and does not demonstrate
+Renode or electrical behavior.
