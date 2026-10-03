@@ -9,6 +9,7 @@ import math
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +23,8 @@ from .reporting import _metrics_csv, _report
 from .spec import dump_json, evaluate_gate, load_spec, parameter_statuses
 
 
-DEFAULT_HARDWARE_TEST_BUILD_DIR = Path("/tmp/riose-ear-tag-hardware-tests-v2")
+_ROOT_BUILD_KEY = hashlib.sha256(str(ROOT.resolve()).encode("utf-8")).hexdigest()[:12]
+DEFAULT_HARDWARE_TEST_BUILD_DIR = Path(tempfile.gettempdir()) / f"riose-ear-tag-hardware-tests-{_ROOT_BUILD_KEY}"
 
 
 def _antenna_sweep_result(spec: dict[str, Any], manifest: dict[str, Any],
@@ -645,7 +647,10 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
                         and "--sweeps" in antenna_help.get("stdout", "").split())
     if sweeps_supported:
         antenna_cmd.append("--sweeps")
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=1800, env=antenna_env)
+    # Full 4/2/1 mm openEMS sweeps can run longer than 30 minutes on the
+    # high-Q battery/enclosure cases. A timeout remains fail-closed, but must
+    # leave enough room for a real convergence result on the provisioned host.
+    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=7200, env=antenna_env)
     ant_json: dict[str, Any] = {}
     if antenna_manifest.exists():
         ant_json = json.loads(antenna_manifest.read_text())

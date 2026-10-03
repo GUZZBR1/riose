@@ -75,10 +75,14 @@ def test_legacy_modules_forward_to_canonical_objects():
 
 
 def test_runner_uses_the_configured_hardware_test_build_directory(tmp_path):
+    import hashlib
+    import tempfile
+
     from riose.products.ear_tag.digital_twin.runner import hardware_integration_executable
 
-    assert hardware_integration_executable({}) == Path(
-        "/tmp/riose-ear-tag-hardware-tests-v2/hardware_integration"
+    root_key = hashlib.sha256(str(ROOT.resolve()).encode("utf-8")).hexdigest()[:12]
+    assert hardware_integration_executable({}) == Path(tempfile.gettempdir()) / (
+        f"riose-ear-tag-hardware-tests-{root_key}/hardware_integration"
     )
     assert hardware_integration_executable({
         "HARDWARE_TEST_BUILD_DIR": str(tmp_path / "custom build")
@@ -291,23 +295,37 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     monkeypatch.setenv("ZEPHYR_BASE", str(tmp_path / "zephyr"))
     commands = []
     command_envs = {}
+    command_timeouts = {}
 
     def unavailable(name, command, cwd, **kwargs):
         commands.append((name, command, cwd))
         command_envs[name] = kwargs.get("env")
+        command_timeouts[name] = kwargs.get("timeout_s")
         return {"status": "NOT_AVAILABLE", "detail": "test stub", "required": True}
 
     monkeypatch.setattr(runner, "_run_command", unavailable)
     summary = runner.run_twin(Path("spec.yaml"), Path("relative-output"))
+    first_output = tmp_path / "relative-output"
+    first_inventory = sorted(path.relative_to(first_output).as_posix()
+                             for path in first_output.rglob("*") if path.is_file())
+    first_motion = (first_output / "firmware" / "motion_profiles.csv").read_bytes()
+    second_summary = runner.run_twin(Path("spec.yaml"), Path("second-output"))
+    second_output = tmp_path / "second-output"
+    second_inventory = sorted(path.relative_to(second_output).as_posix()
+                              for path in second_output.rglob("*") if path.is_file())
 
     assert summary["spec_path"] == str((tmp_path / "spec.yaml").resolve())
     assert summary["outputs"]["root"] == str((tmp_path / "relative-output").resolve())
+    assert second_summary["spec_sha256"] == summary["spec_sha256"]
+    assert second_inventory == first_inventory
+    assert (second_output / "firmware" / "motion_profiles.csv").read_bytes() == first_motion
     antenna_command = next(command for name, command, _ in commands if name == "antenna")
     spec_argument = antenna_command[antenna_command.index("--spec") + 1]
     output_argument = antenna_command[antenna_command.index("--output") + 1]
     assert Path(spec_argument).is_absolute()
     assert Path(output_argument).is_absolute()
     assert command_envs["antenna"]["RIOSE_OPENEMS_ADAPTER"] == "hardware.antenna.openems_adapter"
+    assert command_timeouts["antenna"] == 7200
     zephyr_command = next(command for name, command, _ in commands if name == "zephyr_build")
     assert any(argument.startswith("-DEXTRA_CONF_FILE=") and argument.endswith("nucleo_l031k6_renode.conf")
                for argument in zephyr_command)
