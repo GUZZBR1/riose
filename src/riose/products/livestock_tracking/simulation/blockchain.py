@@ -90,7 +90,7 @@ class FakeBlockchainAdapter(PublicationPort):
             observation_status = (
                 PublicationStatus.CONFIRMED
                 if outcome is FakeSubmitOutcome.CONFIRMED
-                else PublicationStatus.UNKNOWN
+                else PublicationStatus.SUBMITTED
             )
             self._observations[reference] = _FakeObservation(
                 commitment=request.envelope.commitment,
@@ -156,11 +156,6 @@ class FakeBlockchainAdapter(PublicationPort):
             destination=observation.destination,
             network=observation.network,
             reference=observation.reference,
-            reason=(
-                PublicationReason.NOT_FOUND
-                if observation.status is PublicationStatus.UNKNOWN
-                else None
-            ),
             evidence_status=EvidenceStatus.SIMULATED,
         )
 

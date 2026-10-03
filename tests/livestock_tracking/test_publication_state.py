@@ -15,6 +15,7 @@ from riose.products.livestock_tracking.domain.publication_state import (
     ConfirmationObserved,
     LifecycleState,
     PreAcceptanceFailure,
+    PublicationRejected,
     PublicationPolicy,
     PublicationSnapshot,
     RetryDue,
@@ -189,6 +190,52 @@ def test_query_timeout_preserves_known_submission_and_reference():
     )
     assert stale_acceptance.decision is TransitionDecision.REJECTED
     assert stale_acceptance.reason is TransitionReason.STALE_ATTEMPT
+
+
+def test_simulated_provenance_cannot_be_promoted_by_confirmation_signal():
+    started = begin()
+    submitted = transition(
+        started.snapshot,
+        SubmissionAccepted(
+            "attempt-1", "fake-chain", "offline", "ref-1", EvidenceStatus.SIMULATED
+        ),
+        POLICY,
+        now=11,
+    )
+    promoted = transition(
+        submitted.snapshot,
+        ConfirmationObserved(
+            "attempt-1", "fake-chain", "offline", "ref-1", EvidenceStatus.VALIDATED
+        ),
+        POLICY,
+        now=12,
+    )
+    assert promoted.decision is TransitionDecision.REJECTED
+    assert promoted.reason is TransitionReason.EVIDENCE_PROVENANCE_MISMATCH
+    assert promoted.snapshot is submitted.snapshot
+
+
+def test_post_submission_rejection_is_distinct_from_pre_acceptance_failure():
+    started = begin()
+    submitted = transition(
+        started.snapshot,
+        SubmissionAccepted(
+            "attempt-1", "fake-chain", "offline", "ref-1", EvidenceStatus.SIMULATED
+        ),
+        POLICY,
+        now=11,
+    )
+    rejected = transition(
+        submitted.snapshot,
+        PublicationRejected(
+            "attempt-1", "fake-chain", "offline", "ref-1", EvidenceStatus.SIMULATED
+        ),
+        POLICY,
+        now=12,
+    )
+    assert rejected.snapshot.lifecycle is LifecycleState.SUBMITTED
+    assert rejected.snapshot.attempt_condition is AttemptCondition.FAILED
+    assert rejected.reason is TransitionReason.REJECTION_OBSERVED
 
 
 @pytest.mark.parametrize(

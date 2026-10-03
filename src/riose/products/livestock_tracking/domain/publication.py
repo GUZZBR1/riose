@@ -150,6 +150,7 @@ class ConfirmationResult:
         if not isinstance(self.status, PublicationStatus):
             raise ValueError("status must be a PublicationStatus")
         if self.status not in {
+            PublicationStatus.SUBMITTED,
             PublicationStatus.CONFIRMED,
             PublicationStatus.REJECTED,
             PublicationStatus.UNAVAILABLE,

@@ -77,7 +77,7 @@ def test_confirmation_is_only_visible_after_explicit_query():
     assert observed.evidence_status is EvidenceStatus.SIMULATED
 
 
-def test_pending_and_unknown_lookup_never_become_confirmation_or_invalid():
+def test_known_pending_and_absent_lookup_are_distinct_from_confirmation_and_invalid():
     adapter = FakeBlockchainAdapter([FakeSubmitOutcome.SUBMITTED])
     submitted = adapter.submit(request())
     pending = adapter.query(
@@ -92,9 +92,9 @@ def test_pending_and_unknown_lookup_never_become_confirmation_or_invalid():
         network="offline",
         reference="unknown-ref",
     )
-    assert pending.status is PublicationStatus.UNKNOWN
+    assert pending.status is PublicationStatus.SUBMITTED
     assert missing.status is PublicationStatus.UNKNOWN
-    assert pending.reason is PublicationReason.NOT_FOUND
+    assert pending.reason is None
     assert missing.reason is PublicationReason.NOT_FOUND
 
 

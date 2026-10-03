@@ -116,7 +116,12 @@ def test_submission_reference_is_not_confirmation():
 
 @pytest.mark.parametrize(
     "status",
-    [PublicationStatus.UNKNOWN, PublicationStatus.UNAVAILABLE, PublicationStatus.REJECTED],
+    [
+        PublicationStatus.SUBMITTED,
+        PublicationStatus.UNKNOWN,
+        PublicationStatus.UNAVAILABLE,
+        PublicationStatus.REJECTED,
+    ],
 )
 def test_lookup_can_report_non_confirmation_without_claiming_invalid(status):
     result = ConfirmationResult(

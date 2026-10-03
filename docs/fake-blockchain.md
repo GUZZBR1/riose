@@ -7,8 +7,10 @@ signer, persistent store, automatic retry, or production capability is used.
 
 Every returned result and capability is marked `SIMULATED`. A scripted
 `CONFIRMED` outcome makes submit return `SUBMITTED`; only a later explicit
-lookup returns the simulated confirmation. An exhausted outcome sequence,
-timeout, missing reference, or unresolved submission remains `UNKNOWN`.
+lookup returns the simulated confirmation. A normal submitted fixture returns
+`SUBMITTED` on lookup to represent a known pending transaction. An exhausted
+outcome sequence, timeout, missing reference, or unresolved submission remains
+`UNKNOWN`.
 Lookup mismatches are `REJECTED` with an allowlisted reason code.
 
 The fake retains only digest, destination, network, generated reference, and

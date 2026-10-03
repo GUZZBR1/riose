@@ -9,16 +9,22 @@ attempt remains active; `CONFIRMED` is terminal in this policy version.
 
 An attempt begins only with an explicit `BeginAttempt`. `SUBMITTED` requires a
 correlated `SubmissionAccepted` reference. Only a matching
-`ConfirmationObserved` can advance that lifecycle to `CONFIRMED`. A timeout or
-inconclusive query sets the attempt condition to `UNKNOWN` while preserving any
-known submitted lifecycle/reference, and it cannot make a retry eligible.
+`ConfirmationObserved` can advance that lifecycle to `CONFIRMED`. A matching
+post-submit `PublicationRejected` sets the attempt condition to `FAILED` while
+preserving the fact that it was submitted; it is distinct from proof of
+pre-acceptance failure. A timeout or inconclusive query sets the attempt
+condition to `UNKNOWN` while preserving any known submitted lifecycle/reference,
+and it cannot make a retry eligible.
 
 Retry is possible only after the typed `PreAcceptanceFailure` signal, which
 represents proof that the current attempt failed before destination acceptance,
 and only within the supplied attempt budget. The policy derives a retry
 deadline from the supplied `now`; `RetryDue` before the deadline is a no-op.
-Each signal must match the snapshot's attempt and destination/network. Stale,
-out-of-order, uncorrelated, or malformed signals leave the snapshot unchanged.
+Each signal must match the snapshot's attempt and destination/network. Once an
+attempt carries a non-`FUTURE` evidence status, later signals cannot relabel it
+as a different provenance; in particular, simulated evidence cannot be
+promoted to validated evidence. Stale, out-of-order, uncorrelated, or malformed
+signals leave the snapshot unchanged.
 
 No state transition writes to the animal event chain. Evidence provenance is
 carried through snapshots, so `SIMULATED` observations remain simulated. This

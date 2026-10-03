@@ -44,10 +44,12 @@ class TransitionReason(StrEnum):
     WAITING_FOR_RETRY_DEADLINE = "WAITING_FOR_RETRY_DEADLINE"
     RETRY_READY = "RETRY_READY"
     SUBMISSION_UNKNOWN = "SUBMISSION_UNKNOWN"
+    REJECTION_OBSERVED = "REJECTION_OBSERVED"
     DUPLICATE_SIGNAL = "DUPLICATE_SIGNAL"
     STALE_ATTEMPT = "STALE_ATTEMPT"
     SCOPE_MISMATCH = "SCOPE_MISMATCH"
     INVALID_TRANSITION = "INVALID_TRANSITION"
+    EVIDENCE_PROVENANCE_MISMATCH = "EVIDENCE_PROVENANCE_MISMATCH"
     RETRY_BUDGET_EXHAUSTED = "RETRY_BUDGET_EXHAUSTED"
     INVALID_SIGNAL = "INVALID_SIGNAL"
 
@@ -163,6 +165,17 @@ class ConfirmationObserved:
     evidence_status: EvidenceStatus
 
 
+@dataclass(frozen=True, slots=True)
+class PublicationRejected:
+    """Explicit post-submission rejection observation, not a pre-acceptance error."""
+
+    attempt_id: str
+    destination: str
+    network: str
+    reference: str
+    evidence_status: EvidenceStatus
+
+
 PublicationSignal: TypeAlias = (
     BeginAttempt
     | SubmissionAccepted
@@ -170,6 +183,7 @@ PublicationSignal: TypeAlias = (
     | PreAcceptanceFailure
     | RetryDue
     | ConfirmationObserved
+    | PublicationRejected
 )
 
 
@@ -196,7 +210,7 @@ def transition(
     except (TypeError, ValueError):
         return _rejected(snapshot, TransitionReason.INVALID_SIGNAL)
 
-    if isinstance(signal, (BeginAttempt, SubmissionAccepted, SubmissionUnknown, PreAcceptanceFailure, ConfirmationObserved)):
+    if isinstance(signal, (BeginAttempt, SubmissionAccepted, SubmissionUnknown, PreAcceptanceFailure, ConfirmationObserved, PublicationRejected)):
         if signal.destination != snapshot.destination or signal.network != snapshot.network:
             return _rejected(snapshot, TransitionReason.SCOPE_MISMATCH)
         if signal.attempt_id != snapshot.attempt_id and not isinstance(signal, BeginAttempt):
@@ -233,6 +247,8 @@ def transition(
             return _rejected(snapshot, TransitionReason.INVALID_TRANSITION)
         if snapshot.reference is not None and snapshot.reference != signal.reference:
             return _rejected(snapshot, TransitionReason.STALE_ATTEMPT)
+        if not _evidence_compatible(snapshot.evidence_status, signal.evidence_status):
+            return _rejected(snapshot, TransitionReason.EVIDENCE_PROVENANCE_MISMATCH)
         updated = replace(
             snapshot,
             lifecycle=LifecycleState.SUBMITTED,
@@ -306,6 +322,8 @@ def transition(
             return _rejected(snapshot, TransitionReason.INVALID_TRANSITION)
         if snapshot.reference != signal.reference:
             return _rejected(snapshot, TransitionReason.STALE_ATTEMPT)
+        if not _evidence_compatible(snapshot.evidence_status, signal.evidence_status):
+            return _rejected(snapshot, TransitionReason.EVIDENCE_PROVENANCE_MISMATCH)
         updated = replace(
             snapshot,
             lifecycle=LifecycleState.CONFIRMED,
@@ -314,6 +332,19 @@ def transition(
             evidence_status=signal.evidence_status,
         )
         return _applied(updated, TransitionReason.CONFIRMATION_OBSERVED)
+
+    if isinstance(signal, PublicationRejected):
+        if snapshot.lifecycle is not LifecycleState.SUBMITTED or snapshot.attempt_condition not in {
+            AttemptCondition.IN_FLIGHT,
+            AttemptCondition.UNKNOWN,
+        }:
+            return _rejected(snapshot, TransitionReason.INVALID_TRANSITION)
+        if snapshot.reference != signal.reference:
+            return _rejected(snapshot, TransitionReason.STALE_ATTEMPT)
+        if not _evidence_compatible(snapshot.evidence_status, signal.evidence_status):
+            return _rejected(snapshot, TransitionReason.EVIDENCE_PROVENANCE_MISMATCH)
+        updated = replace(snapshot, attempt_condition=AttemptCondition.FAILED, retry_at=None)
+        return _applied(updated, TransitionReason.REJECTION_OBSERVED)
 
     return _rejected(snapshot, TransitionReason.INVALID_SIGNAL)
 
@@ -344,6 +375,11 @@ def _validate_signal(signal: object) -> None:
         _validate_identifier(signal.reference, "reference")
         if not isinstance(signal.evidence_status, EvidenceStatus):
             raise ValueError("invalid evidence status")
+    elif isinstance(signal, PublicationRejected):
+        _validate_identifier(signal.attempt_id, "attempt_id")
+        _validate_identifier(signal.reference, "reference")
+        if not isinstance(signal.evidence_status, EvidenceStatus):
+            raise ValueError("invalid evidence status")
     else:
         raise ValueError("unknown signal type")
 
@@ -361,6 +397,12 @@ def _validate_identifier(value: str, name: str) -> None:
 def _validate_time(value: float, name: str) -> None:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         raise ValueError(f"{name} must be a finite timestamp")
+
+
+def _evidence_compatible(current: EvidenceStatus, observed: EvidenceStatus) -> bool:
+    """Do not let a later signal relabel the provenance of an existing attempt."""
+
+    return current is EvidenceStatus.FUTURE or current is observed
 
 
 def _applied(snapshot: PublicationSnapshot, reason: TransitionReason) -> TransitionResult:

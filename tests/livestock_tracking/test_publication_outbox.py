@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 
@@ -17,7 +18,12 @@ from riose.products.livestock_tracking.adapters.persistence.publication_outbox i
 )
 
 
-def envelope(data: bytes = b'{"version":1,"fixture":"synthetic"}') -> OutboxEnvelope:
+def envelope(commitment: str = "a" * 64) -> OutboxEnvelope:
+    data = json.dumps(
+        {"commitment": commitment, "version": 1},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     return OutboxEnvelope(version=1, data=data)
 
 
@@ -60,9 +66,9 @@ def test_enqueue_get_reopen_and_claim_preserve_exact_versioned_bytes(tmp_path):
 def test_pending_order_limit_and_claim_select_are_deterministic(tmp_path):
     store = Store(tmp_path / "order.sqlite3", enable_publication_outbox=True)
     outbox = store.publication_outbox
-    outbox.enqueue("b", envelope(b"b"), 1.0)
-    outbox.enqueue("a", envelope(b"a"), 1.0)
-    outbox.enqueue("later", envelope(b"c"), 2.0)
+    outbox.enqueue("b", envelope("b" * 64), 1.0)
+    outbox.enqueue("a", envelope("a" * 64), 1.0)
+    outbox.enqueue("later", envelope("c" * 64), 2.0)
 
     assert [ticket.ticket_id for ticket in outbox.list_pending(2)] == ["a", "b"]
     claimed = outbox.claim_due(now=1.0, limit=1, claim_token="worker")
@@ -74,12 +80,12 @@ def test_pending_order_limit_and_claim_select_are_deterministic(tmp_path):
 def test_duplicate_ticket_conflicts_without_overwriting(tmp_path):
     store = Store(tmp_path / "duplicate.sqlite3", enable_publication_outbox=True)
     outbox = store.publication_outbox
-    outbox.enqueue("stable-id", envelope(b"first"), 1)
+    outbox.enqueue("stable-id", envelope("a" * 64), 1)
 
     with pytest.raises(sqlite3.IntegrityError):
-        outbox.enqueue("stable-id", envelope(b"replacement"), 2)
+        outbox.enqueue("stable-id", envelope("b" * 64), 2)
 
-    assert outbox.get("stable-id").envelope.data == b"first"
+    assert outbox.get("stable-id").envelope == envelope("a" * 64)
     assert outbox.get("stable-id").available_at == 1.0
     store.close()
 
@@ -89,7 +95,7 @@ def test_two_connections_never_claim_the_same_ticket(tmp_path):
     writer = Store(path, enable_publication_outbox=True)
     outbox = writer.publication_outbox
     for index in range(20):
-        outbox.enqueue(f"ticket-{index:02d}", envelope(str(index).encode()), 1)
+        outbox.enqueue(f"ticket-{index:02d}", envelope(f"{index:064x}"), 1)
     writer.close()
 
     left = Store(path, enable_publication_outbox=True)
@@ -117,8 +123,8 @@ def test_two_connections_never_claim_the_same_ticket(tmp_path):
 def test_claim_rolls_back_all_tickets_on_database_failure(tmp_path):
     store = Store(tmp_path / "rollback.sqlite3", enable_publication_outbox=True)
     outbox = store.publication_outbox
-    outbox.enqueue("first", envelope(b"one"), 1)
-    outbox.enqueue("second", envelope(b"two"), 1)
+    outbox.enqueue("first", envelope("1" * 64), 1)
+    outbox.enqueue("second", envelope("2" * 64), 1)
     store.connection.execute(
         "CREATE TRIGGER fail_claim BEFORE UPDATE ON publication_outbox "
         "BEGIN SELECT RAISE(ABORT,'synthetic test failure'); END"
@@ -157,11 +163,29 @@ def test_enqueue_failure_does_not_change_previously_committed_event(tmp_path):
         lambda: OutboxEnvelope(True, b"x"),
         lambda: OutboxEnvelope(1, b""),
         lambda: OutboxEnvelope(1, b"x" * (MAX_OUTBOX_ENVELOPE_BYTES + 1)),
+        lambda: OutboxEnvelope(1, b'{"version":1,"commitment":"' + b"a" * 64 + b'","animal_id":"synthetic"}'),
+        lambda: OutboxEnvelope(1, b'{"version":1,"commitment":"' + b"a" * 64 + b'","version":1}'),
+        lambda: OutboxEnvelope(1, b'{"commitment":"' + b"a" * 64 + b'","version":1,"private_key":"synthetic-secret"}'),
     ],
 )
 def test_envelope_validation_is_bounded_and_typed(make_invalid):
     with pytest.raises(ValueError):
         make_invalid()
+
+
+def test_outbox_error_does_not_echo_rejected_payload_or_field_name():
+    secret = "synthetic-owner-private-seed"
+    payload = (
+        b'{"commitment":"'
+        + b"a" * 64
+        + b'","version":1,"private_key":"'
+        + secret.encode()
+        + b'"}'
+    )
+    with pytest.raises(ValueError) as error:
+        OutboxEnvelope(1, payload)
+    assert secret not in str(error.value)
+    assert "private_key" not in str(error.value)
 
 
 @pytest.mark.parametrize(
