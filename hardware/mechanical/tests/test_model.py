@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from hardware.mechanical.model import SpecError, build_report, load_spec, main
+from hardware.mechanical.model import SpecError, build_report, export_cad, load_spec, main
 
 
 ROOT = Path(__file__).parent
@@ -129,3 +129,19 @@ def test_enclosure_spec_change_flows_into_reported_geometry():
     changed = build_report(spec)
     assert changed["envelope_mm"]["height"] == baseline["envelope_mm"]["height"] + 2.0
     assert changed["volume_mm3"]["enclosure"] > baseline["volume_mm3"]["enclosure"]
+
+
+def test_enclosure_width_and_component_layout_changes_flow_into_cad_exports(tmp_path):
+    pytest.importorskip("cadquery")
+    base_spec = load_spec(ROOT.parent.parent / "spec.yaml")
+    changed_spec = load_spec(ROOT.parent.parent / "spec.yaml")
+    changed_spec["mechanical"]["enclosure"]["width_mm"]["value"] += 2.0
+    changed_spec["mechanical"]["layout_candidate"]["battery_center_x_mm"]["value"] += 1.0
+
+    base_step, base_stl = tmp_path / "base.step", tmp_path / "base.stl"
+    changed_step, changed_stl = tmp_path / "changed.step", tmp_path / "changed.stl"
+    export_cad(build_report(base_spec), base_step, base_stl)
+    export_cad(build_report(changed_spec), changed_step, changed_stl)
+
+    assert base_step.read_bytes() != changed_step.read_bytes()
+    assert base_stl.read_bytes() != changed_stl.read_bytes()
