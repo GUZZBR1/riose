@@ -25,7 +25,8 @@ REFINEMENT_METRICS = (
     "resonant_frequency_hz", "s11_min_db", "input_impedance_real_ohm",
     "input_impedance_imag_ohm", "vswr_min", "efficiency_fraction", "gain_dbi",
     "directivity_dbi", "s11_at_target_db", "input_impedance_real_at_target_ohm",
-    "input_impedance_imag_at_target_ohm", "vswr_at_target",
+    "input_impedance_imag_at_target_ohm", "vswr_at_target", "s11_at_resonance_db",
+    "accepted_power_w", "radiated_power_w",
 )
 MESH_ABSOLUTE_TOLERANCES = {
     "s11_min_db": 1.0,
@@ -39,7 +40,47 @@ MESH_ABSOLUTE_TOLERANCES = {
     "input_impedance_real_at_target_ohm": 5.0,
     "input_impedance_imag_at_target_ohm": 5.0,
     "vswr_at_target": 0.5,
+    "s11_at_resonance_db": 1.0,
 }
+MESH_RELATIVE_TOLERANCES = {"accepted_power_w": 0.1, "radiated_power_w": 0.1}
+S11_CURVE_TOLERANCE_DB = 1.0
+RADIATION_PATTERN_TOLERANCE_DB = 1.0
+
+
+def _finite_number(value: Any) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
+def _curve_max_delta(coarse: Any, fine: Any, *, axes: tuple[str, ...], value: str) -> float | None:
+    if not isinstance(coarse, list) or not isinstance(fine, list) or not coarse or len(coarse) != len(fine):
+        return None
+    maximum = 0.0
+    for left, right in zip(coarse, fine, strict=True):
+        if not isinstance(left, dict) or not isinstance(right, dict):
+            return None
+        if (not all(_finite_number(left.get(axis)) and _finite_number(right.get(axis)) for axis in axes)
+                or not _finite_number(left.get(value)) or not _finite_number(right.get(value))
+                or not all(math.isclose(float(left[axis]), float(right[axis]), rel_tol=1e-10, abs_tol=1e-9)
+                           for axis in axes)):
+            return None
+        maximum = max(maximum, abs(float(right[value]) - float(left[value])))
+    return maximum
+
+
+def _mesh_refinement_stats(mesh: dict[str, Any]) -> tuple[dict[str, int], int, float] | None:
+    lines = mesh.get("lines")
+    if not isinstance(lines, dict):
+        return None
+    counts = {axis: len(lines[axis]) - 1 for axis in "xyz"}
+    deltas: list[float] = []
+    for axis in "xyz":
+        values = lines[axis]
+        coords = [float(value) for value in values]
+        if any(not math.isfinite(value) for value in coords) or any(
+                right <= left for left, right in itertools.pairwise(coords)):
+            return None
+        deltas.extend(right - left for left, right in itertools.pairwise(coords))
+    return counts, math.prod(counts.values()), max(deltas)
 
 
 def _mesh_hash_from_evidence(mesh: Any) -> str | None:
@@ -103,6 +144,19 @@ def _mesh_refinement(coarse: dict[str, Any], fine: dict[str, Any]) -> dict[str, 
                 "coarse_mesh_hash_sha256": coarse_mesh_hash,
                 "fine_mesh_hash_sha256": fine_mesh_hash,
                 "metric_deltas": {field: None for field in REFINEMENT_METRICS}}
+    coarse_stats = _mesh_refinement_stats(coarse_mesh)
+    fine_stats = _mesh_refinement_stats(fine_mesh)
+    if coarse_stats is None or fine_stats is None:
+        return {"status": "BLOCKED", "converged": False,
+                "detail": "coarse/fine mesh coordinates cannot prove refinement"}
+    coarse_counts, coarse_cells, coarse_max_cell = coarse_stats
+    fine_counts, fine_cells, fine_max_cell = fine_stats
+    if fine_cells <= coarse_cells or fine_max_cell >= coarse_max_cell:
+        return {"status": "NON_CONVERGED", "converged": False,
+                "detail": "fine mesh is distinct but not more refined than coarse",
+                "coarse_cell_counts": coarse_counts, "fine_cell_counts": fine_counts,
+                "coarse_cell_count_total": coarse_cells, "fine_cell_count_total": fine_cells,
+                "coarse_max_cell_mm": coarse_max_cell, "fine_max_cell_mm": fine_max_cell}
     deltas: dict[str, float | None] = {}
     for field in REFINEMENT_METRICS:
         left, right = coarse_metrics.get(field), fine_metrics.get(field)
@@ -119,9 +173,27 @@ def _mesh_refinement(coarse: dict[str, Any], fine: dict[str, Any]) -> dict[str, 
                        and deltas["resonant_frequency_hz"] is not None else None)
     failed_metrics = [field for field in MESH_ABSOLUTE_TOLERANCES
                       if deltas[field] is None or abs(deltas[field]) > MESH_ABSOLUTE_TOLERANCES[field]]
+    for field, tolerance in MESH_RELATIVE_TOLERANCES.items():
+        coarse_value, fine_value = coarse_metrics.get(field), fine_metrics.get(field)
+        relative_delta = (abs(float(fine_value) - float(coarse_value)) / abs(float(fine_value))
+                          if _finite_number(coarse_value) and _finite_number(fine_value)
+                          and float(fine_value) != 0 else None)
+        if relative_delta is None or relative_delta > tolerance:
+            failed_metrics.append(field)
     frequency_converged = (frequency_delta is not None
                            and frequency_delta <= MESH_RESONANCE_TOLERANCE_FRACTION)
-    converged = frequency_converged and not failed_metrics
+    s11_curve_delta = _curve_max_delta(coarse.get("s11_curve"), fine.get("s11_curve"),
+                                       axes=("frequency_hz",), value="s11_db")
+    pattern_delta = _curve_max_delta(coarse.get("radiation_pattern"), fine.get("radiation_pattern"),
+                                     axes=("theta_deg", "phi_deg"), value="gain_dbi")
+    curves_converged = (s11_curve_delta is not None and s11_curve_delta <= S11_CURVE_TOLERANCE_DB
+                        and pattern_delta is not None
+                        and pattern_delta <= RADIATION_PATTERN_TOLERANCE_DB)
+    if s11_curve_delta is None or s11_curve_delta > S11_CURVE_TOLERANCE_DB:
+        failed_metrics.append("s11_curve")
+    if pattern_delta is None or pattern_delta > RADIATION_PATTERN_TOLERANCE_DB:
+        failed_metrics.append("radiation_pattern")
+    converged = frequency_converged and not failed_metrics and curves_converged
     return {
         "status": "COMPLETED" if converged else "NON_CONVERGED",
         "converged": converged,
@@ -133,16 +205,24 @@ def _mesh_refinement(coarse: dict[str, Any], fine: dict[str, Any]) -> dict[str, 
         "coarse_mesh_hash_sha256": coarse_mesh_hash,
         "fine_mesh_hash_sha256": fine_mesh_hash,
         "mesh_hashes_distinct": True,
+        "mesh_refinement": {"coarse_cell_counts": coarse_counts, "fine_cell_counts": fine_counts,
+                            "coarse_cell_count_total": coarse_cells, "fine_cell_count_total": fine_cells,
+                            "coarse_max_cell_mm": coarse_max_cell, "fine_max_cell_mm": fine_max_cell},
         "resonant_frequency_relative_delta": frequency_delta,
         "s11_min_delta_db": (abs(deltas["s11_min_db"])
                               if deltas["s11_min_db"] is not None else None),
         "failed_metrics": failed_metrics,
+        "s11_curve_max_delta_db": s11_curve_delta,
+        "radiation_pattern_max_delta_db": pattern_delta,
         "criteria": {"resonance_max_relative_delta": MESH_RESONANCE_TOLERANCE_FRACTION,
-                      "absolute_metric_tolerances": MESH_ABSOLUTE_TOLERANCES},
+                      "absolute_metric_tolerances": MESH_ABSOLUTE_TOLERANCES,
+                      "relative_metric_tolerances": MESH_RELATIVE_TOLERANCES,
+                      "s11_curve_max_delta_db": S11_CURVE_TOLERANCE_DB,
+                      "radiation_pattern_max_delta_db": RADIATION_PATTERN_TOLERANCE_DB},
         "metric_deltas_fine_minus_coarse": deltas,
         "detail": None if converged else (
             "coarse/fine resonance exceeds its declared tolerance" if not frequency_converged
-            else f"coarse/fine metrics exceed declared tolerances: {', '.join(failed_metrics)}"),
+            else f"coarse/fine metrics or curves exceed declared tolerances: {', '.join(failed_metrics)}"),
     }
 
 

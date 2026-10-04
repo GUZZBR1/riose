@@ -34,15 +34,16 @@ homogeneous dielectric sensitivity approximation, not tissue validation. A
 completed solver run records the input/spec/geometry
 hashes, solver version, mesh lines and hash, openEMS time-domain energy
 convergence statistics, and hashes of the result artifacts. Each scenario is
-run at coarse and fine mesh settings. Its metrics are accepted only when both
-runs complete on different mesh coordinate lines whose serialized hashes are
-recomputed and verified. Resonance must differ by at most 2%; all other reported
-RF metrics must remain within declared absolute deltas: 1 dB for S11, 5 ohm for
-input impedance, 0.5 for VSWR, 0.05 for efficiency, and 0.5 dB for gain and
-directivity. Missing metrics or matching grid hashes fail closed. These are
-numerical mesh-stability criteria, not physical acceptance thresholds.
-Time-domain energy convergence is checked independently for each mesh; the
-manifest preserves the grid hashes and coarse-to-fine metric deltas.
+run at coarse and fine mesh settings. The gate recomputes each grid hash from
+its coordinates, requires distinct grids with more total cells and smaller
+maximum cell spacing, and checks time-domain energy convergence independently
+for each mesh. Numerical acceptance limits are: resonance 2% relative; minimum,
+resonant, target-frequency, and full-curve S11 1 dB; input impedance components
+5 ohm; VSWR 0.5; efficiency 0.05 absolute; gain and directivity 0.5 dB; and
+accepted/radiated power 10% relative. The full radiation-pattern gain curve must
+agree within 1 dB on the same angular grid. Missing metrics, curves, or mesh
+evidence block convergence. These numerical mesh-stability criteria are not
+physical acceptance thresholds; the manifest records the criteria and deltas.
 The lumped port's `stop` end is placed at the ground plane per the openEMS port
 reference-plane convention. The candidate uses a parameterized partial ground
 plane that covers the complete feed trace and ends before the meander radiator;

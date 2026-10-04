@@ -21,6 +21,8 @@ def refinement_metrics(**overrides):
         "directivity_dbi": 3.0, "s11_at_target_db": -9.0,
         "input_impedance_real_at_target_ohm": 51.0,
         "input_impedance_imag_at_target_ohm": 1.0, "vswr_at_target": 1.2,
+        "s11_at_resonance_db": -10.0, "accepted_power_w": 1.0,
+        "radiated_power_w": 0.7,
     }
     return {**values, **overrides}
 
@@ -28,8 +30,8 @@ def refinement_metrics(**overrides):
 def refinement_mesh(factor):
     lines = {
         "x": [0.0, 1.0, 2.0] if factor == 1.5 else [0.0, 0.5, 1.0, 1.5, 2.0],
-        "y": [0.0, 1.0],
-        "z": [0.0, 1.0],
+        "y": [0.0, 1.0] if factor == 1.5 else [0.0, 0.5, 1.0],
+        "z": [0.0, 1.0] if factor == 1.5 else [0.0, 0.5, 1.0],
     }
     cell_counts = {axis: len(values) - 1 for axis, values in lines.items()}
     packed = json.dumps(lines, sort_keys=True, separators=(",", ":"))
@@ -39,6 +41,15 @@ def refinement_mesh(factor):
         "cell_count_total": cell_counts["x"] * cell_counts["y"] * cell_counts["z"],
         "mesh_hash_sha256": hashlib.sha256(packed.encode()).hexdigest(),
     }
+
+
+def completed_refinement(factor, *, metrics=None, curve=None, pattern=None, mesh=None):
+    return {"status": "COMPLETED", "metrics": refinement_metrics(**(metrics or {})),
+            "s11_curve": curve or [{"frequency_hz": 900.0, "s11_db": -5.0},
+                                    {"frequency_hz": 915.0, "s11_db": -10.0}],
+            "radiation_pattern": pattern or [{"theta_deg": 0.0, "phi_deg": 0.0, "gain_dbi": 1.0},
+                                              {"theta_deg": 180.0, "phi_deg": 360.0, "gain_dbi": 2.0}],
+            "evidence": {"mesh": mesh or refinement_mesh(factor)}}
 
 
 def unavailable(monkeypatch):
@@ -163,8 +174,7 @@ def test_all_scenarios_require_converged_coarse_and_fine_meshes(tmp_path, monkey
     def simulated(*args, **kwargs):
         factor = kwargs["mesh_resolution_factor"]
         calls.append(factor)
-        return {"status": "COMPLETED", "metrics": refinement_metrics(),
-                "evidence": {"mesh": refinement_mesh(factor)}}
+        return completed_refinement(factor)
 
     monkeypatch.setattr(antenna_run, "simulate_scenario", simulated)
     monkeypatch.setattr(antenna_run, "_validate_completion", lambda *args, **kwargs: None)
@@ -178,16 +188,47 @@ def test_all_scenarios_require_converged_coarse_and_fine_meshes(tmp_path, monkey
 
 
 def test_mesh_refinement_fails_closed_when_solver_metrics_do_not_agree():
-    coarse = {"status": "COMPLETED", "metrics": refinement_metrics(
-        resonant_frequency_hz=1_000_000_000, s11_min_db=-6.0),
-        "evidence": {"mesh": refinement_mesh(1.5)}}
-    fine = {"status": "COMPLETED", "metrics": refinement_metrics(),
-            "evidence": {"mesh": refinement_mesh(1.0)}}
+    coarse = completed_refinement(1.5, metrics={
+        "resonant_frequency_hz": 1_000_000_000, "s11_min_db": -6.0})
+    fine = completed_refinement(1.0)
     result = antenna_run._mesh_refinement(coarse, fine)
     assert result["status"] == "NON_CONVERGED"
     assert result["converged"] is False
     assert result["resonant_frequency_relative_delta"] == pytest.approx(85_000_000 / 915_000_000)
     assert result["s11_min_delta_db"] == 4.0
+
+
+def test_mesh_refinement_rejects_distinct_but_not_finer_grid():
+    coarse = completed_refinement(1.5)
+    lines = {"x": [0.0, 0.5, 1.0, 2.0], "y": [0.0, 1.0], "z": [0.0, 1.0]}
+    cell_counts = {axis: len(values) - 1 for axis, values in lines.items()}
+    packed = json.dumps(lines, sort_keys=True, separators=(",", ":"))
+    mesh = {"lines": lines, "cell_counts": cell_counts, "cell_count_total": 3,
+            "mesh_hash_sha256": hashlib.sha256(packed.encode()).hexdigest()}
+    fine = completed_refinement(1.0, mesh=mesh)
+    result = antenna_run._mesh_refinement(coarse, fine)
+    assert result["converged"] is False
+    assert "not more refined" in result["detail"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("efficiency_fraction", 0.2), ("gain_dbi", 8.0),
+    ("input_impedance_real_ohm", 80.0), ("accepted_power_w", 2.0),
+    ("radiated_power_w", 0.2), ("s11_at_resonance_db", -4.0),
+])
+def test_mesh_refinement_rejects_large_rf_metric_delta(field, value):
+    coarse, fine = completed_refinement(1.5), completed_refinement(1.0, metrics={field: value})
+    assert antenna_run._mesh_refinement(coarse, fine)["converged"] is False
+
+
+def test_mesh_refinement_rejects_full_s11_and_pattern_deltas():
+    coarse = completed_refinement(1.5)
+    fine = completed_refinement(1.0, curve=[{"frequency_hz": 900.0, "s11_db": -1.0},
+                                             {"frequency_hz": 915.0, "s11_db": -10.0}])
+    assert antenna_run._mesh_refinement(coarse, fine)["converged"] is False
+    fine = completed_refinement(1.0, pattern=[{"theta_deg": 0.0, "phi_deg": 0.0, "gain_dbi": 7.0},
+                                               {"theta_deg": 180.0, "phi_deg": 360.0, "gain_dbi": 2.0}])
+    assert antenna_run._mesh_refinement(coarse, fine)["converged"] is False
 
 
 def test_mesh_refinement_rejects_identical_grid_hashes():
