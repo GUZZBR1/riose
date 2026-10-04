@@ -539,6 +539,7 @@ def build_package(campaign: str | Path, destination: str | Path, *,
             "schema_version": MANIFEST_SCHEMA, "campaign_id": request["campaign_id"],
             "created_at": datetime.now().astimezone().isoformat(), "evidence_status": "SIMULATED",
             "request_hash": request_hash,
+            "run_id": run_metadata.get("run_id") if run_metadata else None,
             "provenance": {"riose": rprov, "frequencia": fprov,
                            "source_result_sha256": content_hash(result) if result is not None else None,
                            "engine_output_sha256": result["provenance"]["output_sha256"] if result is not None else None,
@@ -635,11 +636,13 @@ def verify_package(package: str | Path, *, max_package_bytes: int = DEFAULT_MAX_
             raise EvidenceError("manifest must be a JSON object")
         if manifest.get("schema_version") != MANIFEST_SCHEMA:
             raise EvidenceError("unsupported manifest schema")
-        required_manifest_keys = {"schema_version", "campaign_id", "created_at", "evidence_status", "request_hash",
+        required_manifest_keys = {"schema_version", "campaign_id", "created_at", "evidence_status", "request_hash", "run_id",
                                   "provenance", "engine", "configuration", "environment", "execution", "limitations",
                                   "assumptions", "physical_validation_status", "tested", "not_tested", "outputs"}
         if set(manifest) != required_manifest_keys:
             raise EvidenceError("manifest has missing or unsupported fields")
+        if manifest["run_id"] is not None and (not isinstance(manifest["run_id"], str) or not manifest["run_id"].strip()):
+            raise EvidenceError("manifest run_id must be a non-empty string when present")
         if manifest.get("evidence_status") != "SIMULATED" or manifest.get("physical_validation_status") != "NOT_VALIDATED":
             raise EvidenceError("evidence classification must remain SIMULATED / NOT_VALIDATED")
         provenance = manifest.get("provenance")

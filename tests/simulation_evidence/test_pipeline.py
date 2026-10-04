@@ -37,6 +37,7 @@ def test_build_and_verify_fixture_are_simulated_and_auditable(tmp_path):
     assert verify_package(out) == {"valid": True, "evidence_status": "SIMULATED", "artifacts": 4,
                                    "hashes": "PASS", "schema": "PASS", "errors": []}
     assert manifest["request_hash"] == content_hash(json.loads((out / "request.json").read_text()))
+    assert manifest["run_id"] is None
     assert manifest["physical_validation_status"] == "NOT_VALIDATED"
     assert manifest["provenance"]["source_result_sha256"] == content_hash(
         json.loads((FIXTURES / "result-v1.json").read_text()))
