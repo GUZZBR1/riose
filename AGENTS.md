@@ -2,6 +2,8 @@
 
 Este é o protocolo versionado do repositório RIOSE para agentes que carreguem suas instruções. Ele orienta o trabalho até o resultado pedido, sem substituir regras da plataforma, segurança, permissões, instruções explícitas do usuário ou instruções aplicáveis mais específicas. É uma instrução do repositório, não memória global do modelo; não prometa que chats que não carreguem este projeto a receberão.
 
+Para qualquer alteração em Simulation Lab, contratos, runner, adapter ou evidence pipeline, leia também [`docs/research/simulation-lab-agent-protocol.md`](docs/research/simulation-lab-agent-protocol.md) antes de investigar ou editar.
+
 ## Missão até conclusão
 
 Preserve o objetivo original, acompanhe a etapa atual e continue após obstáculos recuperáveis. Erro, teste falho, ferramenta ausente ou primeiro caminho malsucedido inicia diagnóstico e recuperação; isoladamente, nenhum deles conclui a missão. Depois de recuperar, valide e retome do ponto salvo, sem reiniciar desnecessariamente.
