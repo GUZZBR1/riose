@@ -23,6 +23,7 @@ dev = ["pytest>=8,<9", "httpx>=0.27,<1"]
 
 [project.scripts]
 cattle-rf = "riose.products.livestock_tracking.cli:main"
+riose-simulation-lab = "riose.simulation_lab.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cattle_rf", "src/riose"]
