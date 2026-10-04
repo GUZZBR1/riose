@@ -253,8 +253,33 @@ artifacts without changing those historical evidence packages. Localization
 output must cover every transmitted packet, and reported eligible/converged
 counts must match estimate statuses.
 
-The final full suite reports **463 passed, 7 skipped**. One pre-existing
-Starlette/httpx deprecation warning remains. These results do not change the
-feature audit above: contract and runner are PARTIAL, while the supported
-adapter, synthetic RF/network-localization path, and evidence pipeline pass
-within their stated limits.
+## Runtime-attested campaigns (Cycle 6)
+
+The Cycle 6 campaigns ran from RIOSE commit `dcbfa61` and clean pinned
+FREQUENCIA commit `ba2bdabf003722aae8292580e048f7092d0356d6` (Sionna RT 2.2.0,
+ns-3 3.48, LoRaWAN v0.3.7). Each source run records `dirty=false` for both
+repositories. The normal and controlled localization-failure cases ran through
+the same Sionna + ns-3 path; the collision case exercised the configured
+contention scenario. All outputs remain SIMULATED synthetic evidence.
+
+| Campaign | Run ID | Request SHA-256 | Raw output SHA-256 | Result | Verified evidence package |
+|---|---|---|---|---|---|
+| farm-rf-smoke-v1 | `490361761a8443efaf6db579d86c0655` | `2de954646f483c0ae9f7d267ea64470905b84142238ed8f8a02cf39bb01c4548` | `463ad782307ec7fed85e05788245b8b965c665e8c508db0427256bfecd80a232` | 12 links; 2 TX, 6 gateway PHY receptions, PDR 1.0; 2 TDoA, 1 converged/1 failed; quality gate 0 accepted/1 rejected/1 not evaluated; conditional RMSE 4,349.93 m | `/tmp/riose-cycle6-evidence-490361761a8443efaf6db579d86c0655` |
+| farm-rf-collision-v1 | `e570018c0c084cf28f52857ffd44c946` | `9b14a6c203e073ce075845651e63cca750e045e73af88b49f70aebd819c05d99` | `9d93ee30f93aec0627f4c2f9854346ac72e2517d306e198db3686cfb84794966` | 24 links; 4 TX, 0 gateway receptions, 12 collision events; 4 TDoA failed/not eligible | `/tmp/riose-cycle6-evidence-e570018c0c084cf28f52857ffd44c946` |
+| farm-rf-localization-failure-v1 | `619681f602604bc89b9e3d8039b0d85b` | `a9c98f634721674ec4eefef7764afcaf05162587a54f0f635a25844988e4e3f9` | `870c900e67e523504816eb1ec97cbe9343c9d7378973117ed535a94a57ba0c42` | 12 links; 2 TX, 6 gateway PHY receptions, PDR 1.0; 2 TDoA failed with no eligible timestamps | `/tmp/riose-cycle6-evidence-619681f602604bc89b9e3d8039b0d85b` |
+
+All three evidence packages independently verify with `valid=true`, schema
+PASS, hashes PASS, and `SIMULATED`. Their manifests preserve the source run ID
+so temporal runtime attestation can be checked against the hashed
+`inputs.json` and `pipeline.json` artifacts. The smoke run also confirms that
+solver convergence and operational plausibility are distinct: its converged
+coordinate is retained but marked rejected because it lies outside the
+request-declared operational bounds. No ground-truth value is used by this
+quality gate.
+
+The post-fix full suite reports **469 passed, 7 skipped**. One pre-existing
+Starlette/httpx deprecation warning remains. Contract and runner remain
+PARTIAL because CIR/CFR are not part of the compact V1 result, the analytic
+backend does not bind request-specific geometry/radio/seed, and
+`trajectory.reference` remains unsupported. These limits do not affect the
+runtime-attested Sionna campaign path described above.
