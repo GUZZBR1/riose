@@ -189,9 +189,10 @@ unapplied request seed as used.
 The canonical baseline request was `farm-rf-smoke-v1`, seed `20261003`,
 backend `sionna-rt`, 915 MHz, 125 kHz, and 14 dBm. The FARM trajectory had 3
 timestamps and 4 gateways. Network settings were SF7, 12-byte payload, and a
-60-second traffic interval. Requested network, detector, and clock values were
-passed through their respective FREQUENCIA adapters and checked against
-returned artifacts. The campaign's 0–2 second FARM interval has no animal or
+60-second traffic interval. Network settings were checked against returned
+artifacts. Detector and clock settings were forwarded, while their outputs
+were hashed and checked for reception coverage; the engine did not attest
+their effective configuration. The campaign's 0–2 second FARM interval has no animal or
 physical time interpretation.
 
 | Provenance or result | Value |
@@ -219,3 +220,34 @@ Sionna simulation is not field validation. ns-3 simulation is not deployment
 validation. TDoA convergence is not accurate localization. `PHY_RECEIVED` is
 not application delivery. A 1 ps simulator resolution is not 1 ps hardware
 accuracy. No physical or field validation is claimed.
+
+
+## Consolidated clean-source campaigns (Cycle 1)
+
+The final campaigns ran from clean RIOSE commit
+`7a176e703e25aba997347a1236c9be7845615934` and clean pinned FREQUENCIA
+commit `ba2bdabf003722aae8292580e048f7092d0356d6` (Sionna RT 2.2.0 CPU,
+ns-3 3.48, LoRaWAN v0.3.7). The outputs below were generated after the
+localization completeness and temporal-binding review fixes. They are
+simulated synthetic scenarios; none is field validation.
+
+| Campaign | Workspace | Request SHA-256 | Raw output SHA-256 | RF / network / localization outcome | Evidence package |
+|---|---|---|---|---|---|
+| farm-rf-smoke-v1 | `/home/gusta/.cache/RIOSE/simulation_runs/b29700f6618840d6982891e2f84110f8` | `5b226a661f6a3d7dd9f3d4fb47832279b3bfa9e95734521a4739972c44ad082e` | `5c31de147564cead4497106c194589b13a10f27b5a7a523a21829e53665e0490` | 12 links (9 LOS, 3 NO_PATH); 2 TX, 6 gateway PHY receptions, PDR 1.0; 2 TDoA attempts, 1 converged and 1 failed; conditional RMSE 4,349.93 m | `/tmp/riose-principal-final-evidence-b29700f6618840d6982891e2f84110f8` |
+| farm-rf-collision-v1 | `/home/gusta/.cache/RIOSE/simulation_runs/844b357ec4304a338ceb7d73b7b623c5` | `e354f2e654e6483381d95667baafaa35c9b280a524074380cc6eb4958e9da712` | `3a1a90ff1fa0a7ac2da8227abd6013df0e1184b70606354334ab6140ecdfbda1` | 24 links (18 LOS, 6 NO_PATH); 12 INTERFERENCE, PDR 0.0; 4 TDoA attempts, none eligible and no error metrics | `/tmp/testevidence-844` |
+| farm-rf-localization-failure-v1 | `/home/gusta/.cache/RIOSE/simulation_runs/db28e7b147164087b31f8b88143b6877` | `634b638480dccb1de1fb1f38fb859bd387852e69409acc6ebc7b884310ed9692` | `b32f856ac4d8f8888436cd735041e77b0a32b27ea9f3ea68c5ee32eadfd6149c` | 12 links; 2 TX, 6 gateway PHY receptions, PDR 1.0; 0 eligible timestamps and 2 failed estimates with null error metrics | `/tmp/testevidence-db28` |
+
+All three manifests record `dirty=false` and the same RIOSE revision. Each
+package contains 3 artifacts and verified `valid=true`, schema PASS, hashes
+PASS, and `SIMULATED`. The run workspace manifests retain the engine revision,
+request binding statuses, and raw-output hash. Temporal detector/clock values
+are forwarded and their outputs are hashed/coverage-checked, but are not
+independently attested by FREQUENCIA; their effective values remain
+unavailable. Localization output must cover every transmitted packet, and
+reported eligible/converged counts must match estimate statuses.
+
+The final full suite reports **463 passed, 7 skipped**. One pre-existing
+Starlette/httpx deprecation warning remains. These results do not change the
+feature audit above: contract and runner are PARTIAL, while the supported
+adapter, synthetic RF/network-localization path, and evidence pipeline pass
+within their stated limits.
