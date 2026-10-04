@@ -148,6 +148,7 @@ def build_geometry(spec: dict[str, Any], scenario: str,
     batt_length, batt_length_record = record("mechanical.battery.length_mm")
     batt_diameter, batt_diameter_record = record("mechanical.battery.diameter_mm")
     clearance, clearance_record = record("antenna.clearance_mm", "clearance_mm")
+    ground_length, ground_length_record = record("antenna.ground_plane_length_mm")
     turns_record = _record(spec, "antenna.meander_turns")
     raw_turns = turns_record["value"]
     if isinstance(raw_turns, bool) or int(raw_turns) != float(raw_turns) or int(raw_turns) < 1:
@@ -176,6 +177,12 @@ def build_geometry(spec: dict[str, Any], scenario: str,
     antenna_x = pcb_x
     route = tuple((x + antenna_x, y + antenna_y) for x, y in path)
     feed_xy = route[0]
+    ground_y_min = pcb_y - pcb_height / 2
+    ground_y_max = ground_y_min + ground_length
+    if ground_length <= 0 or ground_length > pcb_height:
+        raise GeometryError("antenna.ground_plane_length_mm must be positive and no greater than PCB height")
+    if ground_y_max < feed_xy[1] + trace_width / 2 - 1e-9:
+        raise GeometryError("ground plane must cover the complete feed trace width")
 
     boxes: list[Box] = []
     for index, (first, second) in enumerate(zip(route, route[1:])):
@@ -189,8 +196,8 @@ def build_geometry(spec: dict[str, Any], scenario: str,
 
     # A finite PEC return plane is part of the antenna candidate, including the
     # free-space reference. The substrate itself is added only WITH_PCB onward.
-    boxes.append(Box("ground_plane", (pcb_x - pcb_width / 2, pcb_y - pcb_height / 2, board_z),
-                     (pcb_x + pcb_width / 2, pcb_y + pcb_height / 2, board_z), "PEC_ASSUMED_COPPER",
+    boxes.append(Box("ground_plane", (pcb_x - pcb_width / 2, ground_y_min, board_z),
+                     (pcb_x + pcb_width / 2, ground_y_max, board_z), "PEC_ASSUMED_COPPER",
                      conductor_record["status"]))
     if include_pcb:
         boxes.append(Box("pcb_substrate", (pcb_x - pcb_width / 2, pcb_y - pcb_height / 2, ground_z1),
@@ -288,6 +295,7 @@ def build_geometry(spec: dict[str, Any], scenario: str,
         "conductor_thickness_mm": conductor_record,
         "pcb_width_mm": pcb_width_record,
         "pcb_height_mm": pcb_height_record,
+        "ground_plane_length_mm": ground_length_record,
         "pcb_thickness_mm": pcb_thickness_record,
         "enclosure_width_mm": enc_width_record,
         "enclosure_height_mm": enc_height_record,
@@ -336,6 +344,7 @@ def build_geometry(spec: dict[str, Any], scenario: str,
                     "route_points_mm": route,
                     "route_length_mm": element, "footprint_mm": [meander_width, meander_height],
                     "feed_point_mm": feed_xy, "ground_plane_z_mm": board_z,
+                    "ground_plane_y_bounds_mm": [ground_y_min, ground_y_max],
                     "trace_z_mm": [trace_z0, trace_z1]},
         "records": records,
         "primitives": [asdict(box) for box in boxes],

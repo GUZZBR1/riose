@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import itertools
 import json
 import math
 import platform
@@ -14,10 +15,217 @@ from typing import Any
 
 from . import SCENARIOS
 from .geometry import GeometryError, build_geometry
-from .openems_backend import expected_input_hash, runtime_status, simulate_scenario
+from .openems_backend import (MESH_REFINEMENT_COARSE_FACTOR, expected_input_hash,
+                              runtime_status, simulate_scenario)
 from .sweeps import run_sweeps
 
 SCHEMA_VERSION = "riose.antenna.experiments/v2"
+MESH_RESONANCE_TOLERANCE_FRACTION = 0.02
+REFINEMENT_METRICS = (
+    "resonant_frequency_hz", "s11_min_db", "input_impedance_real_ohm",
+    "input_impedance_imag_ohm", "vswr_min", "efficiency_fraction", "gain_dbi",
+    "directivity_dbi", "s11_at_target_db", "input_impedance_real_at_target_ohm",
+    "input_impedance_imag_at_target_ohm", "vswr_at_target", "s11_at_resonance_db",
+    "accepted_power_w", "radiated_power_w",
+)
+MESH_ABSOLUTE_TOLERANCES = {
+    "s11_min_db": 1.0,
+    "input_impedance_real_ohm": 5.0,
+    "input_impedance_imag_ohm": 5.0,
+    "vswr_min": 0.5,
+    "efficiency_fraction": 0.05,
+    "gain_dbi": 0.5,
+    "directivity_dbi": 0.5,
+    "s11_at_target_db": 1.0,
+    "input_impedance_real_at_target_ohm": 5.0,
+    "input_impedance_imag_at_target_ohm": 5.0,
+    "vswr_at_target": 0.5,
+    "s11_at_resonance_db": 1.0,
+}
+MESH_RELATIVE_TOLERANCES = {"accepted_power_w": 0.1, "radiated_power_w": 0.1}
+S11_CURVE_TOLERANCE_DB = 1.0
+RADIATION_PATTERN_TOLERANCE_DB = 1.0
+
+
+def _finite_number(value: Any) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
+def _curve_max_delta(coarse: Any, fine: Any, *, axes: tuple[str, ...], value: str) -> float | None:
+    if not isinstance(coarse, list) or not isinstance(fine, list) or not coarse or len(coarse) != len(fine):
+        return None
+    maximum = 0.0
+    for left, right in zip(coarse, fine, strict=True):
+        if not isinstance(left, dict) or not isinstance(right, dict):
+            return None
+        if (not all(_finite_number(left.get(axis)) and _finite_number(right.get(axis)) for axis in axes)
+                or not _finite_number(left.get(value)) or not _finite_number(right.get(value))
+                or not all(math.isclose(float(left[axis]), float(right[axis]), rel_tol=1e-10, abs_tol=1e-9)
+                           for axis in axes)):
+            return None
+        maximum = max(maximum, abs(float(right[value]) - float(left[value])))
+    return maximum
+
+
+def _mesh_refinement_stats(mesh: dict[str, Any]) -> tuple[dict[str, int], int, float] | None:
+    lines = mesh.get("lines")
+    if not isinstance(lines, dict):
+        return None
+    counts = {axis: len(lines[axis]) - 1 for axis in "xyz"}
+    deltas: list[float] = []
+    for axis in "xyz":
+        values = lines[axis]
+        coords = [float(value) for value in values]
+        if any(not math.isfinite(value) for value in coords) or any(
+                right <= left for left, right in itertools.pairwise(coords)):
+            return None
+        deltas.extend(right - left for left, right in itertools.pairwise(coords))
+    return counts, math.prod(counts.values()), max(deltas)
+
+
+def _mesh_hash_from_evidence(mesh: Any) -> str | None:
+    """Recompute a mesh hash from its serialized coordinate lines."""
+    if not isinstance(mesh, dict) or not isinstance(mesh.get("lines"), dict):
+        return None
+    lines = mesh["lines"]
+    if set(lines) != {"x", "y", "z"}:
+        return None
+    normalized: dict[str, list[float]] = {}
+    for axis in "xyz":
+        values = lines[axis]
+        if not isinstance(values, list) or len(values) < 2:
+            return None
+        try:
+            coords = [float(value) for value in values]
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if any(isinstance(value, bool) for value in values):
+            return None
+        if not all(math.isfinite(value) for value in coords) or any(
+                right <= left for left, right in itertools.pairwise(coords)):
+            return None
+        normalized[axis] = coords
+    counts = {axis: len(coords) - 1 for axis, coords in normalized.items()}
+    if mesh.get("cell_counts") != counts or mesh.get("cell_count_total") != math.prod(counts.values()):
+        return None
+    packed = json.dumps(normalized, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return hashlib.sha256(packed.encode("utf-8")).hexdigest()
+
+
+def _mesh_refinement(coarse: dict[str, Any], fine: dict[str, Any]) -> dict[str, Any]:
+    """Compare actual coarse/fine solver results; missing evidence fails closed."""
+    if coarse.get("status") != "COMPLETED" or fine.get("status") != "COMPLETED":
+        return {
+            "status": "BLOCKED", "converged": False,
+            "coarse_status": coarse.get("status", "FAILED"),
+            "fine_status": fine.get("status", "FAILED"),
+            "detail": "both coarse and fine native solver runs must complete",
+            "metric_deltas": {field: None for field in REFINEMENT_METRICS},
+        }
+    coarse_metrics, fine_metrics = coarse.get("metrics"), fine.get("metrics")
+    if not isinstance(coarse_metrics, dict) or not isinstance(fine_metrics, dict):
+        return {"status": "BLOCKED", "converged": False,
+                "detail": "coarse/fine solver metrics are missing",
+                "metric_deltas": {field: None for field in REFINEMENT_METRICS}}
+    coarse_mesh = coarse.get("evidence", {}).get("mesh")
+    fine_mesh = fine.get("evidence", {}).get("mesh")
+    coarse_mesh_hash = coarse_mesh.get("mesh_hash_sha256") if isinstance(coarse_mesh, dict) else None
+    fine_mesh_hash = fine_mesh.get("mesh_hash_sha256") if isinstance(fine_mesh, dict) else None
+    if (not isinstance(coarse_mesh_hash, str) or len(coarse_mesh_hash) != 64
+            or not isinstance(fine_mesh_hash, str) or len(fine_mesh_hash) != 64
+            or _mesh_hash_from_evidence(coarse_mesh) != coarse_mesh_hash
+            or _mesh_hash_from_evidence(fine_mesh) != fine_mesh_hash):
+        return {"status": "BLOCKED", "converged": False,
+                "detail": "coarse/fine mesh hashes do not match valid serialized coordinate lines",
+                "metric_deltas": {field: None for field in REFINEMENT_METRICS}}
+    if coarse_mesh_hash == fine_mesh_hash:
+        return {"status": "NON_CONVERGED", "converged": False,
+                "detail": "coarse and fine solver results use the same mesh hash",
+                "coarse_mesh_hash_sha256": coarse_mesh_hash,
+                "fine_mesh_hash_sha256": fine_mesh_hash,
+                "metric_deltas": {field: None for field in REFINEMENT_METRICS}}
+    coarse_stats = _mesh_refinement_stats(coarse_mesh)
+    fine_stats = _mesh_refinement_stats(fine_mesh)
+    if coarse_stats is None or fine_stats is None:
+        return {"status": "BLOCKED", "converged": False,
+                "detail": "coarse/fine mesh coordinates cannot prove refinement"}
+    coarse_counts, coarse_cells, coarse_max_cell = coarse_stats
+    fine_counts, fine_cells, fine_max_cell = fine_stats
+    if fine_cells <= coarse_cells or fine_max_cell >= coarse_max_cell:
+        return {"status": "NON_CONVERGED", "converged": False,
+                "detail": "fine mesh is distinct but not more refined than coarse",
+                "coarse_cell_counts": coarse_counts, "fine_cell_counts": fine_counts,
+                "coarse_cell_count_total": coarse_cells, "fine_cell_count_total": fine_cells,
+                "coarse_max_cell_mm": coarse_max_cell, "fine_max_cell_mm": fine_max_cell}
+    deltas: dict[str, float | None] = {}
+    for field in REFINEMENT_METRICS:
+        left, right = coarse_metrics.get(field), fine_metrics.get(field)
+        if (isinstance(left, bool) or isinstance(right, bool)
+                or not isinstance(left, (int, float)) or not isinstance(right, (int, float))
+                or not math.isfinite(float(left)) or not math.isfinite(float(right))):
+            deltas[field] = None
+        else:
+            deltas[field] = float(right) - float(left)
+    fine_frequency = fine_metrics.get("resonant_frequency_hz")
+    frequency_delta = (abs(deltas["resonant_frequency_hz"]) / abs(float(fine_frequency))
+                       if isinstance(fine_frequency, (int, float)) and not isinstance(fine_frequency, bool)
+                       and math.isfinite(float(fine_frequency)) and fine_frequency != 0
+                       and deltas["resonant_frequency_hz"] is not None else None)
+    failed_metrics = [field for field in MESH_ABSOLUTE_TOLERANCES
+                      if deltas[field] is None or abs(deltas[field]) > MESH_ABSOLUTE_TOLERANCES[field]]
+    for field, tolerance in MESH_RELATIVE_TOLERANCES.items():
+        coarse_value, fine_value = coarse_metrics.get(field), fine_metrics.get(field)
+        relative_delta = (abs(float(fine_value) - float(coarse_value)) / abs(float(fine_value))
+                          if _finite_number(coarse_value) and _finite_number(fine_value)
+                          and float(fine_value) != 0 else None)
+        if relative_delta is None or relative_delta > tolerance:
+            failed_metrics.append(field)
+    frequency_converged = (frequency_delta is not None
+                           and frequency_delta <= MESH_RESONANCE_TOLERANCE_FRACTION)
+    s11_curve_delta = _curve_max_delta(coarse.get("s11_curve"), fine.get("s11_curve"),
+                                       axes=("frequency_hz",), value="s11_db")
+    pattern_delta = _curve_max_delta(coarse.get("radiation_pattern"), fine.get("radiation_pattern"),
+                                     axes=("theta_deg", "phi_deg"), value="gain_dbi")
+    curves_converged = (s11_curve_delta is not None and s11_curve_delta <= S11_CURVE_TOLERANCE_DB
+                        and pattern_delta is not None
+                        and pattern_delta <= RADIATION_PATTERN_TOLERANCE_DB)
+    if s11_curve_delta is None or s11_curve_delta > S11_CURVE_TOLERANCE_DB:
+        failed_metrics.append("s11_curve")
+    if pattern_delta is None or pattern_delta > RADIATION_PATTERN_TOLERANCE_DB:
+        failed_metrics.append("radiation_pattern")
+    converged = frequency_converged and not failed_metrics and curves_converged
+    return {
+        "status": "COMPLETED" if converged else "NON_CONVERGED",
+        "converged": converged,
+        "coarse_status": coarse["status"], "fine_status": fine["status"],
+        "coarse_input_hash_sha256": coarse.get("evidence", {}).get("input_hash_sha256"),
+        "fine_input_hash_sha256": fine.get("evidence", {}).get("input_hash_sha256"),
+        "coarse_mesh": coarse_mesh,
+        "fine_mesh": fine_mesh,
+        "coarse_mesh_hash_sha256": coarse_mesh_hash,
+        "fine_mesh_hash_sha256": fine_mesh_hash,
+        "mesh_hashes_distinct": True,
+        "mesh_refinement": {"coarse_cell_counts": coarse_counts, "fine_cell_counts": fine_counts,
+                            "coarse_cell_count_total": coarse_cells, "fine_cell_count_total": fine_cells,
+                            "coarse_max_cell_mm": coarse_max_cell, "fine_max_cell_mm": fine_max_cell},
+        "resonant_frequency_relative_delta": frequency_delta,
+        "s11_min_delta_db": (abs(deltas["s11_min_db"])
+                              if deltas["s11_min_db"] is not None else None),
+        "failed_metrics": failed_metrics,
+        "s11_curve_max_delta_db": s11_curve_delta,
+        "radiation_pattern_max_delta_db": pattern_delta,
+        "criteria": {"resonance_max_relative_delta": MESH_RESONANCE_TOLERANCE_FRACTION,
+                      "absolute_metric_tolerances": MESH_ABSOLUTE_TOLERANCES,
+                      "relative_metric_tolerances": MESH_RELATIVE_TOLERANCES,
+                      "s11_curve_max_delta_db": S11_CURVE_TOLERANCE_DB,
+                      "radiation_pattern_max_delta_db": RADIATION_PATTERN_TOLERANCE_DB},
+        "metric_deltas_fine_minus_coarse": deltas,
+        "detail": None if converged else (
+            "coarse/fine resonance exceeds its declared tolerance" if not frequency_converged
+            else f"coarse/fine metrics or curves exceed declared tolerances: {', '.join(failed_metrics)}"),
+    }
+
+
 def _load_spec(path: Path | None) -> tuple[dict[str, Any], dict[str, Any]]:
     if path is None:
         raise ValueError("A central hardware specification is required for a solver run")
@@ -53,6 +261,7 @@ def _scenario_row(name: str, result: dict[str, Any], geometry: dict[str, Any] | 
         "status": status,
         "result_class": "SIMULATED" if status == "COMPLETED" else "NO_SIMULATION_RESULT",
         "detail": result.get("detail", ""),
+        "failure_class": result.get("failure_class"),
         "assumptions": "; ".join((geometry or {}).get("material_approximations", [])),
         "input_hash_sha256": result.get("evidence", {}).get("input_hash_sha256"),
         "geometry_hash_sha256": (geometry or {}).get("geometry_hash_sha256"),
@@ -63,7 +272,10 @@ def _scenario_row(name: str, result: dict[str, Any], geometry: dict[str, Any] | 
         "resonant_frequency_hz": None, "s11_min_db": None,
         "input_impedance_real_ohm": None, "input_impedance_imag_ohm": None,
         "vswr_min": None, "efficiency_fraction": None, "gain_dbi": None,
-        "directivity_dbi": None, "s11_curve_path": None,
+        "directivity_dbi": None, "target_frequency_hz": None,
+        "s11_at_target_db": None, "input_impedance_real_at_target_ohm": None,
+        "input_impedance_imag_at_target_ohm": None, "vswr_at_target": None,
+        "s11_curve_path": None,
         "radiation_pattern_path": None, "radiation_pattern_samples": None,
     })
     row["s11_curve"] = result.get("s11_curve") if status == "COMPLETED" else None
@@ -97,10 +309,10 @@ def _validate_completion(result: dict[str, Any], output_dir: Path, *,
     if not math.isfinite(residual) or not math.isfinite(end_criteria) or residual > end_criteria or final_step >= step_limit:
         return "completed result convergence evidence does not meet its stated threshold"
     mesh = evidence.get("mesh")
-    if not isinstance(mesh, dict) or not isinstance(mesh.get("mesh_hash_sha256"), str):
-        return "completed result is missing hashed mesh evidence"
-    if not isinstance(mesh.get("cell_count_total"), int) or mesh["cell_count_total"] <= 0:
-        return "completed result is missing a non-empty mesh"
+    mesh_hash = mesh.get("mesh_hash_sha256") if isinstance(mesh, dict) else None
+    if (not isinstance(mesh_hash, str) or len(mesh_hash) != 64
+            or _mesh_hash_from_evidence(mesh) != mesh_hash):
+        return "completed result is missing a valid mesh hash tied to its coordinate lines"
     runtime = evidence.get("runtime")
     if not isinstance(runtime, dict) or runtime.get("available") is not True or not runtime.get("solver_version"):
         return "completed result is missing openEMS version evidence"
@@ -113,6 +325,19 @@ def _validate_completion(result: dict[str, Any], output_dir: Path, *,
         value = metrics.get(field)
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             return f"completed result has invalid metric {field}"
+    target_frequency = metrics.get("target_frequency_hz")
+    if (isinstance(target_frequency, bool) or not isinstance(target_frequency, (int, float))
+            or not math.isfinite(target_frequency) or target_frequency <= 0):
+        return "completed result is missing valid target_frequency_hz"
+    for field in ("s11_at_target_db", "input_impedance_real_at_target_ohm",
+                  "input_impedance_imag_at_target_ohm"):
+        value = metrics.get(field)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            return f"completed result has invalid metric {field}"
+    if (isinstance(metrics.get("vswr_at_target"), bool)
+            or not isinstance(metrics.get("vswr_at_target"), (int, float))
+            or not math.isfinite(metrics["vswr_at_target"])):
+        return "completed result has invalid metric vswr_at_target"
     if (isinstance(metrics.get("vswr_min"), bool)
             or not isinstance(metrics.get("vswr_min"), (int, float))
             or not math.isfinite(metrics["vswr_min"])):
@@ -161,6 +386,28 @@ def _deltas(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return outcomes
 
 
+def _simulate_mesh(spec: dict[str, Any], spec_hash: str, geometry: dict[str, Any],
+                   output_dir: Path, mesh_resolution_factor: float) -> dict[str, Any]:
+    input_hash = expected_input_hash(spec_hash, geometry,
+                                     mesh_resolution_factor=mesh_resolution_factor)
+    try:
+        result = simulate_scenario(
+            spec, spec_hash, geometry, output_dir, input_hash=input_hash,
+            mesh_resolution_factor=mesh_resolution_factor)
+        if isinstance(result, dict) and result.get("status") == "COMPLETED":
+            issue = _validate_completion(
+                result, output_dir, expected_spec_hash=spec_hash,
+                expected_geometry_hash=geometry["geometry_hash_sha256"],
+                expected_input_hash=input_hash)
+            if issue:
+                return {**result, "status": "FAILED", "detail": issue, "metrics": None}
+        return result
+    except Exception as exc:
+        return {"status": "INVALID_INPUT" if isinstance(exc, (GeometryError, ValueError)) else "FAILED",
+                "detail": f"{type(exc).__name__}: {exc}", "metrics": None,
+                "evidence": {"input_hash_sha256": input_hash}}
+
+
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     fields = list(rows[0]) if rows else []
     with path.open("w", newline="", encoding="utf-8") as stream:
@@ -195,23 +442,27 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
     spec_hash = spec_provenance["sha256"]
     runtime = runtime_status()
     rows = []
+    refinements: list[dict[str, Any]] = []
     for name in names:
         geometry = None
         try:
             geometry = build_geometry(spec, name)
-            result = simulate_scenario(spec, spec_hash, geometry, output_dir)
-            if isinstance(result, dict) and result.get("status") == "COMPLETED":
-                issue = _validate_completion(
-                    result, output_dir, expected_spec_hash=spec_hash,
-                    expected_geometry_hash=geometry["geometry_hash_sha256"],
-                    expected_input_hash=expected_input_hash(spec_hash, geometry))
-                if issue:
-                    result = {**result, "status": "FAILED", "detail": issue, "metrics": None}
+            coarse = _simulate_mesh(spec, spec_hash, geometry, output_dir,
+                                    MESH_REFINEMENT_COARSE_FACTOR)
+            result = _simulate_mesh(spec, spec_hash, geometry, output_dir, 1.0)
+            refinement = _mesh_refinement(coarse, result)
+            if not refinement["converged"] and result.get("status") == "COMPLETED":
+                result = {**result, "status": "NON_CONVERGED",
+                          "detail": refinement["detail"], "metrics": None}
         except Exception as exc:
             result = {"status": "INVALID_INPUT" if isinstance(exc, (GeometryError, ValueError)) else "FAILED",
                       "detail": f"{type(exc).__name__}: {exc}", "metrics": None,
                       "evidence": {"spec_hash_sha256": spec_hash}}
+            refinement = {"status": "BLOCKED", "converged": False,
+                          "detail": f"mesh refinement could not run: {type(exc).__name__}: {exc}"}
         rows.append(_scenario_row(name, result, geometry))
+        rows[-1]["mesh_refinement"] = refinement
+        refinements.append({"scenario": name, **refinement})
 
     sweeps = []
     if include_sweeps:
@@ -251,11 +502,13 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
                           for field in delta_fields},
             }
     requested_all = names == list(SCENARIOS)
-    # Native single-mesh runs can provide simulated results, but they cannot
-    # satisfy the issue's coarse/fine mesh convergence gate. Keep the aggregate
-    # partial until an explicit refinement comparison is implemented and passes.
-    mesh_refinement = {"status": "NOT_RUN", "converged": False,
-                       "detail": "coarse/fine mesh comparison and metric deltas are required"}
+    mesh_refinement = {
+        "status": "COMPLETED" if refinements and all(item["converged"] for item in refinements) else "PARTIAL_OR_BLOCKED",
+        "converged": bool(refinements) and all(item["converged"] for item in refinements),
+        "coarse_mesh_resolution_factor": MESH_REFINEMENT_COARSE_FACTOR,
+        "fine_mesh_resolution_factor": 1.0,
+        "scenarios": refinements,
+    }
     completed = (requested_all and all(row["status"] == "COMPLETED" for row in rows)
                  and mesh_refinement["converged"])
     aggregate_status = "COMPLETED" if completed else (
@@ -274,7 +527,7 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
         "spec_provenance": spec_provenance,
         "geometry_contract": {
             "geometry_method": "CSXCAD primitive reconstruction from hardware/spec.yaml",
-            "mesh_convergence": "NOT_RUN; mesh resolution and hash are recorded per simulation",
+            "mesh_convergence": "coarse/fine openEMS comparison; only converged scenarios contribute accepted metrics",
             "animal_case": "ASSUMED homogeneous dielectric sensitivity approximation, not tissue validation",
         },
         "antenna_parameters": {key: antenna[key] for key in (
@@ -289,7 +542,7 @@ def run_experiments(spec_path: Path | None, output_dir: Path,
             "Assumed geometry and material properties are exploratory simulation inputs, not measured results.",
             "The animal case is a homogeneous dielectric approximation, not validated tissue data.",
             "A missing solver, mechanical clash, or failed convergence leaves the gate blocked.",
-            "Mesh refinement convergence is not run; cell dimensions, grid hash, and time-domain energy convergence are recorded separately.",
+            "Mesh refinement compares lambda/20 fine and coarser meshes; time-domain energy convergence is checked independently for each mesh.",
         ],
     }
     (output_dir / "antenna_experiments.json").write_text(

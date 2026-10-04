@@ -29,7 +29,7 @@ def test_builds_deterministic_csx_geometry_for_each_scenario(spec, scenario):
     second = build_geometry(spec, scenario)
     assert first["geometry_hash_sha256"] == second["geometry_hash_sha256"]
     assert first["geometry_method"].startswith("CSXCAD primitives")
-    assert first["antenna"]["route_length_mm"] == 82.0
+    assert first["antenna"]["route_length_mm"] == spec["antenna"]["element_length_mm"]["value"]
     assert len(first["primitives"]) >= 6
     assert all(p["material"] != "STL" for p in first["primitives"])
 
@@ -68,6 +68,26 @@ def test_rf_candidate_matches_updated_mechanical_layout_without_clash(spec):
     pcb_top = primitives["pcb_substrate"]["stop_mm"][1]
     battery_bottom = primitives["battery_envelope"]["start_mm"][1]
     assert battery_bottom - pcb_top == pytest.approx(0.5)
+
+
+def test_ground_plane_is_partial_and_covers_feed_reference(spec):
+    geometry = build_geometry(spec, "ANTENNA_FREE_SPACE")
+    plane = next(p for p in geometry["primitives"] if p["name"] == "ground_plane")
+    feed_y = geometry["antenna"]["feed_point_mm"][1]
+    trace_width = spec["antenna"]["trace_width_mm"]["value"]
+    assert plane["stop_mm"][1] == pytest.approx(geometry["antenna"]["ground_plane_y_bounds_mm"][1])
+    assert plane["stop_mm"][1] >= feed_y + trace_width / 2
+    assert plane["stop_mm"][1] < max(point[1] for point in geometry["antenna"]["route_points_mm"])
+    changed = copy.deepcopy(spec)
+    changed["antenna"]["ground_plane_length_mm"]["value"] += 1
+    assert build_geometry(changed, "ANTENNA_FREE_SPACE")["geometry_hash_sha256"] != geometry["geometry_hash_sha256"]
+
+
+def test_ground_plane_must_cover_feed_trace(spec):
+    invalid = copy.deepcopy(spec)
+    invalid["antenna"]["ground_plane_length_mm"]["value"] = 20
+    with pytest.raises(GeometryError, match="cover the complete feed trace width"):
+        build_geometry(invalid, "ANTENNA_FREE_SPACE")
 
 
 def test_invalid_scenario_dimensions_and_measured_inputs_rejected(spec):
