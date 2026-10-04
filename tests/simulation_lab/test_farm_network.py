@@ -84,9 +84,32 @@ def test_network_result_unknown_gateway_fails_closed():
         _validate_network_result(request, network)
 
 
+def test_network_packets_must_match_requested_trajectory_identity_and_time():
+    request = request_doc()
+    settings = request["solver"]["parameters"]["network"]
+    packets = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
+                "tx_start_s": None, "received_gateway_ids": []} for index in range(3)]
+    events = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
+               "gateway_id": receiver["gateway_ref"], "outcome": "NOT_TRANSMITTED"}
+              for index in range(3) for receiver in request["receivers"]]
+    network = {"network_backend": "ns-3.48/lorawan-v0.3.7", "channel_backend": "sionna-rt",
+               "classification": "SIMULATED_NETWORK_FROM_SIONNA", "frequency_hz": 915000000,
+               "tx_power_dbm": 14.0, "sf": settings["spreading_factor"],
+               "payload_bytes": settings["payload_bytes"], "traffic_interval_s": settings["traffic_interval_s"],
+               "seed": request["seed"], "time_resolution_ps": 1, "packets": packets,
+               "gateway_events": events,
+               "metrics": {"transmitted_packets": 0, "delivered_packets": 0, "pdr": None}}
+    packets[0]["timestamp_s"] = 100.0
+    for event in events:
+        if event["event_index"] == 0:
+            event["timestamp_s"] = 100.0
+    with pytest.raises(RunnerError, match="does not match a requested trajectory sample"):
+        _validate_network_result(request, network)
+
+
 def test_failed_localization_cannot_smuggle_a_coordinate():
     request = request_doc()
-    network = {"packets": [{"event_index": 0, "tx_start_s": 0.0}]}
+    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "tx_start_s": 0.0}]}
     localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
                                    "tdoa_status": "LT3_TIMESTAMPS", "tdoa_position_m": [0, 0]}]}
     with pytest.raises(RunnerError, match="failed.*must not contain"):
@@ -114,6 +137,20 @@ def test_two_gateway_tdoa_failure_is_reported_without_a_position():
                      network, [], localization)
     assert result["locations"][0]["position_m"] is None
     assert "LT3_TIMESTAMPS" in result["locations"][0]["method"]
+
+
+def test_localization_estimate_device_must_match_packet_animal():
+    request = deepcopy(request_doc())
+    second = deepcopy(request["tags"][0])
+    second.update(tag_ref="riose-tag-002", transmitter_ref="tx-002",
+                  animal_ref="animal-002", device_ref="device-002")
+    request["tags"].append(second)
+    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
+                            "tx_start_s": 0.0}]}
+    localization = {"estimates": [{"packet_id": "0", "device_id": "device-002",
+                                   "tdoa_status": "SOLVER_FAILED", "tdoa_position_m": None}]}
+    with pytest.raises(RunnerError, match="does not match its packet animal/device identity"):
+        _validate_localization_result(request, network, localization)
 
 
 def test_network_settings_reject_unknown_gateway_and_invalid_units():

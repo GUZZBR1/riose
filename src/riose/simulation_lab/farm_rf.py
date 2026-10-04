@@ -483,19 +483,33 @@ def _validate_network_result(request: dict, network: dict) -> None:
     metrics = network.get("metrics")
     if not isinstance(packets, list) or not isinstance(events, list) or not isinstance(metrics, dict):
         raise RunnerError("FREQUENCIA network artifact is missing packet, gateway event or metric arrays")
-    expected_packets = len(request["trajectory"]["samples"])
+    tags_by_ref = {tag["tag_ref"]: tag for tag in request["tags"]}
+    expected_packet_identities = {
+        (tags_by_ref[sample["tag_ref"]]["animal_ref"], float(sample["timestamp_s"]))
+        for sample in request["trajectory"]["samples"]
+    }
+    expected_packets = len(expected_packet_identities)
     if len(packets) != expected_packets:
         raise RunnerError("FREQUENCIA network artifact packet count differs from the trajectory")
     packet_index: dict[str, dict] = {}
+    packet_identities: set[tuple[str, float]] = set()
     for packet in packets:
         event_id = packet.get("event_index")
         if isinstance(event_id, bool) or not isinstance(event_id, int) or str(event_id) in packet_index:
             raise RunnerError("FREQUENCIA network artifact contains an invalid or duplicate packet ID")
         if packet.get("animal_id") not in {tag["animal_ref"] for tag in request["tags"]}:
             raise RunnerError("FREQUENCIA network artifact contains an unknown animal")
-        if not isinstance(packet.get("timestamp_s"), (int, float)) or not math.isfinite(packet["timestamp_s"]):
+        timestamp = packet.get("timestamp_s")
+        if (isinstance(timestamp, bool) or not isinstance(timestamp, (int, float))
+                or not math.isfinite(timestamp)):
             raise RunnerError("FREQUENCIA network artifact contains an invalid packet timestamp")
+        identity = (packet["animal_id"], float(timestamp))
+        if identity not in expected_packet_identities or identity in packet_identities:
+            raise RunnerError("FREQUENCIA packet identity/time does not match a requested trajectory sample")
+        packet_identities.add(identity)
         packet_index[str(event_id)] = packet
+    if packet_identities != expected_packet_identities:
+        raise RunnerError("FREQUENCIA network packets do not cover the requested trajectory samples")
     gateway_ids = {row["gateway_ref"] for row in request["receivers"]}
     seen_events: set[tuple[str, str]] = set()
     rx_gateways: dict[str, set[str]] = {key: set() for key in packet_index}
@@ -538,14 +552,18 @@ def _validate_localization_result(request: dict, network: dict, localization: di
         raise RunnerError("FREQUENCIA localization artifact has no estimate array")
     packet_ids = {str(row["event_index"]) for row in network["packets"]
                   if row.get("tx_start_s") is not None}
-    devices = {row["device_ref"] for row in request["tags"]}
+    devices_by_animal = {row["animal_ref"]: row["device_ref"] for row in request["tags"]}
+    transmitted_packets = {str(row["event_index"]): row for row in network["packets"]
+                           if row.get("tx_start_s") is not None}
     seen: set[str] = set()
     statuses = {"NO_PACKET", "LT3_TIMESTAMPS", "SOLVER_FAILED", "CONVERGED"}
     for estimate in estimates:
         packet_id = str(estimate.get("packet_id"))
-        if (packet_id not in packet_ids or estimate.get("device_id") not in devices
+        packet = transmitted_packets.get(packet_id)
+        if (packet_id not in packet_ids or packet is None
+                or estimate.get("device_id") != devices_by_animal.get(packet.get("animal_id"))
                 or packet_id in seen):
-            raise RunnerError("FREQUENCIA localization artifact contains an unknown or duplicate estimate")
+            raise RunnerError("FREQUENCIA localization estimate does not match its packet animal/device identity")
         seen.add(packet_id)
         status, position = estimate.get("tdoa_status"), estimate.get("tdoa_position_m")
         if status not in statuses:
