@@ -28,6 +28,11 @@ def request_doc():
     return load_json((ROOT / "examples" / "farm_rf_v1.json").read_text(encoding="utf-8"), kind="request")
 
 
+def localization_metrics(eligible=0, converged=0):
+    return {"tdoa": {"eligible_packets": eligible, "converged_packets": converged,
+                     "convergence": converged / eligible if eligible else None}}
+
+
 def test_request_explicitly_pins_network_and_temporal_settings():
     request = validate_request(request_doc())
     network, temporal = _network_config(request)
@@ -111,7 +116,8 @@ def test_failed_localization_cannot_smuggle_a_coordinate():
     request = request_doc()
     network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "tx_start_s": 0.0}]}
     localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
-                                   "tdoa_status": "LT3_TIMESTAMPS", "tdoa_position_m": [0, 0]}]}
+                                   "tdoa_status": "LT3_TIMESTAMPS", "tdoa_position_m": [0, 0]}],
+                    "metrics": localization_metrics()}
     with pytest.raises(RunnerError, match="failed.*must not contain"):
         _validate_localization_result(request, network, localization)
 
@@ -126,7 +132,8 @@ def test_two_gateway_tdoa_failure_is_reported_without_a_position():
                                    "gateway_id": gateway, "outcome": "RX"}
                                   for gateway in ("GW-1", "GW-2")]}
     localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
-                                  "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}]}
+                                  "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}],
+                    "metrics": localization_metrics()}
     _validate_localization_result(request, network, localization)
     raw = {"snapshots": [{"timestamp_s": 0.0, "records": [
         {"receiver_id": f"rx-{gateway}", "links": [{"transmitter_id": "tx-001",
@@ -151,6 +158,25 @@ def test_localization_estimate_device_must_match_packet_animal():
                                    "tdoa_status": "SOLVER_FAILED", "tdoa_position_m": None}]}
     with pytest.raises(RunnerError, match="does not match its packet animal/device identity"):
         _validate_localization_result(request, network, localization)
+
+
+def test_localization_requires_complete_packet_set_and_consistent_metrics():
+    request = request_doc()
+    network = {"packets": [
+        {"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0, "tx_start_s": 0.0},
+        {"event_index": 1, "animal_id": "animal-001", "timestamp_s": 1.0, "tx_start_s": 1.0},
+    ]}
+    first = {"packet_id": "0", "device_id": "device-001", "tdoa_status": "NO_PACKET",
+             "tdoa_position_m": None}
+    with pytest.raises(RunnerError, match="omits packet estimates"):
+        _validate_localization_result(request, network,
+            {"estimates": [first], "metrics": localization_metrics()})
+
+    estimates = [first, {"packet_id": "1", "device_id": "device-001",
+                         "tdoa_status": "SOLVER_FAILED", "tdoa_position_m": None}]
+    with pytest.raises(RunnerError, match="metrics disagree with complete estimate statuses"):
+        _validate_localization_result(request, network,
+            {"estimates": estimates, "metrics": localization_metrics(eligible=1, converged=1)})
 
 
 def test_network_settings_reject_unknown_gateway_and_invalid_units():
@@ -208,7 +234,8 @@ def test_result_keeps_phy_reception_distinct_from_path_and_localization_failure(
         "gateway_events": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
                             "gateway_id": "GW-1", "outcome": "RX"}]}
     localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
-                                  "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}]}
+                                  "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}],
+                    "metrics": localization_metrics()}
     result = _result(request, raw, {}, {"repository_provenance": {"sionna_rt_version": "test"}},
                      "a" * 64, "b" * 64, network, [], localization)
     row = result["observations"][0]

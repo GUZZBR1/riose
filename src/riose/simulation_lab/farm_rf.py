@@ -408,14 +408,16 @@ def _score_after_estimation(request: dict, network: dict, localization: dict) ->
     ordered = sorted(errors)
     median = (ordered[len(ordered) // 2] if len(ordered) % 2 else
               (ordered[len(ordered) // 2 - 1] + ordered[len(ordered) // 2]) / 2) if ordered else None
-    tdoa = localization.get("metrics", {}).get("tdoa", {})
-    attempts = len(localization.get("estimates", []))
-    converged = int(tdoa.get("converged_packets", 0))
+    estimates = localization.get("estimates", [])
+    attempts = len(estimates)
+    eligible = sum(estimate.get("tdoa_status") in {"CONVERGED", "SOLVER_FAILED"}
+                   for estimate in estimates)
+    converged = sum(estimate.get("tdoa_status") == "CONVERGED" for estimate in estimates)
     return {"schema_version": "riose.simulation.localization-score/v1",
             "ground_truth_used_after_estimation": True,
-            "attempts": attempts, "eligible": tdoa.get("eligible_packets"),
+            "attempts": attempts, "eligible": eligible,
             "converged": converged, "failed": attempts - converged,
-            "convergence_rate": tdoa.get("convergence"), "scored": len(errors),
+            "convergence_rate": converged / eligible if eligible else None, "scored": len(errors),
             "conditional_rmse_m": math.sqrt(sum(value * value for value in errors) / len(errors)) if errors else None,
             "median_error_m": median,
             "p90_error_m": (ordered[min(len(ordered) - 1, math.ceil(0.9 * len(ordered)) - 1)]
@@ -577,6 +579,24 @@ def _validate_localization_result(request: dict, network: dict, localization: di
             raise RunnerError("failed FREQUENCIA estimate must not contain a fabricated position")
     if len(seen) != len(packet_ids):
         raise RunnerError("FREQUENCIA localization artifact omits packet estimates")
+    tdoa = localization.get("metrics", {}).get("tdoa") if isinstance(localization.get("metrics"), dict) else None
+    if not isinstance(tdoa, dict):
+        raise RunnerError("FREQUENCIA localization artifact is missing TDoA metrics")
+    eligible = sum(estimate["tdoa_status"] in {"CONVERGED", "SOLVER_FAILED"} for estimate in estimates)
+    converged = sum(estimate["tdoa_status"] == "CONVERGED" for estimate in estimates)
+    expected_convergence = converged / eligible if eligible else None
+    observed_convergence = tdoa.get("convergence")
+    valid_convergence = (observed_convergence is None if expected_convergence is None else
+                         not isinstance(observed_convergence, bool)
+                         and isinstance(observed_convergence, (int, float))
+                         and math.isfinite(observed_convergence)
+                         and observed_convergence == expected_convergence)
+    if (type(tdoa.get("eligible_packets")) is not int
+            or tdoa.get("eligible_packets") != eligible
+            or type(tdoa.get("converged_packets")) is not int
+            or tdoa.get("converged_packets") != converged
+            or not valid_convergence):
+        raise RunnerError("FREQUENCIA TDoA metrics disagree with complete estimate statuses")
 
 
 def _summary_markdown(request: dict, metrics: dict, status_counts: dict,
@@ -931,7 +951,8 @@ def run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | None
     }
     parameter_binding["temporal"] = {
         "requested": temporal_config,
-        "effective": temporal_config if network_result else None,
+        "forwarded": temporal_config if network_result else None,
+        "effective": None,
         "status": "FORWARDED_OUTPUT_HASHED" if network_result else "NOT_RUN",
     }
     _write_json(workspace / "result" / "result.json", result)

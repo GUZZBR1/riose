@@ -156,14 +156,20 @@ does not execute a simulator, and physical/field validation remains
   uncalibrated terrain/material and idealized isotropic antennas; it does not
   establish physical propagation accuracy.
 
-Each FARM run manifest now includes
-`riose.simulation.parameter-binding/v1`: request values are paired with
-effective Sionna, network, and temporal settings and their verification state.
-The runner stops when Sionna RF/seed/backend/solver values diverge, and it
-checks the exact requested timestamp/tag/receiver link set. The analytic smoke
-manifest explicitly marks request-specific radio, seed, trajectory, and solver
-values as unsupported/unbound. Evidence packaging carries that binding and
-does not label the request seed as used when the runner did not apply it.
+Each FARM run manifest includes
+`riose.simulation.parameter-binding/v1`: Sionna RF/seed/backend/solver and
+network settings are checked against engine output. Temporal detector/clock
+settings are forwarded to the pinned network adapter and output records are
+hashed and checked for reception coverage, but the engine does not attest the
+effective temporal configuration; the manifest therefore marks it
+`FORWARDED_OUTPUT_HASHED` and leaves effective values unavailable. The runner
+checks the exact requested timestamp/tag/receiver link set and each localization
+estimate's packet-to-animal/device identity. It also requires one localization
+estimate per transmitted packet and cross-checks eligible/converged counts
+against estimate statuses. The analytic smoke manifest explicitly marks
+request-specific radio, seed, trajectory, and solver values as unsupported or
+unbound. Evidence packaging carries those statuses and does not label an
+unapplied request seed as used.
 - **5. Network & Localization Digital Twin — PASS for supported simulations.**
   That run used ns-3 3.48 and LoRaWAN v0.3.7: 2 transmitted packets, 6 gateway
   PHY receptions, 2 NO_PATH events, simulated packet PDR 1.0, and 2 TDoA
@@ -178,7 +184,7 @@ does not label the request seed as used when the runner did not apply it.
   detector failure) reported valid schema and hashes, with `SIMULATED` status.
   Extra, modified, unsafe, oversized, or symlinked package files fail closed.
 
-## Canonical campaign evidence (current source state)
+## Historical campaign evidence (pre-consolidation source state)
 
 The canonical baseline request was `farm-rf-smoke-v1`, seed `20261003`,
 backend `sionna-rt`, 915 MHz, 125 kHz, and 14 dBm. The FARM trajectory had 3
@@ -204,9 +210,10 @@ integrity-checked index, not a signature. The RIOSE revision was dirty at the
 time of this campaign, so reproducing that exact software state requires the
 corresponding local source snapshot in addition to its commit SHA.
 
-The full suite reports **460 passed, 7 skipped**, including request/effective
-binding divergence, unsupported trajectory handling, and exact raw-link
-correspondence cases. One existing Starlette/httpx deprecation warning remains.
+At that point, the full suite reported **460 passed, 7 skipped**, including
+request/effective binding divergence, unsupported trajectory handling, and
+exact raw-link correspondence cases. One existing Starlette/httpx
+deprecation warning remains.
 
 Sionna simulation is not field validation. ns-3 simulation is not deployment
 validation. TDoA convergence is not accurate localization. `PHY_RECEIVED` is
