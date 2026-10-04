@@ -249,7 +249,9 @@ def _analytic_parameter_binding(request: dict[str, Any], request_hash: str) -> d
         "network": {"requested": request["solver"]["parameters"].get("network"),
                     "effective": None, "status": "NOT_RUN"},
         "temporal": {"requested": request["solver"]["parameters"].get("temporal"),
-                     "effective": None, "status": "NOT_RUN"},
+                     "effective": None,
+                     "status": ("NOT_APPLICABLE" if request["solver"]["parameters"].get("temporal") is None
+                                else "NOT_RUN")},
     }
 
 

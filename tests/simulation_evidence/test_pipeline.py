@@ -8,6 +8,7 @@ import pytest
 
 from riose.simulation_contract.v1 import content_hash
 from riose.simulation_evidence import EvidenceError, build_package, verify_package
+from riose.simulation_evidence.pipeline import _validate_location_quality, _validate_temporal_binding
 from riose.simulation_adapter import convert_result
 from riose.simulation_lab.runner import FREQUENCIA_URL, run as run_simulation
 
@@ -57,6 +58,45 @@ def test_summary_metrics_have_denominators_and_unavailable_values_are_null(tmp_p
     assert summary["localization"]["rmse"]["value"] is None
     assert summary["localization"]["rmse"]["status"] == "NOT_AVAILABLE"
     assert summary["rf"]["received_power_dbm"]["mean"]["value"] == -74.2
+
+
+def test_quality_status_is_recomputed_from_declared_bounds_and_raw_estimate():
+    request = json.loads((Path(__file__).parents[2] / "examples/farm_rf_v1.json").read_text())
+    result = {"locations": [{"position_m": [120.0, 200.0], "solver_status": "CONVERGED",
+        "quality_status": "ACCEPTED", "quality_reason": "WITHIN_DECLARED_OPERATIONAL_BOUNDS",
+        "quality_bounds_m": request["operational_bounds_m"]}]}
+    _validate_location_quality(request, result)
+    assert result["locations"][0]["position_m"] == [120.0, 200.0]
+    result["locations"][0]["quality_status"] = "ACCEPTED"
+    result["locations"][0]["position_m"] = [1248.8, -4000.9]
+    with pytest.raises(EvidenceError, match="does not match request-declared bounds"):
+        _validate_location_quality(request, result)
+
+
+def test_temporal_binding_rejects_wrong_run_request_effective_values_or_artifact():
+    request = json.loads((Path(__file__).parents[2] / "examples/farm_rf_v1.json").read_text())
+    temporal = request["solver"]["parameters"]["temporal"]
+    binding = {"schema_version": "riose.simulation.temporal-binding/v1", "run_id": "run-1",
+        "request_sha256": "a" * 64, "input_sha256": "b" * 64,
+        "runtime_artifact_sha256": "c" * 64, "requested": temporal, "forwarded": temporal,
+        "effective": {"clock_seed": request["seed"], **{key: temporal[key] for key in (
+            "detector", "clocks", "correlated_jitter_std_s", "timestamp_error_std_s",
+            "noise_figure_db", "snr_threshold_db", "detection_margin_db", "max_iterations")}},
+        "effective_defaults": {"phy.preamble_symbols": {"requested": None, "effective": 8,
+            "status": "VERIFIED"}, "sweep.noise_density_dbm_hz": {"requested": None,
+            "effective": -174.0, "status": "VERIFIED"}},
+        "observed_detector_modes": [temporal["detector"]["mode"]], "status": "VERIFIED"}
+    artifacts = {"inputs.json": "b" * 64, "pipeline.json": "c" * 64}
+    _validate_temporal_binding(binding, temporal, request["seed"], "a" * 64, "run-1", artifacts)
+    for key, value in (("run_id", "run-2"), ("request_sha256", "d" * 64),
+                       ("input_sha256", "d" * 64), ("runtime_artifact_sha256", "d" * 64)):
+        changed = dict(binding, **{key: value})
+        with pytest.raises(EvidenceError):
+            _validate_temporal_binding(changed, temporal, request["seed"], "a" * 64, "run-1", artifacts)
+    changed = json.loads(json.dumps(binding))
+    changed["effective"]["max_iterations"] = 999
+    with pytest.raises(EvidenceError, match="run-level evidence"):
+        _validate_temporal_binding(changed, temporal, request["seed"], "a" * 64, "run-1", artifacts)
 
 
 @pytest.mark.parametrize("changed", ["request", "summary", "plot", "report", "manifest"])

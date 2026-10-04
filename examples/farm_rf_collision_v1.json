@@ -5,6 +5,7 @@
   "seed": 20261003,
   "backend": "sionna-rt",
   "coordinate_frame": "ENU_LOCAL",
+  "operational_bounds_m": {"east_min_m": 0.0, "east_max_m": 1000.0, "north_min_m": 0.0, "north_max_m": 1000.0},
   "units": {
     "position": "m",
     "timestamp": "s",

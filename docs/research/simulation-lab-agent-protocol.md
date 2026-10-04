@@ -55,7 +55,7 @@ hashed. `NOT_RUN` and `NOT_AVAILABLE` are deliberate outcomes, not defaults.
 | Sionna solver settings | `max_depth`, `samples_per_src`, `max_num_paths_per_src`, `cfr_points`, `los`, and `specular_reflection` are forwarded; unknown solver keys are rejected (network/temporal are handled separately) | Effective solver configuration is taken from the engine manifest and tied to generated config/raw-output hashes |
 | LoRa spreading factor and payload | Used only when the ns-3 network stage is enabled; supported SF 7–12 and payload 1–51 bytes | ns-3 output is checked against the requested SF and payload; no PHY reception is inferred from a path |
 | network interval | Used only when network simulation is enabled | ns-3 packet output is checked against the requested interval and seed |
-| detector, clocks, noise, timestamp errors, localization iterations | Validated and forwarded to the existing FREQUENCIA temporal and TDoA APIs; temporal options require an enabled network stage | Network input hash, per-reception timestamp records, localization output, and scoring are retained and hashed |
+| detector, clocks, noise, timestamp errors, localization iterations | Validated and passed to the pinned FREQUENCIA detector, clock, PHY sweep, and TDoA APIs; temporal options require an enabled network stage | A run/request/input-bound runtime artifact records constructed clock/sweep values, detector call arguments/results, iteration limit, units, and detector threshold semantics. It is hash-linked to `inputs.json` and `pipeline.json`; mismatches fail closed |
 | `radio.phy` | LoRa technology/SF is checked by the network route; Sionna propagation itself does not simulate LoRa packet PHY. Unsupported technology or inconsistent SF is rejected | When network is disabled, SF/packet settings have no effective value and must not be described as used |
 | CIR/CFR and detailed channel arrays | May exist in FREQUENCIA raw artifacts, but are not represented in Simulation Result V1 or canonical RIOSE records | Raw output SHA and external run artifacts preserve provenance; the evidence packager does not copy large raw arrays by default |
 | analytic backend | Runs FREQUENCIA's built-in smoke scenario, not a request-specific FARM campaign | Request geometry/radio/seed remain requested only; effective values are unavailable and explicitly described as unsupported by that smoke route |
@@ -64,6 +64,16 @@ When engine support or verification changes, update this binding table, the
 manifest/report behavior, and focused tests together. Never infer equality
 from a request hash alone: a hash identifies the request, not the engine's
 effective configuration.
+
+## Localization quality semantics
+
+FREQUENCIA's numerical solver status is retained separately from RIOSE's
+operational bounds decision. The optional request `operational_bounds_m` is
+checked to lie within the pinned FARM scenario area. A converged estimate
+inside the bounds is `ACCEPTED`; a converged estimate outside them is
+`REJECTED`; a missing estimate or missing bounds is `NOT_EVALUATED`. The raw
+solver coordinate is preserved in all cases. This is a plausibility gate, not
+an accuracy test; residual size and GroundTruth do not affect its decision.
 
 ## Evidence interpretation
 

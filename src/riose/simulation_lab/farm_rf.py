@@ -116,6 +116,7 @@ def _prepare_inputs(request: dict, workspace: Path, engine_root: Path,
         if tag.get("animal_ref") is None:
             raise ContractError("each FARM tag must declare its animal_ref")
     area = float(config["scenario"]["area_m"])
+    _validate_operational_bounds(request, area)
     for row in samples:
         if row["tag_ref"] not in {tag["tag_ref"] for tag in tags}:
             raise ContractError("trajectory sample refers to an undeclared tag")
@@ -299,7 +300,7 @@ def _network_config(request: dict) -> tuple[dict[str, Any] | None, dict[str, Any
     return network, temporal
 
 
-def _network_input(request: dict, raw: dict) -> dict[str, Any]:
+def _network_input(request: dict, raw: dict, run_id: str, request_hash: str) -> dict[str, Any]:
     """Adapt exact Sionna links plus request geometry to FREQUENCIA's network input."""
     positions = {(row["tag_ref"], float(row["timestamp_s"])): row["position_m"]
                  for row in request["trajectory"]["samples"]}
@@ -331,7 +332,68 @@ def _network_input(request: dict, raw: dict) -> dict[str, Any]:
                 })
     if not records:
         raise RunnerError("Sionna output contains no channel links for network simulation")
-    return {"request": request, "records": records}
+    return {"request": request, "records": records, "run_id": run_id,
+            "request_sha256": request_hash}
+
+
+def _validate_temporal_runtime(request: dict, runtime: dict, run_id: str,
+                               request_hash: str, input_hash: str) -> dict[str, Any]:
+    """Bind temporal settings to the runtime objects reported by the bridge."""
+    if (not isinstance(runtime, dict)
+            or runtime.get("schema_version") != "riose.simulation.temporal-runtime/v1"
+            or runtime.get("run_id") != run_id
+            or runtime.get("request_sha256") != request_hash
+            or runtime.get("input_sha256") != input_hash):
+        raise RunnerError("FREQUENCIA temporal runtime artifact has the wrong schema, run, or request identity")
+    requested = request["solver"]["parameters"].get("temporal")
+    effective = runtime.get("effective")
+    if not isinstance(requested, dict) or not isinstance(effective, dict):
+        raise RunnerError("FREQUENCIA temporal runtime artifact is missing requested or effective settings")
+    expected = {
+        "detector": requested["detector"],
+        "clocks": requested["clocks"],
+        "clock_seed": request["seed"],
+        "correlated_jitter_std_s": requested["correlated_jitter_std_s"],
+        "timestamp_error_std_s": requested["timestamp_error_std_s"],
+        "noise_figure_db": requested["noise_figure_db"],
+        "snr_threshold_db": requested["snr_threshold_db"],
+        "detection_margin_db": requested["detection_margin_db"],
+        "max_iterations": requested["max_iterations"],
+    }
+    if any(effective.get(key) != value for key, value in expected.items()):
+        raise RunnerError("FREQUENCIA effective temporal settings differ from the request")
+    detector_results = effective.get("detector_results")
+    if (not isinstance(detector_results, list)
+            or any(value != requested["detector"]["mode"] for value in detector_results)):
+        raise RunnerError("FREQUENCIA detector runtime result differs from the requested mode")
+    expected_units = {"offset_s": "s", "drift_ppm": "ppm", "jitter_std_s": "s",
+        "quantization_s": "s", "correlated_jitter_std_s": "s", "timestamp_error_std_s": "s",
+        "threshold_dbm": "dBm", "relative_threshold_db": "dB", "noise_figure_db": "dB",
+        "snr_threshold_db": "dB", "detection_margin_db": "dB", "max_iterations": "iterations"}
+    if runtime.get("units") != expected_units:
+        raise RunnerError("FREQUENCIA temporal runtime artifact uses missing or incorrect units")
+    expected_threshold_semantics = ("RELATIVE_TO_STRONGEST_PATH"
+                                    if requested["detector"]["threshold_dbm"] is None
+                                    else "ABSOLUTE_DBM")
+    if runtime.get("detector_threshold_semantics") != expected_threshold_semantics:
+        raise RunnerError("FREQUENCIA detector default/override semantics differ from the request")
+    defaults = runtime.get("effective_defaults")
+    if (not isinstance(defaults, dict)
+            or set(defaults) != {"phy.preamble_symbols", "sweep.noise_density_dbm_hz"}
+            or any(not isinstance(row, dict) or row.get("requested") is not None
+                   or row.get("status") != "VERIFIED" or isinstance(row.get("effective"), bool)
+                   or not isinstance(row.get("effective"), (int, float))
+                   or not math.isfinite(row["effective"]) for row in defaults.values())
+            or type(defaults["phy.preamble_symbols"]["effective"]) is not int):
+        raise RunnerError("FREQUENCIA temporal runtime defaults are missing or malformed")
+    return {"schema_version": "riose.simulation.temporal-binding/v1",
+            "run_id": run_id, "request_sha256": request_hash,
+            "input_sha256": input_hash,
+            "requested": requested, "forwarded": requested,
+            "effective": {key: effective[key] for key in expected},
+            "effective_defaults": defaults,
+            "observed_detector_modes": detector_results,
+            "status": "VERIFIED"}
 
 
 def _validate_sionna_binding(request: dict, summary: dict, engine_manifest: dict) -> dict[str, Any]:
@@ -380,6 +442,31 @@ def _validate_sionna_binding(request: dict, summary: dict, engine_manifest: dict
     }
 
 
+def _quality_assessment(request: dict, solver_status: str,
+                        position: list[float] | None) -> dict[str, Any]:
+    """Gate a raw solver estimate against only explicitly declared farm bounds."""
+    bounds = request.get("operational_bounds_m")
+    if position is None:
+        return {"quality_status": "NOT_EVALUATED", "quality_reason": f"NO_NUMERICAL_POSITION:{solver_status}",
+                "quality_bounds_m": bounds}
+    if bounds is None:
+        return {"quality_status": "NOT_EVALUATED", "quality_reason": "NO_DECLARED_OPERATIONAL_BOUNDS",
+                "quality_bounds_m": None}
+    inside = (bounds["east_min_m"] <= position[0] <= bounds["east_max_m"]
+              and bounds["north_min_m"] <= position[1] <= bounds["north_max_m"])
+    return {"quality_status": "ACCEPTED" if inside else "REJECTED",
+            "quality_reason": "WITHIN_DECLARED_OPERATIONAL_BOUNDS" if inside
+                              else "OUTSIDE_DECLARED_OPERATIONAL_BOUNDS",
+            "quality_bounds_m": bounds}
+
+
+def _validate_operational_bounds(request: dict, scenario_area_m: float) -> None:
+    """Keep the declared operational box inside the pinned square FARM region."""
+    bounds = request.get("operational_bounds_m")
+    if bounds is not None and any(value < 0 or value > scenario_area_m for value in bounds.values()):
+        raise ContractError("operational_bounds_m must stay within the declared FARM scenario area")
+
+
 def _score_after_estimation(request: dict, network: dict, localization: dict) -> dict[str, Any]:
     """Score TDoA estimates only after FREQUENCIA's estimator returns."""
     truth = {(str(sample["tag_ref"]), float(sample["timestamp_s"])): sample["position_m"]
@@ -402,9 +489,13 @@ def _score_after_estimation(request: dict, network: dict, localization: dict) ->
             if not math.isfinite(error):
                 raise RunnerError("TDoA scoring produced a non-finite error")
             errors.append(error)
+        quality = _quality_assessment(request, str(estimate.get("tdoa_status")),
+                                      [float(position[0]), float(position[1])] if position is not None else None)
         rows.append({"packet_id": str(estimate["packet_id"]), "tag_id": tag["tag_ref"],
                      "timestamp_s": float(packet["timestamp_s"]),
-                     "tdoa_status": estimate.get("tdoa_status"), "error_m": error})
+                     "tdoa_status": estimate.get("tdoa_status"),
+                     "quality_status": quality["quality_status"],
+                     "quality_reason": quality["quality_reason"], "error_m": error})
     ordered = sorted(errors)
     median = (ordered[len(ordered) // 2] if len(ordered) % 2 else
               (ordered[len(ordered) // 2 - 1] + ordered[len(ordered) // 2]) / 2) if ordered else None
@@ -414,9 +505,11 @@ def _score_after_estimation(request: dict, network: dict, localization: dict) ->
                    for estimate in estimates)
     converged = sum(estimate.get("tdoa_status") == "CONVERGED" for estimate in estimates)
     return {"schema_version": "riose.simulation.localization-score/v1",
-            "ground_truth_used_after_estimation": True,
-            "attempts": attempts, "eligible": eligible,
+            "ground_truth_used_after_estimation": True, "attempts": attempts,
+            "eligible": eligible,
             "converged": converged, "failed": attempts - converged,
+        "quality_counts": {status: sum(row["quality_status"] == status for row in rows)
+                           for status in ("ACCEPTED", "REJECTED", "NOT_EVALUATED")},
             "convergence_rate": converged / eligible if eligible else None, "scored": len(errors),
             "conditional_rmse_m": math.sqrt(sum(value * value for value in errors) / len(errors)) if errors else None,
             "median_error_m": median,
@@ -459,6 +552,7 @@ def _network_summary(network: dict | None, localization: dict | None,
                 "attempts": scoring.get("attempts"), "eligible": scoring.get("eligible"),
                 "converged": scoring.get("converged"), "failed": scoring.get("failed"),
                 "convergence_rate_among_eligible": scoring.get("convergence_rate"),
+                "quality_counts": scoring.get("quality_counts"),
                 "conditional_rmse_m": scoring.get("conditional_rmse_m"),
                 "median_error_m": scoring.get("median_error_m"),
                 "p90_error_m": scoring.get("p90_error_m"),
@@ -634,6 +728,10 @@ def _summary_markdown(request: dict, metrics: dict, status_counts: dict,
             f"- Attempts / eligible / converged / failed: {localization['attempts']} / "
             f"{localization['eligible']} / {localization['converged']} / {localization['failed']}",
             f"- Convergence among eligible: {localization['convergence_rate_among_eligible']}",
+            f"- Operational quality accepted / rejected / not evaluated: "
+            f"{localization['quality_counts']['ACCEPTED']} / "
+            f"{localization['quality_counts']['REJECTED']} / "
+            f"{localization['quality_counts']['NOT_EVALUATED']}",
             f"- Conditional RMSE / median / p90 error: {localization['conditional_rmse_m']} / "
             f"{localization['median_error_m']} / {localization['p90_error_m']} m",
         ])
@@ -773,11 +871,14 @@ def _result(request: dict, raw: dict, summary: dict, manifest: dict,
             position = estimate.get("tdoa_position_m") if estimate.get("tdoa_status") == "CONVERGED" else None
             if position is not None and (not isinstance(position, list) or len(position) < 2):
                 raise RunnerError("FREQUENCIA TDoA estimate has malformed coordinates")
+            quality = _quality_assessment(request, str(estimate.get("tdoa_status", "UNKNOWN")),
+                                          [float(position[0]), float(position[1])] if position is not None else None)
             locations.append({"timestamp_s": float(packet["timestamp_s"]),
                               "source_tag_ref": source_tx, "tag_id": tag["tag_ref"],
                               "position_m": [float(position[0]), float(position[1])] if position is not None else None,
                               "quality": None, "method": f"FREQUENCIA_TDOA:{estimate.get('tdoa_status', 'UNKNOWN')}",
-                              "status": "SIMULATED"})
+                              "status": "SIMULATED", "solver_status": estimate.get("tdoa_status", "UNKNOWN"),
+                              **quality})
     result = {"schema_version": "riose.simulation.result/v1",
               "campaign_id": request["campaign_id"], "scenario_id": request["scenario_id"],
               "backend": "frequencia.sionna-rt",
@@ -887,12 +988,13 @@ def run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | None
             raise RunnerError(f"ns-3 3.48/LoRaWAN v0.3.7 is unavailable under {ns3_root}; no RF-only fallback was used")
         network_input_path = workspace / "network" / "inputs.json"
         network_output_path = workspace / "network" / "pipeline.json"
-        network_payload = _network_input(request, raw)
+        network_payload = _network_input(request, raw, run_id, request_hash)
         network_payload["ns3_root"] = str(ns3_root)
         _write_json(network_input_path, network_payload)
         helper = Path(__file__).with_name("frequencia_network.py")
         network_command = [str(engine_python), str(helper), str(network_input_path),
                            str(network_output_path), str(engine_root)]
+        network_input_hash = hashlib.sha256(network_input_path.read_bytes()).hexdigest()
         remaining = max(1.0, float(timeout_seconds) - (time.monotonic() - start))
         network_exit, network_error = _run_process(network_command, cwd=engine_root,
             logs=workspace / "logs" / "network", timeout_seconds=remaining)
@@ -904,10 +1006,14 @@ def run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | None
         network_result = payload_result.get("network")
         temporal_rows = payload_result.get("timestamps")
         localization = payload_result.get("localization")
+        temporal_runtime = payload_result.get("temporal_runtime")
         if not isinstance(network_result, dict) or not isinstance(temporal_rows, list) or not isinstance(localization, dict):
             raise RunnerError("FREQUENCIA network pipeline returned malformed artifacts")
         _validate_network_result(request, network_result)
         _validate_localization_result(request, network_result, localization)
+        temporal_binding = _validate_temporal_runtime(request, temporal_runtime, run_id, request_hash,
+                                                      network_input_hash)
+        temporal_binding["runtime_artifact_sha256"] = hashlib.sha256(network_output_path.read_bytes()).hexdigest()
         expected_rx = {(str(row["event_index"]), str(row["gateway_id"]))
                        for row in network_result["gateway_events"] if row["outcome"] == "RX"}
         received_timestamps: set[tuple[str, str]] = set()
@@ -949,12 +1055,10 @@ def run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | None
         "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig" if network_result else None,
         "status": "VERIFIED" if network_result else "NOT_RUN",
     }
-    parameter_binding["temporal"] = {
-        "requested": temporal_config,
-        "forwarded": temporal_config if network_result else None,
-        "effective": None,
-        "status": "FORWARDED_OUTPUT_HASHED" if network_result else "NOT_RUN",
-    }
+    parameter_binding["temporal"] = (temporal_binding if network_result else {
+        "requested": temporal_config, "forwarded": None, "effective": None,
+        "status": "NOT_APPLICABLE" if temporal_config is None else "NOT_RUN",
+    })
     _write_json(workspace / "result" / "result.json", result)
     from riose.simulation_adapter import convert_result
 
@@ -984,7 +1088,7 @@ def run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | None
                            network_report, duration_seconds), encoding="utf-8")
     summary_sha256 = hashlib.sha256(summary_path.read_bytes()).hexdigest()
     network_artifacts = {}
-    for name in ("inputs.json", "network_results.json", "gateway_timestamps.json",
+    for name in ("inputs.json", "pipeline.json", "network_results.json", "gateway_timestamps.json",
                  "localization.json", "scoring.json"):
         path = workspace / "network" / name
         if path.is_file():

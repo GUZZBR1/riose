@@ -28,6 +28,16 @@ radians. `rssi_dbm` is reserved for a backend metric whose semantics are
 explicitly justified; it cannot coexist with `received_power_dbm` in one V1
 observation. Missing backend metrics remain `null`.
 
+Requests may declare `operational_bounds_m` as east/north minimum and maximum
+coordinates. The FARM runner checks that box against the pinned scenario's
+declared square `area_m`; it never infers bounds from GroundTruth or estimates.
+When a result includes localization, it preserves numerical `solver_status`
+separately from `quality_status` (`ACCEPTED`, `REJECTED`, or
+`NOT_EVALUATED`), an audit reason, and the bounds used. `ACCEPTED` means only
+that a returned point lies inside the declared operational box. It does not
+mean the point is accurate. Missing bounds or a missing numerical position
+produce `NOT_EVALUATED`; the solver's raw position is never clamped or moved.
+
 ## Evidence and channel states
 
 Every fixture result, observation, and location is `SIMULATED`; validators

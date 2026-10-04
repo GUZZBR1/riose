@@ -159,10 +159,11 @@ does not execute a simulator, and physical/field validation remains
 Each FARM run manifest includes
 `riose.simulation.parameter-binding/v1`: Sionna RF/seed/backend/solver and
 network settings are checked against engine output. Temporal detector/clock
-settings are forwarded to the pinned network adapter and output records are
-hashed and checked for reception coverage, but the engine does not attest the
-effective temporal configuration; the manifest therefore marks it
-`FORWARDED_OUTPUT_HASHED` and leaves effective values unavailable. The runner
+settings are read back from the bridge's constructed runtime objects and
+actual detector call results. The runtime artifact records units and threshold
+default semantics, identifies its run, request and input hashes, and is itself
+hashed alongside `inputs.json`; evidence verification checks these links. The
+runner
 checks the exact requested timestamp/tag/receiver link set and each localization
 estimate's packet-to-animal/device identity. It also requires one localization
 estimate per transmitted packet and cross-checks eligible/converged counts
@@ -178,7 +179,11 @@ unapplied request seed as used.
   events and PDR 0.0; controlled detector failure run
   `a5d8a657d5474db48f25e4d20a33149c` retained 6 PHY receptions but had zero
   eligible timestamps and 2 null failed estimates. PHY reception is not
-  application delivery; convergence is not accuracy.
+  application delivery; convergence is not accuracy. Results separately retain
+  numerical solver status and an operational bounds decision. Bounds are
+  request-declared and must lie within the pinned FARM scenario area; outside
+  estimates are `REJECTED` without moving their raw coordinates. This gate
+  measures plausibility only and does not use GroundTruth or residual size.
 - **6. Simulation Evidence Pipeline — PASS for supported V1 and runner
   workspaces.** Three independently verified packages (baseline, collision,
   detector failure) reported valid schema and hashes, with `SIMULATED` status.
@@ -237,14 +242,16 @@ simulated synthetic scenarios; none is field validation.
 | farm-rf-collision-v1 | `/home/gusta/.cache/RIOSE/simulation_runs/844b357ec4304a338ceb7d73b7b623c5` | `e354f2e654e6483381d95667baafaa35c9b280a524074380cc6eb4958e9da712` | `3a1a90ff1fa0a7ac2da8227abd6013df0e1184b70606354334ab6140ecdfbda1` | 24 links (18 LOS, 6 NO_PATH); 12 INTERFERENCE, PDR 0.0; 4 TDoA attempts, none eligible and no error metrics | `/tmp/testevidence-844` |
 | farm-rf-localization-failure-v1 | `/home/gusta/.cache/RIOSE/simulation_runs/db28e7b147164087b31f8b88143b6877` | `634b638480dccb1de1fb1f38fb859bd387852e69409acc6ebc7b884310ed9692` | `b32f856ac4d8f8888436cd735041e77b0a32b27ea9f3ea68c5ee32eadfd6149c` | 12 links; 2 TX, 6 gateway PHY receptions, PDR 1.0; 0 eligible timestamps and 2 failed estimates with null error metrics | `/tmp/testevidence-db28` |
 
-All three manifests record `dirty=false` and the same RIOSE revision. Each
+The Cycle 1 run records below retain their original manifests and hashes. All
+three manifests record `dirty=false` and the same RIOSE revision. Each
 package contains 3 artifacts and verified `valid=true`, schema PASS, hashes
 PASS, and `SIMULATED`. The run workspace manifests retain the engine revision,
 request binding statuses, and raw-output hash. Temporal detector/clock values
-are forwarded and their outputs are hashed/coverage-checked, but are not
-independently attested by FREQUENCIA; their effective values remain
-unavailable. Localization output must cover every transmitted packet, and
-reported eligible/converged counts must match estimate statuses.
+were forwarded and output-coverage checked in Cycle 1, but effective values
+were not attested there. The Cycle 6 implementation below adds runtime config
+artifacts without changing those historical evidence packages. Localization
+output must cover every transmitted packet, and reported eligible/converged
+counts must match estimate statuses.
 
 The final full suite reports **463 passed, 7 skipped**. One pre-existing
 Starlette/httpx deprecation warning remains. These results do not change the

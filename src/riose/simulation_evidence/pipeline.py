@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path, PurePosixPath
 import platform
@@ -138,6 +139,75 @@ def _statistics(values: list[float], unit: str) -> dict[str, Any]:
             "min": _metric(ordered[0], unit), "max": _metric(ordered[-1], unit)}
 
 
+def _validate_location_quality(request: dict[str, Any], result: dict[str, Any]) -> None:
+    """Recompute the operational plausibility gate from canonical request bounds."""
+    bounds = request.get("operational_bounds_m")
+    for index, location in enumerate(result["locations"]):
+        if "quality_status" not in location:
+            continue
+        position = location["position_m"]
+        solver_status = location["solver_status"]
+        if position is None:
+            expected = ("NOT_EVALUATED", f"NO_NUMERICAL_POSITION:{solver_status}", bounds)
+        elif bounds is None:
+            expected = ("NOT_EVALUATED", "NO_DECLARED_OPERATIONAL_BOUNDS", None)
+        else:
+            inside = (bounds["east_min_m"] <= position[0] <= bounds["east_max_m"]
+                      and bounds["north_min_m"] <= position[1] <= bounds["north_max_m"])
+            expected = ("ACCEPTED" if inside else "REJECTED",
+                        "WITHIN_DECLARED_OPERATIONAL_BOUNDS" if inside
+                        else "OUTSIDE_DECLARED_OPERATIONAL_BOUNDS", bounds)
+        observed = (location["quality_status"], location["quality_reason"],
+                    location["quality_bounds_m"])
+        if observed != expected:
+            raise EvidenceError(f"result location {index} quality gate does not match request-declared bounds")
+
+
+def _validate_temporal_binding(binding: Any, requested: Any, expected_seed: int, request_hash: str,
+                               run_id: str | None, artifacts: Any) -> None:
+    if (not isinstance(binding, dict) or binding.get("requested") != requested
+            or binding.get("status") not in {"VERIFIED", "NOT_RUN", "NOT_APPLICABLE"}):
+        raise EvidenceError("manifest temporal binding differs from the request")
+    if binding["status"] != "VERIFIED":
+        if requested is None and binding["status"] != "NOT_APPLICABLE":
+            raise EvidenceError("absent temporal settings must be marked NOT_APPLICABLE")
+        if binding.get("effective") is not None:
+            raise EvidenceError("unrun temporal settings cannot claim effective values")
+        return
+    if not isinstance(requested, dict):
+        raise EvidenceError("temporal runtime is verified although the request has no temporal settings")
+    expected_effective = {"detector": requested["detector"], "clocks": requested["clocks"],
+        "clock_seed": expected_seed,
+        "correlated_jitter_std_s": requested["correlated_jitter_std_s"],
+        "timestamp_error_std_s": requested["timestamp_error_std_s"],
+        "noise_figure_db": requested["noise_figure_db"],
+        "snr_threshold_db": requested["snr_threshold_db"],
+        "detection_margin_db": requested["detection_margin_db"],
+        "max_iterations": requested["max_iterations"]}
+    if (binding.get("schema_version") != "riose.simulation.temporal-binding/v1"
+            or binding.get("run_id") != run_id
+            or binding.get("request_sha256") != request_hash
+            or binding.get("forwarded") != requested
+            or binding.get("effective") != expected_effective
+            or not isinstance(binding.get("effective_defaults"), dict)
+            or set(binding["effective_defaults"]) != {"phy.preamble_symbols", "sweep.noise_density_dbm_hz"}
+            or any(not isinstance(row, dict) or row.get("requested") is not None
+                   or row.get("status") != "VERIFIED"
+                   or isinstance(row.get("effective"), bool)
+                   or not isinstance(row.get("effective"), (int, float))
+                   or not math.isfinite(row["effective"])
+                   for row in binding["effective_defaults"].values())
+            or type(binding["effective_defaults"]["phy.preamble_symbols"]["effective"]) is not int
+            or not isinstance(binding.get("observed_detector_modes"), list)
+            or any(mode != requested["detector"]["mode"]
+                   for mode in binding["observed_detector_modes"])):
+        raise EvidenceError("verified temporal runtime settings lack matching run-level evidence")
+    if (not isinstance(artifacts, dict)
+            or binding.get("input_sha256") != artifacts.get("inputs.json")
+            or binding.get("runtime_artifact_sha256") != artifacts.get("pipeline.json")):
+        raise EvidenceError("temporal runtime binding is not tied to this run's input and output artifacts")
+
+
 def _summary(request: dict[str, Any], result: dict[str, Any] | None, failure: dict[str, Any] | None) -> dict[str, Any]:
     campaign_id = request["campaign_id"]
     if failure is not None:
@@ -151,7 +221,8 @@ def _summary(request: dict[str, Any], result: dict[str, Any] | None, failure: di
                 "localization": {key: _metric(None, unit, status="NOT_RUN") for key, unit in
                                  (("attempts", "estimates"), ("positions_available", "estimates"),
                                   ("converged", "estimates"), ("failed", "estimates"),
-                                  ("convergence_rate", "ratio"), ("rmse", "m"), ("median_error", "m"))}}
+                                  ("convergence_rate", "ratio"), ("rmse", "m"), ("median_error", "m"))}
+                                | {"quality": {"ACCEPTED": 0, "REJECTED": 0, "NOT_EVALUATED": 0}}}
 
     assert result is not None
     observations = result["observations"]
@@ -183,6 +254,9 @@ def _summary(request: dict[str, Any], result: dict[str, Any] | None, failure: di
         "localization": {
             "attempts": _metric(len(locations), "estimates"),
             "positions_available": _metric(location_positions, "estimates"),
+            "quality": {status: sum(row.get("quality_status", "NOT_EVALUATED") == status
+                                    for row in locations)
+                        for status in ("ACCEPTED", "REJECTED", "NOT_EVALUATED")},
             "converged": _metric(None, "estimates", status="NOT_AVAILABLE"),
             "failed": _metric(None, "estimates", status="NOT_AVAILABLE"),
             "convergence_rate": _metric(None, "ratio", status="NOT_AVAILABLE"),
@@ -224,6 +298,10 @@ def _report(manifest: dict[str, Any], summary: dict[str, Any]) -> str:
         f"- PDR: {metric(summary['network']['pdr'])}", f"- Collisions: {metric(summary['network']['collisions'])}", "",
         "## Localization Results", f"- Attempts: {metric(summary['localization']['attempts'])}",
         f"- Positions available: {metric(summary['localization']['positions_available'])}",
+        f"- Operational quality accepted / rejected / not evaluated: "
+        f"{summary['localization']['quality']['ACCEPTED']} / "
+        f"{summary['localization']['quality']['REJECTED']} / "
+        f"{summary['localization']['quality']['NOT_EVALUATED']}",
         f"- RMSE: {metric(summary['localization']['rmse'])}", "",
         "## Evidence Classification", "**EvidenceStatus: SIMULATED**",
         "THIS PACKAGE CONTAINS SIMULATION EVIDENCE. IT DOES NOT CONSTITUTE PHYSICAL OR FIELD VALIDATION.", "",
@@ -306,6 +384,7 @@ def build_package(campaign: str | Path, destination: str | Path, *,
                 raise EvidenceError("run manifest backend differs from Simulation Result")
             if result["provenance"]["request_sha256"] not in (None, content_hash(request)):
                 raise EvidenceError("result request hash does not match canonical request")
+            _validate_location_quality(request, result)
         else:
             failure_name = _source_name(root, ("failure.json",))
             if failure_name is None:
@@ -400,6 +479,9 @@ def build_package(campaign: str | Path, destination: str | Path, *,
             engine["capabilities_available"] = run_metadata["engine"].get("capabilities", {})
             engine["ns3_version"] = run_metadata["engine"].get("ns3_version")
             engine["solver_version"] = run_metadata["engine"].get("sionna_version", engine["solver_version"])
+            network_metadata = run_metadata.get("network")
+            if isinstance(network_metadata, dict) and isinstance(network_metadata.get("artifact_sha256"), dict):
+                engine["network"] = {"artifact_sha256": network_metadata["artifact_sha256"]}
         binding = (run_metadata.get("parameter_binding") if run_metadata else None)
         if binding is None:
             binding = {"schema_version": "riose.simulation.parameter-binding/v1",
@@ -678,10 +760,13 @@ def verify_package(package: str | Path, *, max_package_bytes: int = DEFAULT_MAX_
                     raise EvidenceError("verified effective network settings differ from the request")
         temporal_binding = binding.get("temporal")
         if temporal_binding is not None:
-            if (not isinstance(temporal_binding, dict)
-                    or temporal_binding.get("requested") != request["solver"]["parameters"].get("temporal")
-                    or temporal_binding.get("status") not in {"FORWARDED_OUTPUT_HASHED", "NOT_RUN"}):
-                raise EvidenceError("manifest temporal binding differs from the request")
+            requested_temporal = request["solver"]["parameters"].get("temporal")
+            artifact_hashes = (manifest.get("engine", {}).get("network", {})
+                               .get("artifact_sha256", {})
+                               if isinstance(temporal_binding, dict)
+                               and temporal_binding.get("status") == "VERIFIED" else {})
+            _validate_temporal_binding(temporal_binding, requested_temporal, request["seed"], manifest["request_hash"],
+                                       manifest.get("run_id"), artifact_hashes)
         if summary.get("schema_version") != SUMMARY_SCHEMA or summary.get("evidence_status") != "SIMULATED":
             raise EvidenceError("unsupported or improperly classified summary")
         if summary.get("status") != manifest.get("execution", {}).get("status"):

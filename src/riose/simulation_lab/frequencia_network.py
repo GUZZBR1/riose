@@ -7,7 +7,9 @@ algorithms in RIOSE.
 
 from __future__ import annotations
 
+import hashlib
 import json
+from dataclasses import asdict
 from pathlib import Path
 import sys
 from typing import Any
@@ -66,6 +68,10 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
         detection_margin_db=float(temporal["detection_margin_db"]),
     )
     transmissions = []
+    detector_arguments = {"mode": str(detector["mode"]),
+                          "threshold_dbm": detector["threshold_dbm"],
+                          "relative_threshold_db": float(detector["relative_threshold_db"])}
+    detector_results = set()
     for packet in network_result["packets"]:
         if packet.get("tx_start_s") is None:
             continue
@@ -85,9 +91,10 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
         gateway_id = str(event["gateway_id"])
         channel = channels[(animal_id, float(packet["timestamp_s"]), gateway_id)]
         paths = [{"path_index": index, **path} for index, path in enumerate(channel.get("paths", []))]
-        detection = detect({"paths": paths}, str(detector["mode"]),
-                           threshold_dbm=detector["threshold_dbm"],
-                           relative_threshold_db=float(detector["relative_threshold_db"]))
+        detection = detect({"paths": paths}, detector_arguments["mode"],
+                           threshold_dbm=detector_arguments["threshold_dbm"],
+                           relative_threshold_db=detector_arguments["relative_threshold_db"])
+        detector_results.add(detection.detector)
         snr = evaluate_detection(phy, float(channel["received_power_dbm"]), sweep)
         physical = event.get("tdoa_physical_timestamp_s")
         timestamp_observation = None
@@ -126,23 +133,62 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
 
     # This estimation call receives only transmitted packet metadata and PHY
     # receptions. Ground truth is deliberately omitted and scored afterwards.
+    max_iterations = int(temporal["max_iterations"])
     localization = evaluate_network_localization(
         transmissions=transmissions, receptions=receptions,
         gateways=[Gateway(str(row["gateway_ref"]), tuple(float(x) for x in row["position_m"][:2]))
                   for row in gateways], seed=int(request["seed"]),
-        max_iterations=int(temporal["max_iterations"]),
+        max_iterations=max_iterations,
     )
     localization["network_backend"] = network_result["network_backend"]
     localization["ground_truth_boundary"] = "not supplied to estimator; score in RIOSE after estimation"
+    effective_temporal = {
+        "detector": detector_arguments,
+        "detector_results": sorted(detector_results),
+        "clocks": {clock.gateway_id: {key: value for key, value in asdict(clock).items()
+                                       if key != "gateway_id"}
+                   for clock in clock_models},
+        "clock_seed": clock_network.seed,
+        "correlated_jitter_std_s": clock_network.correlated_jitter_std_s,
+        "timestamp_error_std_s": clock_network.timestamp_error_std_s,
+        "noise_figure_db": sweep.noise_figure_db,
+        "snr_threshold_db": sweep.snr_threshold_db,
+        "detection_margin_db": sweep.detection_margin_db,
+        "max_iterations": max_iterations,
+    }
     return {"network": network_result, "timestamps": timestamp_rows,
-            "localization": localization}
+            "localization": localization,
+            "temporal_runtime": {
+                "schema_version": "riose.simulation.temporal-runtime/v1",
+                "run_id": payload["run_id"],
+                "request_sha256": payload["request_sha256"],
+                "input_sha256": payload["input_sha256"],
+                "units": {"offset_s": "s", "drift_ppm": "ppm", "jitter_std_s": "s",
+                          "quantization_s": "s", "correlated_jitter_std_s": "s",
+                          "timestamp_error_std_s": "s", "threshold_dbm": "dBm",
+                          "relative_threshold_db": "dB", "noise_figure_db": "dB",
+                          "snr_threshold_db": "dB", "detection_margin_db": "dB",
+                          "max_iterations": "iterations"},
+                "detector_threshold_semantics": (
+                    "RELATIVE_TO_STRONGEST_PATH" if detector_arguments["threshold_dbm"] is None
+                    else "ABSOLUTE_DBM"),
+                "effective": effective_temporal,
+                "effective_defaults": {
+                    "phy.preamble_symbols": {"requested": None, "effective": phy.preamble_symbols,
+                                              "status": "VERIFIED"},
+                    "sweep.noise_density_dbm_hz": {"requested": None,
+                        "effective": sweep.noise_density_dbm_hz, "status": "VERIFIED"},
+                },
+            }}
 
 
 def main() -> int:
     if len(sys.argv) != 4:
         raise SystemExit("usage: frequencia_network.py INPUT.json OUTPUT.json ENGINE_ROOT")
     input_path, output_path, engine_root = map(Path, sys.argv[1:])
-    payload = json.loads(input_path.read_text(encoding="utf-8"))
+    input_bytes = input_path.read_bytes()
+    payload = json.loads(input_bytes)
+    payload["input_sha256"] = hashlib.sha256(input_bytes).hexdigest()
     result = run_pipeline(payload, engine_root)
     output_path.write_text(json.dumps(result, allow_nan=False), encoding="utf-8")
     return 0

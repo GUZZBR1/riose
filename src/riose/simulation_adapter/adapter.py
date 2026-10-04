@@ -218,6 +218,10 @@ def convert_result(
                 "source_system": source_system_by_identity[("transmitter_id", row["source_tag_ref"])],
                 "source_tag_ref": row["source_tag_ref"], "source_z_m": pos[2] if pos is not None and len(pos) > 2 else None,
                 "method": row["method"], "status": "SIMULATED", "provenance": dict(doc["provenance"]),
+                "solver_status": row.get("solver_status"),
+                "quality_status": row.get("quality_status"),
+                "quality_reason": row.get("quality_reason"),
+                "quality_bounds_m": row.get("quality_bounds_m"),
             })
         except (ConversionError, KeyError, TypeError, ValueError) as exc:
             rejected += 1

@@ -14,8 +14,10 @@ from riose.simulation_lab.farm_rf import (
     _network_input,
     _network_summary,
     _result,
+    _quality_assessment,
     _score_after_estimation,
     _summary_markdown,
+    _validate_operational_bounds,
     _validate_localization_result,
     _validate_network_result,
 )
@@ -144,6 +146,8 @@ def test_two_gateway_tdoa_failure_is_reported_without_a_position():
                      network, [], localization)
     assert result["locations"][0]["position_m"] is None
     assert "LT3_TIMESTAMPS" in result["locations"][0]["method"]
+    assert result["locations"][0]["solver_status"] == "LT3_TIMESTAMPS"
+    assert result["locations"][0]["quality_status"] == "NOT_EVALUATED"
 
 
 def test_localization_estimate_device_must_match_packet_animal():
@@ -210,9 +214,11 @@ def test_sionna_links_are_mapped_to_external_network_records_without_recomputing
     raw = {"snapshots": [{"timestamp_s": 0.0, "records": [{"receiver_id": "rx-GW-1", "links": [
         {"transmitter_id": "tx-001", "status": "NO_PATH", "received_power_dbm": None, "paths": []},
     ]}]}]}
-    payload = _network_input(request, raw)
+    payload = _network_input(request, raw, "run-123", "a" * 64)
     row = payload["records"][0]
     assert payload["request"] is request
+    assert payload["run_id"] == "run-123"
+    assert payload["request_sha256"] == "a" * 64
     assert row["animal_id"] == "animal-001"
     assert row["gateway_id"] == "GW-1"
     assert row["tx_position_m"] == request["trajectory"]["samples"][0]["position_m"]
@@ -247,6 +253,7 @@ def test_result_keeps_phy_reception_distinct_from_path_and_localization_failure(
     assert "LT3_TIMESTAMPS" in result["locations"][0]["method"]
     assert convert_result(result).observations[0].packet_received is True
     assert convert_result(result).estimates[0].x is None
+    assert convert_result(result).estimate_provenance[0]["quality_status"] == "NOT_EVALUATED"
 
 
 def test_ground_truth_is_used_only_by_separate_post_estimation_scoring():
@@ -260,6 +267,7 @@ def test_ground_truth_is_used_only_by_separate_post_estimation_scoring():
     assert result["ground_truth_used_after_estimation"] is True
     assert result["scored"] == 1
     assert result["estimates"][0]["error_m"] == pytest.approx(0.0)
+    assert result["estimates"][0]["quality_status"] == "ACCEPTED"
     assert "ground_truth" not in localization["estimates"][0]
     before = deepcopy(localization)
     changed_truth = deepcopy(request)
@@ -267,10 +275,34 @@ def test_ground_truth_is_used_only_by_separate_post_estimation_scoring():
     changed_score = _score_after_estimation(changed_truth, network, localization)
     assert localization == before
     assert changed_score["estimates"][0]["error_m"] != result["estimates"][0]["error_m"]
+    assert changed_score["estimates"][0]["quality_status"] == result["estimates"][0]["quality_status"]
+
+
+def test_converged_remote_zero_residual_estimate_is_operationally_rejected():
+    request = request_doc()
+    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0}]}
+    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+        "tdoa_position_m": [1248.8757, -4000.8982], "tdoa_status": "CONVERGED",
+        "tdoa_residual_rms_m": 8e-14}], "metrics": localization_metrics(1, 1)}
+    score = _score_after_estimation(request, network, localization)
+    raw = {"snapshots": [{"timestamp_s": sample["timestamp_s"], "records": [
+        {"receiver_id": receiver["receiver_ref"], "links": [{"transmitter_id": tag["transmitter_ref"],
+         "status": "NO_PATH", "received_power_dbm": None, "paths": []}]}
+        for tag in request["tags"] for receiver in request["receivers"]]}
+        for sample in request["trajectory"]["samples"]]}
+    result = _result(request, raw, {}, {}, "a" * 64, "b" * 64,
+                     network, [], localization)
+    estimate = result["locations"][0]
+    assert estimate["solver_status"] == "CONVERGED"
+    assert estimate["quality_status"] == "REJECTED"
+    assert estimate["quality_reason"] == "OUTSIDE_DECLARED_OPERATIONAL_BOUNDS"
+    assert estimate["position_m"] == [1248.8757, -4000.8982]
+    assert score["estimates"][0]["error_m"] is not None
 
 
 def test_upstream_estimator_receives_no_ground_truth_argument(monkeypatch, tmp_path):
     from riose.simulation_lab.frequencia_network import run_pipeline
+    from dataclasses import dataclass
 
     observed = {}
     def module(name, **attributes):
@@ -290,15 +322,35 @@ def test_upstream_estimator_receives_no_ground_truth_argument(monkeypatch, tmp_p
         return {"estimates": [], "metrics": {"tdoa": {}}}
     module("localization.network_pipeline", evaluate_network_localization=estimate)
     module("temporal")
-    module("temporal.clock", ClockModel=lambda **kwargs: kwargs,
-           ClockNetwork=lambda *args, **kwargs: types.SimpleNamespace(observe=lambda *args, **kwargs: None))
+    @dataclass(frozen=True)
+    class Clock:
+        gateway_id: str
+        offset_s: float
+        drift_ppm: float
+        jitter_std_s: float
+        quantization_s: float | None
+
+    def clock_network(clocks, **kwargs):
+        return types.SimpleNamespace(observe=lambda *args, **kwargs: None,
+            _clocks={clock.gateway_id: clock for clock in clocks},
+            seed=kwargs["seed"],
+            correlated_jitter_std_s=kwargs["correlated_jitter_std_s"],
+            timestamp_error_std_s=kwargs["timestamp_error_std_s"])
+
+    module("temporal.clock", ClockModel=Clock, ClockNetwork=clock_network)
     module("temporal.detectors", detect=lambda *args, **kwargs: None)
-    module("temporal.phy", DetectionSweep=lambda **kwargs: kwargs,
-           LoRaPhyConfig=lambda **kwargs: kwargs, evaluate_detection=lambda *args: None)
+    module("temporal.phy", DetectionSweep=lambda **kwargs: types.SimpleNamespace(
+               noise_density_dbm_hz=-174.0, **kwargs),
+           LoRaPhyConfig=lambda **kwargs: types.SimpleNamespace(preamble_symbols=8, **kwargs),
+           evaluate_detection=lambda *args: None)
 
     request = request_doc()
-    payload = {"request": request, "records": [], "ns3_root": str(tmp_path)}
+    payload = {"request": request, "records": [], "ns3_root": str(tmp_path),
+               "run_id": "run-test", "request_sha256": "a" * 64, "input_sha256": "b" * 64}
     first = run_pipeline(payload, tmp_path)
+    assert first["temporal_runtime"]["run_id"] == "run-test"
+    assert first["temporal_runtime"]["request_sha256"] == "a" * 64
+    assert first["temporal_runtime"]["input_sha256"] == "b" * 64
     assert "ground_truth" not in observed
     assert "position_m" not in observed
     assert observed["transmissions"] == []
@@ -388,7 +440,88 @@ def test_sionna_result_unknown_ids_fail_closed():
     request = request_doc()
     raw = {"snapshots": [{"timestamp_s": 0.0, "records": [{"receiver_id": "rx-unknown", "links": []}]}]}
     with pytest.raises(RunnerError, match="unmapped receiver"):
-        _network_input(request, raw)
+        _network_input(request, raw, "run-123", "a" * 64)
+
+
+def test_effective_temporal_runtime_is_bound_to_run_request_and_values():
+    from riose.simulation_lab.farm_rf import _validate_temporal_runtime
+
+    request = request_doc()
+    temporal = request["solver"]["parameters"]["temporal"]
+    effective = {
+        "detector": temporal["detector"], "detector_results": [temporal["detector"]["mode"]],
+        "clocks": temporal["clocks"],
+        "clock_seed": request["seed"],
+        "clock_seed": request["seed"],
+        "correlated_jitter_std_s": temporal["correlated_jitter_std_s"],
+        "timestamp_error_std_s": temporal["timestamp_error_std_s"],
+        "noise_figure_db": temporal["noise_figure_db"],
+        "snr_threshold_db": temporal["snr_threshold_db"],
+        "detection_margin_db": temporal["detection_margin_db"],
+        "max_iterations": temporal["max_iterations"],
+    }
+    units = {"offset_s": "s", "drift_ppm": "ppm", "jitter_std_s": "s",
+             "quantization_s": "s", "correlated_jitter_std_s": "s", "timestamp_error_std_s": "s",
+             "threshold_dbm": "dBm", "relative_threshold_db": "dB", "noise_figure_db": "dB",
+             "snr_threshold_db": "dB", "detection_margin_db": "dB", "max_iterations": "iterations"}
+    runtime = {"schema_version": "riose.simulation.temporal-runtime/v1",
+               "run_id": "run-123", "request_sha256": "a" * 64,
+               "input_sha256": "b" * 64, "units": units,
+               "detector_threshold_semantics": "RELATIVE_TO_STRONGEST_PATH", "effective": effective,
+               "effective_defaults": {
+                   "phy.preamble_symbols": {"requested": None, "effective": 8, "status": "VERIFIED"},
+                   "sweep.noise_density_dbm_hz": {"requested": None, "effective": -174.0,
+                                                   "status": "VERIFIED"}}}
+    binding = _validate_temporal_runtime(request, runtime, "run-123", "a" * 64, "b" * 64)
+    assert binding["status"] == "VERIFIED"
+    assert binding["effective"]["detector"]["threshold_dbm"] is None
+    absolute_request = deepcopy(request)
+    absolute_request["solver"]["parameters"]["temporal"]["detector"]["threshold_dbm"] = 0.0
+    runtime["effective"]["detector"] = absolute_request["solver"]["parameters"]["temporal"]["detector"]
+    runtime["detector_threshold_semantics"] = "ABSOLUTE_DBM"
+    _validate_temporal_runtime(absolute_request, runtime, "run-123", "a" * 64, "b" * 64)
+    runtime["effective"]["detector"] = temporal["detector"]
+    runtime["detector_threshold_semantics"] = "RELATIVE_TO_STRONGEST_PATH"
+
+    runtime["run_id"] = "another-run"
+    with pytest.raises(RunnerError, match="wrong schema, run, or request identity"):
+        _validate_temporal_runtime(request, runtime, "run-123", "a" * 64, "b" * 64)
+    runtime["run_id"] = "run-123"
+    runtime["effective"]["snr_threshold_db"] += 1
+    with pytest.raises(RunnerError, match="effective temporal settings differ"):
+        _validate_temporal_runtime(request, runtime, "run-123", "a" * 64, "b" * 64)
+    runtime["effective"]["snr_threshold_db"] -= 1
+    runtime["units"]["offset_s"] = "ns"
+    with pytest.raises(RunnerError, match="incorrect units"):
+        _validate_temporal_runtime(request, runtime, "run-123", "a" * 64, "b" * 64)
+    runtime["units"] = units
+    runtime["input_sha256"] = "c" * 64
+    with pytest.raises(RunnerError, match="wrong schema, run, or request identity"):
+        _validate_temporal_runtime(request, runtime, "run-123", "a" * 64, "b" * 64)
+
+
+def test_operational_quality_gate_preserves_raw_point_and_never_uses_truth():
+    request = request_doc()
+    inside = _quality_assessment(request, "CONVERGED", [500.0, 500.0])
+    outside = _quality_assessment(request, "CONVERGED", [1248.8, -4000.9])
+    failed = _quality_assessment(request, "LT3_TIMESTAMPS", None)
+    assert inside["quality_status"] == "ACCEPTED"
+    assert outside["quality_status"] == "REJECTED"
+    assert outside["quality_reason"] == "OUTSIDE_DECLARED_OPERATIONAL_BOUNDS"
+    assert failed["quality_status"] == "NOT_EVALUATED"
+    request.pop("operational_bounds_m")
+    assert _quality_assessment(request, "CONVERGED", [0.0, 0.0])["quality_status"] == "NOT_EVALUATED"
+
+
+def test_operational_bounds_must_be_finite_and_increasing():
+    request = request_doc()
+    request["operational_bounds_m"]["east_max_m"] = request["operational_bounds_m"]["east_min_m"]
+    with pytest.raises(ContractError, match="increasing east and north limits"):
+        validate_request(request)
+    request = request_doc()
+    request["operational_bounds_m"]["east_max_m"] = 1001.0
+    with pytest.raises(ContractError, match="declared FARM scenario area"):
+        _validate_operational_bounds(request, 1000.0)
 
 
 def test_multiple_tags_can_share_each_trajectory_timestamp():

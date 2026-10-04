@@ -112,7 +112,8 @@ def _mapping_index(mappings: list[dict[str, Any]]) -> dict[tuple[str, str], tupl
 def validate_request(doc: Any) -> dict[str, Any]:
     d = _object(doc, "request", {"schema_version", "campaign_id", "scenario_id", "seed", "backend",
         "coordinate_frame", "units", "tags", "receivers", "id_mappings", "trajectory",
-        "radio", "solver", "input_references", "provenance", "expected_evidence"})
+        "radio", "solver", "input_references", "provenance", "expected_evidence"},
+        {"operational_bounds_m"})
     if d["schema_version"] != REQUEST_SCHEMA:
         raise ContractError(f"unsupported request schema_version: {d['schema_version']!r}")
     for key in ("campaign_id", "scenario_id", "backend"):
@@ -121,6 +122,13 @@ def validate_request(doc: Any) -> dict[str, Any]:
         raise ContractError("request.seed must be a non-negative integer")
     if d["coordinate_frame"] != _FRAME:
         raise ContractError("request.coordinate_frame must be ENU_LOCAL")
+    if "operational_bounds_m" in d:
+        bounds = _object(d["operational_bounds_m"], "request.operational_bounds_m",
+                         {"east_min_m", "east_max_m", "north_min_m", "north_max_m"})
+        for key, value in bounds.items():
+            _number(value, f"request.operational_bounds_m.{key}")
+        if bounds["east_min_m"] >= bounds["east_max_m"] or bounds["north_min_m"] >= bounds["north_max_m"]:
+            raise ContractError("request.operational_bounds_m must have increasing east and north limits")
     units = _object(d["units"], "request.units", {"position", "timestamp", "frequency", "bandwidth", "power", "delay", "phase"})
     expected_units = {"position": "m", "timestamp": "s", "frequency": "Hz", "bandwidth": "Hz", "power": "dBm", "delay": "s", "phase": "rad"}
     if units != expected_units:
@@ -300,7 +308,8 @@ def validate_result(doc: Any) -> dict[str, Any]:
         if metrics["phase_rad"] is not None and not -math.pi <= metrics["phase_rad"] <= math.pi:
             raise ContractError(f"observations[{i}].metrics.phase_rad must use principal radians [-pi, pi]")
     for i, raw in enumerate(_array(d["locations"], "result.locations")):
-        loc = _object(raw, f"locations[{i}]", {"timestamp_s", "source_tag_ref", "tag_id", "position_m", "quality", "method", "status"})
+        loc = _object(raw, f"locations[{i}]", {"timestamp_s", "source_tag_ref", "tag_id", "position_m", "quality", "method", "status"},
+                      {"solver_status", "quality_status", "quality_reason", "quality_bounds_m"})
         _number(loc["timestamp_s"], f"locations[{i}].timestamp_s", minimum=0)
         _text(loc["source_tag_ref"], f"locations[{i}].source_tag_ref")
         if loc["tag_id"] is not None:
@@ -316,6 +325,30 @@ def validate_result(doc: Any) -> dict[str, Any]:
         if loc["quality"] is not None:
             _number(loc["quality"], f"locations[{i}].quality", minimum=0, maximum=1)
         _text(loc["method"], f"locations[{i}].method")
+        quality_fields = {"solver_status", "quality_status", "quality_reason", "quality_bounds_m"}
+        if quality_fields & loc.keys():
+            if not quality_fields <= loc.keys():
+                raise ContractError(f"locations[{i}] must provide complete solver/quality audit fields")
+            if not isinstance(loc["solver_status"], str) or not loc["solver_status"]:
+                raise ContractError(f"locations[{i}].solver_status must be non-empty")
+            if loc["quality_status"] not in {"ACCEPTED", "REJECTED", "NOT_EVALUATED"}:
+                raise ContractError(f"locations[{i}].quality_status is invalid")
+            if not isinstance(loc["quality_reason"], str) or not loc["quality_reason"]:
+                raise ContractError(f"locations[{i}].quality_reason must be non-empty")
+            bounds = loc["quality_bounds_m"]
+            if bounds is not None:
+                bounds = _object(bounds, f"locations[{i}].quality_bounds_m",
+                                 {"east_min_m", "east_max_m", "north_min_m", "north_max_m"})
+                for key, value in bounds.items():
+                    _number(value, f"locations[{i}].quality_bounds_m.{key}")
+                if bounds["east_min_m"] >= bounds["east_max_m"] or bounds["north_min_m"] >= bounds["north_max_m"]:
+                    raise ContractError(f"locations[{i}].quality_bounds_m must have increasing limits")
+            if loc["quality_status"] == "ACCEPTED" and loc["position_m"] is None:
+                raise ContractError(f"locations[{i}] cannot accept a missing estimate")
+            if loc["quality_status"] in {"ACCEPTED", "REJECTED"} and loc["quality_bounds_m"] is None:
+                raise ContractError(f"locations[{i}] cannot evaluate quality without declared bounds")
+            if loc["quality_status"] == "NOT_EVALUATED" and not loc["quality_reason"].strip():
+                raise ContractError(f"locations[{i}] must explain why quality was not evaluated")
         if loc["status"] != "SIMULATED":
             raise ContractError("location status must remain SIMULATED")
     return d
