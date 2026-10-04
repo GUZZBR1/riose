@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from datetime import date
 import json
 import math
-import time
 from pathlib import Path
 from typing import Any, Literal
 import sqlite3
@@ -22,7 +21,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from ..domain.contracts import Anchor, FarmConfig
 from .persistence import Store
 from ..domain.identity import make_cryptographic_id
-from ..application.publication_observability import PublicationObservabilityService
 
 
 class AnimalCreate(BaseModel):
@@ -183,7 +181,6 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return JSONResponse(status_code=422, content={"detail": json_safe(exc.errors())})
 
     app.state.store = Store(db_path)
-    app.state.publication_observability = PublicationObservabilityService()
     app.state.anchors = []
     app.state.last_config = None
     app.state.last_ground_truth = None
@@ -206,12 +203,6 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "evidence": "SIMULATED"}
-
-    @app.get("/api/publication/observability")
-    def publication_observability() -> dict[str, Any]:
-        """Expose a safe disabled/unknown state until a publisher owns metrics."""
-        snapshot = app.state.publication_observability.unavailable_snapshot(now=time.time())
-        return asdict(snapshot)
 
     @app.get("/api/animals")
     def animals() -> list[dict[str, Any]]:
@@ -383,7 +374,7 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     def capabilities() -> dict[str, Any]:
         from ..simulation.advanced import advanced_capabilities
         return {"advanced_rf": advanced_capabilities(), "hardware": capability_status(),
-                "cellular": "FUTURE", "blockchain": "FUTURE"}
+                "cellular": "FUTURE"}
 
     @app.get("/api/metrics")
     def metrics() -> dict[str, Any]:
