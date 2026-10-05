@@ -28,7 +28,8 @@
 | `origin/main` at audit | `6b2dda81016150e6df9687d14aa4584d23eb6302` |
 | Branch base / initial SHA | `2c9c477321505ba7983acf63d1f07c634cf7002a` (`research/simulation-lab`, clean, 12 commits ahead of `origin/main`) |
 | Final branch | `research/rf-realism-campaign` |
-| Commits | See branch history; campaign work is isolated from other worktrees. |
+| Campaign execution SHA | `f231ffc783f7881d63675faa782efbbb605eb778` (clean source tree; execution and aggregate provenance bind to this revision) |
+| Commits | `196eb19`, `9108d1b`, `f231ffc`, plus the final aggregate-evidence commit; campaign work is isolated from other worktrees. |
 | Push / PR / merge | None / none / none |
 | FREQUENCIA | External repository; campaign used a clean detached worktree at the pinned revision. Existing primary checkout had unrelated dirty documentation/results and was not modified. |
 
@@ -42,7 +43,7 @@ Required roles were attempted as architecture auditor, Sionna specialist, and an
 - Analytic: 270 per-link calls, deterministic, seed not consumed.
 - Sionna: 109 solver snapshots; each has 3–6 receiver links.
 - Raw records: 656; simulation failures: 0; `NO_PATH` links: 4; deterministic repeat comparison: identical physical observables.
-- Runtime: 13.45 s in the final verified run.
+- Runtime: 15.17 s in the final verified run.
 - Environment: Sionna RT 2.2.0, Mitsuba 3.9.1, Dr.Jit 1.5.0, NumPy 2.5.3; WSL2/Linux, CPU (`CUDA_VISIBLE_DEVICES=-1`).
 - Inputs and raw artifact hashes: [aggregate-summary.json](aggregate-summary.json). The full raw path, including each Sionna path/CIR/CFR record, remains outside Git under the per-run cache path in that summary.
 
