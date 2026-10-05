@@ -1187,7 +1187,7 @@ def _run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | Non
         temporal_binding = _validate_temporal_runtime(request, temporal_runtime, run_id, request_hash,
                                                       network_input_hash)
         temporal_binding["runtime_artifact_sha256"] = hashlib.sha256(network_output_path.read_bytes()).hexdigest()
-        expected_rx = {(str(row["event_index"]), str(row["gateway_id"]))
+        expected_rx = {(str(row["request_id"]), str(row["gateway_id"]))
                        for row in network_result["gateway_events"] if row["outcome"] == "RX"}
         received_timestamps: set[tuple[str, str]] = set()
         for row in temporal_rows:
