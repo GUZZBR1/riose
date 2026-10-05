@@ -1,0 +1,418 @@
+{
+  "schema_version": "riose.beta.scenario-contract/v1",
+  "scenario_id": "brazil-rural-multi-animal-nominal",
+  "description": "Ten distinct animal/tag/device identities at low-cadence nominal simulated conditions.",
+  "seed": 11,
+  "identities": [
+    {
+      "animal_id": "riose-animal-001",
+      "tag_id": "riose-tag-001",
+      "device_id": "riose-device-001"
+    },
+    {
+      "animal_id": "riose-animal-002",
+      "tag_id": "riose-tag-002",
+      "device_id": "riose-device-002"
+    },
+    {
+      "animal_id": "riose-animal-003",
+      "tag_id": "riose-tag-003",
+      "device_id": "riose-device-003"
+    },
+    {
+      "animal_id": "riose-animal-004",
+      "tag_id": "riose-tag-004",
+      "device_id": "riose-device-004"
+    },
+    {
+      "animal_id": "riose-animal-005",
+      "tag_id": "riose-tag-005",
+      "device_id": "riose-device-005"
+    },
+    {
+      "animal_id": "riose-animal-006",
+      "tag_id": "riose-tag-006",
+      "device_id": "riose-device-006"
+    },
+    {
+      "animal_id": "riose-animal-007",
+      "tag_id": "riose-tag-007",
+      "device_id": "riose-device-007"
+    },
+    {
+      "animal_id": "riose-animal-008",
+      "tag_id": "riose-tag-008",
+      "device_id": "riose-device-008"
+    },
+    {
+      "animal_id": "riose-animal-009",
+      "tag_id": "riose-tag-009",
+      "device_id": "riose-device-009"
+    },
+    {
+      "animal_id": "riose-animal-010",
+      "tag_id": "riose-tag-010",
+      "device_id": "riose-device-010"
+    }
+  ],
+  "environment": {
+    "farm_id": "synthetic-farm-reference",
+    "coordinate_frame": "ENU_LOCAL",
+    "bounds_m": {
+      "east_min_m": 0,
+      "east_max_m": 1000,
+      "north_min_m": 0,
+      "north_max_m": 1000
+    },
+    "classification": "SIMULATED"
+  },
+  "rf": {
+    "mode": "sionna-rt",
+    "classification": "SIMULATED",
+    "parameters": {
+      "frequency_hz": 915000000,
+      "bandwidth_hz": 125000
+    }
+  },
+  "network": {
+    "mode": "ns-3-lorawan",
+    "classification": "SIMULATED",
+    "parameters": {
+      "spreading_factor": 7,
+      "payload_bytes": 12,
+      "traffic_interval_s": 60
+    }
+  },
+  "trajectory": {
+    "source": "inline synthetic request trajectory; ground truth is score-only input",
+    "classification": "SIMULATED",
+    "samples": [
+      {
+        "animal_id": "riose-animal-001",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          200.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-001",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          200.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-001",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          201.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-002",
+        "tag_id": "riose-tag-002",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          220.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-002",
+        "tag_id": "riose-tag-002",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          220.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-002",
+        "tag_id": "riose-tag-002",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          221.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-003",
+        "tag_id": "riose-tag-003",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          240.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-003",
+        "tag_id": "riose-tag-003",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          240.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-003",
+        "tag_id": "riose-tag-003",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          241.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-004",
+        "tag_id": "riose-tag-004",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          260.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-004",
+        "tag_id": "riose-tag-004",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          260.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-004",
+        "tag_id": "riose-tag-004",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          261.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-005",
+        "tag_id": "riose-tag-005",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          280.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-005",
+        "tag_id": "riose-tag-005",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          280.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-005",
+        "tag_id": "riose-tag-005",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          281.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-006",
+        "tag_id": "riose-tag-006",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          300.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-006",
+        "tag_id": "riose-tag-006",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          300.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-006",
+        "tag_id": "riose-tag-006",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          301.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-007",
+        "tag_id": "riose-tag-007",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          320.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-007",
+        "tag_id": "riose-tag-007",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          320.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-007",
+        "tag_id": "riose-tag-007",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          321.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-008",
+        "tag_id": "riose-tag-008",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          340.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-008",
+        "tag_id": "riose-tag-008",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          340.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-008",
+        "tag_id": "riose-tag-008",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          341.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-009",
+        "tag_id": "riose-tag-009",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          360.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-009",
+        "tag_id": "riose-tag-009",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          360.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-009",
+        "tag_id": "riose-tag-009",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          361.0,
+          10.82175341157224
+        ]
+      },
+      {
+        "animal_id": "riose-animal-010",
+        "tag_id": "riose-tag-010",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          380.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-010",
+        "tag_id": "riose-tag-010",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          380.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-010",
+        "tag_id": "riose-tag-010",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          381.0,
+          10.82175341157224
+        ]
+      }
+    ]
+  },
+  "movement": {
+    "mode": "not-connected-to-RF-run",
+    "classification": "NOT_EVALUATED"
+  },
+  "faults": [
+    "NONE"
+  ],
+  "localization": {
+    "mode": "tdoa",
+    "classification": "SIMULATED",
+    "parameters": {
+      "quality_bounds_required": true
+    }
+  },
+  "blockchain": {
+    "mode": "offline-fake-not-in-RF-run",
+    "classification": "NOT_EVALUATED"
+  },
+  "expected_evidence": {
+    "scenario": "SIMULATED",
+    "rf": "SIMULATED",
+    "network": "SIMULATED",
+    "localization": "SIMULATED",
+    "movement": "NOT_EVALUATED",
+    "blockchain": "NOT_EVALUATED"
+  }
+}

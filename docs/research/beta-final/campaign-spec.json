@@ -1,7 +1,7 @@
 {
   "schema_version": "riose.beta.campaign-spec/v1",
   "campaign_id": "riose-beta-simulation-v1",
-  "purpose": "Run a bounded nominal, collision, and localization-rejection simulation with retained seeds and failures.",
+  "purpose": "Run a bounded nominal, ten-animal, collision, and localization-unavailability simulation with retained seeds and failures.",
   "required_evidence_classification": "SIMULATED",
   "riose_revision_policy": "clean HEAD required; one revision for every run",
   "simulator": {
@@ -12,12 +12,49 @@
     "network_adapter": "ns-3 LoRaWAN"
   },
   "scenarios": [
-    {"scenario_id": "brazil-rural-reference-smoke", "scenario": "docs/research/beta-final/scenarios/baseline.json", "request_template": "examples/farm_rf_v1.json", "purpose": "nominal control"},
-    {"scenario_id": "brazil-rural-collision-stress", "scenario": "docs/research/beta-final/scenarios/collision.json", "request_template": "examples/farm_rf_collision_v1.json", "purpose": "seeded high-cadence collision stress"},
-    {"scenario_id": "brazil-rural-localization-rejection", "scenario": "docs/research/beta-final/scenarios/localization-failure.json", "request_template": "examples/farm_rf_localization_failure_v1.json", "purpose": "explicit severe detector threshold and fail-closed localization"}
+    {
+      "scenario_id": "brazil-rural-reference-smoke",
+      "scenario": "docs/research/beta-final/scenarios/baseline.json",
+      "request_template": "examples/farm_rf_v1.json",
+      "purpose": "nominal control"
+    },
+    {
+      "scenario_id": "brazil-rural-collision-stress",
+      "scenario": "docs/research/beta-final/scenarios/collision.json",
+      "request_template": "examples/farm_rf_collision_v1.json",
+      "purpose": "seeded high-cadence collision stress"
+    },
+    {
+      "scenario_id": "brazil-rural-localization-rejection",
+      "scenario": "docs/research/beta-final/scenarios/localization-failure.json",
+      "request_template": "examples/farm_rf_localization_failure_v1.json",
+      "purpose": "explicit severe detector threshold and fail-closed localization"
+    },
+    {
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "scenario": "docs/research/beta-final/scenarios/multi-animal.json",
+      "request_template": "examples/farm_rf_multi_animal_v1.json",
+      "purpose": "ten-animal low-cadence nominal identity-isolation and small-scale network run"
+    }
   ],
-  "seeds": [11, 29, 47],
+  "seeds": [
+    11,
+    29,
+    47
+  ],
   "seed_policy": "predeclared distinct seeds; all runs and failures retained",
-  "reproducibility_repeats": [{"scenario_id": "brazil-rural-reference-smoke", "seed": 11, "copies": 2}],
-  "not_in_scope": ["physical tag measurements", "field validation", "application-server delivery", "clinical or reproductive diagnosis", "capacity beyond the declared small simulation cases"]
+  "reproducibility_repeats": [
+    {
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "copies": 2
+    }
+  ],
+  "not_in_scope": [
+    "physical tag measurements",
+    "field validation",
+    "application-server delivery",
+    "clinical or reproductive diagnosis",
+    "network capacity beyond ten synthetic tags"
+  ]
 }
