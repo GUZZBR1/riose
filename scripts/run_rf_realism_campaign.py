@@ -15,6 +15,7 @@ import json
 import math
 import os
 from pathlib import Path
+import platform
 import random
 import statistics
 import subprocess
@@ -395,6 +396,8 @@ def main() -> int:
         "riose_dirty": riose_dirty,
         "frequencia_revision": actual_sha,
         "frequencia_dirty": dirty,
+        "python_version": sys.version.split()[0],
+        "platform": platform.platform(),
         "sionna_rt_version": sionna_version,
         "package_versions": package_versions,
         "seed": SEED,
@@ -407,6 +410,8 @@ def main() -> int:
         "raw_records": len(raw),
         "runtime_seconds": time.monotonic() - start,
         "seed_determinism_identical": determinism,
+        "output_root": str(args.output),
+        "raw_artifact_path": str(raw_path),
         "geometry_cases": {key: len(value) for key, value in geometry_cases.items()},
         "geometry_coverage_maps": {
             backend: {
@@ -439,6 +444,8 @@ def main() -> int:
                    "flat_ground_sha256": sha256(flat),
                    "wall_mesh_sha256": sha256(wall),
                    "campaign_script_sha256": sha256(Path(__file__).resolve()),
+                   "campaign_spec_sha256": sha256(riose_root / "docs/research/rf-realism/campaign-spec.json"),
+                   "frequencia_reference_config_sha256": sha256(engine / "configs/brazil_reference.yaml"),
                    "analytic_source_sha256": sha256(engine / "rf/channel.py"),
                    "sionna_source_sha256": sha256(engine / "rf/sionna_backend.py"),
                    "terrain_mesh_sha256": sha256(terrain) if args.sionna else None},
