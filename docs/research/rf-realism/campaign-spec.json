@@ -1,0 +1,42 @@
+{
+  "schema_version": "riose.rf-realism-campaign/v1",
+  "classification": "SIMULATED",
+  "purpose": "Characterize simulated RF propagation and observability across controlled synthetic cases before physical testing.",
+  "provenance": {
+    "riose_revision": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+    "frequencia_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+    "riose_dirty_at_campaign_start": false,
+    "frequencia_source_worktree": "clean detached worktree at pinned revision",
+    "frequencia_original_checkout_dirty": true,
+    "sionna_rt_version": "2.2.0",
+    "environment": "Linux WSL2, CPU execution (CUDA_VISIBLE_DEVICES=-1)"
+  },
+  "radio": {
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14.0,
+    "antenna": "ASSUMED isotropic, single-element vertical polarization in Sionna; analytic scalar gains",
+    "receiver_noise_figure_db": 6.0,
+    "coverage_threshold_dbm": -127.0,
+    "coverage_threshold_origin": "ENGINEERING_ASSUMPTION derived as -174 dBm/Hz + 10log10(125 kHz) + 6 dB NF - 10 dB minimum SNR; not a hardware sensitivity claim"
+  },
+  "design": {
+    "seed": 20261005,
+    "sequence": ["control", "isolated_sweeps", "geometry_and_environment", "combined_stress", "directed_monte_carlo", "paired_comparison"],
+    "distance_m": [5, 10, 25, 50, 100, 250, 500, 1000],
+    "transmitter_height_m": [1.0, 1.5, 2.5],
+    "receiver_height_m": [4.0, 8.0, 12.0],
+    "orientation": "NOT_TESTED: existing RIOSE direct Sionna wrapper creates fixed isotropic arrays and exposes no tag orientation",
+    "geometry_cases": ["symmetric_corners", "asymmetric", "one_side", "sparse_three", "denser_six", "elongated"],
+    "farm_sample_grid": "3x3 including corners, edges and interior",
+    "environment_cases": ["flat_open_control", "direct_path_blocked_by_vertical_wall", "flat_vs_synthetic_relief"],
+    "multipath_cases": ["direct_only", "LOS_plus_specular_ground_reflection", "wall_reflection_search"],
+    "monte_carlo": {
+      "trials": 30,
+      "position_seed": 20261005,
+      "distribution": "uniform over synthetic 1000 m square",
+      "solver_seed": 20261005,
+      "note": "Positions are sampled reproducibly; deterministic path solver does not imply stochastic fading."
+    }
+  }
+}
