@@ -21,6 +21,7 @@ from riose.simulation_lab.farm_rf import (
     _validate_operational_bounds,
     _validate_localization_result,
     _validate_network_result,
+    _validate_temporal_rows,
 )
 
 
@@ -85,13 +86,21 @@ def not_transmitted_network(request):
 def mark_transmitted(network, index):
     packet = network["packets"][index]
     packet.update(tx_start_s=packet["scheduled_timestamp_s"], airtime_s=0.05,
-                  tx_outcome="TRANSMITTED", drop_reason=None, packet_uid=index)
+                  tx_outcome="TRANSMITTED", drop_reason=None, packet_uid=index,
+                  received_gateway_ids=[])
     for event in network["gateway_events"]:
         if event["event_index"] == index:
             event.update(outcome="RX", tx_outcome="TRANSMITTED",
                          tx_start_s=packet["tx_start_s"], packet_uid=packet["packet_uid"])
-    network["metrics"].update(transmitted_packets=1, not_transmitted_packets=len(network["packets"]) - 1,
-                              transmitted_count=1, not_transmitted_count=len(network["packets"]) - 1)
+            packet["received_gateway_ids"].append(event["gateway_id"])
+    transmitted = sum(row["tx_outcome"] == "TRANSMITTED" for row in network["packets"])
+    delivered = sum(bool(row["received_gateway_ids"]) for row in network["packets"])
+    network["metrics"].update(transmitted_packets=transmitted,
+                              not_transmitted_packets=len(network["packets"]) - transmitted,
+                              transmitted_count=transmitted,
+                              not_transmitted_count=len(network["packets"]) - transmitted,
+                              delivered_packets=delivered,
+                              pdr=delivered / transmitted if transmitted else None)
     return packet
 
 
@@ -182,6 +191,65 @@ def test_network_packet_uids_must_be_unique():
             event["packet_uid"] = first["packet_uid"]
     with pytest.raises(RunnerError, match="PHY UID"):
         _validate_network_result(request, network)
+
+
+@pytest.mark.parametrize("offset_s,valid", [(-1e-12, True), (-2e-12, False)])
+def test_tx_start_validation_respects_ns3_one_picosecond_resolution(offset_s, valid):
+    request = request_doc()
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    packet["tx_start_s"] = packet["scheduled_timestamp_s"] + offset_s
+    for event in network["gateway_events"]:
+        if event["request_id"] == packet["request_id"]:
+            event["tx_start_s"] = packet["tx_start_s"]
+    if valid:
+        _validate_network_result(request, network)
+    else:
+        with pytest.raises(RunnerError, match="valid TX time"):
+            _validate_network_result(request, network)
+
+
+@pytest.mark.parametrize("field,value", [("device_id", "foreign-device"),
+                                          ("transmitter_id", "foreign-tx"),
+                                          ("campaign_id", "foreign-campaign")])
+def test_gateway_event_identity_must_match_its_packet(field, value):
+    request = request_doc()
+    network = not_transmitted_network(request)
+    mark_transmitted(network, 0)
+    network["gateway_events"][0][field] = value
+    with pytest.raises(RunnerError, match="does not match its packet identity"):
+        _validate_network_result(request, network)
+
+
+def test_not_transmitted_request_cannot_have_gateway_rx():
+    request = request_doc()
+    network = not_transmitted_network(request)
+    network["gateway_events"][0]["outcome"] = "RX"
+    with pytest.raises(RunnerError, match="contradicts the packet TX outcome"):
+        _validate_network_result(request, network)
+
+
+def test_temporal_rows_must_match_full_packet_and_gateway_identity():
+    request = request_doc()
+    request["receivers"] = request["receivers"][:1]
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    event = network["gateway_events"][0]
+    temporal = {"packet_id": packet["request_id"], "request_id": packet["request_id"],
+                "sequence_number": packet["sequence_number"], "run_id": packet["run_id"],
+                "scenario_id": packet["scenario_id"], "campaign_id": packet["campaign_id"],
+                "animal_id": packet["animal_id"], "tag_id": packet["tag_id"],
+                "device_id": packet["device_id"], "transmitter_id": packet["transmitter_id"],
+                "timestamp_s": packet["timestamp_s"],
+                "requested_timestamp_s": packet["requested_timestamp_s"],
+                "scheduled_timestamp_s": packet["scheduled_timestamp_s"],
+                "tx_start_s": packet["tx_start_s"], "packet_uid": packet["packet_uid"],
+                "gateway_id": event["gateway_id"], "network_outcome": event["outcome"],
+                "classification": "SIMULATED", "clock_timestamp_s": packet["tx_start_s"]}
+    _validate_temporal_rows(network, [temporal])
+    temporal["animal_id"] = "foreign-animal"
+    with pytest.raises(RunnerError, match="temporal artifact identity/time"):
+        _validate_temporal_rows(network, [temporal])
 
 
 def test_failed_localization_cannot_smuggle_a_coordinate():

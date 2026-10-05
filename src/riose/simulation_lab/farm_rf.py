@@ -696,9 +696,10 @@ def _validate_network_result(request: dict, network: dict, run_id: str | None = 
             raise RunnerError("FREQUENCIA packet has no terminal TX outcome")
         if outcome == "TRANSMITTED":
             uid = packet.get("packet_uid")
+            tx_tolerance_s = network["time_resolution_ps"] * 1e-12
             if (isinstance(uid, bool) or not isinstance(uid, int) or uid in packet_uids
                     or isinstance(tx_start, bool) or not isinstance(tx_start, (int, float))
-                    or not math.isfinite(tx_start) or tx_start < scheduled):
+                    or not math.isfinite(tx_start) or tx_start < scheduled - tx_tolerance_s):
                 raise RunnerError("FREQUENCIA transmitted packet lacks a unique PHY UID or valid TX time")
             packet_uids.add(uid)
         elif tx_start is not None or not isinstance(packet.get("drop_reason"), str) or not packet["drop_reason"]:
@@ -724,10 +725,16 @@ def _validate_network_result(request: dict, network: dict, run_id: str | None = 
         seen_events.add(key)
         if event.get("outcome") not in outcomes:
             raise RunnerError("FREQUENCIA network artifact contains an unknown reception outcome")
+        if ((packet["tx_outcome"] == "NOT_TRANSMITTED" and event["outcome"] != "NOT_TRANSMITTED")
+                or (packet["tx_outcome"] == "TRANSMITTED" and event["outcome"] == "NOT_TRANSMITTED")):
+            raise RunnerError("FREQUENCIA gateway outcome contradicts the packet TX outcome")
         if (event.get("animal_id") != packet["animal_id"]
                 or event.get("run_id") != packet.get("run_id")
                 or event.get("scenario_id") != packet.get("scenario_id")
+                or event.get("campaign_id") != packet.get("campaign_id")
                 or event.get("tag_id") != packet.get("tag_id")
+                or event.get("device_id") != packet.get("device_id")
+                or event.get("transmitter_id") != packet.get("transmitter_id")
                 or event.get("packet_id") != packet["packet_id"]
                 or event.get("request_id") != packet["request_id"]
                 or event.get("sequence_number") != packet["sequence_number"]
@@ -757,11 +764,56 @@ def _validate_network_result(request: dict, network: dict, run_id: str | None = 
             or metrics.get("not_transmitted_count") != not_transmitted):
         raise RunnerError("FREQUENCIA request/TX outcome counts do not conserve packet identities")
     delivered = sum(bool(rx_gateways[key]) for key in packet_index)
+    if delivered > transmitted:
+        raise RunnerError("FREQUENCIA delivered packet count exceeds transmitted packet count")
     expected_pdr = delivered / transmitted if transmitted else None
     if (metrics.get("transmitted_packets") != transmitted
             or metrics.get("delivered_packets") != delivered
             or metrics.get("pdr") != expected_pdr):
         raise RunnerError("FREQUENCIA network PDR or denominator disagrees with packet outcomes")
+
+
+def _validate_temporal_rows(network: dict, temporal_rows: list[dict]) -> None:
+    expected_rx = {(str(row["request_id"]), str(row["gateway_id"]))
+                   for row in network["gateway_events"] if row["outcome"] == "RX"}
+    packet_by_request = {str(row["request_id"]): row for row in network["packets"]}
+    event_by_request_gateway = {(str(row["request_id"]), str(row["gateway_id"])): row
+                                for row in network["gateway_events"]}
+    received_timestamps: set[tuple[str, str]] = set()
+    for row in temporal_rows:
+        request_id = str(row.get("request_id"))
+        gateway_id = str(row.get("gateway_id"))
+        key = (request_id, gateway_id)
+        packet = packet_by_request.get(request_id)
+        event = event_by_request_gateway.get(key)
+        if key not in expected_rx or key in received_timestamps or row.get("classification") != "SIMULATED":
+            raise RunnerError("FREQUENCIA temporal artifact contains an unknown or duplicate gateway timestamp")
+        if (packet is None or event is None
+                or row.get("packet_id") != request_id
+                or row.get("request_id") != packet.get("request_id")
+                or row.get("sequence_number") != packet.get("sequence_number")
+                or row.get("run_id") != packet.get("run_id")
+                or row.get("scenario_id") != packet.get("scenario_id")
+                or row.get("campaign_id") != packet.get("campaign_id")
+                or row.get("animal_id") != packet.get("animal_id")
+                or row.get("tag_id") != packet.get("tag_id")
+                or row.get("device_id") != packet.get("device_id")
+                or row.get("transmitter_id") != packet.get("transmitter_id")
+                or row.get("timestamp_s") != packet.get("timestamp_s")
+                or row.get("requested_timestamp_s") != packet.get("requested_timestamp_s")
+                or row.get("scheduled_timestamp_s") != packet.get("scheduled_timestamp_s")
+                or row.get("tx_start_s") != packet.get("tx_start_s")
+                or row.get("packet_uid") != packet.get("packet_uid")
+                or row.get("network_outcome") != event.get("outcome")
+                or event.get("outcome") != "RX"):
+            raise RunnerError("FREQUENCIA temporal artifact identity/time differs from its packet or gateway event")
+        stamp = row.get("clock_timestamp_s")
+        if stamp is not None and (isinstance(stamp, bool) or not isinstance(stamp, (int, float))
+                                  or not math.isfinite(stamp)):
+            raise RunnerError("FREQUENCIA temporal artifact contains a non-finite clock timestamp")
+        received_timestamps.add(key)
+    if received_timestamps != expected_rx:
+        raise RunnerError("FREQUENCIA temporal artifact omits a PHY reception")
 
 
 def _validate_localization_result(request: dict, network: dict, localization: dict) -> None:
@@ -944,11 +996,11 @@ def _result(request: dict, raw: dict, summary: dict, manifest: dict,
     packets = {}
     timestamps = {}
     if network_result is not None:
-        packets = {(str(row["animal_id"]), float(row["timestamp_s"])): row
+        packets = {(str(row["tag_id"]), float(row["timestamp_s"])): row
                    for row in network_result.get("packets", [])}
-        network_events = {(str(row["animal_id"]), float(row["timestamp_s"]), str(row["gateway_id"])): row
+        network_events = {(str(row["request_id"]), str(row["gateway_id"])): row
                           for row in network_result.get("gateway_events", [])}
-        timestamps = {(str(row["animal_id"]), float(row["timestamp_s"]), str(row["gateway_id"])): row
+        timestamps = {(str(row["request_id"]), str(row["gateway_id"])): row
                       for row in (temporal_rows or [])}
     for observation in observations:
         if network_result is None:
@@ -957,8 +1009,9 @@ def _result(request: dict, raw: dict, summary: dict, manifest: dict,
         animal_id = str(tag["animal_ref"])
         timestamp = float(observation["timestamp_s"])
         gateway_id = str(receivers[observation["source_receiver_ref"]]["gateway_ref"])
-        packet = packets.get((animal_id, timestamp))
-        event = network_events.get((animal_id, timestamp, gateway_id))
+        packet = packets.get((str(tag["tag_ref"]), timestamp))
+        request_id = str(packet["request_id"]) if packet is not None else None
+        event = network_events.get((request_id, gateway_id)) if request_id is not None else None
         if packet is None or packet.get("tx_start_s") is None:
             observation["tx_state"], observation["rx_state"] = "NOT_TRANSMITTED", "NOT_APPLICABLE"
         else:
@@ -966,7 +1019,7 @@ def _result(request: dict, raw: dict, summary: dict, manifest: dict,
             outcome = event.get("outcome") if event else None
             if outcome == "RX":
                 observation["rx_state"] = "PHY_RECEIVED"
-                time_row = timestamps.get((animal_id, timestamp, gateway_id))
+                time_row = timestamps.get((request_id, gateway_id))
                 if time_row:
                     observation["metrics"]["snr_db"] = time_row.get("snr_db")
             elif outcome == "NOT_TRANSMITTED":
@@ -1187,20 +1240,7 @@ def _run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | Non
         temporal_binding = _validate_temporal_runtime(request, temporal_runtime, run_id, request_hash,
                                                       network_input_hash)
         temporal_binding["runtime_artifact_sha256"] = hashlib.sha256(network_output_path.read_bytes()).hexdigest()
-        expected_rx = {(str(row["request_id"]), str(row["gateway_id"]))
-                       for row in network_result["gateway_events"] if row["outcome"] == "RX"}
-        received_timestamps: set[tuple[str, str]] = set()
-        for row in temporal_rows:
-            key = (str(row.get("packet_id")), str(row.get("gateway_id")))
-            if key not in expected_rx or key in received_timestamps or row.get("classification") != "SIMULATED":
-                raise RunnerError("FREQUENCIA temporal artifact contains an unknown or duplicate gateway timestamp")
-            stamp = row.get("clock_timestamp_s")
-            if stamp is not None and (isinstance(stamp, bool) or not isinstance(stamp, (int, float))
-                                      or not math.isfinite(stamp)):
-                raise RunnerError("FREQUENCIA temporal artifact contains a non-finite clock timestamp")
-            received_timestamps.add(key)
-        if received_timestamps != expected_rx:
-            raise RunnerError("FREQUENCIA temporal artifact omits a PHY reception")
+        _validate_temporal_rows(network_result, temporal_rows)
         scoring = _score_after_estimation(request, network_result, localization)
         _write_json(workspace / "network" / "network_results.json", network_result)
         _write_json(workspace / "network" / "gateway_timestamps.json", {
