@@ -1,0 +1,416 @@
+{
+  "schema_version": "riose.beta.temporal-identity-audit/v1",
+  "classification": "SIMULATED",
+  "campaign_id": "riose-beta-simulation-v1",
+  "campaign_manifest_sha256": "26f7857039735c1544695c2a309bb0d425c984dc6502f0d9405218f5f0e80336",
+  "runs": [
+    {
+      "run_key": "brazil-rural-reference-smoke-seed-11",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "request_sha256": "ac148b80bb24c36cff1eb027220ed9835151069d2320c22254d50b955103654d",
+      "network_results_sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-reference-smoke-seed-29",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 29,
+      "request_sha256": "2993e1374262f929b0721452b160f816e8bcb908a777eb7f5e246dcad4b95653",
+      "network_results_sha256": "041e71a73d501d2ee5ead0be9e061e51229181e0518ce548402455ac8fb6928c",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-reference-smoke-seed-47",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 47,
+      "request_sha256": "2bf5476d040663e78f0b3f41130340fc5b9cfb11caf47962583142f53b64fee4",
+      "network_results_sha256": "18c94d0657c9101b41adf77f1efab6d40f67dab5d0d71d7be134616ea617d4c4",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-collision-stress-seed-11",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 11,
+      "request_sha256": "0c371554bffe4c2fb8da6eaa8f6ad98a8fd607c17e37b182e0593fe0c1c80ae9",
+      "network_results_sha256": "f67133aa80c07cb7666e5c24040b0f109da5acbd5d13a0da6e90dff9353f0658",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 6,
+        "tx": 4,
+        "not_transmitted": 2,
+        "tx_by_source_epoch": {
+          "0.0": 2,
+          "1.0": 2,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 2
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-collision-stress-seed-29",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 29,
+      "request_sha256": "f359a6c9359af53efb3279eea8d74f8269b45a913fe8451291c420b04fffe9d5",
+      "network_results_sha256": "a9d7c9b624d18511fc34c6b6e4cd5404b4cc4d025dc07a52a04b90b882c4e578",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 6,
+        "tx": 4,
+        "not_transmitted": 2,
+        "tx_by_source_epoch": {
+          "0.0": 2,
+          "1.0": 2,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 2
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-collision-stress-seed-47",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 47,
+      "request_sha256": "d87c9a7df46f4977c1a7d295a51dc47d013e60a26deb961733e7850be4dfa7d3",
+      "network_results_sha256": "2ee213faee63fea62afe30e7c052371347729b302babca2a72790ccc4805d329",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 6,
+        "tx": 4,
+        "not_transmitted": 2,
+        "tx_by_source_epoch": {
+          "0.0": 2,
+          "1.0": 2,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 2
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-localization-rejection-seed-11",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 11,
+      "request_sha256": "0e8caf3ba6e5370e8088f2f0eae5908d6ff862100130aaafac0184c4fc3f90d1",
+      "network_results_sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-localization-rejection-seed-29",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 29,
+      "request_sha256": "9260a763acc228569aaa51fccbd81b4b8aa72285b3bec222e97b65ac78e0c985",
+      "network_results_sha256": "041e71a73d501d2ee5ead0be9e061e51229181e0518ce548402455ac8fb6928c",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-localization-rejection-seed-47",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 47,
+      "request_sha256": "9dd4cff8c1254f6f90a23b17516302fbd77cd9024d30bedc1267a3fb5c03f2d2",
+      "network_results_sha256": "18c94d0657c9101b41adf77f1efab6d40f67dab5d0d71d7be134616ea617d4c4",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-multi-animal-nominal-seed-11",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 11,
+      "request_sha256": "cb0ab98022b3336563d0f15fedf308026637adbbafc8d50be433458c67838ae4",
+      "network_results_sha256": "0642fa0f7fced9de8f9d8e25152ea93050c4c822ed31e127bec6f6035031c46b",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 30,
+        "tx": 20,
+        "not_transmitted": 10,
+        "tx_by_source_epoch": {
+          "0.0": 10,
+          "1.0": 10,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 10
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-multi-animal-nominal-seed-29",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 29,
+      "request_sha256": "16489173f1fb315328d16a0b2596cb9c23b8358835968d00153092464bc686de",
+      "network_results_sha256": "96e1d9efb2699928626082981abe1a79d3f8709b20485830272506c8fcb2c1ae",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 30,
+        "tx": 20,
+        "not_transmitted": 10,
+        "tx_by_source_epoch": {
+          "0.0": 10,
+          "1.0": 10,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 10
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-multi-animal-nominal-seed-47",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 47,
+      "request_sha256": "b381c40970d56cbafddb0641e16fa02e07b3bb87e7a2a4d9f66e5edb60682e74",
+      "network_results_sha256": "f4184d8858b660061fce70b4ef9fd306a62872fa51527132f68116422a2fc47a",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 30,
+        "tx": 20,
+        "not_transmitted": 10,
+        "tx_by_source_epoch": {
+          "0.0": 10,
+          "1.0": 10,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 10
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    },
+    {
+      "run_key": "brazil-rural-reference-smoke-seed-11-repeat-1",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "request_sha256": "ac148b80bb24c36cff1eb027220ed9835151069d2320c22254d50b955103654d",
+      "network_results_sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b",
+      "source_epochs_s": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "counts": {
+        "requested": 3,
+        "tx": 2,
+        "not_transmitted": 1,
+        "tx_by_source_epoch": {
+          "0.0": 1,
+          "1.0": 1,
+          "2.0": 0
+        },
+        "not_transmitted_by_source_epoch": {
+          "0.0": 0,
+          "1.0": 0,
+          "2.0": 1
+        }
+      },
+      "second_to_first_tx_spacing_s_by_animal": [
+        7.0
+      ]
+    }
+  ],
+  "aggregate": {
+    "requested": 129,
+    "tx": 86,
+    "not_transmitted": 43,
+    "tx_epoch_0": 43,
+    "not_tx_epoch_0": 0,
+    "tx_epoch_1": 43,
+    "not_tx_epoch_1": 0,
+    "tx_epoch_2": 0,
+    "not_tx_epoch_2": 43
+  },
+  "second_to_first_tx_spacing_s_frequency": {
+    "7.0": 43
+  },
+  "finding": "SOURCE_EVENT_TIME_ASSOCIATION_NOT_VALIDATED",
+  "reason": "All requests use 0/1/2 s source epochs, while corrected C.1 explicitly excludes the 1 s FIFO association regime following source-event mismatches. H has no independent TX identity/time attestation. The declared traffic_interval_s=60 does not appear as observed 60 s spacing.",
+  "interpretation": "Hash integrity and arithmetic consistency do not establish semantic event identity, intended cadence, or valid per-event localization scoring.",
+  "audit_sha256": "ea5b662a3520c5f90ed0f56de184bcddbdd6d1701a9157492c609ba324a3760b"
+}
