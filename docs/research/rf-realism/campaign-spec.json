@@ -28,7 +28,7 @@
     "receiver_height_m": [4.0, 8.0, 12.0],
     "orientation": "NOT_TESTED: existing RIOSE direct Sionna wrapper creates fixed isotropic arrays and exposes no tag orientation",
     "geometry_cases": ["symmetric_corners", "asymmetric", "one_side", "sparse_three", "denser_six", "elongated"],
-    "farm_sample_grid": "3x3 including corners, edges and interior",
+    "farm_sample_grid": "3x3 across the 5%-95% extents, including edge and interior zones; elongated property is 1000 m x 400 m",
     "environment_cases": ["flat_open_control", "direct_path_blocked_by_vertical_wall", "flat_vs_synthetic_relief"],
     "multipath_cases": ["direct_only", "LOS_plus_specular_ground_reflection", "wall_reflection_search"],
     "monte_carlo": {

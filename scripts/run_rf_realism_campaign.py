@@ -180,7 +180,8 @@ def main() -> int:
 
     def record_sionna(case: str, tx: tuple[float, float, float],
                       gateways: tuple[Any, ...], *, mesh: Path, obstacle: Path | None = None,
-                      los: bool = True, reflection: bool = True, group: str = "") -> list[dict[str, Any]]:
+                      los: bool = True, reflection: bool = True, group: str = "",
+                      primary_only: bool = False) -> list[dict[str, Any]]:
         if run_sionna_snapshot is None:
             return []
         run_counts["sionna-rt"] += 1
@@ -195,7 +196,7 @@ def main() -> int:
                                         cfr_points=5, max_num_paths_per_src=200,
                                         samples_per_src=200, scene_cache=cache)
             records = []
-            for link in value["records"]:
+            for link_index, link in enumerate(value["records"]):
                 status = link["los_nlos"]
                 if status == "NO_PATH":
                     run_counts["no_path"] += 1
@@ -225,6 +226,7 @@ def main() -> int:
                                       "ground_material": value["ground_material"],
                                       "seed": scenario.config.seed},
                         "classification": "SIMULATED"}
+                item["aggregate_population"] = not primary_only or link_index == 0
                 if group == "combined_stress:NLOS":
                     item["direct_path_blocked_geometrically"] = segment_crosses_wall(tx, rx)
                 if group == "multipath" and not los:
@@ -248,7 +250,7 @@ def main() -> int:
         if args.sionna:
             gws = gateway_sites([(0, 0, 8), (0, 250, 8), (0, 500, 8)], "DIST")
             record_sionna(f"distance_{distance}m", tx, gws, mesh=engine / "farm/assets/ground.ply",
-                          group="distance")
+                          group="distance", primary_only=True)
     for tx_height in (1.0, 1.5, 2.5):
         for rx_height in (4.0, 8.0, 12.0):
             record_analytic(f"height_tx{tx_height:g}_rx{rx_height:g}", (100, 0, tx_height),
@@ -256,7 +258,8 @@ def main() -> int:
             if args.sionna:
                 gws = gateway_sites([(0, 0, rx_height), (0, 250, 8), (0, 500, 8)], "HEIGHT")
                 record_sionna(f"height_tx{tx_height:g}_rx{rx_height:g}", (100, 0, tx_height),
-                              gws, mesh=engine / "farm/assets/ground.ply", group="height")
+                              gws, mesh=engine / "farm/assets/ground.ply", group="height",
+                              primary_only=True)
 
     # Six gateway layouts; sample the corners, edges and interior of a synthetic property.
     geometry_cases = {
@@ -267,10 +270,11 @@ def main() -> int:
         "denser_six": [(100, 100), (900, 100), (900, 900), (100, 900), (500, 60), (500, 940)],
         "elongated": [(60, 60), (940, 60), (940, 360), (60, 360)],
     }
-    sample_xy = [(x, y) for y in (50.0, 500.0, 950.0) for x in (50.0, 500.0, 950.0)]
     flat = engine / "farm/assets/ground.ply"
     for name, xy in geometry_cases.items():
         gateways = gateway_sites([(float(x), float(y), 8.0) for x, y in xy], name[:3].upper())
+        sample_y = (20.0, 200.0, 380.0) if name == "elongated" else (50.0, 500.0, 950.0)
+        sample_xy = [(x, y) for y in sample_y for x in (50.0, 500.0, 950.0)]
         for x, y in sample_xy:
             tx = (x, y, 1.5)
             for gateway in gateways:
@@ -366,7 +370,9 @@ def main() -> int:
     aggregate: dict[str, Any] = {}
     for backend in ("ANALYTIC_SIMULATION", "SIONNA_RT_SIMULATION"):
         for group in sorted({row.get("group", "") for row in raw if row.get("backend") == backend}):
-            selected = [row for row in raw if row.get("backend") == backend and row.get("group", "") == group]
+            selected = [row for row in raw if row.get("backend") == backend
+                        and row.get("group", "") == group
+                        and row.get("aggregate_population", True)]
             values = [float(row["power_dbm"]) for row in selected if row.get("power_dbm") is not None]
             aggregate[f"{backend}:{group}"] = {
                 "attempts": len(selected),
@@ -402,6 +408,29 @@ def main() -> int:
         "runtime_seconds": time.monotonic() - start,
         "seed_determinism_identical": determinism,
         "geometry_cases": {key: len(value) for key, value in geometry_cases.items()},
+        "geometry_coverage_maps": {
+            backend: {
+                name: {
+                    "sampled_positions": len({row["case"] for row in raw
+                                               if row.get("backend") == backend
+                                               and row.get("group") == f"geometry:{name}"}),
+                    "positions_with_one_or_more_covered_links": sum(
+                        any(row.get("coverage_engineering_assumption") is True
+                            for row in raw if row.get("backend") == backend
+                            and row.get("group") == f"geometry:{name}" and row.get("case") == case)
+                        for case in {row["case"] for row in raw if row.get("backend") == backend
+                                     and row.get("group") == f"geometry:{name}"}),
+                    "link_attempts": sum(row.get("backend") == backend
+                                         and row.get("group") == f"geometry:{name}"
+                                         for row in raw),
+                    "links_at_engineering_coverage_threshold": sum(
+                        row.get("backend") == backend and row.get("group") == f"geometry:{name}"
+                        and row.get("coverage_engineering_assumption") is True for row in raw),
+                }
+                for name in geometry_cases
+            }
+            for backend in ("ANALYTIC_SIMULATION", "SIONNA_RT_SIMULATION")
+        },
         "aggregates": aggregate,
         "paired_model_disagreement_db_sionna_minus_analytic": stats(paired),
         "paired_model_comparisons": len(paired),
