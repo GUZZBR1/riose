@@ -1,0 +1,122 @@
+scenario:
+  name: brazil_rural_reference_smoke
+  classification: SYNTHETIC_REFERENCE_SCENARIO
+  coordinate_system: ENU
+  seed: 11
+  area_m: 1000.0
+  terrain:
+    grid_spacing_m: 100.0
+    relief_amplitude_m: 18.0
+    soil:
+      material: rural_soil
+      relative_permittivity: 15.0
+      conductivity_s_per_m: 0.035
+  land_use:
+    pasture_fraction: 0.78
+    paddocks: 4
+    fence_height_m: 1.4
+    road_width_m: 8.0
+    tree_count: 36
+    tree_height_m: 8.0
+    tree_canopy_radius_m: 3.0
+    corral:
+      center_m:
+      - 500.0
+      - 500.0
+      size_m:
+      - 100.0
+      - 80.0
+    shed:
+      center_m:
+      - 610.0
+      - 500.0
+      size_m:
+      - 35.0
+      - 24.0
+      height_m: 6.0
+    water_trough_count: 4
+    feeder_count: 4
+  rf_obstacles:
+  - shed
+  - terrain
+herd:
+  animals: 1
+  duration_s: 2
+  sample_interval_s: 1.0
+  animal_height_m: 1.5
+  movement_speed_mps: 0.8
+radio:
+  frequency_hz: 915000000
+  bandwidth_hz: 125000
+  spreading_factor: 7
+  tx_power_dbm: 14.0
+  preamble_symbols: 8
+  gateways:
+  - id: GW-1
+    position_m:
+    - 20.0
+    - 20.0
+    - 2.7230719070661173
+  - id: GW-2
+    position_m:
+    - 980.0
+    - 20.0
+    - 5.204669931639346
+  - id: GW-3
+    position_m:
+    - 980.0
+    - 980.0
+    - 5.204669931639346
+  - id: GW-4
+    position_m:
+    - 20.0
+    - 980.0
+    - 2.7230719070661173
+localization:
+  gnss_sigma_m: 4.0
+  timestamp_jitter_s: 2.0e-09
+  max_iterations: 50
+  detector_threshold_db: -6.0
+  receiver_noise_figure_db: 6.0
+  snr_threshold_db: -10.0
+  detection_margin_db: 3.0
+  clock_offsets_ns:
+    GW-1: 0.0
+    GW-2: 10.0
+    GW-3: -10.0
+    GW-4: 5.0
+  clock_drift_ppm:
+    GW-1: 0.0
+    GW-2: 0.01
+    GW-3: -0.01
+    GW-4: 0.02
+energy:
+  gnss_power_mw: 90.0
+  gnss_fix_s: 5.0
+  lora_tx_power_mw: 120.0
+  lora_airtime_s: 0.1
+  sleep_power_mw: 0.2
+  transmit_interval_s: 60.0
+sionna:
+  max_depth: 1
+  los: true
+  specular_reflection: true
+  cfr_points: 5
+  max_num_paths_per_src: 1000
+  samples_per_src: 1000
+network:
+  ns3_executable: ns3
+  lorawan_version: v0.3.7
+  payload_bytes: 12
+sweeps:
+  animal_fractions:
+  - 1.0
+  gateway_id_sets:
+  - - GW-1
+    - GW-2
+    - GW-3
+    - GW-4
+  spreading_factors:
+  - 7
+outputs:
+  directory: results/farm_sionna_smoke

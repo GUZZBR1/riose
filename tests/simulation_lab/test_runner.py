@@ -174,7 +174,12 @@ def test_symlinked_engine_entrypoint_is_not_executed(tmp_path):
 def test_process_failure_output_timeout_and_malformed_response_are_structured(tmp_path, source, match):
     repo, sha = make_engine(tmp_path, source=source)
     request = write_request(tmp_path / "request.json")
-    timeout = 5 if "3000000" in source else 0.2
+    if "3000000" in source:
+        timeout = 30
+    elif "time.sleep(3)" in source:
+        timeout = 0.2
+    else:
+        timeout = 1.0
     with pytest.raises(RunnerError, match=match) as failure:
         run(request, repo=repo, expected_sha=sha, output_root=tmp_path / "runs", timeout_seconds=timeout)
     manifest_path = Path(str(failure.value).split("manifest: ", 1)[1])

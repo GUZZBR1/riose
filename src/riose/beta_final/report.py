@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -56,6 +57,32 @@ def render_results(manifest: dict[str, Any]) -> str:
             row.get("workspace", "NOT_AVAILABLE").replace("|", "\\|")))
         if row.get("status") != "COMPLETED":
             lines.extend(["", f"Failure `{row.get('run_key', 'UNKNOWN')}`: {row.get('error', 'reason unavailable')}"])
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in manifest["runs"]:
+        grouped[row.get("scenario_id", "UNKNOWN")].append(row)
+    lines.extend(["", "## Per-scenario denominators and outcomes", "",
+                  "Counts below sum every scheduled run, including the same-seed baseline repeat. `Gateway PHY RX` counts packets received by at least one gateway; it is not application delivery. Localization quality counts remain separate from numerical convergence.", "",
+                  "| Scenario | Runs C/F | Requested / TX / gateway PHY RX | PDR per TX | Estimator attempts / converged / scored | Quality A / R / NE | Error denominator |",
+                  "|---|---:|---:|---:|---:|---:|---:|"])
+    for scenario_id, rows in grouped.items():
+        completed = sum(row.get("status") == "COMPLETED" for row in rows)
+        failed = len(rows) - completed
+        def total(path: tuple[str, ...]) -> int:
+            values = []
+            for row in rows:
+                value: Any = row.get("metrics", {})
+                for key in path:
+                    value = value.get(key, {}) if isinstance(value, dict) else {}
+                values.append(value if isinstance(value, (int, float)) else 0)
+            return int(sum(values))
+        requested, transmitted, phy_rx = (total(("network", key)) for key in
+                                           ("requested_packets", "transmitted_packets", "delivered_packets"))
+        pdr = f"{phy_rx / transmitted:.1%}" if transmitted else "N/A"
+        attempts, converged, scored, error_denominator = (total(("localization", key)) for key in
+            ("attempts", "converged", "scored", "error_denominator"))
+        quality = [total(("localization", "quality_counts", key)) for key in
+                   ("ACCEPTED", "REJECTED", "NOT_EVALUATED")]
+        lines.append(f"| `{scenario_id}` | {completed}/{failed} | {requested} / {transmitted} / {phy_rx} | {pdr} | {attempts} / {converged} / {scored} | {quality[0]} / {quality[1]} / {quality[2]} | {error_denominator} |")
     lines.extend(["", "## Reproducibility", ""])
     for repeat in manifest.get("reproducibility", []):
         lines.append(f"- `{repeat['scenario_id']}` seed `{repeat['seed']}`: `{repeat['status']}`; "

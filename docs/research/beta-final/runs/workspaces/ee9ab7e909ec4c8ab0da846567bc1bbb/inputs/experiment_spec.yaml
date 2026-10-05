@@ -1,0 +1,13 @@
+experiment_id: riose-beta-simulation-v1
+environment: FARM
+backend: sionna-rt
+config: /tmp/riose-beta-final-campaign-final-v2/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia-riose-beta-pin/results/riose_simulation_lab/riose-beta-simulation-v1/ee9ab7e909ec4c8ab0da846567bc1bbb/engine
+trajectory: /tmp/riose-beta-final-campaign-final-v2/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 11

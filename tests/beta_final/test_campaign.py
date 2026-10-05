@@ -101,11 +101,19 @@ def test_campaign_manifest_hash_failure_accounting_and_report_generation(tmp_pat
         {"run_key": "baseline-11", "scenario_id": scenario["scenario_id"], "seed": 11,
          "status": "COMPLETED", "classification": "SIMULATED",
          "request_sha256": "a" * 64, "output_sha256": "b" * 64,
-         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-1")},
+         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-1"),
+         "metrics": {"network": {"requested_packets": 2, "transmitted_packets": 2, "delivered_packets": 2},
+                     "localization": {"attempts": 1, "converged": 1, "scored": 1,
+                                      "error_denominator": 1,
+                                      "quality_counts": {"ACCEPTED": 1, "REJECTED": 0, "NOT_EVALUATED": 0}}}},
         {"run_key": "baseline-11-repeat", "scenario_id": scenario["scenario_id"], "seed": 11,
          "status": "COMPLETED", "classification": "SIMULATED",
          "request_sha256": "a" * 64, "output_sha256": "b" * 64,
-         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-2")},
+         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-2"),
+         "metrics": {"network": {"requested_packets": 2, "transmitted_packets": 2, "delivered_packets": 2},
+                     "localization": {"attempts": 1, "converged": 1, "scored": 1,
+                                      "error_denominator": 1,
+                                      "quality_counts": {"ACCEPTED": 0, "REJECTED": 1, "NOT_EVALUATED": 0}}}},
         {"run_key": "baseline-29", "scenario_id": scenario["scenario_id"], "seed": 29,
          "status": "FAILED", "classification": "SIMULATED", "error": "simulator failed"},
     ]
@@ -125,6 +133,7 @@ def test_campaign_manifest_hash_failure_accounting_and_report_generation(tmp_pat
     report = render_results(manifest)
     assert "2 / 3 / 1" in report
     assert "same normalized simulator result digest: `True`" in report
+    assert "| `brazil-rural-reference-smoke` | 2/1 | 4 / 4 / 4 | 100.0% | 2 / 2 / 2 | 1 / 1 / 0 | 2 |" in report
     assert "simulator failed" in report
     assert campaign_digest(SPEC) == campaign_digest(copy.deepcopy(SPEC))
 

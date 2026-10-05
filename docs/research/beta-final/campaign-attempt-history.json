@@ -1,0 +1,48 @@
+{
+  "attempts": [
+    {
+      "artifacts_authority": "superseded diagnostic attempt; use the fully archived official attempt for Beta claims",
+      "attempt_id": "attempt-01",
+      "completed_runs": 10,
+      "failed_runs": 0,
+      "internal_manifest_sha256": "33ae733b45a1900f7493a6aa32adcf9e612c0faf7ca1fb639def7b848f050993",
+      "manifest_file_sha256": "4c28bef683457f13ce73933434910e4f892b25ddc27c3e864063f4a079ec22b5",
+      "manifest_path": "attempts/attempt-01/campaign-manifest.json",
+      "reason": "The first run was produced before the normalized replay digest fix; its repeat PASS was not valid because output digests were missing.",
+      "riose_revision": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "scheduled_runs": 10,
+      "simulator_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "status": "SUPERSEDED"
+    },
+    {
+      "artifacts_authority": "superseded diagnostic attempt; use the fully archived official attempt for Beta claims",
+      "attempt_id": "attempt-02",
+      "completed_runs": 10,
+      "failed_runs": 3,
+      "internal_manifest_sha256": "964e787ed7a26431795e201634f13d4a453d6701a9205302fd9f3a96bbed3e42",
+      "manifest_file_sha256": "88fb2abe034346d329191dd4509ef994b9af5c3cf822dad918c7a77e1ca43cda",
+      "manifest_path": "attempts/attempt-02/campaign-manifest.json",
+      "reason": "Three ten-animal requests were rejected before simulator execution because cloned identity mappings were duplicated.",
+      "riose_revision": "9b6d06643dba56bf14f7db34f754f15e600a5947",
+      "scheduled_runs": 13,
+      "simulator_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "status": "PREFLIGHT_FAILURES"
+    },
+    {
+      "attempt_id": "attempt-03",
+      "completed_runs": 13,
+      "failed_runs": 0,
+      "internal_manifest_sha256": "26f7857039735c1544695c2a309bb0d425c984dc6502f0d9405218f5f0e80336",
+      "manifest_file_sha256": "2a641687c3e469c302bfac8dacd10e091310e8edfb6715277f3bed1c5a255783",
+      "manifest_path": "campaign-manifest.json",
+      "reason": "Four-scenario campaign with the corrected ten-animal request and valid normalized replay comparison.",
+      "riose_revision": "68a7a49a6f618a363cdd87ba9e4827a2dffa4a9a",
+      "scheduled_runs": 13,
+      "simulator_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "status": "OFFICIAL_FINAL"
+    }
+  ],
+  "history_sha256": "4c6b07cd836b9b0d657556ae7c03e1761a85b9acaf84928e9724d48b92ad6272",
+  "official_attempt": "attempt-03",
+  "schema_version": "riose.beta.campaign-attempt-history/v1"
+}

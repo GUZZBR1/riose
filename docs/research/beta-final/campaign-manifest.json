@@ -1,0 +1,4281 @@
+{
+  "archive_root": "docs/research/beta-final",
+  "campaign_id": "riose-beta-simulation-v1",
+  "campaign_spec_artifact": {
+    "path": "campaign-spec.json",
+    "sha256": "a13fb2a066bb1b5d42f9f1685b55e4b9cd61a04a00118d7c4fa69acffb4a200a"
+  },
+  "campaign_spec_sha256": "1e62164751013959828b4e784b46b6d8126dd920f6ddfa186d99014b363b2664",
+  "classification": "SIMULATED",
+  "created_at": "2026-10-05T17:09:51.542Z",
+  "denominator_policy": {
+    "failed_runs": 0,
+    "failures_are_retained": true,
+    "scheduled_runs": 13,
+    "successful_runs": 13
+  },
+  "manifest_sha256": "26f7857039735c1544695c2a309bb0d425c984dc6502f0d9405218f5f0e80336",
+  "reproducibility": [
+    {
+      "expected_copies": 2,
+      "observed_copies": 2,
+      "reproducibility_sha256": "5492ba74261144f7bf7b471eb21b288ea0ddd2f5770cb04c355d910467259693",
+      "runs": [
+        {
+          "output_sha256": "e5c972a3a0e705c80ca46489095a958fd4a73d7b0b9d4e9791f7b6e2b63ed089",
+          "reproducibility_sha256": "5492ba74261144f7bf7b471eb21b288ea0ddd2f5770cb04c355d910467259693",
+          "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+          "run_key": "brazil-rural-reference-smoke-seed-11",
+          "status": "COMPLETED"
+        },
+        {
+          "output_sha256": "68f38ee8356b3486f83921c40376206963c062372cf0ddb407391029fa13d49a",
+          "reproducibility_sha256": "5492ba74261144f7bf7b471eb21b288ea0ddd2f5770cb04c355d910467259693",
+          "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+          "run_key": "brazil-rural-reference-smoke-seed-11-repeat-1",
+          "status": "COMPLETED"
+        }
+      ],
+      "same_output": true,
+      "same_request": true,
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "status": "PASS"
+    }
+  ],
+  "request_templates": [
+    {
+      "path": "../../../examples/farm_rf_v1.json",
+      "repository_path": "examples/farm_rf_v1.json",
+      "sha256": "70f6355ba2318a03cf42e206de39b90785beca895a7f338132b1561dbd438b02"
+    },
+    {
+      "path": "../../../examples/farm_rf_collision_v1.json",
+      "repository_path": "examples/farm_rf_collision_v1.json",
+      "sha256": "b9cf170494b6ea3672bf31e02041e1f52688257d0b6f6649ac9f68753c510738"
+    },
+    {
+      "path": "../../../examples/farm_rf_localization_failure_v1.json",
+      "repository_path": "examples/farm_rf_localization_failure_v1.json",
+      "sha256": "7db7606427e65a175929690eed5a46efe82a6950e695d661164eaa1e8a4a7942"
+    },
+    {
+      "path": "../../../examples/farm_rf_multi_animal_v1.json",
+      "repository_path": "examples/farm_rf_multi_animal_v1.json",
+      "sha256": "86fed4b32787f204148de5e6df5a83bfcfcdf77d8ad9eefd25687bfe918a6a64"
+    }
+  ],
+  "riose": {
+    "dirty": false,
+    "revision": "68a7a49a6f618a363cdd87ba9e4827a2dffa4a9a"
+  },
+  "runs": [
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/artifacts.json",
+          "sha256": "be36450b262bfdc006ff826d662fdbc3946d8ca5ea66db48dd29016214a4b37a"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/network/gateway_timestamps.json",
+          "sha256": "e59d282668f843b71477e68a802133413681965e3f2c9a94ff32e48bfd9add49"
+        },
+        "network_results": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/network/network_results.json",
+          "sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b"
+        },
+        "request": {
+          "path": "requests/brazil-rural-reference-smoke-seed-11.json",
+          "sha256": "ac148b80bb24c36cff1eb027220ed9835151069d2320c22254d50b955103654d"
+        },
+        "result": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/result/result.json",
+          "sha256": "e5c972a3a0e705c80ca46489095a958fd4a73d7b0b9d4e9791f7b6e2b63ed089"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/manifest.json",
+          "sha256": "f8e371ffbc6c49cc4a7ee637c586dd690a62a79e687224f2c079186620ef1a17"
+        },
+        "scoring": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/network/scoring.json",
+          "sha256": "53e26eae63e2c5e1f1e545ea8c3a105ecded11fc26d550ecad96c2307a222eed"
+        },
+        "summary": {
+          "path": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273/summary.md",
+          "sha256": "9d6628945191f075123225158488a5e6ad652e910cce5c76256f45d36f3071d5"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "b63f0b56561307c04163b5c2258c2cc53aa9f90cb166c67e5aa3c567b61294ba",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": 970.022946071127,
+          "converged": 2,
+          "eligible": 2,
+          "error_denominator": 2,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 1165.627376787033,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 2
+          },
+          "scored": 2,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "e5c972a3a0e705c80ca46489095a958fd4a73d7b0b9d4e9791f7b6e2b63ed089",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 11,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "201d0ee266b1e304c66821467f707005bdec961c8a0708aefedb78bc619cf9f4",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 11,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "2e57512e6bf13a4cc7941957d00587bcbba41d62be3191d2c6fd82ac6b4cce9f",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "b5a61cf1ad7a4415985928f4a151f273",
+          "runtime_artifact_sha256": "11be0841f48f36bc2c3a6d12f697b99a4c09380d26fe2e195c72941247e2b90a",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "5492ba74261144f7bf7b471eb21b288ea0ddd2f5770cb04c355d910467259693",
+      "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+      "run_id": "b5a61cf1ad7a4415985928f4a151f273",
+      "run_key": "brazil-rural-reference-smoke-seed-11",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/b5a61cf1ad7a4415985928f4a151f273"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/artifacts.json",
+          "sha256": "7a742ce901de9ee4ab336b8251fe83ee05fc51248f15b1f2610388dfd0bff2d1"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/network/gateway_timestamps.json",
+          "sha256": "953e842740a295e0d752c553a2ec0e7384a954deaeeb79334d7584973665c098"
+        },
+        "network_results": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/network/network_results.json",
+          "sha256": "041e71a73d501d2ee5ead0be9e061e51229181e0518ce548402455ac8fb6928c"
+        },
+        "request": {
+          "path": "requests/brazil-rural-reference-smoke-seed-29.json",
+          "sha256": "2993e1374262f929b0721452b160f816e8bcb908a777eb7f5e246dcad4b95653"
+        },
+        "result": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/result/result.json",
+          "sha256": "47640e6419ec698a1bf1592a5f60620095db9a4a659320a1d95225a665d7a806"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/manifest.json",
+          "sha256": "d3795dcc02cbba07dd55e4a2ac0d8fbb4159c1db40f0057f0c3be68b3761d8bb"
+        },
+        "scoring": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/network/scoring.json",
+          "sha256": "3bfaf9037c14c1fe7acac10b18c8597f1a91140eeb89aa8831fa42aa17184c1d"
+        },
+        "summary": {
+          "path": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc/summary.md",
+          "sha256": "932ccb2882a4f38176839280f0f9a8f348a824c5dbb8831fa8f4b59c95f4dda2"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "2d358f1381003836ee85827c4513654bd7d38a05588da7416faeff11935d0e14",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": 83.46284039942215,
+          "converged": 2,
+          "eligible": 2,
+          "error_denominator": 2,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 111.49183320579259,
+          "quality_counts": {
+            "ACCEPTED": 2,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 0
+          },
+          "scored": 2,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "47640e6419ec698a1bf1592a5f60620095db9a4a659320a1d95225a665d7a806",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 29,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "a57ec985a73bba2961ac89193719c674bfdf3aedb7c8d0bbb3a98ab141385244",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "17ce14ed3e67e875421bdb0f49486353be1f45cc1a7cebd3e0a1a76398904631",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 29,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "7966fa9f739386043f5cfd7b30fc1850fd122f53ce26046cdd0587877ffdd007",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "a57ec985a73bba2961ac89193719c674bfdf3aedb7c8d0bbb3a98ab141385244",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "df30d217b4634f4b86b736fd6ef01bbc",
+          "runtime_artifact_sha256": "817c760da5c9fd67e00a21fafc91dc93f977747a9f988b66552c5f9eec45c98d",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "4374cc70440d78e0ba60c08ee65b345af749408a16e8ac30fbc4e678e3dd436a",
+      "request_sha256": "a57ec985a73bba2961ac89193719c674bfdf3aedb7c8d0bbb3a98ab141385244",
+      "run_id": "df30d217b4634f4b86b736fd6ef01bbc",
+      "run_key": "brazil-rural-reference-smoke-seed-29",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 29,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/df30d217b4634f4b86b736fd6ef01bbc"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/artifacts.json",
+          "sha256": "dc5cb642bf1915c53e70d4bad69702248588a23efe37bec4ae675d601f3e231e"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/network/gateway_timestamps.json",
+          "sha256": "3131102d6d227bd2e8ecac5e8f3ccf9f4e52bbaf1e88a1526a4a4af28a062ac9"
+        },
+        "network_results": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/network/network_results.json",
+          "sha256": "18c94d0657c9101b41adf77f1efab6d40f67dab5d0d71d7be134616ea617d4c4"
+        },
+        "request": {
+          "path": "requests/brazil-rural-reference-smoke-seed-47.json",
+          "sha256": "2bf5476d040663e78f0b3f41130340fc5b9cfb11caf47962583142f53b64fee4"
+        },
+        "result": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/result/result.json",
+          "sha256": "26f89b332cab2b0a388858b506ec46a0b1354b7c23104db79256264e9fb431f0"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/manifest.json",
+          "sha256": "1320137768d210ca211bfd9e69054ab82fc9e2431b56602cda07fcc7ecc17f53"
+        },
+        "scoring": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/network/scoring.json",
+          "sha256": "f94d9a225ed5a599be9e4a0407dab5a80c32f3427186ab96c1ed52d7cad585a9"
+        },
+        "summary": {
+          "path": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a/summary.md",
+          "sha256": "04b075665782ce6a8f7ca232e79abb6228750a7c0ba7510a0aa99c89a5aa9e4f"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "2431fcab8ee3a3128e2049d04d66f5481fdd74e58d5557c316403edf85a3a263",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": 1581.1454788847689,
+          "converged": 2,
+          "eligible": 2,
+          "error_denominator": 2,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 1994.727230017971,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 2
+          },
+          "scored": 2,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "26f89b332cab2b0a388858b506ec46a0b1354b7c23104db79256264e9fb431f0",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 47,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "b9c061728c35864ec63683654fef7f4e158bfd91d215c595ec145a5845e2e024",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "a782694fbf73ec90f2e06adec279025bed86c37d4791ffd457a4c9a100bb6794",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 47,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "84f27a1bbaa96d614c23c90009306401e354c5af5256e4823d98bf99db2f79ea",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "b9c061728c35864ec63683654fef7f4e158bfd91d215c595ec145a5845e2e024",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "f9fb27bc8fcc42da84e653caf8799e4a",
+          "runtime_artifact_sha256": "b9d6cf12be43a882a10474fafa07001a455200010edff750d2267f2c0adceb44",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "a18c76443b80e81d0da74bd396ec2b492f688ad21c0ed5674aa9b6c229711495",
+      "request_sha256": "b9c061728c35864ec63683654fef7f4e158bfd91d215c595ec145a5845e2e024",
+      "run_id": "f9fb27bc8fcc42da84e653caf8799e4a",
+      "run_key": "brazil-rural-reference-smoke-seed-47",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 47,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/f9fb27bc8fcc42da84e653caf8799e4a"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/artifacts.json",
+          "sha256": "7bb61fc2d26276704b967e4de116a7a13e37dfd7fe9eb14caac731f96b767b89"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/network/gateway_timestamps.json",
+          "sha256": "51dacaf5c9abec230ee3cfcd458ab19ee31da8bfa3bf6aed864287a631e5e080"
+        },
+        "network_results": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/network/network_results.json",
+          "sha256": "f67133aa80c07cb7666e5c24040b0f109da5acbd5d13a0da6e90dff9353f0658"
+        },
+        "request": {
+          "path": "requests/brazil-rural-collision-stress-seed-11.json",
+          "sha256": "0c371554bffe4c2fb8da6eaa8f6ad98a8fd607c17e37b182e0593fe0c1c80ae9"
+        },
+        "result": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/result/result.json",
+          "sha256": "8d5c32ec9c4786f20fbe553b3209d47498402b9a808a3dab7f6328ed7b2c62f9"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/manifest.json",
+          "sha256": "e466c8f13a2e62df66d76f6a2078050b8c6c4c9bde36eb6d997630a3cc375e8f"
+        },
+        "scoring": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/network/scoring.json",
+          "sha256": "be66024f57dda5e40b174bf0ac3e12a92ea6a1c7e566da4076fae3e4bd98ef4d"
+        },
+        "summary": {
+          "path": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39/summary.md",
+          "sha256": "0a1927045ec9856b69da173f8ef9a8d7193742effe15f4f0385d818c7ea13d90"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "e825fce66acf56d4498e04eefd589cb7e68e5e3ba5a9758b727be7d4c60a4b48",
+      "metrics": {
+        "localization": {
+          "attempts": 4,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 4,
+          "non_eligible_status_counts": {
+            "NO_PACKET": 4
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 4,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 4,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 0,
+          "gateways": {
+            "GW-1": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-2": {
+              "attempted": 4,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-4": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            }
+          },
+          "pdr": 0.0,
+          "requested_packets": 6,
+          "transmitted_packets": 4
+        }
+      },
+      "output_sha256": "8d5c32ec9c4786f20fbe553b3209d47498402b9a808a3dab7f6328ed7b2c62f9",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 11,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "3ff05e2515d5bd9203bcc29941b713672942cc27cba5277a97b94624cbc3c890",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "8aaa438be2849b3b7d7317ebb01c2fd59d086686be9481590f04925aaac08b50",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 11,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "6c092b850cf2f32b1e687b851920e22a1066555396f9b1cb46883761dc07ba93",
+          "observed_detector_modes": [],
+          "request_sha256": "3ff05e2515d5bd9203bcc29941b713672942cc27cba5277a97b94624cbc3c890",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "5b282e4dc39b47e69bebc62ecd5d4f39",
+          "runtime_artifact_sha256": "f215a93483c05c8bfacf96944a35dedd0191a8ae82677f3a888576948ecb0f57",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "f3fdc2a13428a55998dfeef32e9f4a847f222535576df9c5317654cb83d7d85b",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "208c44df750f1878af036432d980dd2ab7a28e0d4a700f8e560f7da35030e5d8",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "5d6f29c490331f79a96b070c48d89030bc0a4e555ab0c7ce1a5d657cfc0d51b4",
+      "request_sha256": "3ff05e2515d5bd9203bcc29941b713672942cc27cba5277a97b94624cbc3c890",
+      "run_id": "5b282e4dc39b47e69bebc62ecd5d4f39",
+      "run_key": "brazil-rural-collision-stress-seed-11",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 11,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/5b282e4dc39b47e69bebc62ecd5d4f39"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/artifacts.json",
+          "sha256": "d586a1d35dbdab04704dd3ab827a9106d29a055abe3b5b2a4d48b3c11665a8a0"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/network/gateway_timestamps.json",
+          "sha256": "51dacaf5c9abec230ee3cfcd458ab19ee31da8bfa3bf6aed864287a631e5e080"
+        },
+        "network_results": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/network/network_results.json",
+          "sha256": "a9d7c9b624d18511fc34c6b6e4cd5404b4cc4d025dc07a52a04b90b882c4e578"
+        },
+        "request": {
+          "path": "requests/brazil-rural-collision-stress-seed-29.json",
+          "sha256": "f359a6c9359af53efb3279eea8d74f8269b45a913fe8451291c420b04fffe9d5"
+        },
+        "result": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/result/result.json",
+          "sha256": "90e5437381eb8b0ee9d09a1100b6a8b2bb6e40b03ed1551be72e6fef2754eecc"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/manifest.json",
+          "sha256": "5da31ad47c218b429104ca860c63405179e1e2756560b1b2664bddbf7e771f4c"
+        },
+        "scoring": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/network/scoring.json",
+          "sha256": "be66024f57dda5e40b174bf0ac3e12a92ea6a1c7e566da4076fae3e4bd98ef4d"
+        },
+        "summary": {
+          "path": "runs/workspaces/1b2ce675ee32409394a065c59d67704e/summary.md",
+          "sha256": "784490dbce06ae0691bb1433be44997b6260b06e1094c1b25643cd8cc610c224"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "9a3a743c6c572352b27951076faafc0649c606134e5323982b4abe5b8da798a4",
+      "metrics": {
+        "localization": {
+          "attempts": 4,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 4,
+          "non_eligible_status_counts": {
+            "NO_PACKET": 4
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 4,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 4,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 0,
+          "gateways": {
+            "GW-1": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-2": {
+              "attempted": 4,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-4": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            }
+          },
+          "pdr": 0.0,
+          "requested_packets": 6,
+          "transmitted_packets": 4
+        }
+      },
+      "output_sha256": "90e5437381eb8b0ee9d09a1100b6a8b2bb6e40b03ed1551be72e6fef2754eecc",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 29,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "814eeef20d3416191796f46420072e0fa687cd5a192e3d50d6a3578cc54b0a65",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "d4d5bb85ea9e14a8a66696cfa425b69ecc0ceee72d20c1801904a78753fba456",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 29,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "d9173d94ced5bd6dac45901788a767611ff5ea89babf795d0a58ee5012bfb840",
+          "observed_detector_modes": [],
+          "request_sha256": "814eeef20d3416191796f46420072e0fa687cd5a192e3d50d6a3578cc54b0a65",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "1b2ce675ee32409394a065c59d67704e",
+          "runtime_artifact_sha256": "c8b3ebf0ae968b054da97412fb732fef97f9826ae61991953865df6f2d537e3f",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "f3fdc2a13428a55998dfeef32e9f4a847f222535576df9c5317654cb83d7d85b",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "208c44df750f1878af036432d980dd2ab7a28e0d4a700f8e560f7da35030e5d8",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "39ec7610d43dd1a9671839c56e0fa104a3fc601facdad65f92e16d3badf295d1",
+      "request_sha256": "814eeef20d3416191796f46420072e0fa687cd5a192e3d50d6a3578cc54b0a65",
+      "run_id": "1b2ce675ee32409394a065c59d67704e",
+      "run_key": "brazil-rural-collision-stress-seed-29",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 29,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/1b2ce675ee32409394a065c59d67704e"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/artifacts.json",
+          "sha256": "5ea54129bde665226082b166e71f2f02e1188c2165f67d42035b5b2755e83c1d"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/network/gateway_timestamps.json",
+          "sha256": "51dacaf5c9abec230ee3cfcd458ab19ee31da8bfa3bf6aed864287a631e5e080"
+        },
+        "network_results": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/network/network_results.json",
+          "sha256": "2ee213faee63fea62afe30e7c052371347729b302babca2a72790ccc4805d329"
+        },
+        "request": {
+          "path": "requests/brazil-rural-collision-stress-seed-47.json",
+          "sha256": "d87c9a7df46f4977c1a7d295a51dc47d013e60a26deb961733e7850be4dfa7d3"
+        },
+        "result": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/result/result.json",
+          "sha256": "195f3406de988ff673e224b42c0836188ad40c001fa81934d14869081f00545d"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/manifest.json",
+          "sha256": "6f4de3922b5572aa2e02454769f58d3d2b2118f6746906186e61943556dc1f70"
+        },
+        "scoring": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/network/scoring.json",
+          "sha256": "be66024f57dda5e40b174bf0ac3e12a92ea6a1c7e566da4076fae3e4bd98ef4d"
+        },
+        "summary": {
+          "path": "runs/workspaces/d80777d86a394da68cb8f59119cd506d/summary.md",
+          "sha256": "0588d37519a85eb43eb0862fe8e017a7e2aeb2132e90b5794d50b0073c4b8d5c"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "3d4ba50af821316337360ed08285454780eb817e6d80f5f905dde7ee78edc985",
+      "metrics": {
+        "localization": {
+          "attempts": 4,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 4,
+          "non_eligible_status_counts": {
+            "NO_PACKET": 4
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 4,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 4,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 0,
+          "gateways": {
+            "GW-1": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-2": {
+              "attempted": 4,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-4": {
+              "attempted": 4,
+              "interference_drops": 4,
+              "pdr": 0.0,
+              "received": 0
+            }
+          },
+          "pdr": 0.0,
+          "requested_packets": 6,
+          "transmitted_packets": 4
+        }
+      },
+      "output_sha256": "195f3406de988ff673e224b42c0836188ad40c001fa81934d14869081f00545d",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 47,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 0.01
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "5c0b9b11207c5c849b2c09be127935faef39d3fcf9efec5d421a9a8425706e45",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "542227440d144f2da04d76f5f6e9333d1acd5c327bdefaa5d9d04092bb1f9c97",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 47,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "f3af1bff23c5860f3ec298a15b002e441e94974b13b783d13442a2a23b625825",
+          "observed_detector_modes": [],
+          "request_sha256": "5c0b9b11207c5c849b2c09be127935faef39d3fcf9efec5d421a9a8425706e45",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "d80777d86a394da68cb8f59119cd506d",
+          "runtime_artifact_sha256": "2a3db7c93c614a323ecd6850fba0f99d06ac9e2660edb00e2236cd53415dd612",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "f3fdc2a13428a55998dfeef32e9f4a847f222535576df9c5317654cb83d7d85b",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "208c44df750f1878af036432d980dd2ab7a28e0d4a700f8e560f7da35030e5d8",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "74ebffbe944597ad1d69da3de9e777b36907ef9465d78c237a6fb49f04899af7",
+      "request_sha256": "5c0b9b11207c5c849b2c09be127935faef39d3fcf9efec5d421a9a8425706e45",
+      "run_id": "d80777d86a394da68cb8f59119cd506d",
+      "run_key": "brazil-rural-collision-stress-seed-47",
+      "scenario_id": "brazil-rural-collision-stress",
+      "seed": 47,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/d80777d86a394da68cb8f59119cd506d"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/artifacts.json",
+          "sha256": "1a5189755ae77ccd2102a2491a110176dd7c2d7bb25a7c21809807b1d9683b3c"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/network/gateway_timestamps.json",
+          "sha256": "c9a9f16e9c5597ba15e1eda1c675e1ed61f8b6431190eaaaa0ed1e183a50f494"
+        },
+        "network_results": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/network/network_results.json",
+          "sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b"
+        },
+        "request": {
+          "path": "requests/brazil-rural-localization-rejection-seed-11.json",
+          "sha256": "0e8caf3ba6e5370e8088f2f0eae5908d6ff862100130aaafac0184c4fc3f90d1"
+        },
+        "result": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/result/result.json",
+          "sha256": "0ac0cd29ae81e748ecdc8fe807e4cbaf143deb4d08ee6928ecdd5b3a61bf8e50"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/manifest.json",
+          "sha256": "ac632a34389bd8d1b8dd59417bb5635c16831baacdac85ec48b87b04246132db"
+        },
+        "scoring": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/network/scoring.json",
+          "sha256": "c28486e259e16cd98b284da8b840122a0de73580cd141b0fd82908138b96cce4"
+        },
+        "summary": {
+          "path": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9/summary.md",
+          "sha256": "ad547aa7ef5c00b15c40e05845f92f768996ebb125ffa81b953ab84d16201379"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "d56c4ddb42110637bc1fe4070eb14e8df22bd9cd2eecde96dc234e0ca7de7fe8",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 2,
+          "non_eligible_status_counts": {
+            "LT3_TIMESTAMPS": 2
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 2,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "0ac0cd29ae81e748ecdc8fe807e4cbaf143deb4d08ee6928ecdd5b3a61bf8e50",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 11,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "3bf8a6d72826a0c10996e31cd9adcda17e458688bcbb00d6d8bbb2ab8d9ebd32",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "201d0ee266b1e304c66821467f707005bdec961c8a0708aefedb78bc619cf9f4",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 11,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "7266d0c18fb124c4c07ae5966f247182986bbe7fdb27774f77c1612a7ee6d32e",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "3bf8a6d72826a0c10996e31cd9adcda17e458688bcbb00d6d8bbb2ab8d9ebd32",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "6c30f5d9ddc74dce9174ae73765356f9",
+          "runtime_artifact_sha256": "868fdc1a000dc9a381041aa73e6c8fa621c20a4b685ae0ee1bdf6e9daefe08c8",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "a8b3ec505523ab92f67e662f088b017d8039d765b6348d95ebf1138c42e2602c",
+      "request_sha256": "3bf8a6d72826a0c10996e31cd9adcda17e458688bcbb00d6d8bbb2ab8d9ebd32",
+      "run_id": "6c30f5d9ddc74dce9174ae73765356f9",
+      "run_key": "brazil-rural-localization-rejection-seed-11",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 11,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/6c30f5d9ddc74dce9174ae73765356f9"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/artifacts.json",
+          "sha256": "5a8cd6d038bb57f54e79f71c76fdfb7752fff10916d8e82559defb834e003f53"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/network/gateway_timestamps.json",
+          "sha256": "eae567225768e6eb8a976dab588e882916ce2e9a7fe7ccc8c851ea68697f2de6"
+        },
+        "network_results": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/network/network_results.json",
+          "sha256": "041e71a73d501d2ee5ead0be9e061e51229181e0518ce548402455ac8fb6928c"
+        },
+        "request": {
+          "path": "requests/brazil-rural-localization-rejection-seed-29.json",
+          "sha256": "9260a763acc228569aaa51fccbd81b4b8aa72285b3bec222e97b65ac78e0c985"
+        },
+        "result": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/result/result.json",
+          "sha256": "39c95295f1ddbdf9cb63fb91984deb0b2b009b038f8ce22ad03f7c10845a0e35"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/manifest.json",
+          "sha256": "99d705d2357a6d55391b741e455da633556aedd5133d49629a94190d71076a62"
+        },
+        "scoring": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/network/scoring.json",
+          "sha256": "c28486e259e16cd98b284da8b840122a0de73580cd141b0fd82908138b96cce4"
+        },
+        "summary": {
+          "path": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0/summary.md",
+          "sha256": "34aa5e9c1cc2a09a67898d44355e81513e93050d9f80d5261e78706d7cb4f68e"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "59f676bda03c58dfd516eb083e95911e7885d77f832bc426594b8da9ae7911eb",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 2,
+          "non_eligible_status_counts": {
+            "LT3_TIMESTAMPS": 2
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 2,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "39c95295f1ddbdf9cb63fb91984deb0b2b009b038f8ce22ad03f7c10845a0e35",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 29,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "de5b3fd34365e3e7fea8c637524b41f2f09b7a9fe4c13448ab2674d815467bb4",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "17ce14ed3e67e875421bdb0f49486353be1f45cc1a7cebd3e0a1a76398904631",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 29,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "d981745f269262b50dd9f69facb04e5e671b362e838aa1b7f16022cd886bfe32",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "de5b3fd34365e3e7fea8c637524b41f2f09b7a9fe4c13448ab2674d815467bb4",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "8c97570126924de4a83fde1cd0a147f0",
+          "runtime_artifact_sha256": "9d0be176b70f7e8b26cb7c14c7b705f009a3dc2a02ffc1cf30021d5274a37822",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "8c37c525393d44710ef2420259f98c46a13fdd3a24a357840e71c741f740678e",
+      "request_sha256": "de5b3fd34365e3e7fea8c637524b41f2f09b7a9fe4c13448ab2674d815467bb4",
+      "run_id": "8c97570126924de4a83fde1cd0a147f0",
+      "run_key": "brazil-rural-localization-rejection-seed-29",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 29,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/8c97570126924de4a83fde1cd0a147f0"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/artifacts.json",
+          "sha256": "521f40bf5200080fba5fe759ac1a171480e0533855c71c580dcc1edaafe4d58e"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/network/gateway_timestamps.json",
+          "sha256": "e6114802ec1bcd4d0db98ad6ab8f1765b1dc22bdac5f8e87e6da98678d80c2c8"
+        },
+        "network_results": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/network/network_results.json",
+          "sha256": "18c94d0657c9101b41adf77f1efab6d40f67dab5d0d71d7be134616ea617d4c4"
+        },
+        "request": {
+          "path": "requests/brazil-rural-localization-rejection-seed-47.json",
+          "sha256": "9dd4cff8c1254f6f90a23b17516302fbd77cd9024d30bedc1267a3fb5c03f2d2"
+        },
+        "result": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/result/result.json",
+          "sha256": "618d9f867e081b19eca1365cd6b61fed2759bb190a1d02f54c079df9ebffc5ee"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/manifest.json",
+          "sha256": "4233e9448e63f605d5f9ec6562ce7b2bbfb9017c121a246ecb87b9052a7d3f5f"
+        },
+        "scoring": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/network/scoring.json",
+          "sha256": "c28486e259e16cd98b284da8b840122a0de73580cd141b0fd82908138b96cce4"
+        },
+        "summary": {
+          "path": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa/summary.md",
+          "sha256": "53dad6192dbc6f4b679def85534a5f964e8dfba812ab7d4bfcbde3c52b53c368"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "5cf9f02fe6b39e141afddd2a0270c3eaac34c35491569ef532ae9bacbb8a5ed6",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": null,
+          "converged": 0,
+          "eligible": 0,
+          "error_denominator": 0,
+          "failed": 0,
+          "non_eligible": 2,
+          "non_eligible_status_counts": {
+            "LT3_TIMESTAMPS": 2
+          },
+          "p90_error_m": null,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 2,
+            "REJECTED": 0
+          },
+          "scored": 0,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "618d9f867e081b19eca1365cd6b61fed2759bb190a1d02f54c079df9ebffc5ee",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 47,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "841841b8530b1379f0eea5931991e1337d7017de9998a3b1d77c18a06e5069de",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "a782694fbf73ec90f2e06adec279025bed86c37d4791ffd457a4c9a100bb6794",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 47,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "28160b508b6f968f3ae1f7bfcbed2a099badb778b2cb4dcf33c8db3cd91b637f",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "841841b8530b1379f0eea5931991e1337d7017de9998a3b1d77c18a06e5069de",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": 0.0
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "c5baa50c98774d73aa03f6b2cf3275fa",
+          "runtime_artifact_sha256": "bc7732c129d6945601af3c77c96858e0ffc1f7f57d98f4f4cf682947c325ecea",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "ad23701e7d115fe1ecef4a879b24eeefeb13facf87223f4de5f93f8a96441eb5",
+      "request_sha256": "841841b8530b1379f0eea5931991e1337d7017de9998a3b1d77c18a06e5069de",
+      "run_id": "c5baa50c98774d73aa03f6b2cf3275fa",
+      "run_key": "brazil-rural-localization-rejection-seed-47",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "seed": 47,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/c5baa50c98774d73aa03f6b2cf3275fa"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/artifacts.json",
+          "sha256": "60d7e31e1fd9730a52427ee730d8f2d098d538f12485f50dfde03942747f5d01"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/network/gateway_timestamps.json",
+          "sha256": "c0934c3771c8755e15bca39d9a1c65f6930ee9aaccf1618056aad029f3208a7b"
+        },
+        "network_results": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/network/network_results.json",
+          "sha256": "0642fa0f7fced9de8f9d8e25152ea93050c4c822ed31e127bec6f6035031c46b"
+        },
+        "request": {
+          "path": "requests/brazil-rural-multi-animal-nominal-seed-11.json",
+          "sha256": "cb0ab98022b3336563d0f15fedf308026637adbbafc8d50be433458c67838ae4"
+        },
+        "result": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/result/result.json",
+          "sha256": "68821165b9168669e1c2d554b9c35b7112014fb9fd36912b6d253f5d8086144d"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/manifest.json",
+          "sha256": "4cfdc8c4d99e817e764cc533d5b2463fbb9a7f690fbd318f8db51f986d1ba864"
+        },
+        "scoring": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/network/scoring.json",
+          "sha256": "f4e9e2b59c58fb2a4f9eca3fb16ded06de8b29fcad1d6f3a1f1cc30caebc470f"
+        },
+        "summary": {
+          "path": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c/summary.md",
+          "sha256": "e30ea54132d84d35318de0973282ee28142d82c6ae192e377006f1c17d48ceb1"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "d8867fc4857928d972ff8cf1c26de245e868d32e6336625bae171387ca8e3c73",
+      "metrics": {
+        "localization": {
+          "attempts": 20,
+          "conditional_rmse_m": 966.0018550415331,
+          "converged": 20,
+          "eligible": 20,
+          "error_denominator": 20,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 1203.9807756411817,
+          "quality_counts": {
+            "ACCEPTED": 14,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 6
+          },
+          "scored": 20,
+          "truth_matched_attempts": 20,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 20,
+          "gateways": {
+            "GW-1": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            },
+            "GW-2": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 0.6,
+              "received": 12
+            },
+            "GW-3": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            },
+            "GW-4": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 30,
+          "transmitted_packets": 20
+        }
+      },
+      "output_sha256": "68821165b9168669e1c2d554b9c35b7112014fb9fd36912b6d253f5d8086144d",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 11,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "d7eca058aa75b424ab356da5353b0d6afca230ca91a8a7853f51b7f465bdd3a6",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "32a76bfc274cabb8a882d4aeb8bb77e13a8ac395dc16a6d1b248cc83105cbf47",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 11,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "72046bdce1a51ead4e9c3aa9736f904016ffb7e0de7026809d16e2d8509f1715",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "d7eca058aa75b424ab356da5353b0d6afca230ca91a8a7853f51b7f465bdd3a6",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "77e6a82965a74bc4b76f6c8a276e337c",
+          "runtime_artifact_sha256": "a134156a7e19d9445f71e3f080ca4c06179e64e17c730eb894044663d2bfc080",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "9323abf08211cbf1019d2cd07cf8286d52a9b5a7131bb2bc4085cbc0888c99c4",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "d141ca5c512899c05e88bb8e9c0156b9640fdfc2681cef5065720bd02e00f92e",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "d69e915afeeccad069bcacb79e4ac374b3778202043fdb5184b34478e7bafb0c",
+      "request_sha256": "d7eca058aa75b424ab356da5353b0d6afca230ca91a8a7853f51b7f465bdd3a6",
+      "run_id": "77e6a82965a74bc4b76f6c8a276e337c",
+      "run_key": "brazil-rural-multi-animal-nominal-seed-11",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 11,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/77e6a82965a74bc4b76f6c8a276e337c"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/artifacts.json",
+          "sha256": "6324789e68de97e991b5c92951a84b1570dd093dbdd4bca342377b655f3890a1"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/network/gateway_timestamps.json",
+          "sha256": "8fe42fb77b3ed61bfa18c68df2955117cd2cf95a57c967224f967603423701e4"
+        },
+        "network_results": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/network/network_results.json",
+          "sha256": "96e1d9efb2699928626082981abe1a79d3f8709b20485830272506c8fcb2c1ae"
+        },
+        "request": {
+          "path": "requests/brazil-rural-multi-animal-nominal-seed-29.json",
+          "sha256": "16489173f1fb315328d16a0b2596cb9c23b8358835968d00153092464bc686de"
+        },
+        "result": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/result/result.json",
+          "sha256": "798a5045bfc99a410850a8aef511207df506849ccd9c0b82811ed2f064ca95da"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/manifest.json",
+          "sha256": "1a0a31b1641b5b2c0f3c525a2d278c68676ff46ccdd4b41357a375d07e76693a"
+        },
+        "scoring": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/network/scoring.json",
+          "sha256": "f243265e0468f934a0fc1a912ce7f5f3dd5329b49cba1c07fd26b8d836a8e0e4"
+        },
+        "summary": {
+          "path": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4/summary.md",
+          "sha256": "71dd53eb4056c83440065205d41118c3dec00aeb91a1d8466aff2f72386bd7e0"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "91f0230586c6e1cb0bfc89dda37b6be3568f2d59999ac82f56b3a8a022e7eb69",
+      "metrics": {
+        "localization": {
+          "attempts": 20,
+          "conditional_rmse_m": 488.23129976816915,
+          "converged": 20,
+          "eligible": 20,
+          "error_denominator": 20,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 876.4664525121913,
+          "quality_counts": {
+            "ACCEPTED": 16,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 4
+          },
+          "scored": 20,
+          "truth_matched_attempts": 20,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 20,
+          "gateways": {
+            "GW-1": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            },
+            "GW-2": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 0.6,
+              "received": 12
+            },
+            "GW-3": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            },
+            "GW-4": {
+              "attempted": 20,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 20
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 30,
+          "transmitted_packets": 20
+        }
+      },
+      "output_sha256": "798a5045bfc99a410850a8aef511207df506849ccd9c0b82811ed2f064ca95da",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 29,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 29,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "af32082ad5bed96834dbeb4cadb57f57520aad81d355eadc8a9255248080cc45",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "a0c827250e896a5ea1b308b5ef22bc0dab51091ceba2842aa48ba1394240f248",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 29,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "b7aa5d5323a65ad541588cd343d555e8b1d37330be052e61d429c2c592cbe0ca",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "af32082ad5bed96834dbeb4cadb57f57520aad81d355eadc8a9255248080cc45",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "54aa44f5d6fc4e0da1c2fb921fea34d4",
+          "runtime_artifact_sha256": "4f814f07894b9fdfa93b4c14135ed95223971644964574195f3679ed5096967b",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "9323abf08211cbf1019d2cd07cf8286d52a9b5a7131bb2bc4085cbc0888c99c4",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "d141ca5c512899c05e88bb8e9c0156b9640fdfc2681cef5065720bd02e00f92e",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "a3566f4b9d19e600ff2d9b9e3c17ac01d2cad89741fae2fea2ce357f6cd71c13",
+      "request_sha256": "af32082ad5bed96834dbeb4cadb57f57520aad81d355eadc8a9255248080cc45",
+      "run_id": "54aa44f5d6fc4e0da1c2fb921fea34d4",
+      "run_key": "brazil-rural-multi-animal-nominal-seed-29",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 29,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/54aa44f5d6fc4e0da1c2fb921fea34d4"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/artifacts.json",
+          "sha256": "1412e7162d7730cc6386bdcf441d396e1c6cb31df3674ac81e8bf6a110c7afee"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/network/gateway_timestamps.json",
+          "sha256": "8ebca5ca74d7621658b0101d2ce37d64e124e4ecdc9d8ae59f8448ea948cbbdc"
+        },
+        "network_results": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/network/network_results.json",
+          "sha256": "f4184d8858b660061fce70b4ef9fd306a62872fa51527132f68116422a2fc47a"
+        },
+        "request": {
+          "path": "requests/brazil-rural-multi-animal-nominal-seed-47.json",
+          "sha256": "b381c40970d56cbafddb0641e16fa02e07b3bb87e7a2a4d9f66e5edb60682e74"
+        },
+        "result": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/result/result.json",
+          "sha256": "1597db288df03e197eb02053f0d3cd5b7cdfa87f102b8184c2fcd72860d3174f"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/manifest.json",
+          "sha256": "b3246d608c85d9bedd5d1873d6fd8e6e2c2349d4cbac1a6ad87bd7a36f4ff468"
+        },
+        "scoring": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/network/scoring.json",
+          "sha256": "2e7e44fc30400919fe71081bc18fa964013acab3aaf56899f0bde7444b4c82a2"
+        },
+        "summary": {
+          "path": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e/summary.md",
+          "sha256": "3b79204f34d8ef0e09da47615ce379c8a8ea1526b599ae00128f135ca6142dbe"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "6758ade4dc1cf27a060b22ed3e9c78057e8507cd55169da7f958149c89bbdb88",
+      "metrics": {
+        "localization": {
+          "attempts": 20,
+          "conditional_rmse_m": 700.7556252354649,
+          "converged": 16,
+          "eligible": 16,
+          "error_denominator": 16,
+          "failed": 0,
+          "non_eligible": 4,
+          "non_eligible_status_counts": {
+            "NO_PACKET": 4
+          },
+          "p90_error_m": 1308.2104168025644,
+          "quality_counts": {
+            "ACCEPTED": 10,
+            "NOT_EVALUATED": 4,
+            "REJECTED": 6
+          },
+          "scored": 16,
+          "truth_matched_attempts": 20,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 16,
+          "gateways": {
+            "GW-1": {
+              "attempted": 20,
+              "interference_drops": 4,
+              "pdr": 0.8,
+              "received": 16
+            },
+            "GW-2": {
+              "attempted": 20,
+              "interference_drops": 4,
+              "pdr": 0.4,
+              "received": 8
+            },
+            "GW-3": {
+              "attempted": 20,
+              "interference_drops": 4,
+              "pdr": 0.8,
+              "received": 16
+            },
+            "GW-4": {
+              "attempted": 20,
+              "interference_drops": 4,
+              "pdr": 0.8,
+              "received": 16
+            }
+          },
+          "pdr": 0.8,
+          "requested_packets": 30,
+          "transmitted_packets": 20
+        }
+      },
+      "output_sha256": "1597db288df03e197eb02053f0d3cd5b7cdfa87f102b8184c2fcd72860d3174f",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 47,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 47,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "fb4f80e9837a9b4d7be9049c7543875d7c6b6027b5948166670a0b233fc028a1",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "f0cc0d4578f6fdc9b371cca16f4cde1b81223743d7f2e14f282e9e9eb1f657a7",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 47,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "f532d24765fff555761cb4ae3ed5e4778518d6c35e5b487afa647f8adef9591e",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "fb4f80e9837a9b4d7be9049c7543875d7c6b6027b5948166670a0b233fc028a1",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "016f7d7e2b1c41c8a33d8866d2065d0e",
+          "runtime_artifact_sha256": "41eec83eac84242bc48eef9b31b3e1a252b1dc9f23c9fa3efe71c2f8ebd43b38",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "9323abf08211cbf1019d2cd07cf8286d52a9b5a7131bb2bc4085cbc0888c99c4",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "d141ca5c512899c05e88bb8e9c0156b9640fdfc2681cef5065720bd02e00f92e",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "bcde359966e45360456c011d9f82d7f3284620d8b301b7a495d5fa4e058b3397",
+      "request_sha256": "fb4f80e9837a9b4d7be9049c7543875d7c6b6027b5948166670a0b233fc028a1",
+      "run_id": "016f7d7e2b1c41c8a33d8866d2065d0e",
+      "run_key": "brazil-rural-multi-animal-nominal-seed-47",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "seed": 47,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/016f7d7e2b1c41c8a33d8866d2065d0e"
+    },
+    {
+      "artifacts": {
+        "artifact_inventory": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/artifacts.json",
+          "sha256": "04d23865c533128358e8c314a918e965accd0cfdc61518cd7883ebea9cdfff58"
+        },
+        "gateway_timestamps": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/network/gateway_timestamps.json",
+          "sha256": "e59d282668f843b71477e68a802133413681965e3f2c9a94ff32e48bfd9add49"
+        },
+        "network_results": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/network/network_results.json",
+          "sha256": "ad876ae76f9e273aa0b777bb24ce31286f4c6f3654a8a75a6b04ee9b6a1e691b"
+        },
+        "request": {
+          "path": "requests/brazil-rural-reference-smoke-seed-11.json",
+          "sha256": "ac148b80bb24c36cff1eb027220ed9835151069d2320c22254d50b955103654d"
+        },
+        "result": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/result/result.json",
+          "sha256": "68f38ee8356b3486f83921c40376206963c062372cf0ddb407391029fa13d49a"
+        },
+        "runtime_manifest": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/manifest.json",
+          "sha256": "83264143f3eddb050f240bace98fb2586a312302012cba1b4f2f1a4b7bb039a9"
+        },
+        "scoring": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/network/scoring.json",
+          "sha256": "53e26eae63e2c5e1f1e545ea8c3a105ecded11fc26d550ecad96c2307a222eed"
+        },
+        "summary": {
+          "path": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb/summary.md",
+          "sha256": "8d75ff0950d732957c297b6edee0a81b8dbf97dc8cfab8208dc0ce818cdceb3b"
+        }
+      },
+      "classification": "SIMULATED",
+      "manifest_sha256": "45ba3c3f516ea923cd0b43b8976e0e1cc98dc0e59b120365537816169900af0b",
+      "metrics": {
+        "localization": {
+          "attempts": 2,
+          "conditional_rmse_m": 970.022946071127,
+          "converged": 2,
+          "eligible": 2,
+          "error_denominator": 2,
+          "failed": 0,
+          "non_eligible": 0,
+          "non_eligible_status_counts": {},
+          "p90_error_m": 1165.627376787033,
+          "quality_counts": {
+            "ACCEPTED": 0,
+            "NOT_EVALUATED": 0,
+            "REJECTED": 2
+          },
+          "scored": 2,
+          "truth_matched_attempts": 2,
+          "truth_source": "SYNTHETIC_REQUEST_TRAJECTORY_SCORE_ONLY"
+        },
+        "network": {
+          "delivered_packets": 2,
+          "gateways": {
+            "GW-1": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-2": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 0.0,
+              "received": 0
+            },
+            "GW-3": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            },
+            "GW-4": {
+              "attempted": 2,
+              "interference_drops": 0,
+              "pdr": 1.0,
+              "received": 2
+            }
+          },
+          "pdr": 1.0,
+          "requested_packets": 3,
+          "transmitted_packets": 2
+        }
+      },
+      "output_sha256": "68f38ee8356b3486f83921c40376206963c062372cf0ddb407391029fa13d49a",
+      "parameter_binding": {
+        "network": {
+          "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+          "effective": {
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "payload_bytes": 12,
+            "seed": 11,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "enabled": true,
+            "payload_bytes": 12,
+            "spreading_factor": 7,
+            "traffic_interval_s": 60.0
+          },
+          "status": "VERIFIED"
+        },
+        "radio_and_backend": {
+          "effective": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "requested": {
+            "backend": "sionna-rt",
+            "bandwidth_hz": 125000,
+            "frequency_hz": 915000000,
+            "seed": 11,
+            "tx_power_dbm": 14.0
+          },
+          "status": "VERIFIED"
+        },
+        "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+        "schema_version": "riose.simulation.parameter-binding/v1",
+        "solver": {
+          "effective": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "effective_config_artifact": "inputs/farm_config.yaml",
+          "effective_config_sha256": "201d0ee266b1e304c66821467f707005bdec961c8a0708aefedb78bc619cf9f4",
+          "effective_sources": {
+            "cfr_points": "REQUESTED",
+            "los": "REQUESTED",
+            "max_depth": "REQUESTED",
+            "max_num_paths_per_src": "REQUESTED",
+            "samples_per_src": "REQUESTED",
+            "specular_reflection": "REQUESTED"
+          },
+          "requested": {
+            "cfr_points": 5,
+            "los": true,
+            "max_depth": 1,
+            "max_num_paths_per_src": 1000,
+            "samples_per_src": 1000,
+            "specular_reflection": true
+          },
+          "source_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+          "status": "VERIFIED"
+        },
+        "temporal": {
+          "effective": {
+            "clock_seed": 11,
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "effective_defaults": {
+            "phy.preamble_symbols": {
+              "effective": 8,
+              "requested": null,
+              "status": "VERIFIED"
+            },
+            "sweep.noise_density_dbm_hz": {
+              "effective": -174.0,
+              "requested": null,
+              "status": "VERIFIED"
+            }
+          },
+          "forwarded": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "input_sha256": "e534d6b2b36eb90a4d086e97efa305f0a6d8bd195b4d496e8ac6e82e1e5dbb3f",
+          "observed_detector_modes": [
+            "THRESHOLD_DETECTOR"
+          ],
+          "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+          "requested": {
+            "clocks": {
+              "GW-1": {
+                "drift_ppm": 0.0,
+                "jitter_std_s": 2e-09,
+                "offset_s": 0.0,
+                "quantization_s": 1e-09
+              },
+              "GW-2": {
+                "drift_ppm": 0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": 1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-3": {
+                "drift_ppm": -0.01,
+                "jitter_std_s": 2e-09,
+                "offset_s": -1e-08,
+                "quantization_s": 1e-09
+              },
+              "GW-4": {
+                "drift_ppm": 0.02,
+                "jitter_std_s": 2e-09,
+                "offset_s": 2e-08,
+                "quantization_s": 1e-09
+              }
+            },
+            "correlated_jitter_std_s": 0.0,
+            "detection_margin_db": 3.0,
+            "detector": {
+              "mode": "THRESHOLD_DETECTOR",
+              "relative_threshold_db": -6.0,
+              "threshold_dbm": null
+            },
+            "max_iterations": 50,
+            "noise_figure_db": 6.0,
+            "snr_threshold_db": -10.0,
+            "timestamp_error_std_s": 0.0
+          },
+          "run_id": "ee9ab7e909ec4c8ab0da846567bc1bbb",
+          "runtime_artifact_sha256": "3cd5aa8310514a571485cee36812f08e0ce0e566a2ef9d6d23ae3579e14ab138",
+          "schema_version": "riose.simulation.temporal-binding/v1",
+          "status": "VERIFIED"
+        },
+        "trajectory": {
+          "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+          "link_set_status": "VERIFIED",
+          "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+          "status": "VERIFIED"
+        }
+      },
+      "reproducibility_sha256": "5492ba74261144f7bf7b471eb21b288ea0ddd2f5770cb04c355d910467259693",
+      "request_sha256": "bbf9f47cea09c2c17131d6a1d7f5e804095a1dc8305d5aaf7e4fd118bf6d6fde",
+      "run_id": "ee9ab7e909ec4c8ab0da846567bc1bbb",
+      "run_key": "brazil-rural-reference-smoke-seed-11-repeat-1",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 11,
+      "status": "COMPLETED",
+      "workspace": "runs/workspaces/ee9ab7e909ec4c8ab0da846567bc1bbb"
+    }
+  ],
+  "scenario_inputs": [
+    {
+      "classification": {
+        "blockchain": "NOT_EVALUATED",
+        "localization": "SIMULATED",
+        "movement": "NOT_EVALUATED",
+        "network": "SIMULATED",
+        "rf": "SIMULATED",
+        "scenario": "SIMULATED"
+      },
+      "path": "scenarios/baseline.json",
+      "repository_path": "docs/research/beta-final/scenarios/baseline.json",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "sha256": "896f77aec8ab67eedd97ad005ffb3c4bc24b25552005436820238ad788d6908f"
+    },
+    {
+      "classification": {
+        "blockchain": "NOT_EVALUATED",
+        "localization": "SIMULATED",
+        "movement": "NOT_EVALUATED",
+        "network": "SIMULATED",
+        "rf": "SIMULATED",
+        "scenario": "SIMULATED"
+      },
+      "path": "scenarios/collision.json",
+      "repository_path": "docs/research/beta-final/scenarios/collision.json",
+      "scenario_id": "brazil-rural-collision-stress",
+      "sha256": "b888f85259a33178730746e7970b7c78a123f281e12b9034e7376e0dfc544d1e"
+    },
+    {
+      "classification": {
+        "blockchain": "NOT_EVALUATED",
+        "localization": "SIMULATED",
+        "movement": "NOT_EVALUATED",
+        "network": "SIMULATED",
+        "rf": "SIMULATED",
+        "scenario": "SIMULATED"
+      },
+      "path": "scenarios/localization-failure.json",
+      "repository_path": "docs/research/beta-final/scenarios/localization-failure.json",
+      "scenario_id": "brazil-rural-localization-rejection",
+      "sha256": "322654ac940c521b27320b4d3062e85b740c894e5a07a98f783f5257ac1cda4a"
+    },
+    {
+      "classification": {
+        "blockchain": "NOT_EVALUATED",
+        "localization": "SIMULATED",
+        "movement": "NOT_EVALUATED",
+        "network": "SIMULATED",
+        "rf": "SIMULATED",
+        "scenario": "SIMULATED"
+      },
+      "path": "scenarios/multi-animal.json",
+      "repository_path": "docs/research/beta-final/scenarios/multi-animal.json",
+      "scenario_id": "brazil-rural-multi-animal-nominal",
+      "sha256": "14f34cd745dee60c71399249d19eedc82ca27d2b90439074be206e50ced456fa"
+    }
+  ],
+  "scenario_schema_artifact": {
+    "path": "scenario-contract.schema.json",
+    "sha256": "5319ce5d5afdcb20afeb0d32bc162b3b20de38b374aa38115fde822f7caddea2"
+  },
+  "schema_version": "riose.beta.campaign-manifest/v1",
+  "simulator": {
+    "capabilities": {
+      "analytic": "AVAILABLE",
+      "core_python": "AVAILABLE",
+      "gpu": "AVAILABLE",
+      "lorawan": "AVAILABLE",
+      "ns3": "AVAILABLE",
+      "ns3_root": "/home/gusta/.local/share/frequencia/ns-3.48",
+      "sionna_rt": "AVAILABLE",
+      "sionna_rt_version": "2.2.0"
+    },
+    "dirty": false,
+    "repository": "GUZZBR1/frequencia",
+    "revision": "ba2bdabf003722aae8292580e048f7092d0356d6"
+  }
+}
