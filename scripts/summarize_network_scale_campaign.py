@@ -12,10 +12,10 @@ from typing import Any
 
 
 GROUP_FIELDS = ("tags", "gateways", "cadence_s", "schedule", "phase_window_s",
-                "sf", "payload_bytes", "distribution")
+                "sf", "payload_bytes", "distribution", "epochs")
 METRIC_FIELDS = ("pdr_phy", "mean_phy_latency_s", "mean_airtime_s",
                  "localization_input_availability", "interference_gateway_events",
-                 "gateway_reception_diversity_mean", "runtime_s")
+                 "gateway_reception_diversity_mean", "pdr_conditional_on_rf_path", "runtime_s")
 
 
 def _sha256(path: Path) -> str:
@@ -64,6 +64,7 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
     groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in runs:
         config = dict(row.get("configuration", {}))
+        config.setdefault("epochs", 3)
         if config.get("schedule") == "SOURCE_TIMESTAMP":
             config["phase_window_s"] = None
         elif config.get("schedule") == "SEEDED_PHASE" and config.get("phase_window_s") is None:
@@ -84,10 +85,14 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
             means[field] = _summary(values)
         pdr_mean = means["pdr_phy"]["mean"]
         outcomes: Counter[str] = Counter()
+        packet_outcomes: Counter[str] = Counter()
         for row in completed:
             outcomes.update(row.get("gateway_outcomes", {}))
+            packet_outcomes.update(row.get("packet_outcome_counts", {}))
         tx_attempted = sum(int(row.get("tx_attempted", 0)) for row in completed)
         phy_received = sum(int(row.get("phy_received_packets", 0)) for row in completed)
+        rf_reachable = sum(int(row.get("rf_reachable_tx_packets", 0)) for row in completed)
+        rf_reachable_received = sum(int(row.get("rf_reachable_received_packets", 0)) for row in completed)
         requested_packets = sum(int(row.get("requested_packets", 0)) for row in completed)
         runtime = [float(row["runtime_s"]) for row in completed if row.get("runtime_s") is not None]
         run_evidence = []
@@ -111,6 +116,14 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
                 "tx_attempted": row.get("tx_attempted"),
                 "phy_received_packets": row.get("phy_received_packets"),
                 "pdr_phy": row.get("pdr_phy"), "pdr_denominator": row.get("pdr_denominator"),
+                "packet_outcome_counts": row.get("packet_outcome_counts"),
+                "packet_outcome_denominator_tx": row.get("packet_outcome_denominator_tx"),
+                "packet_outcome_requested_denominator": row.get("packet_outcome_requested_denominator"),
+                "rf_reachable_tx_packets": row.get("rf_reachable_tx_packets"),
+                "rf_reachable_received_packets": row.get("rf_reachable_received_packets"),
+                "pdr_conditional_on_rf_path": row.get("pdr_conditional_on_rf_path"),
+                "requested_config": row.get("requested_config"),
+                "effective_config": row.get("effective_config"),
                 "runtime_s": row.get("runtime_s"),
             })
         configurations.append({
@@ -125,8 +138,16 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
                 if row.get("configuration", {}).get("seed") is not None}),
             "set_ids": sorted({row.get("set_id") for row in rows if row.get("set_id")}),
             "pdr_phy_numerator": phy_received, "pdr_phy_denominator": tx_attempted,
+            "pdr_phy_pooled": phy_received / tx_attempted if tx_attempted else None,
+            "rf_reachable_tx_packets": rf_reachable,
+            "rf_reachable_received_packets": rf_reachable_received,
+            "pdr_conditional_on_rf_path_pooled": (
+                rf_reachable_received / rf_reachable if rf_reachable else None),
             "requested_packet_count": requested_packets,
             "gateway_event_outcomes": dict(sorted(outcomes.items())),
+            "packet_outcome_counts": dict(sorted(packet_outcomes.items())),
+            "packet_outcome_denominator_tx": tx_attempted,
+            "packet_outcome_requested_denominator": requested_packets,
             "metrics": means,
             "runtime": {"total_s": sum(runtime), "max_s": max(runtime) if runtime else None,
                         "sample_count": len(runtime)},

@@ -40,6 +40,10 @@ def _tag_position(index: int, count: int, distribution: str) -> list[float]:
         x, y = 25.0 + (index % 4) * 10.0, 25.0 + (index // 4) * 10.0
     elif distribution == "gateway-far":
         x, y = 485.0 + (index % 7) * 5.0, 485.0 + (index // 7) * 5.0
+    elif distribution == "gateway-control":
+        # Reuse the reachable single-tag point to remove spatial variation
+        # from paired contention probes. Co-location is intentionally synthetic.
+        x, y = 120.0, 200.0
     else:
         # Deterministic low-discrepancy placement across the synthetic 1 km field.
         x = 40.0 + ((index * 347) % 920)
@@ -73,12 +77,23 @@ def build_request(base: dict[str, Any], cell: dict[str, Any], seed: int) -> dict
                           "anchor_ref": f"riose-anchor-{index:03d}",
                           "position_m": [east, north, up]})
     samples = []
-    for step in range(3):
-        timestamp = float(step * cadence)
+    raw_epochs = cell.get("epochs", 3)
+    if isinstance(raw_epochs, bool) or not isinstance(raw_epochs, int) or raw_epochs < 1:
+        raise ValueError("epochs must be a positive integer")
+    epochs = raw_epochs
+    schedule = str(cell.get("schedule", "SEEDED_PHASE"))
+    for step in range(epochs):
         for tag in tags:
             x, y, z = tag["position_m"]
+            timestamp = float(step * cadence)
+            if schedule in {"SEEDED_PHASE", "NEAR_SYNCHRONIZED"}:
+                # FREQUENCIA applies these device phases downstream.
+                pass
+            elif schedule not in {"SOURCE_TIMESTAMP", "SYNCHRONIZED"}:
+                raise ValueError(f"unsupported schedule mode: {schedule}")
+            position = [x, y, z] if distribution == "gateway-control" else [x + step, y + 0.5 * step, z]
             samples.append({"tag_ref": tag["tag_ref"], "timestamp_s": timestamp,
-                            "position_m": [x + step, y + 0.5 * step, z]})
+                            "position_m": position})
     mappings = []
     for tag in tags:
         mappings.extend([
@@ -103,17 +118,16 @@ def build_request(base: dict[str, Any], cell: dict[str, Any], seed: int) -> dict
              "riose_id": receiver["anchor_ref"]},
         ])
 
-    schedule = str(cell.get("schedule", "SEEDED_PHASE"))
-    if schedule == "SOURCE_TIMESTAMP":
+    if schedule in {"SOURCE_TIMESTAMP", "SYNCHRONIZED"}:
         phase_interval: float | None = None
     elif schedule == "SEEDED_PHASE":
         phase_interval = float(cell.get("phase_window_s") or cadence)
     elif schedule == "NEAR_SYNCHRONIZED":
-        phase_interval = float(cell.get("phase_window_s", 0.01))
+        phase_interval = float(cell.get("phase_window_s") or 0.01)
     else:
         raise ValueError(f"unsupported schedule mode: {schedule}")
 
-    case_key = (f"{tags_count}t-{gateway_count}g-{cadence}s-{schedule.lower()}-"
+    case_key = (f"{tags_count}t-{gateway_count}g-{cadence}s-{epochs}e-{schedule.lower()}-"
                 f"sf{int(cell.get('sf', 7))}-p{int(cell.get('payload_bytes', 12))}-"
                 f"{distribution}-s{seed}")
     request["campaign_id"] = f"network-scale-{case_key}"
@@ -157,9 +171,57 @@ def expand_cells(spec: dict[str, Any]) -> list[dict[str, Any]]:
                                         "phase_window_s": group.get("phase_window_s"),
                                         "sf": sf, "payload_bytes": payload, "seed": seed,
                                         "distribution": group.get("distribution", "uniform"),
+                                        "epochs": group.get("epochs", 3),
                                         "load_class": group.get("load_class", "ENGINEERING_SCENARIO"),
                                     })
     return expanded
+
+
+def _packet_loss_summary(network: dict[str, Any]) -> dict[str, Any]:
+    """Classify each requested packet without conflating link paths and PHY loss."""
+    outcomes: dict[int, list[str]] = {}
+    links: dict[int, list[dict[str, Any]]] = {}
+    for event in network["gateway_events"]:
+        event_index = int(event["event_index"])
+        outcomes.setdefault(event_index, []).append(str(event["outcome"]))
+        links.setdefault(event_index, []).append(event)
+    counts: Counter[str] = Counter()
+    rf_reachable = 0
+    rf_reachable_received = 0
+    packets = network["packets"]
+    for packet in packets:
+        index = int(packet["event_index"])
+        states = outcomes.get(index, [])
+        packet_links = links.get(index, [])
+        if packet.get("tx_start_s") is None:
+            counts["NOT_TRANSMITTED"] += 1
+            continue
+        has_rf_path = any(row.get("channel_status") != "NO_PATH" for row in packet_links)
+        rf_reachable += int(has_rf_path)
+        received = bool(packet.get("received_gateway_ids"))
+        rf_reachable_received += int(has_rf_path and received)
+        if received:
+            counts["PHY_RECEIVED"] += 1
+        elif "INTERFERENCE" in states:
+            counts["INTERFERENCE_LOSS"] += 1
+        elif states and all(value == "NO_PATH" for value in states):
+            counts["NO_PATH"] += 1
+        elif "NO_DEMODULATOR" in states:
+            counts["NO_DEMODULATOR"] += 1
+        elif "UNDER_SENSITIVITY" in states:
+            counts["UNDER_SENSITIVITY"] += 1
+        elif "UNTRACED_DROP" in states:
+            counts["UNTRACED_DROP"] += 1
+        else:
+            counts["UNKNOWN_LOSS"] += 1
+    return {
+        "counts": dict(sorted(counts.items())),
+        "requested_packet_denominator": len(packets),
+        "tx_packet_denominator": int(network["metrics"]["transmitted_packets"]),
+        "rf_reachable_tx_packets": rf_reachable,
+        "rf_reachable_received_packets": rf_reachable_received,
+        "pdr_conditional_on_rf_path": rf_reachable_received / rf_reachable if rf_reachable else None,
+    }
 
 
 def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) -> dict[str, Any]:
@@ -181,13 +243,17 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
         if row.get("tdoa_timestamp_s") is not None:
             timestamp_counts[str(row["packet_id"])] += 1
     tx_packets = [row for row in network["packets"] if row.get("tx_start_s") is not None]
+    packet_summary = _packet_loss_summary(network)
+    actual_tx_times = sorted(float(row["tx_start_s"]) for row in tx_packets)
+    tx_start_delays = [float(row["tx_start_s"]) - float(row["timestamp_s"])
+                       for row in tx_packets]
     eligible_epochs = sum(timestamp_counts[str(row["event_index"])] >= 3 for row in tx_packets)
     eligible_anchor_observations = sum(timestamp_counts.values())
     delivered = int(network["metrics"]["delivered_packets"])
     transmitted = int(network["metrics"]["transmitted_packets"])
     pdr = network["metrics"]["pdr"]
     effective_phase_window = cell["phase_window_s"]
-    if cell["schedule"] == "SOURCE_TIMESTAMP":
+    if cell["schedule"] in {"SOURCE_TIMESTAMP", "SYNCHRONIZED"}:
         effective_phase_window = None
     elif cell["schedule"] == "SEEDED_PHASE" and effective_phase_window is None:
         effective_phase_window = cell["cadence_s"]
@@ -195,8 +261,10 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
         effective_phase_window = 0.01
     configuration = {key: cell[key] for key in (
         "tags", "gateways", "cadence_s", "schedule", "phase_window_s",
-        "sf", "payload_bytes", "seed", "distribution", "load_class")}
+        "sf", "payload_bytes", "seed", "distribution", "load_class", "epochs")}
     configuration["phase_window_s"] = effective_phase_window
+    parameter_binding = manifest.get("parameter_binding", {})
+    actual_network = manifest.get("network", {})
     interference_packets = sum(any(
         event["event_index"] == packet["event_index"] and event["outcome"] == "INTERFERENCE"
         for event in network["gateway_events"]) for packet in tx_packets)
@@ -210,11 +278,39 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
         "frequencia_dirty": manifest["engine"]["dirty"],
         "raw_output_sha256": manifest["raw_output_sha256"],
         "network_output_sha256": hashlib.sha256(network_path.read_bytes()).hexdigest(),
+        "requested_config": {
+            **configuration,
+            "network": parameter_binding.get("network", {}).get("requested", {}),
+            "radio_and_backend": parameter_binding.get("radio_and_backend", {}).get("requested", {}),
+            },
+        "effective_config": {
+            "backend": network["network_backend"],
+            "channel_backend": network["channel_backend"],
+            "network_parameter_binding_status": parameter_binding.get("network", {}).get("status"),
+            "network_parameters": parameter_binding.get("network", {}).get("effective", {}),
+            "bandwidth_hz": actual_network.get("bandwidth_hz"),
+            "traffic_schedule": network.get("traffic_schedule"),
+            "traffic_interval_s": network.get("traffic_interval_s"),
+            "tx_attempted": transmitted, "requested_packets": int(network["metrics"]["requested_packets"]),
+            "unique_ns3_tx_start_count": len(actual_tx_times),
+            "actual_tx_start_delay_s": {
+                "n": len(tx_start_delays), "mean": sum(tx_start_delays) / len(tx_start_delays)
+                if tx_start_delays else None,
+                "min": min(tx_start_delays) if tx_start_delays else None,
+                "max": max(tx_start_delays) if tx_start_delays else None,
+            },
+        },
         "runtime_s": manifest["duration_seconds"],
         "requested_packets": int(network["metrics"]["requested_packets"]),
         "tx_attempted": transmitted, "phy_received_packets": delivered,
         "pdr_phy": pdr, "pdr_denominator": transmitted,
         "packet_loss_after_tx": transmitted - delivered,
+        "packet_outcome_requested_denominator": packet_summary["requested_packet_denominator"],
+        "packet_outcome_denominator_tx": packet_summary["tx_packet_denominator"],
+        "packet_outcome_counts": packet_summary["counts"],
+        "rf_reachable_tx_packets": packet_summary["rf_reachable_tx_packets"],
+        "rf_reachable_received_packets": packet_summary["rf_reachable_received_packets"],
+        "pdr_conditional_on_rf_path": packet_summary["pdr_conditional_on_rf_path"],
         "gateway_outcomes": dict(sorted(outcomes.items())),
         "interference_gateway_events": outcomes["INTERFERENCE"],
         "interference_gateway_event_rate": (
@@ -279,7 +375,7 @@ def execute(spec_path: Path, base_path: Path, frequencia_repo: Path,
             row = {"status": "FAILED", "set_id": cell["set_id"],
                    "configuration": {key: cell[key] for key in (
                        "tags", "gateways", "cadence_s", "schedule", "phase_window_s",
-                       "sf", "payload_bytes", "seed", "distribution", "load_class")},
+                       "sf", "payload_bytes", "seed", "distribution", "load_class", "epochs")},
                    "request_path": str(request_path), "request_sha256": request_hash,
                    "error": f"{type(exc).__name__}: {exc}"}
         completed_by_request[request_hash] = row

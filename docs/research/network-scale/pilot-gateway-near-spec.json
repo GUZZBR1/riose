@@ -1,0 +1,52 @@
+{
+  "schema_version": "riose.network-scale-contention-closure/v1",
+  "campaign_id": "riose-network-contention-capacity-closure-2026-10",
+  "classification": "SIMULATED",
+  "parent_campaign_id": "riose-network-scale-capacity-2026-10",
+  "riose_source_sha": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+  "frequencia_expected_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "base_request": "examples/farm_rf_v1.json",
+  "experimental_question": "With tags placed in a compact area near one gateway to make at least one RF path likely, does the existing ns-3 PHY show lower PDR under exact synchronization than deterministic per-device seeded phase scheduling, with the same RF inputs and PHY configuration?",
+  "design": {
+    "tag_positions": "Identical deterministic gateway-near placement in each paired pattern; tags are within 50 m of GW-1. Other gateways remain at their original campaign positions.",
+    "timestamps_per_tag": 3,
+    "traffic_patterns": {
+      "SYNCHRONIZED": "Source timestamp scheduling; all tags transmit at each shared epoch.",
+      "SEEDED_PHASE": "Existing FREQUENCIA deterministic per-device offset in [0, cadence); the offset repeats at every epoch. This is not per-packet randomization or jitter."
+    },
+    "paired_fields": ["tag count", "tag positions", "gateway positions", "cadence", "SF", "payload", "Sionna RF source inputs", "seed"],
+    "gateway_count": 4,
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14,
+    "spreading_factor": 7,
+    "payload_bytes": 12,
+    "cadence_s": 10,
+    "seed": 20261005,
+    "localization_claim": "Input availability only; the gateway-near geometry may not provide 3 distinct received anchors.",
+    "duration_note": "Three TX epochs per tag as already supported by the campaign runner. Results are an existence/causal-mechanism probe, not a statistical capacity estimate."
+  },
+  "run_sets": [
+    {
+      "id": "controlled-gateway-near-10tags",
+      "tags": [10],
+      "gateways": [4],
+      "cadence_s": [10],
+      "schedules": ["SOURCE_TIMESTAMP", "SEEDED_PHASE"],
+      "phase_window_s": null,
+      "spreading_factors": [7],
+      "payload_bytes": [12],
+      "seeds": [20261005],
+      "distribution": "gateway-near",
+      "load_class": "CONTROLLED_CONTENTION_PROBE"
+    }
+  ],
+  "interpretation": {
+    "collision_attribution": "Only gateway PHY INTERFERENCE events are attributed to modeled interference. NO_PATH and other outcomes remain separate.",
+    "capacity": "No tag-count maximum or robust/overload boundary may be inferred from this three-epoch two-pattern probe.",
+    "duty_cycle": "NOT_MODELED: FREQUENCIA configures synthetic sub-band duty limit 1.0 (unrestricted).",
+    "gateway_failure": "NOT_MODELED: no availability/offline/recovery switch exists in this scenario interface.",
+    "application_delivery": "NOT_MODELED: terminal metric is gateway PHY reception.",
+    "localization": "LOCALIZATION_INPUT_AVAILABILITY only; no accuracy claim."
+  }
+}
