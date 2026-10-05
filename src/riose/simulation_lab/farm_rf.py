@@ -307,6 +307,17 @@ def _network_input(request: dict, raw: dict, run_id: str, request_hash: str) -> 
     tags_by_tx = {row["transmitter_ref"]: row for row in request["tags"]}
     receivers_by_ref = {row["receiver_ref"]: row for row in request["receivers"]}
     records = []
+    sample_sequences: dict[str, int] = {}
+    request_samples = {}
+    for sample in request["trajectory"]["samples"]:
+        tag_ref = sample["tag_ref"]
+        sequence_number = sample_sequences.get(tag_ref, 0)
+        sample_sequences[tag_ref] = sequence_number + 1
+        request_id = sample.get("request_id")
+        if request_id is None:
+            seed_scope = f"{request.get('campaign_id', 'campaign')}:{request.get('scenario_id', 'scenario')}:{request.get('seed', 0)}:{tag_ref}:{sequence_number}"
+            request_id = "req-" + hashlib.sha256(seed_scope.encode("utf-8")).hexdigest()[:24]
+        request_samples[(tag_ref, float(sample["timestamp_s"]))] = (request_id, sequence_number)
     for snapshot in raw.get("snapshots", []):
         timestamp = float(snapshot["timestamp_s"])
         for receiver in snapshot.get("records", []):
@@ -322,8 +333,12 @@ def _network_input(request: dict, raw: dict, run_id: str, request_hash: str) -> 
                 position = positions.get((tag["tag_ref"], timestamp))
                 if position is None:
                     raise RunnerError(f"Sionna output time {timestamp} is absent from the RIOSE trajectory")
+                request_id, sequence_number = request_samples[(tag["tag_ref"], timestamp)]
                 records.append({
                     "animal_id": tag["animal_ref"], "timestamp_s": timestamp,
+                    "request_id": request_id, "sequence_number": sequence_number,
+                    "tag_id": tag["tag_ref"], "device_id": tag["device_ref"],
+                    "transmitter_id": tag["transmitter_ref"],
                     "gateway_id": receiver_request["gateway_ref"],
                     "tx_position_m": list(position), "rx_position_m": list(receiver_request["position_m"]),
                     "los_nlos": link["status"],
@@ -476,7 +491,7 @@ def _score_after_estimation(request: dict, network: dict, localization: dict) ->
     truth = {(str(sample["tag_ref"]), float(sample["timestamp_s"])): sample["position_m"]
              for sample in request["trajectory"]["samples"]}
     tags_by_device = {str(tag["device_ref"]): tag for tag in request["tags"]}
-    packets = {str(packet["event_index"]): packet for packet in network.get("packets", [])}
+    packets = {str(packet["request_id"]): packet for packet in network.get("packets", [])}
     rows = []
     errors = []
     truth_matched = 0
@@ -579,7 +594,7 @@ def _network_summary(network: dict | None, localization: dict | None,
             }}
 
 
-def _validate_network_result(request: dict, network: dict) -> None:
+def _validate_network_result(request: dict, network: dict, run_id: str | None = None) -> None:
     """Reject mismatched, inconsistent or fabricated network artifacts."""
     if network.get("network_backend") != "ns-3.48/lorawan-v0.3.7":
         raise RunnerError("FREQUENCIA network artifact backend does not match pinned ns-3/LoRaWAN")
@@ -594,20 +609,44 @@ def _validate_network_result(request: dict, network: dict) -> None:
         raise RunnerError("FREQUENCIA network artifact parameters differ from the requested experiment")
     if network.get("time_resolution_ps") != 1:
         raise RunnerError("FREQUENCIA network artifact has an unexpected ns-3 time resolution")
+    if (network.get("scenario_id") != request.get("scenario_id")
+            or network.get("campaign_id") != request.get("campaign_id")
+            or (run_id is not None and network.get("run_id") != run_id)):
+        raise RunnerError("FREQUENCIA network artifact run/scenario identity differs from the request")
+    phase_window = config["traffic_interval_s"]
+    expected_schedule = ("source_timestamp_plus_seeded_device_phase_window"
+                         if phase_window is not None else "source_timestamp")
+    if (network.get("traffic_schedule") != expected_schedule
+            or network.get("traffic_phase_window_s") != phase_window):
+        raise RunnerError("FREQUENCIA traffic phase-window semantics differ from the requested configuration")
     packets, events = network.get("packets"), network.get("gateway_events")
     metrics = network.get("metrics")
     if not isinstance(packets, list) or not isinstance(events, list) or not isinstance(metrics, dict):
         raise RunnerError("FREQUENCIA network artifact is missing packet, gateway event or metric arrays")
     tags_by_ref = {tag["tag_ref"]: tag for tag in request["tags"]}
-    expected_packet_identities = {
-        (tags_by_ref[sample["tag_ref"]]["animal_ref"], float(sample["timestamp_s"]))
-        for sample in request["trajectory"]["samples"]
-    }
+    sample_sequences: dict[str, int] = {}
+    expected_request_ids = {}
+    expected_sequences = {}
+    for sample in request["trajectory"]["samples"]:
+        tag_ref = sample["tag_ref"]
+        sequence_number = sample_sequences.get(tag_ref, 0)
+        sample_sequences[tag_ref] = sequence_number + 1
+        request_id = sample.get("request_id")
+        if request_id is None:
+            seed_scope = f"{request.get('campaign_id', 'campaign')}:{request.get('scenario_id', 'scenario')}:{request.get('seed', 0)}:{tag_ref}:{sequence_number}"
+            request_id = "req-" + hashlib.sha256(seed_scope.encode("utf-8")).hexdigest()[:24]
+        key = (tags_by_ref[tag_ref]["animal_ref"], float(sample["timestamp_s"]))
+        if key in expected_request_ids:
+            raise RunnerError("trajectory has ambiguous animal/time packet identity")
+        expected_request_ids[key] = request_id
+        expected_sequences[key] = sample.get("sequence_number", sequence_number)
+    expected_packet_identities = set(expected_request_ids)
     expected_packets = len(expected_packet_identities)
     if len(packets) != expected_packets:
         raise RunnerError("FREQUENCIA network artifact packet count differs from the trajectory")
     packet_index: dict[str, dict] = {}
     packet_identities: set[tuple[str, float]] = set()
+    packet_uids: set[int] = set()
     for packet in packets:
         event_id = packet.get("event_index")
         if isinstance(event_id, bool) or not isinstance(event_id, int) or str(event_id) in packet_index:
@@ -621,6 +660,49 @@ def _validate_network_result(request: dict, network: dict) -> None:
         identity = (packet["animal_id"], float(timestamp))
         if identity not in expected_packet_identities or identity in packet_identities:
             raise RunnerError("FREQUENCIA packet identity/time does not match a requested trajectory sample")
+        if packet.get("request_id") != expected_request_ids[identity]:
+            raise RunnerError("FREQUENCIA packet does not preserve its explicit request identity")
+        source_sample = next(sample for sample in request["trajectory"]["samples"]
+                             if (tags_by_ref[sample["tag_ref"]]["animal_ref"],
+                                 float(sample["timestamp_s"])) == identity)
+        source_tag = tags_by_ref[source_sample["tag_ref"]]
+        if (packet.get("tag_id") != source_tag["tag_ref"]
+                or packet.get("device_id") != source_tag["device_ref"]
+                or packet.get("transmitter_id") != source_tag["transmitter_ref"]
+                or packet.get("scenario_id") != request.get("scenario_id")
+                or packet.get("campaign_id") != request.get("campaign_id")
+                or (run_id is not None and packet.get("run_id") != run_id)):
+            raise RunnerError("FREQUENCIA packet run/scenario/tag identity differs from its request")
+        if (packet.get("packet_id") != packet.get("request_id")
+                or packet.get("sequence_number") != expected_sequences[identity]):
+            raise RunnerError("FREQUENCIA packet ID or sequence does not match its request")
+        if packet.get("requested_timestamp_s") != timestamp:
+            raise RunnerError("FREQUENCIA packet requested timestamp differs from its source request")
+        scheduled = packet.get("scheduled_timestamp_s")
+        if (isinstance(scheduled, bool) or not isinstance(scheduled, (int, float))
+                or not math.isfinite(scheduled) or scheduled < timestamp):
+            raise RunnerError("FREQUENCIA packet has an invalid scheduled timestamp")
+        if phase_window is None:
+            expected_scheduled = float(timestamp)
+        else:
+            digest = hashlib.sha256(f"{request['seed']}:{packet['animal_id']}".encode("utf-8")).digest()
+            phase = int.from_bytes(digest[:8], "big") / 2**64 * phase_window
+            expected_scheduled = float(timestamp) + phase
+        if not math.isclose(float(scheduled), expected_scheduled, rel_tol=0.0, abs_tol=1e-12):
+            raise RunnerError("FREQUENCIA scheduled time is not the requested source time plus its seeded phase")
+        outcome = packet.get("tx_outcome")
+        tx_start = packet.get("tx_start_s")
+        if outcome not in {"TRANSMITTED", "NOT_TRANSMITTED"}:
+            raise RunnerError("FREQUENCIA packet has no terminal TX outcome")
+        if outcome == "TRANSMITTED":
+            uid = packet.get("packet_uid")
+            if (isinstance(uid, bool) or not isinstance(uid, int) or uid in packet_uids
+                    or isinstance(tx_start, bool) or not isinstance(tx_start, (int, float))
+                    or not math.isfinite(tx_start) or tx_start < scheduled):
+                raise RunnerError("FREQUENCIA transmitted packet lacks a unique PHY UID or valid TX time")
+            packet_uids.add(uid)
+        elif tx_start is not None or not isinstance(packet.get("drop_reason"), str) or not packet["drop_reason"]:
+            raise RunnerError("FREQUENCIA NOT_TRANSMITTED packet requires null TX time and a drop reason")
         packet_identities.add(identity)
         packet_index[str(event_id)] = packet
     if packet_identities != expected_packet_identities:
@@ -643,7 +725,19 @@ def _validate_network_result(request: dict, network: dict) -> None:
         if event.get("outcome") not in outcomes:
             raise RunnerError("FREQUENCIA network artifact contains an unknown reception outcome")
         if (event.get("animal_id") != packet["animal_id"]
-                or event.get("timestamp_s") != packet["timestamp_s"]):
+                or event.get("run_id") != packet.get("run_id")
+                or event.get("scenario_id") != packet.get("scenario_id")
+                or event.get("tag_id") != packet.get("tag_id")
+                or event.get("packet_id") != packet["packet_id"]
+                or event.get("request_id") != packet["request_id"]
+                or event.get("sequence_number") != packet["sequence_number"]
+                or event.get("timestamp_s") != packet["timestamp_s"]
+                or event.get("request_id") != packet["request_id"]
+                or event.get("requested_timestamp_s") != packet["requested_timestamp_s"]
+                or event.get("scheduled_timestamp_s") != packet["scheduled_timestamp_s"]
+                or event.get("tx_outcome") != packet["tx_outcome"]
+                or event.get("tx_start_s") != packet["tx_start_s"]
+                or event.get("packet_uid") != packet["packet_uid"]):
             raise RunnerError("FREQUENCIA network event does not match its packet identity/time")
         if event["outcome"] == "RX":
             rx_gateways[packet_id].add(str(gateway_id))
@@ -652,7 +746,16 @@ def _validate_network_result(request: dict, network: dict) -> None:
     if any(set(packet.get("received_gateway_ids", [])) != rx_gateways[key]
            for key, packet in packet_index.items()):
         raise RunnerError("FREQUENCIA packet reception list disagrees with gateway events")
-    transmitted = sum(packet.get("tx_start_s") is not None for packet in packets)
+    transmitted = sum(packet.get("tx_outcome") == "TRANSMITTED" for packet in packets)
+    not_transmitted = sum(packet.get("tx_outcome") == "NOT_TRANSMITTED" for packet in packets)
+    if (transmitted + not_transmitted != expected_packets
+            or metrics.get("requested_packets") != expected_packets
+            or metrics.get("transmitted_packets") != transmitted
+            or metrics.get("not_transmitted_packets") != not_transmitted
+            or metrics.get("requested_count") != expected_packets
+            or metrics.get("transmitted_count") != transmitted
+            or metrics.get("not_transmitted_count") != not_transmitted):
+        raise RunnerError("FREQUENCIA request/TX outcome counts do not conserve packet identities")
     delivered = sum(bool(rx_gateways[key]) for key in packet_index)
     expected_pdr = delivered / transmitted if transmitted else None
     if (metrics.get("transmitted_packets") != transmitted
@@ -665,10 +768,10 @@ def _validate_localization_result(request: dict, network: dict, localization: di
     estimates = localization.get("estimates")
     if not isinstance(estimates, list):
         raise RunnerError("FREQUENCIA localization artifact has no estimate array")
-    packet_ids = {str(row["event_index"]) for row in network["packets"]
+    packet_ids = {str(row["request_id"]) for row in network["packets"]
                   if row.get("tx_start_s") is not None}
     devices_by_animal = {row["animal_ref"]: row["device_ref"] for row in request["tags"]}
-    transmitted_packets = {str(row["event_index"]): row for row in network["packets"]
+    transmitted_packets = {str(row["request_id"]): row for row in network["packets"]
                            if row.get("tx_start_s") is not None}
     seen: set[str] = set()
     statuses = {"NO_PACKET", "LT3_TIMESTAMPS", "SOLVER_FAILED", "CONVERGED"}
@@ -876,7 +979,7 @@ def _result(request: dict, raw: dict, summary: dict, manifest: dict,
                 observation["rx_state"] = "PHY_NOT_RECEIVED"
     locations = []
     if network_result is not None and localization is not None:
-        packet_by_id = {str(row["event_index"]): row for row in network_result.get("packets", [])}
+        packet_by_id = {str(row["request_id"]): row for row in network_result.get("packets", [])}
         tx_to_tag = {row["transmitter_ref"]: row for row in request["tags"]}
         device_to_tag = {row["device_ref"]: row for row in request["tags"]}
         for estimate in localization.get("estimates", []):
@@ -1079,7 +1182,7 @@ def _run_farm_sionna(request: dict, request_hash: str, *, repo: str | Path | Non
         temporal_runtime = payload_result.get("temporal_runtime")
         if not isinstance(network_result, dict) or not isinstance(temporal_rows, list) or not isinstance(localization, dict):
             raise RunnerError("FREQUENCIA network pipeline returned malformed artifacts")
-        _validate_network_result(request, network_result)
+        _validate_network_result(request, network_result, run_id=run_id)
         _validate_localization_result(request, network_result, localization)
         temporal_binding = _validate_temporal_runtime(request, temporal_runtime, run_id, request_hash,
                                                       network_input_hash)

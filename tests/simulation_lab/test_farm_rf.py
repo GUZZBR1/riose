@@ -219,17 +219,18 @@ def test_localization_score_separates_noneligible_statuses_and_declares_error_de
     from riose.simulation_lab.farm_rf import _score_after_estimation
 
     request = request_doc()
+    request_ids = ["req-score-1", "req-score-2", "req-score-3"]
     network = {"packets": [
-        {"event_index": 1, "timestamp_s": 0.0},
-        {"event_index": 2, "timestamp_s": 1.0},
-        {"event_index": 3, "timestamp_s": 2.0},
+        {"request_id": request_ids[0], "timestamp_s": 0.0},
+        {"request_id": request_ids[1], "timestamp_s": 1.0},
+        {"request_id": request_ids[2], "timestamp_s": 2.0},
     ]}
     localization = {"estimates": [
-        {"packet_id": "1", "device_id": "device-001", "tdoa_status": "CONVERGED",
+        {"packet_id": request_ids[0], "device_id": "device-001", "tdoa_status": "CONVERGED",
          "tdoa_position_m": [125.0, 205.0]},
-        {"packet_id": "2", "device_id": "device-001", "tdoa_status": "SOLVER_FAILED",
+        {"packet_id": request_ids[1], "device_id": "device-001", "tdoa_status": "SOLVER_FAILED",
          "tdoa_position_m": None},
-        {"packet_id": "3", "device_id": "device-001", "tdoa_status": "LT3_TIMESTAMPS",
+        {"packet_id": request_ids[2], "device_id": "device-001", "tdoa_status": "LT3_TIMESTAMPS",
          "tdoa_position_m": None},
     ]}
     result = _score_after_estimation(request, network, localization)

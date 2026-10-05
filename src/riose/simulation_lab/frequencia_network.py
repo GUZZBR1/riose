@@ -41,6 +41,13 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
         payload_bytes=int(network_config["payload_bytes"]),
         traffic_interval_s=float(network_config["traffic_interval_s"]),
     )
+    run_identity = {"run_id": payload["run_id"], "scenario_id": request["scenario_id"],
+                    "campaign_id": request["campaign_id"]}
+    network_result.update(run_identity)
+    for packet in network_result["packets"]:
+        packet.update(run_identity)
+    for event in network_result["gateway_events"]:
+        event.update(run_identity)
     channels = {(str(row["animal_id"]), float(row["timestamp_s"]), str(row["gateway_id"])): row
                 for row in records}
     packets = {str(row["event_index"]): row for row in network_result["packets"]}
@@ -77,7 +84,7 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
             continue
         animal_id = str(packet["animal_id"])
         tag = tag_by_animal[animal_id]
-        transmissions.append({"packet_id": str(packet["event_index"]),
+        transmissions.append({"packet_id": str(packet["request_id"]),
                               "device_id": str(tag["device_ref"]),
                               "send_time_s": float(packet["tx_start_s"])})
     receptions = []
@@ -85,8 +92,8 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
     for event in network_result["gateway_events"]:
         if event.get("outcome") != "RX":
             continue
-        packet_id = str(event["event_index"])
-        packet = packets[packet_id]
+        packet = packets[str(event["event_index"])]
+        packet_id = str(packet["request_id"])
         animal_id = str(packet["animal_id"])
         gateway_id = str(event["gateway_id"])
         channel = channels[(animal_id, float(packet["timestamp_s"]), gateway_id)]
@@ -116,7 +123,10 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
                      "sionna_status": channel["los_nlos"],
                      "sionna_delay_s": min(float(path["delay_s"]) for path in channel["paths"])}
         receptions.append(reception)
-        timestamp_rows.append({"packet_id": packet_id, "animal_id": animal_id,
+        timestamp_rows.append({"event_index": event["event_index"], "packet_id": packet_id,
+            "request_id": packet_id, "sequence_number": packet["sequence_number"],
+            **run_identity, "animal_id": animal_id, "tag_id": packet["tag_id"],
+            "device_id": packet["device_id"], "transmitter_id": packet["transmitter_id"],
             "device_id": device_by_animal[animal_id], "timestamp_s": float(packet["timestamp_s"]),
             "gateway_id": gateway_id, "classification": "SIMULATED",
             "channel_backend": "sionna-rt", "network_backend": network_result["network_backend"],

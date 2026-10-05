@@ -272,6 +272,14 @@ def run_campaign(spec_path: str | Path = DEFAULT_SPEC, *, repo: str | Path | Non
             request["campaign_id"] = campaign["campaign_id"]
             request["scenario_id"] = scenario["scenario_id"]
             request["seed"] = seed
+            sample_sequence: dict[str, int] = {}
+            for sample in request.get("trajectory", {}).get("samples") or []:
+                tag_ref = sample["tag_ref"]
+                sequence_number = sample_sequence.get(tag_ref, 0)
+                sample_sequence[tag_ref] = sequence_number + 1
+                sample["sequence_number"] = sequence_number
+                identity_source = f"{campaign['campaign_id']}:{scenario['scenario_id']}:{seed}:{tag_ref}:{sequence_number}"
+                sample["request_id"] = "req-" + hashlib.sha256(identity_source.encode("utf-8")).hexdigest()[:24]
             request["expected_evidence"] = "SIMULATED"
             request["provenance"] = {
                 "riose_revision": riose["revision"],

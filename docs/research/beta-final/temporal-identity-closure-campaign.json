@@ -1,0 +1,33 @@
+{
+  "schema_version": "riose.beta.campaign-spec/v1",
+  "campaign_id": "riose-h2-temporal-identity-closure",
+  "purpose": "Focused H.2 identity and cadence closure: two animals, two source requests each at 60-second cadence, one seed, no hidden repeats.",
+  "required_evidence_classification": "SIMULATED",
+  "riose_revision_policy": "clean HEAD required; one revision for every run",
+  "simulator": {
+    "repository": "GUZZBR1/frequencia",
+    "revision": "0190048023269da695c84d0ff5e1cf3c6ed502d7",
+    "dirty": false,
+    "backend": "sionna-rt",
+    "network_adapter": "ns-3 LoRaWAN"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "brazil-rural-temporal-identity-closure",
+      "scenario": "docs/research/beta-final/scenarios/temporal-identity-closure.json",
+      "request_template": "examples/farm_rf_temporal_identity_v1.json",
+      "purpose": "two-animal explicit source cadence and request-to-PHY identity"
+    }
+  ],
+  "seeds": [
+    83
+  ],
+  "seed_policy": "one predeclared seed; retain all requests, TX outcomes, and failures",
+  "reproducibility_repeats": [],
+  "not_in_scope": [
+    "physical tag measurements",
+    "field validation",
+    "application-server delivery",
+    "clinical or reproductive diagnosis"
+  ]
+}
