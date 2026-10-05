@@ -44,6 +44,13 @@ def test_request_explicitly_pins_network_and_temporal_settings():
     assert set(temporal["clocks"]) == {row["gateway_ref"] for row in request["receivers"]}
 
 
+def test_null_traffic_interval_requests_exact_source_timestamps():
+    request = request_doc()
+    request["solver"]["parameters"]["network"]["traffic_interval_s"] = None
+    network, _ = _network_config(request)
+    assert network["traffic_interval_s"] is None
+
+
 def test_loss_and_localization_failure_demo_requests_are_valid_and_explicit():
     collision = load_json((ROOT / "examples" / "farm_rf_collision_v1.json").read_text(encoding="utf-8"), kind="request")
     failure = load_json((ROOT / "examples" / "farm_rf_localization_failure_v1.json").read_text(encoding="utf-8"), kind="request")
@@ -313,8 +320,10 @@ def test_upstream_estimator_receives_no_ground_truth_argument(monkeypatch, tmp_p
         return value
 
     module("network")
-    module("network.adapter", run=lambda *args, **kwargs: {
-        "network_backend": "fixture", "packets": [], "gateway_events": [], "metrics": {}})
+    def run_ns3(*args, **kwargs):
+        observed["traffic_interval_s"] = kwargs["traffic_interval_s"]
+        return {"network_backend": "fixture", "packets": [], "gateway_events": [], "metrics": {}}
+    module("network.adapter", run=run_ns3)
     module("localization")
     module("localization.baseline", Gateway=lambda *args: args)
     def estimate(**kwargs):
@@ -348,6 +357,7 @@ def test_upstream_estimator_receives_no_ground_truth_argument(monkeypatch, tmp_p
     payload = {"request": request, "records": [], "ns3_root": str(tmp_path),
                "run_id": "run-test", "request_sha256": "a" * 64, "input_sha256": "b" * 64}
     first = run_pipeline(payload, tmp_path)
+    assert observed["traffic_interval_s"] == 60.0
     assert first["temporal_runtime"]["run_id"] == "run-test"
     assert first["temporal_runtime"]["request_sha256"] == "a" * 64
     assert first["temporal_runtime"]["input_sha256"] == "b" * 64
@@ -363,6 +373,9 @@ def test_upstream_estimator_receives_no_ground_truth_argument(monkeypatch, tmp_p
     second = run_pipeline({**payload, "request": request_without_truth}, tmp_path)
     assert "ground_truth" not in observed
     assert first["localization"] == second["localization"]
+    request_without_truth["solver"]["parameters"]["network"]["traffic_interval_s"] = None
+    run_pipeline({**payload, "request": request_without_truth}, tmp_path)
+    assert observed["traffic_interval_s"] is None
 
 
 def test_summary_reports_pdr_null_when_disabled_and_preserves_network_outcomes():

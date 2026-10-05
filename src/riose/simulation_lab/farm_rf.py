@@ -222,8 +222,10 @@ def _network_config(request: dict) -> tuple[dict[str, Any] | None, dict[str, Any
         raise ContractError("network.spreading_factor must be an integer from 7 to 12")
     if isinstance(network["payload_bytes"], bool) or not isinstance(network["payload_bytes"], int) or not 1 <= network["payload_bytes"] <= 51:
         raise ContractError("network.payload_bytes must be an integer from 1 to 51")
-    if isinstance(network["traffic_interval_s"], bool) or not isinstance(network["traffic_interval_s"], (int, float)) or not math.isfinite(network["traffic_interval_s"]) or network["traffic_interval_s"] <= 0:
-        raise ContractError("network.traffic_interval_s must be a positive finite value in seconds")
+    interval = network["traffic_interval_s"]
+    if interval is not None and (isinstance(interval, bool) or not isinstance(interval, (int, float))
+                                 or not math.isfinite(interval) or interval <= 0):
+        raise ContractError("network.traffic_interval_s must be null or a positive finite value in seconds")
     if request["radio"]["bandwidth_hz"] != 125_000:
         raise ContractError("the pinned FREQUENCIA ns-3 adapter currently configures a single 125 kHz channel")
     if not 0 <= request["radio"]["tx_power_dbm"] <= 14:
@@ -234,7 +236,7 @@ def _network_config(request: dict) -> tuple[dict[str, Any] | None, dict[str, Any
            for sample in request["trajectory"]["samples"]):
         raise ContractError("FREQUENCIA ns-3 picosecond timestamps must be below 9,000,000 seconds")
     event_horizon_s = max(float(sample["timestamp_s"])
-                          for sample in request["trajectory"]["samples"]) + network["traffic_interval_s"] + 10.0
+                          for sample in request["trajectory"]["samples"]) + (interval or 0.0) + 10.0
     if not math.isfinite(event_horizon_s) or event_horizon_s >= 9_000_000:
         raise ContractError("network traffic schedule exceeds FREQUENCIA ns-3 timestamp horizon")
     declared_sf = request["radio"]["phy"].get("spreading_factor")

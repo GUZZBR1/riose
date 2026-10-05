@@ -72,6 +72,12 @@ SF 7–12, 0–14 dBm, payload 1–51 bytes, and explicit frequency/seed/interva
 These are simulation inputs, not a certified Brazilian regional plan. Coding
 rate is not exposed by this adapter and is not claimed as configured.
 
+`network.traffic_interval_s` may be `null` for an exact source-timestamp
+schedule. This synchronizes tags that share a trajectory timestamp. A positive
+value requests a deterministic, seed-derived per-tag phase within that window;
+the offset is reused at every epoch, so it models a fixed periodic phase and
+does not add per-packet jitter. Neither mode models application retries.
+
 The network result distinguishes `NOT_TRANSMITTED`, `NO_PATH`, `INTERFERENCE`,
 `UNDER_SENSITIVITY`, `NO_DEMODULATOR`, `UNTRACED_DROP`, and `RX` outcomes as
 reported by ns-3. `RX` means gateway PHY reception; no LoRaWAN server/application

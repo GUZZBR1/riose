@@ -39,7 +39,8 @@ def run_pipeline(payload: dict[str, Any], engine_root: str | Path) -> dict[str, 
         ns3=Path(payload["ns3_root"]),
         sf=int(network_config["spreading_factor"]),
         payload_bytes=int(network_config["payload_bytes"]),
-        traffic_interval_s=float(network_config["traffic_interval_s"]),
+        traffic_interval_s=(None if network_config["traffic_interval_s"] is None
+                            else float(network_config["traffic_interval_s"])),
     )
     channels = {(str(row["animal_id"]), float(row["timestamp_s"]), str(row["gateway_id"])): row
                 for row in records}

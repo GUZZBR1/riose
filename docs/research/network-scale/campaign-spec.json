@@ -1,0 +1,84 @@
+{
+  "schema_version": "riose.network-scale-campaign/v1",
+  "campaign_id": "riose-network-scale-capacity-2026-10",
+  "classification": "SIMULATED",
+  "riose_base_sha": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+  "frequencia_expected_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "base_request": "examples/farm_rf_v1.json",
+  "common": {
+    "backend": "sionna-rt",
+    "network_backend": "ns-3.48/lorawan-v0.3.7",
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14.0,
+    "spreading_factor": 7,
+    "payload_bytes": 12,
+    "gateway_positions_m": [
+      [20, 20, 12], [980, 20, 12], [980, 980, 12], [20, 980, 12],
+      [500, 20, 12], [980, 500, 12], [500, 980, 12], [20, 500, 12]
+    ],
+    "synthetic_tag_distribution": "uniform",
+    "timestamps_per_tag": 3,
+    "localization_minimum_anchors": 3,
+    "pdr_definition": "unique packets received by at least one gateway / packets with TX start"
+  },
+  "run_sets": [
+    {
+      "id": "population-sweep-60s",
+      "tags": [1, 5, 10, 20, 50, 100], "gateways": [4], "cadence_s": [60],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 60,
+      "spreading_factors": [7], "payload_bytes": [12], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "BASELINE_REFERENCE"
+    },
+    {
+      "id": "cadence-sweep-20tags",
+      "tags": [20], "gateways": [4], "cadence_s": [1, 10, 300],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": null,
+      "spreading_factors": [7], "payload_bytes": [12], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "STRESS_TEST"
+    },
+    {
+      "id": "gateway-sweep-20tags-60s",
+      "tags": [20], "gateways": [3, 6, 8], "cadence_s": [60],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 60,
+      "spreading_factors": [7], "payload_bytes": [12], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "BASELINE_REFERENCE"
+    },
+    {
+      "id": "synchronization-sweep-20tags",
+      "tags": [20], "gateways": [4], "cadence_s": [60],
+      "schedules": ["SOURCE_TIMESTAMP", "NEAR_SYNCHRONIZED"], "phase_window_s": 0.01,
+      "spreading_factors": [7], "payload_bytes": [12], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "EXTREME_STRESS"
+    },
+    {
+      "id": "payload-sweep-20tags-10s",
+      "tags": [20], "gateways": [4], "cadence_s": [10],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 10,
+      "spreading_factors": [7], "payload_bytes": [1, 24, 51], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "STRESS_TEST"
+    },
+    {
+      "id": "sf-sweep-20tags-10s",
+      "tags": [20], "gateways": [4], "cadence_s": [10],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 10,
+      "spreading_factors": [9, 12], "payload_bytes": [12], "seeds": [20261005],
+      "distribution": "uniform", "load_class": "STRESS_TEST"
+    },
+    {
+      "id": "monte-carlo-population-60s",
+      "tags": [20, 50, 100], "gateways": [4], "cadence_s": [60],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 60,
+      "spreading_factors": [7], "payload_bytes": [12],
+      "seeds": [20261005, 20261006, 20261007, 20261008, 20261009],
+      "distribution": "uniform", "load_class": "MONTE_CARLO"
+    }
+  ],
+  "interpretation": {
+    "source_timestamp": "exact requested sample time; all tags at an epoch are synchronized",
+    "seeded_phase": "one deterministic per-tag offset in [0, phase_window_s), reused at each epoch; no per-packet jitter",
+    "near_synchronized": "deterministic per-tag offset within 10 ms; not perfectly synchronous",
+    "capacity_quality_threshold": "PDR_PHY >= 0.95 is an analysis threshold, not a product requirement",
+    "no_production_cadence": "RIOSE has no approved expected traffic cadence; all cadences are engineering scenarios"
+  }
+}
