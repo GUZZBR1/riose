@@ -7,8 +7,7 @@
 - The original `campaign-spec.json` separately records `2c9c477321505ba7983acf63d1f07c634cf7002a`; both recorded values are retained with their artifact context, without rewriting the historical campaign evidence.
 - Campaign B report HEAD: `cecda8d9145b169299d4fc077e800de9d8c4811c`.
 - Follow-up branch: `research/rf-realism-gap-closure`.
-- Follow-up code SHA used for the experiment: `95a81bc7b7ad8a45f008307fa301fb24506de04a`.
-- The runner recorded `riose_dirty=true` because the first evidence manifest was untracked in the checkout at experiment time; the exact campaign script and inputs are SHA-256 bound below.
+- Follow-up code SHA used for the final experiment: `0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc` (clean at run time).
 - Minimal reproduction: FREQUENCIA analytic and Sionna clear-link controls both ran; Sionna returned received paths and the expected output fields. The original external raw artifact SHA-256 was rechecked against the campaign summary and matched.
 - The original 270 analytic links and 109 Sionna snapshots were not rerun. Their artifacts and code on the campaign branch were left unchanged.
 
@@ -59,12 +58,12 @@ Vegetation does not block the simulated campaign gate because the current limita
 
 ## Evidence
 
-- RIOSE SHA: `95a81bc7b7ad8a45f008307fa301fb24506de04a`; the runner recorded the dirty worktree state above.
+- RIOSE SHA: `0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc`, clean at run time.
 - FREQUENCIA SHA: `ba2bdabf003722aae8292580e048f7092d0356d6`, clean detached source worktree.
 - Sionna RT: `2.2.0`; deterministic seed: `20261005`.
 - Requested/effective solver values, positions, geometry description, mesh hashes, backend states, paths, power, delay, and output hashes are in [gap-closure-evidence.json](gap-closure-evidence.json).
 - Raw JSONL: [/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-raw-runs.jsonl](/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-raw-runs.jsonl), SHA-256 `988b7a569a2efd7b60238f480ba338ac0fb9fa3d2bb6ee773eccea5c9e0727c2`.
-- Run summary: [/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json](/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json), SHA-256 `16bbff0e7a779080fbf2da05786660cd00f8fb79081340f4c42f583128780a9c`.
+- Run summary: [/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json](/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json), SHA-256 `cb97e2a50872df4062224cea5406f6627712b7155a2858a7601e1ff754c120ad`.
 - Original campaign raw JSONL SHA-256 `a99a6500a34ed40ce51c16f0abea70bc680e2ae3c22e869917b54d69492b7296` was verified against its original summary.
 - The finalized original summary's executed RIOSE SHA is `f231ffc`; its campaign spec records the earlier `2c9c477` provenance value. This difference is disclosed as-is and the archived campaign artifacts were not rewritten.
 - Sionna backend source SHA-256: `2f2b352fe2f40d73cf2ee810b8aa1c730975f272bcb18edde112a7780891726d`; analytic source SHA-256: `158158af3fb50d50d9ed4c86a43acc26fcb49bb730b97d158651267c8bee7f5e`.

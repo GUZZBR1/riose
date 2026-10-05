@@ -14,8 +14,7 @@
   "classification": "SIMULATED",
   "followup": {
     "branch": "research/rf-realism-gap-closure",
-    "commit": "95a81bc7b7ad8a45f008307fa301fb24506de04a",
-    "dirty_reason": "The first evidence manifest was untracked in the checkout when the finalized run was captured; the campaign script source itself is bound by SHA-256.",
+    "commit": "0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc",
     "frequencia_dirty": false,
     "frequencia_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
     "radio": {
@@ -23,11 +22,11 @@
       "frequency_hz": 915000000,
       "tx_power_dbm": 14.0
     },
-    "riose_dirty_at_run": true,
-    "riose_revision_at_run": "95a81bc7b7ad8a45f008307fa301fb24506de04a",
+    "riose_dirty_at_run": false,
+    "riose_revision_at_run": "0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc",
     "seed": 20261005,
     "sionna_rt_version": "2.2.0",
-    "working_tree_clean_at_run": false
+    "working_tree_clean_at_run": true
   },
   "geometry_sha256": {
     "gap_wall_only.ply": "d918a647cf5d5a3e2914a8a15c5b580ba21bff9c87b40be44c70eaff1908255e",
@@ -61,7 +60,7 @@
     "sionna_receiver_records": 15,
     "sionna_snapshots": 5,
     "summary_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json",
-    "summary_sha256": "16bbff0e7a779080fbf2da05786660cd00f8fb79081340f4c42f583128780a9c"
+    "summary_sha256": "cb97e2a50872df4062224cea5406f6627712b7155a2858a7601e1ff754c120ad"
   },
   "red_team": {
     "critical": 0,
