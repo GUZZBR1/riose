@@ -227,7 +227,7 @@ def main() -> int:
                                 "seed": "NOT_CONSUMED_DETERMINISTIC_MODEL",
                                 "antenna": "SCALAR_GAIN_NOT_MODELED"},
                   "los_nlos": "LOS", "classification": "SIMULATED"}
-        if group == "combined_stress:NLOS":
+        if group == "combined_stress:NLOS" or group.startswith("gap_closure:NLOS"):
             record["requested_environment"] = "synthetic vertical wall crossing direct path"
             record["effective_obstacle"] = "NOT_SUPPORTED_IGNORED_BY_ANALYTIC_BACKEND"
         raw.append(record)
