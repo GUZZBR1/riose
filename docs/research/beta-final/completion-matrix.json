@@ -41,14 +41,14 @@
     },
     {
       "domain": "BETA_INTEGRATION",
-      "status": "PARTIAL",
-      "implementation": "H scenario campaign composes Sionna, ns-3, gateway PHY, FREQUENCIA TDoA and scoring",
-      "source": "RIOSE 68a7a49a6f618a363cdd87ba9e4827a2dffa4a9a; FREQUENCIA ba2bdabf003722aae8292580e048f7092d0356d6",
-      "tests": "13 archived runs audited; 129 requested, 86 attributed TX, 43 NOT_TRANSMITTED; source epochs 0/1/2 s; all 43 second TX gaps are 7 s",
-      "best_evidence": "docs/research/beta-final/temporal-identity-audit.json; audit self-digest ea5b662a3520c5f90ed0f56de184bcddbdd6d1701a9157492c609ba324a3760b",
+      "status": "PASS_SIMULATED",
+      "implementation": "H.2 composes Sionna RT, ns-3/LoRaWAN, gateway PHY timestamps, FREQUENCIA TDoA, and score-only truth with stable per-request identity",
+      "source": "RIOSE 2e5d5d92a6552f2cf6cfdba9e6566ac0e3d8aac9; FREQUENCIA 0190048023269da695c84d0ff5e1cf3c6ed502d7",
+      "tests": "Full H suite: 897 passed, 7 skipped; H.2 campaign: 2 animals, 4 requests at 60 s cadence, 4/4 TX, 0 untransmitted; independent red-team found no remaining blockers",
+      "best_evidence": "docs/research/beta-final/temporal-identity-closure.md and docs/research/beta-final/runs/temporal-identity-closure/closure-results.json",
       "evidence_classification": "SIMULATED",
-      "limitation": "FIFO TX-start identity/time attribution is unverified in a source schedule analogous to C.1 invalidated 1 s rows; declared 60 s cadence not observed",
-      "next_stage": "Correct the TX/source-event identity mapping or schedule source events to the actual cadence, then validate identity and timestamps for every request before recomputing integrated metrics",
+      "limitation": "One seed and two synthetic animals; H.1 pooled 43/129 attribution remains unverified historically; no field/hardware/application-delivery or capacity claim",
+      "next_stage": "Retain request identity for any broader seeded population/cadence and field-validation campaign",
       "ready_for_beta": false
     },
     {
@@ -198,5 +198,5 @@
       "ready_for_beta": false
     }
   ],
-  "governed_verdict_scope": "H integration remains partial because event identity/time and requested cadence are not established under the source/FIFO mapping. A-G component statuses are reconciled separately."
+  "governed_verdict_scope": "H.2 temporal identity/cadence closure is PASS_SIMULATED. Overall Beta remains PARTIAL because A-G readiness blockers are separate and unchanged."
 }
