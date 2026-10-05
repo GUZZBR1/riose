@@ -72,6 +72,14 @@
       "spreading_factors": [7], "payload_bytes": [12],
       "seeds": [20261005, 20261006, 20261007, 20261008, 20261009],
       "distribution": "uniform", "load_class": "MONTE_CARLO"
+    },
+    {
+      "id": "pdr95-transition-refinement",
+      "tags": [17, 18, 19], "gateways": [4], "cadence_s": [60],
+      "schedules": ["SEEDED_PHASE"], "phase_window_s": 60,
+      "spreading_factors": [7], "payload_bytes": [12],
+      "seeds": [20261005, 20261006, 20261007],
+      "distribution": "uniform", "load_class": "TRANSITION_REFINEMENT"
     }
   ],
   "interpretation": {
