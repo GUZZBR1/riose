@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://riose.example/schemas/beta-scenario-v1.json",
+  "title": "RIOSE Beta Scenario Contract V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_id", "description", "seed", "identities", "environment", "rf", "network", "trajectory", "movement", "faults", "localization", "blockchain", "expected_evidence"],
+  "properties": {
+    "schema_version": {"const": "riose.beta.scenario-contract/v1"},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "seed": {"type": "integer", "minimum": 0},
+    "identities": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["animal_id", "tag_id", "device_id"], "properties": {"animal_id": {"type": "string", "minLength": 1}, "tag_id": {"type": "string", "minLength": 1}, "device_id": {"type": "string", "minLength": 1}}}},
+    "environment": {"type": "object", "additionalProperties": false, "required": ["farm_id", "coordinate_frame", "bounds_m", "classification"], "properties": {"farm_id": {"type": "string", "minLength": 1}, "coordinate_frame": {"const": "ENU_LOCAL"}, "bounds_m": {"type": "object", "additionalProperties": false, "required": ["east_min_m", "east_max_m", "north_min_m", "north_max_m"], "properties": {"east_min_m": {"type": "number"}, "east_max_m": {"type": "number"}, "north_min_m": {"type": "number"}, "north_max_m": {"type": "number"}}}, "classification": {"$ref": "#/$defs/evidence"}}},
+    "rf": {"$ref": "#/$defs/component"},
+    "network": {"$ref": "#/$defs/component"},
+    "movement": {"$ref": "#/$defs/component"},
+    "localization": {"$ref": "#/$defs/component"},
+    "blockchain": {"$ref": "#/$defs/component"},
+    "trajectory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "classification", "samples"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "classification": {"$ref": "#/$defs/evidence"},
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["animal_id", "tag_id", "timestamp_s", "position_m"],
+            "properties": {
+              "animal_id": {"type": "string", "minLength": 1},
+              "tag_id": {"type": "string", "minLength": 1},
+              "timestamp_s": {"type": "number", "minimum": 0},
+              "position_m": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}
+            }
+          }
+        }
+      }
+    },
+    "faults": {"type": "array", "items": {"enum": ["NONE", "PACKET_LOSS", "GATEWAY_LOSS", "CLOCK_DRIFT", "BAD_TIMESTAMP", "INSUFFICIENT_ANCHORS", "DATABASE_FAILURE", "BLOCKCHAIN_RPC_FAILURE", "INTEGRITY_FAILURE", "SENSOR_STREAM_FAILURE", "SEVERE_DETECTOR_THRESHOLD"]}},
+    "expected_evidence": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/evidence"}}
+  },
+  "$defs": {
+    "evidence": {"enum": ["SIMULATED", "EXTERNAL_MEASURED_DATA", "REAL_ON_CHAIN", "EXPERIMENTAL", "ENGINEERING_ESTIMATE", "NOT_EVALUATED"]},
+    "component": {"type": "object", "additionalProperties": false, "required": ["mode", "classification"], "properties": {"mode": {"type": "string", "minLength": 1}, "classification": {"$ref": "#/$defs/evidence"}, "parameters": {"type": "object"}}}
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "riose.simulation.result/v1",
+  "campaign_id": "demo-campaign-001",
+  "scenario_id": "pasture-east",
+  "backend": "fixture-only",
+  "solver_version": null,
+  "status": "SIMULATED",
+  "id_mappings": [
+    {"source_system": "frequencia", "source_kind": "transmitter_id", "source_id": "tx-source-01", "riose_kind": "tag_id", "riose_id": "tag-riose-01"},
+    {"source_system": "frequencia", "source_kind": "receiver_id", "source_id": "rx-source-01", "riose_kind": "anchor_id", "riose_id": "anchor-riose-01"},
+    {"source_system": "frequencia", "source_kind": "receiver_id", "source_id": "rx-source-02", "riose_kind": "anchor_id", "riose_id": "anchor-riose-02"}
+  ],
+  "observations": [
+    {
+      "timestamp_s": 0.0,
+      "source_tag_ref": "tx-source-01",
+      "source_receiver_ref": "rx-source-01",
+      "tag_id": "tag-riose-01",
+      "anchor_id": "anchor-riose-01",
+      "channel_state": "PATH",
+      "tx_state": "TRANSMITTED",
+      "rx_state": "RECEIVED",
+      "metrics": {"received_power_dbm": -74.2, "rssi_dbm": null, "snr_db": 18.5, "propagation_delay_s": 4.12e-8, "tof_measured_s": null, "phase_rad": null, "path_state": "LOS"},
+      "status": "SIMULATED"
+    },
+    {
+      "timestamp_s": 0.0,
+      "source_tag_ref": "tx-source-01",
+      "source_receiver_ref": "rx-source-02",
+      "tag_id": "tag-riose-01",
+      "anchor_id": "anchor-riose-02",
+      "channel_state": "NO_PATH",
+      "tx_state": "TRANSMITTED",
+      "rx_state": "NOT_RECEIVED",
+      "metrics": {"received_power_dbm": null, "rssi_dbm": null, "snr_db": null, "propagation_delay_s": null, "tof_measured_s": null, "phase_rad": null, "path_state": "NO_PATH"},
+      "status": "SIMULATED"
+    },
+    {
+      "timestamp_s": 1.0,
+      "source_tag_ref": "tx-source-01",
+      "source_receiver_ref": "rx-source-02",
+      "tag_id": "tag-riose-01",
+      "anchor_id": "anchor-riose-02",
+      "channel_state": "UNKNOWN",
+      "tx_state": "NOT_TRANSMITTED",
+      "rx_state": "NOT_APPLICABLE",
+      "metrics": {"received_power_dbm": null, "rssi_dbm": null, "snr_db": null, "propagation_delay_s": null, "tof_measured_s": null, "phase_rad": null, "path_state": "UNKNOWN"},
+      "status": "SIMULATED"
+    }
+  ],
+  "locations": [
+    {"timestamp_s": 0.0, "source_tag_ref": "tx-source-01", "tag_id": "tag-riose-01", "position_m": [12.2, 7.4, 1.2], "quality": 0.72, "method": "fixture-estimate", "status": "SIMULATED", "solver_status": "CONVERGED", "quality_status": "NOT_EVALUATED", "quality_reason": "NO_DECLARED_OPERATIONAL_BOUNDS", "quality_bounds_m": null}
+  ],
+  "warnings": [],
+  "limitations": ["Illustrative fixture; no simulator executed and no physical validation is claimed."],
+  "provenance": {"request_sha256": null, "output_sha256": null, "completed_at": "2026-10-03T00:00:01Z"}
+}

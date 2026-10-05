@@ -25,6 +25,8 @@ solana = ["solders>=0.29,<0.30"]
 [project.scripts]
 cattle-rf = "riose.products.livestock_tracking.cli:main"
 riose-movement-dataset = "riose.products.ear_tag.movement_datasets.__main__:main"
+riose-simulation-lab = "riose.simulation_lab.cli:main"
+riose-beta-campaign = "riose.beta_final.campaign:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cattle_rf", "src/riose"]
