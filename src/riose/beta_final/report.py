@@ -44,21 +44,23 @@ def render_results(manifest: dict[str, Any]) -> str:
         f"- Manifest SHA-256: `{manifest['manifest_sha256']}`",
         f"- Runs completed / scheduled / failed: {denominator['successful_runs']} / {denominator['scheduled_runs']} / {denominator['failed_runs']}", "",
         "## Per-run ledger", "",
-        "| Run | Scenario | Seed | Status | Request SHA-256 | Result SHA-256 | Workspace |",
-        "|---|---|---:|---|---|---|---|",
+        "| Run | Scenario | Seed | Status | Request SHA-256 | Raw result SHA-256 | Normalized result digest | Workspace |",
+        "|---|---|---:|---|---|---|---|---|",
     ]
     for row in manifest["runs"]:
-        lines.append("| `{}` | `{}` | {} | `{}` | `{}` | `{}` | `{}` |".format(
+        lines.append("| `{}` | `{}` | {} | `{}` | `{}` | `{}` | `{}` | `{}` |".format(
             row.get("run_key", "UNKNOWN"), row.get("scenario_id", "UNKNOWN"),
             row.get("seed", ""), row.get("status", "UNKNOWN"),
             row.get("request_sha256", "NOT_AVAILABLE"), row.get("output_sha256", "NOT_AVAILABLE"),
+            row.get("reproducibility_sha256", "NOT_AVAILABLE"),
             row.get("workspace", "NOT_AVAILABLE").replace("|", "\\|")))
         if row.get("status") != "COMPLETED":
             lines.extend(["", f"Failure `{row.get('run_key', 'UNKNOWN')}`: {row.get('error', 'reason unavailable')}"])
     lines.extend(["", "## Reproducibility", ""])
     for repeat in manifest.get("reproducibility", []):
         lines.append(f"- `{repeat['scenario_id']}` seed `{repeat['seed']}`: `{repeat['status']}`; "
-                     f"same request: `{repeat['same_request']}`; same simulator output hash: `{repeat['same_output']}`.")
+                     f"same request: `{repeat['same_request']}`; "
+                     f"same normalized simulator result digest: `{repeat['same_output']}`.")
     if not manifest.get("reproducibility"):
         lines.append("- No same-seed repeat was scheduled.")
     lines.extend(["", "## Interpretation boundary", "",

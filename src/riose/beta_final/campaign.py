@@ -51,6 +51,16 @@ def _write_json(path: Path, value: Any) -> None:
     path.write_text(canonical_json(value) + "\n", encoding="utf-8")
 
 
+def _result_reproducibility_digest(path: Path) -> str:
+    """Hash deterministic result content, excluding volatile/self-referential provenance fields."""
+    result = _read_json(path)
+    provenance = result.get("provenance")
+    if isinstance(provenance, dict):
+        provenance.pop("completed_at", None)
+        provenance.pop("output_sha256", None)
+    return content_hash(result)
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
@@ -172,19 +182,23 @@ def build_campaign_manifest(*, campaign: dict[str, Any], scenario_files: list[tu
         pair = [item for item in runs if item.get("scenario_id") == repeat["scenario_id"]
                 and item.get("seed") == repeat["seed"]]
         request_hashes = {item.get("request_sha256") for item in pair}
-        output_hashes = {item.get("output_sha256") for item in pair}
+        output_hashes = {item.get("reproducibility_sha256") for item in pair}
         successful = all(item.get("status") == "COMPLETED" for item in pair)
+        same_output = len(output_hashes) == 1 and None not in output_hashes
         repeat_groups.append({
             "scenario_id": repeat["scenario_id"], "seed": repeat["seed"],
             "expected_copies": repeat["copies"], "observed_copies": len(pair),
             "same_request": len(request_hashes) == 1 and None not in request_hashes,
-            "same_output": len(output_hashes) == 1 and None not in output_hashes,
+            "same_output": same_output,
+            "reproducibility_sha256": next(iter(output_hashes)) if same_output else None,
             "status": "PASS" if successful and len(pair) == repeat["copies"]
-                      and len(request_hashes) == 1 and len(output_hashes) == 1
+                      and len(request_hashes) == 1 and same_output
                       else "PARTIAL" if any(item.get("status") == "COMPLETED" for item in pair)
                       else "NOT_READY",
             "runs": [{"run_key": item.get("run_key"), "request_sha256": item.get("request_sha256"),
-                      "output_sha256": item.get("output_sha256"), "status": item.get("status")}
+                      "output_sha256": item.get("output_sha256"),
+                      "reproducibility_sha256": item.get("reproducibility_sha256"),
+                      "status": item.get("status")}
                      for item in pair],
         })
     payload["reproducibility"] = repeat_groups
@@ -280,13 +294,18 @@ def run_campaign(spec_path: str | Path = DEFAULT_SPEC, *, repo: str | Path | Non
             run_manifest = output["manifest"]
             summary_path = Path(output["workspace"]) / "summary.md"
             result_path = Path(output["workspace"]) / "result" / "result.json"
-            network_path = Path(output["workspace"]) / "network" / "summary.json"
+            network_path = Path(output["workspace"]) / "network" / "network_results.json"
+            gateway_path = Path(output["workspace"]) / "network" / "gateway_timestamps.json"
             score_path = Path(output["workspace"]) / "network" / "scoring.json"
             artifacts = {}
             for name, path in (("summary", summary_path), ("result", result_path),
-                               ("network", network_path), ("scoring", score_path)):
+                               ("network_results", network_path), ("gateway_timestamps", gateway_path),
+                               ("scoring", score_path)):
                 if path.is_file():
                     artifacts[name] = {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            network_result = _read_json(network_path) if network_path.is_file() else {}
+            scoring_result = _read_json(score_path) if score_path.is_file() else {}
+            raw_result_sha = artifacts.get("result", {}).get("sha256")
             run_records.append({
                 "run_key": run_key, "run_id": run_manifest.get("run_id"),
                 "scenario_id": scenario["scenario_id"], "seed": seed,
@@ -294,9 +313,16 @@ def run_campaign(spec_path: str | Path = DEFAULT_SPEC, *, repo: str | Path | Non
                 "workspace": str(output["workspace"]),
                 "manifest_sha256": content_hash(run_manifest),
                 "request_sha256": run_manifest.get("request_sha256"),
-                "output_sha256": run_manifest.get("output_sha256"),
+                "output_sha256": raw_result_sha,
+                "reproducibility_sha256": _result_reproducibility_digest(result_path) if result_path.is_file() else None,
                 "parameter_binding": run_manifest.get("parameter_binding"),
-                "metrics": run_manifest.get("metrics"),
+                "metrics": {
+                    "network": network_result.get("metrics"),
+                    "localization": {key: scoring_result.get(key) for key in (
+                        "attempts", "scored", "error_denominator", "converged", "eligible",
+                        "failed", "non_eligible", "non_eligible_status_counts", "quality_counts",
+                        "truth_matched_attempts", "truth_source", "conditional_rmse_m", "p90_error_m")},
+                },
                 "artifacts": artifacts,
             })
         except Exception as exc:

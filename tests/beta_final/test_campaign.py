@@ -98,10 +98,12 @@ def test_campaign_manifest_hash_failure_accounting_and_report_generation(tmp_pat
     runs = [
         {"run_key": "baseline-11", "scenario_id": scenario["scenario_id"], "seed": 11,
          "status": "COMPLETED", "classification": "SIMULATED",
-         "request_sha256": "a" * 64, "output_sha256": "b" * 64, "workspace": str(tmp_path / "run-1")},
+         "request_sha256": "a" * 64, "output_sha256": "b" * 64,
+         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-1")},
         {"run_key": "baseline-11-repeat", "scenario_id": scenario["scenario_id"], "seed": 11,
          "status": "COMPLETED", "classification": "SIMULATED",
-         "request_sha256": "a" * 64, "output_sha256": "b" * 64, "workspace": str(tmp_path / "run-2")},
+         "request_sha256": "a" * 64, "output_sha256": "b" * 64,
+         "reproducibility_sha256": "f" * 64, "workspace": str(tmp_path / "run-2")},
         {"run_key": "baseline-29", "scenario_id": scenario["scenario_id"], "seed": 29,
          "status": "FAILED", "classification": "SIMULATED", "error": "simulator failed"},
     ]
@@ -120,7 +122,7 @@ def test_campaign_manifest_hash_failure_accounting_and_report_generation(tmp_pat
     assert manifest["reproducibility"][0]["status"] == "PASS"
     report = render_results(manifest)
     assert "2 / 3 / 1" in report
-    assert "same simulator output hash: `True`" in report
+    assert "same normalized simulator result digest: `True`" in report
     assert "simulator failed" in report
     assert campaign_digest(SPEC) == campaign_digest(copy.deepcopy(SPEC))
 
@@ -137,12 +139,31 @@ def test_same_seed_reproduction_fails_on_changed_output_hash():
         {"scenario_id": scenario["scenario_id"], "seed": 11, "copies": 2}]}
     runs = [{"run_key": f"run-{index}", "scenario_id": scenario["scenario_id"], "seed": 11,
              "status": "COMPLETED", "classification": "SIMULATED",
-             "request_sha256": "a" * 64, "output_sha256": token * 64}
+             "request_sha256": "a" * 64, "output_sha256": token * 64,
+             "reproducibility_sha256": token * 64}
             for index, token in enumerate(("b", "c"))]
     manifest = build_campaign_manifest(campaign=campaign,
         scenario_files=[(scenario_path, scenario)], runs=runs,
         riose={"revision": "c" * 40, "dirty": False},
         frequencia={"revision": "d" * 40, "dirty": False, "capabilities": {}})
     assert manifest["reproducibility"][0]["same_request"] is True
+    assert manifest["reproducibility"][0]["same_output"] is False
+    assert manifest["reproducibility"][0]["status"] == "PARTIAL"
+
+
+def test_repeat_with_missing_output_digest_cannot_pass():
+    scenario_path = ROOT / SPEC["scenarios"][0]["scenario"]
+    scenario = load_scenario(scenario_path)
+    campaign = {**SPEC, "reproducibility_repeats": [
+        {"scenario_id": scenario["scenario_id"], "seed": 11, "copies": 2}]}
+    runs = [{"run_key": f"run-{index}", "scenario_id": scenario["scenario_id"], "seed": 11,
+             "status": "COMPLETED", "classification": "SIMULATED",
+             "request_sha256": "a" * 64, "output_sha256": None,
+             "reproducibility_sha256": None}
+            for index in (1, 2)]
+    manifest = build_campaign_manifest(campaign=campaign,
+        scenario_files=[(scenario_path, scenario)], runs=runs,
+        riose={"revision": "c" * 40, "dirty": False},
+        frequencia={"revision": "d" * 40, "dirty": False, "capabilities": {}})
     assert manifest["reproducibility"][0]["same_output"] is False
     assert manifest["reproducibility"][0]["status"] == "PARTIAL"
