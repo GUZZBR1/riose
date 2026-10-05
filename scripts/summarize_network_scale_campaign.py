@@ -30,9 +30,11 @@ def _summary(values: list[float]) -> dict[str, float | int | None]:
             "max": max(values) if values else None}
 
 
-def _quality_status(pdr: float | None) -> str:
+def _quality_status(pdr: float | None, schedule_completion: float | None) -> str:
     if pdr is None:
         return "NOT_TESTED"
+    if schedule_completion is not None and schedule_completion < 0.95:
+        return "INCOMPLETE_SCHEDULE_SIMULATED"
     if pdr >= 0.95:
         return "ROBUST_SIMULATED"
     if pdr >= 0.70:
@@ -94,6 +96,7 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
         rf_reachable = sum(int(row.get("rf_reachable_tx_packets", 0)) for row in completed)
         rf_reachable_received = sum(int(row.get("rf_reachable_received_packets", 0)) for row in completed)
         requested_packets = sum(int(row.get("requested_packets", 0)) for row in completed)
+        schedule_completion = tx_attempted / requested_packets if requested_packets else None
         runtime = [float(row["runtime_s"]) for row in completed if row.get("runtime_s") is not None]
         run_evidence = []
         for row in completed:
@@ -116,6 +119,8 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
                 "tx_attempted": row.get("tx_attempted"),
                 "phy_received_packets": row.get("phy_received_packets"),
                 "pdr_phy": row.get("pdr_phy"), "pdr_denominator": row.get("pdr_denominator"),
+                "tx_schedule_completion_rate": row.get("tx_schedule_completion_rate"),
+                "pdr_over_requested_packets": row.get("pdr_over_requested_packets"),
                 "packet_outcome_counts": row.get("packet_outcome_counts"),
                 "packet_outcome_denominator_tx": row.get("packet_outcome_denominator_tx"),
                 "packet_outcome_requested_denominator": row.get("packet_outcome_requested_denominator"),
@@ -128,7 +133,7 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
             })
         configurations.append({
             "configuration": config,
-            "quality_status_by_mean_pdr": _quality_status(pdr_mean),
+            "quality_status_by_mean_pdr": _quality_status(pdr_mean, schedule_completion),
             "quality_thresholds": {"robust_min_pdr_phy": 0.95,
                                    "degraded_min_pdr_phy": 0.70,
                                    "thresholds_are_product_requirements": False},
@@ -139,6 +144,8 @@ def summarize(inputs: list[Path]) -> dict[str, Any]:
             "set_ids": sorted({row.get("set_id") for row in rows if row.get("set_id")}),
             "pdr_phy_numerator": phy_received, "pdr_phy_denominator": tx_attempted,
             "pdr_phy_pooled": phy_received / tx_attempted if tx_attempted else None,
+            "pdr_over_requested_packets": phy_received / requested_packets if requested_packets else None,
+            "tx_schedule_completion_rate": tx_attempted / requested_packets if requested_packets else None,
             "rf_reachable_tx_packets": rf_reachable,
             "rf_reachable_received_packets": rf_reachable_received,
             "pdr_conditional_on_rf_path_pooled": (

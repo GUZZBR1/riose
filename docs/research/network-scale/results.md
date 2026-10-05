@@ -15,7 +15,7 @@ Campaign ledger SHA-256 values:
 | Initial | 34 | 31 | 34 (including 3 deduplicated references) | 0 | `1eb8f8e2e23450a338bbf5d3b7ad7295454ef83ad3248243402850cc717b6a8f` |
 | Refinement | 9 | 9 | 9 | 0 | `b6d10294c96d19c6bf7c0c145e8de011c78bd73f2c61ac79d8bf40306e892da4` |
 
-The ledger hashes and evidence inputs are consolidated per configuration and per run in [capacity-envelope.json](capacity-envelope.json). It covers 40 unique configurations/runs, 43 requested rows, and 0 failed unique runs. Seeds are 20261005–20261009. The combined unique runs span 3,864 requested packets, 3,844 TX starts, 3,311 unique PHY-received packets, and 15,756 gateway outcome events. These cross-configuration totals are bookkeeping counts only; they are not a blended PDR. Total recorded simulator runtime was 735.83 seconds (mean 18.40 seconds, maximum 104.05 seconds for a 100-tag run). Peak memory was not recorded.
+The ledger hashes and evidence inputs are consolidated per configuration and per run in [capacity-envelope.json](capacity-envelope.json). The original C envelope covers 40 unique configurations/runs, 43 requested rows, and 0 failed unique runs. C.1 adds a 2-row pilot ledger, a 27-row/24-unique exploratory controlled ledger (including invalid 1-second rows), and an 18-row/18-unique corrected population ledger. The current consolidated envelope contains 78 unique runs, 90 requested rows, and 0 failed unique runs; seeds are 20261005–20261009. Its grouped labels are reporting bins only and must be interpreted with schedule completion and the C.1 exclusions. The original C-only packet/runtime totals above describe only those 40 original unique runs.
 
 ## Metric definitions
 
@@ -108,4 +108,32 @@ The focused Simulation Lab tests passed 59 tests before the final report/aggrega
 | Campaign envelope evidence blocks | 40, with request/manifest/raw/network hashes |
 | Full repository test suite | 470 passed, 7 skipped; one existing Starlette/httpx deprecation warning |
 | Compile / diff hygiene | `compileall` succeeded; `git diff --check` clean; capacity envelope parsed and validated (40/40 unique runs, 0 failures, 22 groups, 40 per-run evidence records) |
+
+## C.1 contention and capacity closure follow-up
+
+**Status: PARTIAL_SIMULATED.** C.1 makes the earlier contention gap reproducible, but does not establish a generic animal-count ceiling or a robust operating region. The original C evidence remains intact. RIOSE ran from clean commit `796ca7ce426a168901e56e41f7d20ae2cadfb172`; FREQUENCIA remained pinned to clean `ba2bdabf003722aae8292580e048f7092d0356d6`. The initial C.1 ledger contains 27 requested rows, 24 unique requests, 27 completed rows, and zero runner failures; it includes three deduplicated references. Its spec SHA-256 is `e312ebab8118a90fadb9b46298f12a3289fe637d2bb2b941cfe05a29e8e0ed43`. Every executed run reports verified network parameter binding and stores request, raw output, network output, source revisions, and dirty state.
+
+### Controlled schedule comparison
+
+The new synthetic control places ten tags at the same already exercised RF point `[120, 200, 10.78] m`, with four gateways, 915 MHz, 125 kHz, SF7, 12-byte payload, 14 dBm, and ten common epochs. Each run requested and transmitted 100 packets; every packet had a modeled RF path to at least one gateway. Across three seeds, exact common timestamps and the 10 ms near-synchronized schedule each delivered 0/100 packets per seed (0/300 pooled), with interference observed at packet level for 80/100 and the remaining 20 classified `NO_DEMODULATOR` per seed. The deterministic per-device phase schedule delivered 100/100, 80/100, and 100/100 (280/300 pooled); only the seed with 80/100 had 20 packet-level interference losses. Since geometry, cadence, radio configuration, and RF reachability were held constant, this demonstrates schedule-dependent PHY outcomes for this artificial co-located topology. The 10 ms phase window remains shorter than the 56.576 ms airtime. Three phase seeds and ten repeated epochs are narrow evidence, not a validated real-world capacity boundary.
+
+### Invalidated 1-second schedule evidence
+
+The initial C.1 1-second rows must not be used to estimate capacity or PDR by source event. The adapter queues source event indices and the pinned FREQUENCIA `TxStart` trace consumes them FIFO; ns-3 can defer or cancel queued MAC transmissions when the channel is busy. The red-team audit compared requested phase timestamps with actual TX starts and found source/event identity mismatches in all nine unique 1-second executions (315 mismatched transmitted packet/event associations in total). In one 10-tag example only 40/100 requested packets started, and the start for source epoch 3 was attributed to an earlier event. Thus the reported TX-start PDR may be arithmetically consistent but the packet identity and delay attribution are not. We preserve these runs as an adapter-fidelity finding and exclude them from all capacity conclusions. The adapter bug is upstream of this RIOSE checkout and was not changed here.
+
+For any schedule, report both **PHY PDR = received / packets with TX start** and **schedule completion = TX starts / requested packets**. C.1 records requested-vs-effective settings and actual TX times; the follow-up also corrects the distinct-TX-start count to count distinct timestamps. A successful PHY PDR conditional on transmitted packets must not hide requests that never reached a TX start.
+
+### Cadence, gateway, and support boundaries
+
+The initial 60-second ten-tag control delivered 100/100 packets for each of three seeds. Its 3-gateway static-omission counterpart also delivered 100/100 per seed, with the same first-three-gateway RF link records as the 4-gateway case. Localization input availability was 1.0 with four gateways and 0.0 with three in this co-located geometry. This is only static removal of gateway four; it does not test outage detection, temporal failure, recovery, or deployment availability.
+
+A corrected population/cadence sweep is retained in a separate ledger. All requests had TX starts and all actual starts matched the pinned seeded-phase formula within 1 ns. At 10-second cadence the 5-tag group received 150/150, 10 tags received 280/300 (20 interference losses), and 20 tags received 490/600 (110 interference losses). At 60-second cadence all groups received every transmitted packet: 5 tags 150/150, 10 tags 300/300, and 20 tags 600/600. The 20-tag 10-second group spans 0.75–0.90 across its three seeds; three seeds are too few to identify a stable overload boundary. These are conditional results for the co-located synthetic topology, not an animal-support number.
+
+The LoRaWAN module implements duty-cycle scheduling, but the adapter's effective sub-band duty cycle is 100%; duty-cycle limits and their deferrals are therefore `NOT_MODELED`. Per-packet jitter and bursty traffic are not representable by the current shared trajectory timestamp contract. The campaign models gateway PHY reception only: `APPLICATION_DELIVERY=NOT_MODELED`. Localization is input availability only and does not imply localization accuracy. No animal-support claim is made.
+
+The reviewer also caught and corrected a reporting bug: synchronized source timestamps can yield fewer distinct TX-start timestamps than TX packets, so `unique_ns3_tx_start_count` now counts unique timestamp values. This value is descriptive only; it is not a count of packet IDs.
+
+### C.1 verification
+
+Focused network regression: 42 passed. Full repository suite: 482 passed, 7 skipped, with one pre-existing Starlette/httpx deprecation warning. `compileall` and `git diff --check` passed. The 18 corrected runs were independently checked against the pinned seeded phase formula: 2,100 transmitted packet starts, zero mismatches above 1 ns, maximum absolute deviation 5.12e-13 seconds. Their first exploratory ledger was run while repository files were changing and is retained only for comparison; the final clean-source rerun and its ledger hash are recorded below after completion.
 

@@ -6,7 +6,9 @@ import pytest
 ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from run_network_scale_campaign import _packet_loss_summary, build_request, expand_cells  # noqa: E402
+from run_network_scale_campaign import (_packet_loss_summary, _unique_tx_start_count,
+                                        build_request, expand_cells)  # noqa: E402
+from summarize_network_scale_campaign import _quality_status  # noqa: E402
 from riose.simulation_contract import load_json, validate_request  # noqa: E402
 
 
@@ -86,6 +88,13 @@ def test_packet_loss_classes_keep_phy_received_no_path_interference_and_untransm
     assert summary["rf_reachable_tx_packets"] == 2
     assert summary["rf_reachable_received_packets"] == 1
     assert summary["pdr_conditional_on_rf_path"] == 0.5
+
+
+def test_actual_transmission_metrics_keep_requested_and_tx_start_denominators_distinct():
+    assert _unique_tx_start_count([1.0] * 10) == 1
+    assert _unique_tx_start_count([float(i) for i in range(10)]) == 10
+    assert _quality_status(1.0, 0.4) == "INCOMPLETE_SCHEDULE_SIMULATED"
+    assert _quality_status(1.0, 1.0) == "ROBUST_SIMULATED"
 
 
 def test_per_packet_jitter_schedule_is_not_silently_treated_as_seeded_device_phase():

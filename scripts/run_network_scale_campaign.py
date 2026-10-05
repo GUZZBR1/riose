@@ -224,6 +224,10 @@ def _packet_loss_summary(network: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _unique_tx_start_count(tx_times: list[float]) -> int:
+    return len(set(tx_times))
+
+
 def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) -> dict[str, Any]:
     workspace = Path(report["workspace"])
     manifest = report["manifest"]
@@ -292,7 +296,7 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
             "traffic_schedule": network.get("traffic_schedule"),
             "traffic_interval_s": network.get("traffic_interval_s"),
             "tx_attempted": transmitted, "requested_packets": int(network["metrics"]["requested_packets"]),
-            "unique_ns3_tx_start_count": len(actual_tx_times),
+            "unique_ns3_tx_start_count": _unique_tx_start_count(actual_tx_times),
             "actual_tx_start_delay_s": {
                 "n": len(tx_start_delays), "mean": sum(tx_start_delays) / len(tx_start_delays)
                 if tx_start_delays else None,
@@ -303,6 +307,12 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
         "runtime_s": manifest["duration_seconds"],
         "requested_packets": int(network["metrics"]["requested_packets"]),
         "tx_attempted": transmitted, "phy_received_packets": delivered,
+        "tx_schedule_completion_rate": (
+            transmitted / int(network["metrics"]["requested_packets"])
+            if network["metrics"]["requested_packets"] else None),
+        "pdr_over_requested_packets": (
+            delivered / int(network["metrics"]["requested_packets"])
+            if network["metrics"]["requested_packets"] else None),
         "pdr_phy": pdr, "pdr_denominator": transmitted,
         "packet_loss_after_tx": transmitted - delivered,
         "packet_outcome_requested_denominator": packet_summary["requested_packet_denominator"],
