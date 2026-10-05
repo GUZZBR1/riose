@@ -2,7 +2,7 @@
 
 ## Verdict
 
-**PASS_SIMULATED** for the H.2 temporal identity and cadence scope. The overall Beta Completion Gate remains **PARTIAL / not ready** because independent A–G readiness constraints remain; this closure updates H integration evidence only.
+**PASS_SIMULATED** for the H.2 temporal identity and cadence scope. H is **ready to be reconsidered in the next Beta Completion Gate**. The overall Beta verdict remains **PARTIAL** because independent A–G readiness constraints remain; this closure updates H integration evidence only.
 
 ## Cause found
 
@@ -38,4 +38,4 @@ Four failed attempts are retained under `runs/temporal-identity-closure/attempts
 
 ## Limits and gate readiness
 
-This is a one-seed, two-animal software simulation, not hardware or field validation. It establishes no application-server delivery, field-calibrated radio performance, cross-seed reproducibility, or large-population capacity. H.1's pooled counts remain historical and unverified for per-event identity. The overall Beta Completion Gate remains not ready due to independent A–G limitations. No A–G source was edited.
+This is a one-seed, two-animal software simulation, not hardware or field validation. It establishes no application-server delivery, field-calibrated radio performance, cross-seed reproducibility, or large-population capacity. H.1's pooled counts remain historical and unverified for per-event identity. H.2 is ready for the next gate review; the overall Beta Completion Gate remains partial due to independent A–G limitations. No A–G source was edited.

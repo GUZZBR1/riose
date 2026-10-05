@@ -49,7 +49,7 @@
       "evidence_classification": "SIMULATED",
       "limitation": "One seed and two synthetic animals; H.1 pooled 43/129 attribution remains unverified historically; no field/hardware/application-delivery or capacity claim",
       "next_stage": "Retain request identity for any broader seeded population/cadence and field-validation campaign",
-      "ready_for_beta": false
+      "ready_for_beta": true
     },
     {
       "domain": "LOCALIZATION",
