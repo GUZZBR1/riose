@@ -1,0 +1,3412 @@
+{
+  "schema_version": "riose.network-scale-capacity-envelope/v1",
+  "classification": "SIMULATED",
+  "pdr_definition": "unique packets received by at least one gateway / packets with TX start",
+  "latency_definition": "ns-3 gateway PHY RX end timestamp minus TX start timestamp",
+  "localization_input_definition": "transmitted packet epochs with at least 3 distinct non-null detector/clock timestamps divided by packets with TX start",
+  "quality_status_is_pdr_only": true,
+  "sources": [
+    {
+      "path": "/home/gusta/.cache/RIOSE/network-scale-capacity-2026-10/campaign-results.json",
+      "sha256": "bb2f9123a7022263432e82166391ccaa8dd313e8f0076052431bafa78cee3243",
+      "requested_runs": 34,
+      "unique_requests": 31,
+      "completed_runs": 34,
+      "failed_runs": 0,
+      "spec_sha256": "1eb8f8e2e23450a338bbf5d3b7ad7295454ef83ad3248243402850cc717b6a8f"
+    },
+    {
+      "path": "/home/gusta/.cache/RIOSE/network-scale-capacity-refinement-2026-10/campaign-results.json",
+      "sha256": "62b54d6e5c5ada5be0ec6a69e94bf4c7dc66f1bf4e9b6e2437feec05c3c9f380",
+      "requested_runs": 9,
+      "unique_requests": 9,
+      "completed_runs": 9,
+      "failed_runs": 0,
+      "spec_sha256": "b6d10294c96d19c6bf7c0c145e8de011c78bd73f2c61ac79d8bf40306e892da4"
+    }
+  ],
+  "requested_run_rows": 43,
+  "unique_request_count": 40,
+  "completed_unique_runs": 40,
+  "failed_unique_runs": 0,
+  "failed_runs": [],
+  "configurations": [
+    {
+      "configuration": {
+        "tags": 1,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "ROBUST_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 3,
+      "pdr_phy_denominator": 3,
+      "requested_packet_count": 3,
+      "gateway_event_outcomes": {
+        "NO_PATH": 3,
+        "RX": 9
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 1.0,
+          "sample_sd": null,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.0565783936741116,
+          "sample_sd": null,
+          "min": 0.0565783936741116,
+          "max": 0.0565783936741116
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056575999999999994,
+          "sample_sd": null,
+          "min": 0.056575999999999994,
+          "max": 0.056575999999999994
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 1.0,
+          "sample_sd": null,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 3.0,
+          "sample_sd": null,
+          "min": 3.0,
+          "max": 3.0
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 6.6241335599988815,
+          "sample_sd": null,
+          "min": 6.6241335599988815,
+          "max": 6.6241335599988815
+        }
+      },
+      "runtime": {
+        "total_s": 6.6241335599988815,
+        "max_s": 6.6241335599988815,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "943acce2a2a541a8bc8175054fbc2caa989e9f56652dd99b87d54865ae83b45f"
+      ],
+      "run_ids": [
+        "64e22933c22b4dbdb4446b15cefd6113"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "64e22933c22b4dbdb4446b15cefd6113",
+          "seed": 20261005,
+          "request_sha256": "943acce2a2a541a8bc8175054fbc2caa989e9f56652dd99b87d54865ae83b45f",
+          "manifest_sha256": "262c6498f49f2b3dcf8a309514d729c8988dcad217b15ab2b13de4b62fb02c3c",
+          "raw_output_sha256": "b8dfb19d13e38514157f89894e7bb04e0227b612bf6529f772e40abb9275b872",
+          "network_output_sha256": "da29db9855f196c8bef415de06cc438f078d08d11cf08d0e31cc5742dd0413d7",
+          "generated_config_sha256": "7fb2dca0cac86bbfbc7a94d5e4b43942f3eaa11c39d5c8806a42aa684a6a0d44",
+          "trajectory_sha256": "44a01a972cbc9c295a1dfe690c8b03ee99f888d7910e10ba4a5f6e7c950b0783",
+          "experiment_spec_sha256": "5bef1e2da906c3e91b470b1cb8b8b944b263ccd32a2332ac299ccc7c50215cbd",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "c922c6915eda42b5f078d2e777cedbb13e4274d15093d6fe65bc8578126f3899",
+            "inputs.json": "e285d618ba69daa1c2c0f2b5767decb27e5e3a10cbaf9658957f75230dd22358",
+            "localization.json": "cec969d03977136fffa470d46fc6710c5ba831d59267c194f0d7820275726f95",
+            "network_results.json": "da29db9855f196c8bef415de06cc438f078d08d11cf08d0e31cc5742dd0413d7",
+            "pipeline.json": "0abdcbb0b9bbfeb74055fc87d5a0f6afd438fca2d68c7685b2ab753693cfa331",
+            "scoring.json": "c42b16503f5c28ef2c89ceda94162cd9ee872f646da588ec7beb5b88b1155be6"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 3,
+          "phy_received_packets": 3,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 3,
+          "runtime_s": 6.6241335599988815
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 5,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "ROBUST_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 15,
+      "pdr_phy_denominator": 15,
+      "requested_packet_count": 15,
+      "gateway_event_outcomes": {
+        "NO_PATH": 21,
+        "RX": 39
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 1.0,
+          "sample_sd": null,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.056578191418688965,
+          "sample_sd": null,
+          "min": 0.056578191418688965,
+          "max": 0.056578191418688965
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.6,
+          "sample_sd": null,
+          "min": 0.6,
+          "max": 0.6
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.6,
+          "sample_sd": null,
+          "min": 2.6,
+          "max": 2.6
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.996630022000318,
+          "sample_sd": null,
+          "min": 8.996630022000318,
+          "max": 8.996630022000318
+        }
+      },
+      "runtime": {
+        "total_s": 8.996630022000318,
+        "max_s": 8.996630022000318,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "5e502e2db83889c1ba440be13c4e701644007f28bdfc6709dc0a91dc93313d9c"
+      ],
+      "run_ids": [
+        "83398f62d9544cf4bacb21548f220af1"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "83398f62d9544cf4bacb21548f220af1",
+          "seed": 20261005,
+          "request_sha256": "5e502e2db83889c1ba440be13c4e701644007f28bdfc6709dc0a91dc93313d9c",
+          "manifest_sha256": "a79468e0415051e9126668f18553323fab9122fe6e08cc4a772e3018960c2ebc",
+          "raw_output_sha256": "412bfc299707b557e107971f326804a0bd8cabfcc2b2650fc8852a981a8e5a79",
+          "network_output_sha256": "573176b11bfeaeefc908166d40523cf257c7d63df24ca9b17d3e4daaffd35103",
+          "generated_config_sha256": "90e197c5a0cee2fbd1113cf21eb7f9633d85bd15539eebe2d13bb6b05b210034",
+          "trajectory_sha256": "9b6d8a7a3622da75a86081414fcb7ebff0244413c8cb7213d14c0d4ca34a9b38",
+          "experiment_spec_sha256": "e381c2c1fc2cbe24920a70de9bccbbb51c700113e44edf7b7eed773d6926bd96",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "83895dbfcbfc9579919686c039a6a0ecfd351868ad634efe582b12c11dc86a20",
+            "inputs.json": "8a609d4af45337f0fd0c20015acf27605c5f25bcf90e9a25f4c5d733bb48a4e3",
+            "localization.json": "9112888423274cbc47ad9c967f2b287323960166c4f7c6a74156b342a5e0ec08",
+            "network_results.json": "573176b11bfeaeefc908166d40523cf257c7d63df24ca9b17d3e4daaffd35103",
+            "pipeline.json": "5681db2c67216ede66245d3dc0b5751059278435adba52c898552b171be5c451",
+            "scoring.json": "072fef0bf2e7344650d6bc1b15eefbde1e5048ab00562824085dc9aa2556d19d"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 15,
+          "phy_received_packets": 15,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 15,
+          "runtime_s": 8.996630022000318
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 10,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "ROBUST_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 30,
+      "pdr_phy_denominator": 30,
+      "requested_packet_count": 30,
+      "gateway_event_outcomes": {
+        "NO_PATH": 33,
+        "RX": 87
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 1.0,
+          "sample_sd": null,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.05657830589666509,
+          "sample_sd": null,
+          "min": 0.05657830589666509,
+          "max": 0.05657830589666509
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.7,
+          "sample_sd": null,
+          "min": 0.7,
+          "max": 0.7
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.9,
+          "sample_sd": null,
+          "min": 2.9,
+          "max": 2.9
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 13.344970496000315,
+          "sample_sd": null,
+          "min": 13.344970496000315,
+          "max": 13.344970496000315
+        }
+      },
+      "runtime": {
+        "total_s": 13.344970496000315,
+        "max_s": 13.344970496000315,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "5941bb27700aafe1a1e49579d406fe38a876097bdba257de84c9f815206239f0"
+      ],
+      "run_ids": [
+        "843d5e61c2024b7f8fb97c1e6aaf77d0"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "843d5e61c2024b7f8fb97c1e6aaf77d0",
+          "seed": 20261005,
+          "request_sha256": "5941bb27700aafe1a1e49579d406fe38a876097bdba257de84c9f815206239f0",
+          "manifest_sha256": "5d4297284739fdb1d3635fdc9196f501fee8e66f279e5aad3bd733a4b21698d8",
+          "raw_output_sha256": "4797212ab95f1516456e43a4e19d67dc517f7ba1a01e1df6c41ec1b40d668a64",
+          "network_output_sha256": "137471c8900dfb3b44bddfb9c244208619367a61c0793ba1180c9cb583a9fd63",
+          "generated_config_sha256": "ef6c57ed563a75ce44b2c9e1d5c7f97df343c0a15f96562c741a1618703b417b",
+          "trajectory_sha256": "0e162171dd6c275b1acb3feeec73f047f17bda52a620ef50fcacc0a243c00d12",
+          "experiment_spec_sha256": "e3a3b498c3878bfc85bc2d0131d1cd352bc3fe2bc0048e53125e9c7abe632d6b",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "4ee2804e8be1068aa78ceac8c1b9d28563663d3cb09725bd766a3ffa8092fc94",
+            "inputs.json": "3aa7a74bab1dc2d306f919f931183e4b0d57ed5505755650ecdda30e717b8c9e",
+            "localization.json": "a152f07632b69d3a9b1a2627f1f8c1d650f231e154214f317eddaa7e5edbd86f",
+            "network_results.json": "137471c8900dfb3b44bddfb9c244208619367a61c0793ba1180c9cb583a9fd63",
+            "pipeline.json": "a1ae89912f0a5b7284781c6ec4d0d44e0a849ebb19eb99fb5b3906d1ca848650",
+            "scoring.json": "7610c365de419dbf023288fb8e48fe907a733b3702cd780b435e8bc472b5f8c3"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 30,
+          "phy_received_packets": 30,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 30,
+          "runtime_s": 13.344970496000315
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 17,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "ROBUST_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 3,
+      "completed_run_count": 3,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007
+      ],
+      "set_ids": [
+        "pdr95-transition-refinement"
+      ],
+      "pdr_phy_numerator": 153,
+      "pdr_phy_denominator": 153,
+      "requested_packet_count": 153,
+      "gateway_event_outcomes": {
+        "NO_PATH": 162,
+        "RX": 450
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 3,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "mean_phy_latency_s": {
+          "n": 3,
+          "mean": 0.056578352076713134,
+          "sample_sd": 8.335630604137308e-16,
+          "min": 0.056578352076712406,
+          "max": 0.05657835207671404
+        },
+        "mean_airtime_s": {
+          "n": 3,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 3,
+          "mean": 0.7058823529411765,
+          "sample_sd": 0.0,
+          "min": 0.7058823529411765,
+          "max": 0.7058823529411765
+        },
+        "interference_gateway_events": {
+          "n": 3,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 3,
+          "mean": 2.9411764705882355,
+          "sample_sd": 0.0,
+          "min": 2.9411764705882355,
+          "max": 2.9411764705882355
+        },
+        "runtime_s": {
+          "n": 3,
+          "mean": 9.522893881333099,
+          "sample_sd": 0.8928825667816495,
+          "min": 8.63956704299926,
+          "max": 10.425034825002513
+        }
+      },
+      "runtime": {
+        "total_s": 28.568681643999298,
+        "max_s": 10.425034825002513,
+        "sample_count": 3
+      },
+      "request_hashes": [
+        "08abf73b99bf20dc40d9e1a1b29db0ea68bc8e2ecfa6d8dcdbc56f9d35943858",
+        "09e6d3bf64b3c0711e08cc236bb740656c12e467fb9dc555d2a658605da4cd1b",
+        "27c75dc5984927ad0dc574e4ccf136047e7eb8c0f815f212459033c948b42bff"
+      ],
+      "run_ids": [
+        "23aa1fdb0a9048f1a6b059f65a2cb865",
+        "48025df857524387a2ab35198be47b6c",
+        "6722ceb60b644a85bc0b9c60b444587d"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "6722ceb60b644a85bc0b9c60b444587d",
+          "seed": 20261005,
+          "request_sha256": "27c75dc5984927ad0dc574e4ccf136047e7eb8c0f815f212459033c948b42bff",
+          "manifest_sha256": "76bdcb7384eda1963fef7c533e3732667166629411541087a1bc789a3bcb41fa",
+          "raw_output_sha256": "121ebe61b40490140c8202e2b57d14fe1bed4e174390cce099bf1ea5f28dcf8f",
+          "network_output_sha256": "03c18ba755b11fac8ec8a957631453d38d97d2eaa847b56f9dbe43b1060f22ce",
+          "generated_config_sha256": "50c8d823856724165f4f4f97ced77cfa4c278001c114d17b3e47c9650c5d5bcb",
+          "trajectory_sha256": "5a1ff018e7119ef0ce4afa9d43648b96975c845fc6d248f979a4ece0b47014d5",
+          "experiment_spec_sha256": "de957052efd11d3558d79503127dc8d8ba9e69753eff199cdf9bece80ab49099",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "ba522e865a6ea3bab12e40a59d5b79bdacb07f85ac7d3a6e370d26071e018cf2",
+            "inputs.json": "efd90ad2b962a15962021ba59653c0eceae5b8972722bec7014cf4529255dc7a",
+            "localization.json": "8d5d63d29ae74bfdc9d185d1cb96f26e2308b591b326cba628980a93a72db5af",
+            "network_results.json": "03c18ba755b11fac8ec8a957631453d38d97d2eaa847b56f9dbe43b1060f22ce",
+            "pipeline.json": "da7b100462345e43444a2a5c214f68dea8c0e9f18fd2189b3a5ea6eabc7ebb3e",
+            "scoring.json": "771d0be6370ea32cf4bfe54c1c49f01d4d10bfc70cf2c02b0751eb5df9bce46b"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 51,
+          "phy_received_packets": 51,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 51,
+          "runtime_s": 10.425034825002513
+        },
+        {
+          "run_id": "48025df857524387a2ab35198be47b6c",
+          "seed": 20261006,
+          "request_sha256": "09e6d3bf64b3c0711e08cc236bb740656c12e467fb9dc555d2a658605da4cd1b",
+          "manifest_sha256": "f48579c79c8bad7274923269142fb0d2c24e759aaf3f710f87a68f313abdb170",
+          "raw_output_sha256": "38920e90a4eea2b557854009fe3000f159c6e0e3d4b5158746cdb947fa319de9",
+          "network_output_sha256": "c8f11e63d8a3b62d479677c426d919fcb6bce6b048ea9c4ce15f980df6460cb9",
+          "generated_config_sha256": "de2c1aed427d62ec576b1190130e995b2afdcccbb76a539e14756afaebb0fb36",
+          "trajectory_sha256": "5a1ff018e7119ef0ce4afa9d43648b96975c845fc6d248f979a4ece0b47014d5",
+          "experiment_spec_sha256": "1584073242447751ee5aa4464fb0a39dbffe6f51108fbf6b9217e8ca0ebd3ca3",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "5349867789f22c90d69a7dda773ea89b2f8872fb6259fdcfd5605740c380fee9",
+            "inputs.json": "3d4a3ad11cd637cff05517bc397c565462411e0497f2503e3a10778032a470d1",
+            "localization.json": "e4335b902be18ad422a616138928a258658fd76fbf433ac373521cf186dab3dd",
+            "network_results.json": "c8f11e63d8a3b62d479677c426d919fcb6bce6b048ea9c4ce15f980df6460cb9",
+            "pipeline.json": "32dd7f1126c1797af5b5eb9fea383a5187cb8758bc9856d7d744dfed0985cfce",
+            "scoring.json": "358b77ab55067a87b914da54f81e503881fd681bcbd3de7183d8cc75f0d64758"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 51,
+          "phy_received_packets": 51,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 51,
+          "runtime_s": 9.504079775997525
+        },
+        {
+          "run_id": "23aa1fdb0a9048f1a6b059f65a2cb865",
+          "seed": 20261007,
+          "request_sha256": "08abf73b99bf20dc40d9e1a1b29db0ea68bc8e2ecfa6d8dcdbc56f9d35943858",
+          "manifest_sha256": "52998d8e6507c71dba8918927bb967dab05420a5519fec446c738f18f812ca53",
+          "raw_output_sha256": "760f13a66d0d9937107c3ef5ed4274b08a27c2392c8efe8b51721ac1f4a1e556",
+          "network_output_sha256": "461d6042e75d202e99e65c3bf51c52a75dc27fc693e089f706b04c83f92dd2ad",
+          "generated_config_sha256": "0596c0dcfffb852c8b308059dbd18d9089091f3823eb92a3eacabda7dafa83bf",
+          "trajectory_sha256": "5a1ff018e7119ef0ce4afa9d43648b96975c845fc6d248f979a4ece0b47014d5",
+          "experiment_spec_sha256": "dde407f8d9c18b7d04ebab49bafc0527d68d7bbe1ca3ce5815491020751d54a2",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "2b50ebc903450ab4583c05e2904ed4673b0fcce130e26f57faac2ee1edc701be",
+            "inputs.json": "b69c9510295b67d9f97ffd740510ff69eb42a894cf749c92441f69d86622478d",
+            "localization.json": "66cc09a9530c289337cce52038c6eb158057d29e1cb06ddafdd69ca9db9ae26a",
+            "network_results.json": "461d6042e75d202e99e65c3bf51c52a75dc27fc693e089f706b04c83f92dd2ad",
+            "pipeline.json": "48b3e0ae2df386b7231e1d1c88d501855fd8d3a57d8c1fc4a664b0ea997ad2d3",
+            "scoring.json": "183a4240c861df0af51d93ad367433e3b7197b06e0a3d6cc11c35455705982ab"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 51,
+          "phy_received_packets": 51,
+          "pdr_phy": 1.0,
+          "pdr_denominator": 51,
+          "runtime_s": 8.63956704299926
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 18,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 3,
+      "completed_run_count": 3,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007
+      ],
+      "set_ids": [
+        "pdr95-transition-refinement"
+      ],
+      "pdr_phy_numerator": 153,
+      "pdr_phy_denominator": 162,
+      "requested_packet_count": 162,
+      "gateway_event_outcomes": {
+        "NO_PATH": 198,
+        "RX": 450
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 3,
+          "mean": 0.9444444444444444,
+          "sample_sd": 0.0,
+          "min": 0.9444444444444444,
+          "max": 0.9444444444444444
+        },
+        "mean_phy_latency_s": {
+          "n": 3,
+          "mean": 0.056578352076713134,
+          "sample_sd": 8.335630604137308e-16,
+          "min": 0.056578352076712406,
+          "max": 0.05657835207671404
+        },
+        "mean_airtime_s": {
+          "n": 3,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 3,
+          "mean": 0.6666666666666666,
+          "sample_sd": 0.0,
+          "min": 0.6666666666666666,
+          "max": 0.6666666666666666
+        },
+        "interference_gateway_events": {
+          "n": 3,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 3,
+          "mean": 2.7777777777777777,
+          "sample_sd": 0.0,
+          "min": 2.7777777777777777,
+          "max": 2.7777777777777777
+        },
+        "runtime_s": {
+          "n": 3,
+          "mean": 11.129707302668976,
+          "sample_sd": 0.8577894383774799,
+          "min": 10.139234507001675,
+          "max": 11.629988636002963
+        }
+      },
+      "runtime": {
+        "total_s": 33.38912190800693,
+        "max_s": 11.629988636002963,
+        "sample_count": 3
+      },
+      "request_hashes": [
+        "361e5ca8b8a2b2cb1e854b1bad69996eaead68424c9f93c2f4196288845f800d",
+        "9a2bb4112e819f367ad21196f25f7587ef8c33dd1447f9917aba37530f817bbb",
+        "e9640d03bc30a6325dcebccca61780d92ae59801052b24f23d54386a204a0bb7"
+      ],
+      "run_ids": [
+        "1ad02af1102b471883310bc4cefce823",
+        "3911f572d22c46fea75d113c33eb4a8a",
+        "78fdad527a254579b6bcc3b94303d515"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "1ad02af1102b471883310bc4cefce823",
+          "seed": 20261005,
+          "request_sha256": "9a2bb4112e819f367ad21196f25f7587ef8c33dd1447f9917aba37530f817bbb",
+          "manifest_sha256": "7c133fabd801aa320209377bbbb81acc3949a112d1b9a11c692cf8cfbb359c48",
+          "raw_output_sha256": "40b6f44778d30c1e4427f928641316035032ef49bc24c696baeeb8c5f812dbd8",
+          "network_output_sha256": "40cee196a5b2bdc9b9b422186d54fd53a013390b81d9de3bc74ff7f44090284f",
+          "generated_config_sha256": "1b7bd7e03668d8f44c38b7810eb975f740cfd726e2e03f304a8c42a75c0ec0e9",
+          "trajectory_sha256": "2818139a0e85443521190fefa4df98183be171af3735014bb892dbf38e93feeb",
+          "experiment_spec_sha256": "c418586856375c645022f62ef496b65444a975e51f478ce9fb4d0e19cd0768dc",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "ef8778d15c5f97c5a4ef0390d0a5ebe5666803b2ca5090faa58309ba465185e8",
+            "inputs.json": "3df23019e8b3ff35b2f9851adfde88f6bc965d616b9501388ed1ce324fa568b7",
+            "localization.json": "4f03c624da6487d3ab55da8851049666f09281c2e73ce5e0d42ca2776924f9a2",
+            "network_results.json": "40cee196a5b2bdc9b9b422186d54fd53a013390b81d9de3bc74ff7f44090284f",
+            "pipeline.json": "fe7a3ec2d9ef792db9afff08dde479f4cd4f6e424e43d744cfd2ea9e2da28f12",
+            "scoring.json": "099b149d88fae256e9bfaecf6e1f813074869db043048f7ffd8a696305c071f6"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 54,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.9444444444444444,
+          "pdr_denominator": 54,
+          "runtime_s": 11.629988636002963
+        },
+        {
+          "run_id": "3911f572d22c46fea75d113c33eb4a8a",
+          "seed": 20261006,
+          "request_sha256": "e9640d03bc30a6325dcebccca61780d92ae59801052b24f23d54386a204a0bb7",
+          "manifest_sha256": "fbcd8425db0aeb05be92c23568fca1a378e0c5cfc1eaf2964578e861a4c7c8a3",
+          "raw_output_sha256": "67cd1bef11f0e3a28eb101189ff2379fe32698330de546ebd72726fd3d2dcb95",
+          "network_output_sha256": "ee5bf230c7ceb0b5e7aa91c87af20bdfc0c10b55ff837d88b132919671dfc230",
+          "generated_config_sha256": "a8d2a1b6bc85d257f618eb0b984c4e1a71b113e1b3260573936aada77d98a21d",
+          "trajectory_sha256": "2818139a0e85443521190fefa4df98183be171af3735014bb892dbf38e93feeb",
+          "experiment_spec_sha256": "01229e42cc76a8074b6bb9e8f17c92bae3d83a35ee031b9716e9b957c8f678f4",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "afa3dffb978934d3f0ba32823b36ad67cca37b9f885e5678fc827cf0ec795bbd",
+            "inputs.json": "43a9e6fab5a6191940f153488f550652938f5b92c07236f7aabb5a748d20d412",
+            "localization.json": "bf8f832e4e5c3fbcf50650e073a02e08a543bf7094ebf6aac01458f1b4021780",
+            "network_results.json": "ee5bf230c7ceb0b5e7aa91c87af20bdfc0c10b55ff837d88b132919671dfc230",
+            "pipeline.json": "71d707c9b03b29b999ce6245fbd90796127976a9ca6c9ae95be0ef7fa31daf05",
+            "scoring.json": "06e1a425c8fc8ab5135ebfd4b564baf6124a99d44ccdd1844a37807c7dbe27fe"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 54,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.9444444444444444,
+          "pdr_denominator": 54,
+          "runtime_s": 11.61989876500229
+        },
+        {
+          "run_id": "78fdad527a254579b6bcc3b94303d515",
+          "seed": 20261007,
+          "request_sha256": "361e5ca8b8a2b2cb1e854b1bad69996eaead68424c9f93c2f4196288845f800d",
+          "manifest_sha256": "ad31a9e830b467fae3d83e043c3d9f6e6292585dd8481488eae53b22eda12d6a",
+          "raw_output_sha256": "b302eb92e58da49b9c6d673d647b87b25a4804317995caee35d6ba9a2c0b2e28",
+          "network_output_sha256": "71db47b9de2f998f1fcfc5dcc0f83440fb401902ae5c6634910f7e25cd89f102",
+          "generated_config_sha256": "2f5e4561ba388202c14080361690a9d592fc8956dc15d90ab0476cf1e6f601cd",
+          "trajectory_sha256": "2818139a0e85443521190fefa4df98183be171af3735014bb892dbf38e93feeb",
+          "experiment_spec_sha256": "1d1cb9f6fd914c688fe6c3c68bab898ceca440aedc2658d78bddfae0c738c91f",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "16b5bae5fdc89a21d9bd7ac18c1121553bc6b005b9e6d27f71e7116196b9a017",
+            "inputs.json": "4493bd21b78ac5403f15d80d239a362b645b144d05da84c99037af1d58c217c4",
+            "localization.json": "1ea3a818467a78a7e73de42f87f806811304dc6715e8ad7a6e62ac411d583b63",
+            "network_results.json": "71db47b9de2f998f1fcfc5dcc0f83440fb401902ae5c6634910f7e25cd89f102",
+            "pipeline.json": "dc162af6d4bdb5c6b823709b94a101a156adcac753fe6dc8632042f51185e548",
+            "scoring.json": "3a7e6994d4cd0745b2317e56fac00fb3bf7a5799c217464712c93059fd551178"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 54,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.9444444444444444,
+          "pdr_denominator": 54,
+          "runtime_s": 10.139234507001675
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 19,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 3,
+      "completed_run_count": 3,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007
+      ],
+      "set_ids": [
+        "pdr95-transition-refinement"
+      ],
+      "pdr_phy_numerator": 162,
+      "pdr_phy_denominator": 171,
+      "requested_packet_count": 171,
+      "gateway_event_outcomes": {
+        "NO_PATH": 216,
+        "RX": 468
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 3,
+          "mean": 0.9473684210526315,
+          "sample_sd": 0.0,
+          "min": 0.9473684210526315,
+          "max": 0.9473684210526315
+        },
+        "mean_phy_latency_s": {
+          "n": 3,
+          "mean": 0.05657832911042293,
+          "sample_sd": 9.007831786765034e-16,
+          "min": 0.05657832911042217,
+          "max": 0.056578329110423924
+        },
+        "mean_airtime_s": {
+          "n": 3,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 3,
+          "mean": 0.631578947368421,
+          "sample_sd": 0.0,
+          "min": 0.631578947368421,
+          "max": 0.631578947368421
+        },
+        "interference_gateway_events": {
+          "n": 3,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 3,
+          "mean": 2.736842105263158,
+          "sample_sd": 0.0,
+          "min": 2.736842105263158,
+          "max": 2.736842105263158
+        },
+        "runtime_s": {
+          "n": 3,
+          "mean": 10.834826773334498,
+          "sample_sd": 1.2375141863893415,
+          "min": 9.793523268999706,
+          "max": 12.202949245001946
+        }
+      },
+      "runtime": {
+        "total_s": 32.504480320003495,
+        "max_s": 12.202949245001946,
+        "sample_count": 3
+      },
+      "request_hashes": [
+        "33302d55df6d4140cddce52bd430c0df5cb0d9209f072660fda8ba10372227a5",
+        "d50e73a8d9b6b2de4003967db1a8ad6b349d218792a33fdb438e069be55240ec",
+        "e5c22f2d14ea39f2d0db561f99a7301909454a42199362677c44363dfa9e4072"
+      ],
+      "run_ids": [
+        "50f0bff8de56451a96b0dbc0e0ba93b8",
+        "6f80c2b0dfd049248474c158b7b3d45e",
+        "d64a9911687546c68f10be6af7e628e0"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "6f80c2b0dfd049248474c158b7b3d45e",
+          "seed": 20261005,
+          "request_sha256": "d50e73a8d9b6b2de4003967db1a8ad6b349d218792a33fdb438e069be55240ec",
+          "manifest_sha256": "d96081ba60e760b6d47adf0cc35f1d479deb2b19bcfe0da59ed5bbcda20becb2",
+          "raw_output_sha256": "dccffbded6aed7d941baa30e4a14fc3d565c2175429b4612091a7d1d0ce60f06",
+          "network_output_sha256": "3f9e2e49e5fbc84208c95d3a6d0550c272b0abd52e738dd58e53c41ab96a522f",
+          "generated_config_sha256": "4e4074fc178251c7c4ca52275d00d606db7509b38e4c4ffd6275cc5707e3d7b1",
+          "trajectory_sha256": "7cd91ca555d1b5501b14ddb7d4ba1569eebc5b1e5b7e2e4f602064973a470c7c",
+          "experiment_spec_sha256": "b523290a2a947c3f8bdcab19e580455dd45d72bd9443dba3829b64e17e785f68",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "3d8fb577ff5e8b84be76d07c58195076173980c808e486207833bc3da6ac891b",
+            "inputs.json": "dd4bfcb42c498788132e043fa6d3b0047b10b0b5ec933dbeff16f37e3fcf41e0",
+            "localization.json": "baaf5e394a6ca10327f3221731405d1decb5cdc06e14439ffeec639ec68edcb5",
+            "network_results.json": "3f9e2e49e5fbc84208c95d3a6d0550c272b0abd52e738dd58e53c41ab96a522f",
+            "pipeline.json": "568a8109ba2d73b2df84570be22d1baf2be178c0b8ed4a144d3c098cdef4a26c",
+            "scoring.json": "328e1d6b47764491612596370356953caa46ced966819864295d5e7388a30ed1"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 57,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9473684210526315,
+          "pdr_denominator": 57,
+          "runtime_s": 12.202949245001946
+        },
+        {
+          "run_id": "d64a9911687546c68f10be6af7e628e0",
+          "seed": 20261006,
+          "request_sha256": "e5c22f2d14ea39f2d0db561f99a7301909454a42199362677c44363dfa9e4072",
+          "manifest_sha256": "daaa0922336dbb31e7b567bc6ac7d2ed6907254e86b34779aaf61c931a77638f",
+          "raw_output_sha256": "28f29a507536920c3c6de995ab8c194c2d7ae9be4cfba22f73f9866de1810982",
+          "network_output_sha256": "623f43e2c1c9c45c836dc7925f7d5f9b38c956a02772039029217f1375a7675d",
+          "generated_config_sha256": "dfd12232025d370d5e37b9a614d23f38569652118d5f9674cc9dc16447366335",
+          "trajectory_sha256": "7cd91ca555d1b5501b14ddb7d4ba1569eebc5b1e5b7e2e4f602064973a470c7c",
+          "experiment_spec_sha256": "af4703a27e9a2cae0fde08263ac9f78916c9527c725ebc8267a4c0c498e99bd8",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "62a527f9346320091978925d21e1dc57a85b549f3cd9ebb7a72398d48bcdd4ae",
+            "inputs.json": "d19d3cf6be04c2f57f7d3383f8be407a818aa543d1d1f7c26da8a29ea2e63bb1",
+            "localization.json": "1f38cae579fb376d076705bc6defddd00db5815f37c3f3d6fcff4a5432538c42",
+            "network_results.json": "623f43e2c1c9c45c836dc7925f7d5f9b38c956a02772039029217f1375a7675d",
+            "pipeline.json": "4181f128c1ca8166173bce50d58729e3081b7697dbba887f32a80b95b16609e6",
+            "scoring.json": "527a06d8a7a23b2229be2023ba5824523ac339ce6d2dab0e12904f4d45a3cae3"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 57,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9473684210526315,
+          "pdr_denominator": 57,
+          "runtime_s": 9.793523268999706
+        },
+        {
+          "run_id": "50f0bff8de56451a96b0dbc0e0ba93b8",
+          "seed": 20261007,
+          "request_sha256": "33302d55df6d4140cddce52bd430c0df5cb0d9209f072660fda8ba10372227a5",
+          "manifest_sha256": "f4633f46d80b653918862c82947c40e1b7ea5ded6a948d32a6deb1a6fff40473",
+          "raw_output_sha256": "b9b2f07b5418dd9623ea147eda257b5498f88b7ebbe2d07138bec04fc3c3cb01",
+          "network_output_sha256": "057d357bae30851b0d7c894d99aa96fd700d5c4844af44dc2fd0d3d3ac88d534",
+          "generated_config_sha256": "84b985aad8b7ed5447f4b8fcecf322f79b06e1eedbbd94bdc9531f1ab7975681",
+          "trajectory_sha256": "7cd91ca555d1b5501b14ddb7d4ba1569eebc5b1e5b7e2e4f602064973a470c7c",
+          "experiment_spec_sha256": "55ec84d2bdd77ef4e996fd35e185ed1e1211dcd2161e5633c79fc4c3e640fe9f",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "78b5c1bd15389743796532131d76ffa87571d8f465dcb194d833e7457159e4b2",
+            "inputs.json": "82a3f81d070d1f7a84f60103dfffcf600a8fa11940d8d6889ab67bdb8f97de56",
+            "localization.json": "6cb45aa9c823035fc419b31632a223c2aec334c07918460899d226cac57e80bb",
+            "network_results.json": "057d357bae30851b0d7c894d99aa96fd700d5c4844af44dc2fd0d3d3ac88d534",
+            "pipeline.json": "0c0ed260f16c3254bad1aedf97f6d8aa89a30798ef50d805f72c2305a20f45dc",
+            "scoring.json": "76f13d8e52909e7b43457506a2fff59b1c8c89a4f5ad015e25a7efbb6f5f91d2"
+          },
+          "riose_sha": "4b555ea5c1eb98cfc8179a2fa839ccf0ae725800",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 57,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9473684210526315,
+          "pdr_denominator": 57,
+          "runtime_s": 10.508007806001842
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 3,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "gateway-sweep-20tags-60s"
+      ],
+      "pdr_phy_numerator": 54,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "NO_PATH": 57,
+        "RX": 123
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.9,
+          "sample_sd": null,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.056578342072665676,
+          "sample_sd": null,
+          "min": 0.056578342072665676,
+          "max": 0.056578342072665676
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.3,
+          "sample_sd": null,
+          "min": 0.3,
+          "max": 0.3
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.05,
+          "sample_sd": null,
+          "min": 2.05,
+          "max": 2.05
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 10.641758038000262,
+          "sample_sd": null,
+          "min": 10.641758038000262,
+          "max": 10.641758038000262
+        }
+      },
+      "runtime": {
+        "total_s": 10.641758038000262,
+        "max_s": 10.641758038000262,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "7d6e78d5befaf0d81e27bf5fa3effb0c32e327b09004db572df6fa498c13f640"
+      ],
+      "run_ids": [
+        "978c2d45cffe4a958eef656d694856d6"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "978c2d45cffe4a958eef656d694856d6",
+          "seed": 20261005,
+          "request_sha256": "7d6e78d5befaf0d81e27bf5fa3effb0c32e327b09004db572df6fa498c13f640",
+          "manifest_sha256": "10bf7d6c69c5e01115308eb4c99e760b40ab615a3ace7bac899107dca726d42b",
+          "raw_output_sha256": "79a445e255f1f9b85410de80eac0eb8c83631521b91f2961246d1d10edace78d",
+          "network_output_sha256": "4b0a7abf50b1f9f98428ce38f0edf8de1f29e34df47a4966a84aced7fca82342",
+          "generated_config_sha256": "575455cd99aefe4437a2567ace57cb8bdb4d0a4976e5d179180a9ba0aaafc4ff",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "ebdd50349e63c7139f31dfb28eefd77847cb49e0f5ccc5f3f4c56e7b7bae3880",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "7d53212a6e123fcc7663faa76cc1d04d44e2d9de1ceba86c267225996398cc63",
+            "inputs.json": "ae465547084f4653ef3ca46f00c84562998b47e8e3768103d05ec9eed4e5fa0b",
+            "localization.json": "78f65e41f93bf93b69af45e848229416eae6864fc683759d9f4a0a21e0197cb3",
+            "network_results.json": "4b0a7abf50b1f9f98428ce38f0edf8de1f29e34df47a4966a84aced7fca82342",
+            "pipeline.json": "1c8ef794c7bd1494768506d88528501437e9c9cf8a9c1fe98dcfae0f6c1686e5",
+            "scoring.json": "d3f862dced555519f1de1ec6c68f023e5129cc22372c0cd715844a35cd288e0e"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 10.641758038000262
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 1,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 1,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "cadence-sweep-20tags"
+      ],
+      "pdr_phy_numerator": 30,
+      "pdr_phy_denominator": 40,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 52,
+        "NOT_TRANSMITTED": 80,
+        "NO_PATH": 56,
+        "RX": 52
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.75,
+          "sample_sd": null,
+          "min": 0.75,
+          "max": 0.75
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.0565778472956731,
+          "sample_sd": null,
+          "min": 0.0565778472956731,
+          "max": 0.0565778472956731
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.1,
+          "sample_sd": null,
+          "min": 0.1,
+          "max": 0.1
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 52.0,
+          "sample_sd": null,
+          "min": 52.0,
+          "max": 52.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 1.3,
+          "sample_sd": null,
+          "min": 1.3,
+          "max": 1.3
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 12.806681866997678,
+          "sample_sd": null,
+          "min": 12.806681866997678,
+          "max": 12.806681866997678
+        }
+      },
+      "runtime": {
+        "total_s": 12.806681866997678,
+        "max_s": 12.806681866997678,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "b7202009d020d5f5f52446f7f2faf4438b086270f90fcdca1e7662d3e106bc26"
+      ],
+      "run_ids": [
+        "38e912bcd604454382b55fd8506da453"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "38e912bcd604454382b55fd8506da453",
+          "seed": 20261005,
+          "request_sha256": "b7202009d020d5f5f52446f7f2faf4438b086270f90fcdca1e7662d3e106bc26",
+          "manifest_sha256": "6f9d5eaa4d55d6fbdb6db60d1c29a093e8261068476081f829466510b95e8cee",
+          "raw_output_sha256": "a3af6c6cd60ef5b844b275cf2cf7c4c696cb73d86e1ee1f563467a6540716099",
+          "network_output_sha256": "4375e8dc46573ae24dcd53adf5d22129700485c058650619a7fa01a7eb9eea75",
+          "generated_config_sha256": "0bc30efb9fa2d26d05d28d722f284d5d1121af67e4adcb507e44b0dc64f8d068",
+          "trajectory_sha256": "1677aa386589b876d0cd8557613f50bb0a7991201fbfdda4cead95a16072fb69",
+          "experiment_spec_sha256": "caa06735ccc35e4a34007df2cb26619dd62b73c786c4a0f39be5fcf2c87703f0",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "fdd735eb4d7f5489f01915a001cd2ffb08a8f39a7db5e7fc69d6aa8abead2174",
+            "inputs.json": "df99dec4769ae68bf8d2209611beb259100a00ab3fe08be0ce9682f901e959d8",
+            "localization.json": "e0c463b2d95101b090e19a655b2664b60fe212f6c08b1bb84f44201f4b5b308c",
+            "network_results.json": "4375e8dc46573ae24dcd53adf5d22129700485c058650619a7fa01a7eb9eea75",
+            "pipeline.json": "22dc8fd161e4bef92f0ee2fad00c12462711724502dbc3069d543ba4cdf9d8b0",
+            "scoring.json": "69ea4da77a732f8135b44b24d814940d3f43c14db7b0152d4e6fe90dd86001a7"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 40,
+          "phy_received_packets": 30,
+          "pdr_phy": 0.75,
+          "pdr_denominator": 40,
+          "runtime_s": 12.806681866997678
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 7,
+        "payload_bytes": 1,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "payload-sweep-20tags-10s"
+      ],
+      "pdr_phy_numerator": 51,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 12,
+        "NO_PATH": 84,
+        "RX": 144
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.85,
+          "sample_sd": null,
+          "min": 0.85,
+          "max": 0.85
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.04121836949797905,
+          "sample_sd": null,
+          "min": 0.04121836949797905,
+          "max": 0.04121836949797905
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.041216,
+          "sample_sd": null,
+          "min": 0.041216,
+          "max": 0.041216
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.55,
+          "sample_sd": null,
+          "min": 0.55,
+          "max": 0.55
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 12.0,
+          "sample_sd": null,
+          "min": 12.0,
+          "max": 12.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.4,
+          "sample_sd": null,
+          "min": 2.4,
+          "max": 2.4
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.064685889003158,
+          "sample_sd": null,
+          "min": 8.064685889003158,
+          "max": 8.064685889003158
+        }
+      },
+      "runtime": {
+        "total_s": 8.064685889003158,
+        "max_s": 8.064685889003158,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "3a9e72bb7271b191a3c10eb328a7429813d023d6a86c265022f5fec874f1c660"
+      ],
+      "run_ids": [
+        "b09fb97551cb452b986cc90ff0ddddf5"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "b09fb97551cb452b986cc90ff0ddddf5",
+          "seed": 20261005,
+          "request_sha256": "3a9e72bb7271b191a3c10eb328a7429813d023d6a86c265022f5fec874f1c660",
+          "manifest_sha256": "19305ab1c2f3f8e2b6d1be38a9e6a670f514456a5147d6168bdd39ea6ff92df2",
+          "raw_output_sha256": "f245f598ef1e7f54a74dde257745f59d59f1ac53d8fe34dd57513c3b93cae322",
+          "network_output_sha256": "a6b13f8428cf6b698dda58963c1123d9b54b7ed5ba378a86b126ec5bab3b7b7f",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "eceec48632e828757db5533ddbf21e72fddd8ce432e50deb7968f58a0532fe2b",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "669f16ffcd446f592b79e44807e05d68632fbaf7dc306edd9efa397bd0e79d74",
+            "inputs.json": "c1de291e86c3125216f8e62fcba207e8a3d5fbb7f16dc8c9d868892cbae3bbb4",
+            "localization.json": "82dc09b5a50e25b8c56443d0c938e7467a1fe88d8eb4858252e435666344cf59",
+            "network_results.json": "a6b13f8428cf6b698dda58963c1123d9b54b7ed5ba378a86b126ec5bab3b7b7f",
+            "pipeline.json": "453dda855a392a13af79e8a0ad90d8bd31911a7a265bbb9d61b598bbfdab60bc",
+            "scoring.json": "c48fb5f87a2a2d4ae10aff77d62998450ecec6f13b8684b27669e4add8351a95"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.85,
+          "pdr_denominator": 60,
+          "runtime_s": 8.064685889003158
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "cadence-sweep-20tags"
+      ],
+      "pdr_phy_numerator": 51,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 12,
+        "NO_PATH": 84,
+        "RX": 144
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.85,
+          "sample_sd": null,
+          "min": 0.85,
+          "max": 0.85
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.056578369497979134,
+          "sample_sd": null,
+          "min": 0.056578369497979134,
+          "max": 0.056578369497979134
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.55,
+          "sample_sd": null,
+          "min": 0.55,
+          "max": 0.55
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 12.0,
+          "sample_sd": null,
+          "min": 12.0,
+          "max": 12.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.4,
+          "sample_sd": null,
+          "min": 2.4,
+          "max": 2.4
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 39.26070741500007,
+          "sample_sd": null,
+          "min": 39.26070741500007,
+          "max": 39.26070741500007
+        }
+      },
+      "runtime": {
+        "total_s": 39.26070741500007,
+        "max_s": 39.26070741500007,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "de218ba72a3acdb9731a448858bd49a3eabef4176784bfc03689ef073fbfe12a"
+      ],
+      "run_ids": [
+        "e95919e8a6c34a378f7264b1f37ae896"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "e95919e8a6c34a378f7264b1f37ae896",
+          "seed": 20261005,
+          "request_sha256": "de218ba72a3acdb9731a448858bd49a3eabef4176784bfc03689ef073fbfe12a",
+          "manifest_sha256": "3ff96ae54d6d63dbea28d3c985f0a7186625e69c88595c3912d65bf29ccee5ad",
+          "raw_output_sha256": "b6d0730777c85f8b884e107b1c4d4bc9566dd472421aee528ab232bddafa3676",
+          "network_output_sha256": "08fee17fb8fccdf275020fb81addcda247cbfdc7f9088593fbe5f08a42c26e86",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "c91037be297abcb8119c0387aa9d3b93f136753abd87052085d509e23d674893",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "dfdf2a32c8565d2bf9d61f81a906d4c9bdb369fd19234ce601d721137eba167e",
+            "inputs.json": "02beba4f2f6b595e94185a8a7da066c1741954770551c23693083f04dfdd9bbf",
+            "localization.json": "82dc09b5a50e25b8c56443d0c938e7467a1fe88d8eb4858252e435666344cf59",
+            "network_results.json": "08fee17fb8fccdf275020fb81addcda247cbfdc7f9088593fbe5f08a42c26e86",
+            "pipeline.json": "1d857ef46db159ae128497c3b63f59022b875d83d3eae5df7ebda1d3a90c66a7",
+            "scoring.json": "c48fb5f87a2a2d4ae10aff77d62998450ecec6f13b8684b27669e4add8351a95"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.85,
+          "pdr_denominator": 60,
+          "runtime_s": 39.26070741500007
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 7,
+        "payload_bytes": 24,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "payload-sweep-20tags-10s"
+      ],
+      "pdr_phy_numerator": 51,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 18,
+        "NO_PATH": 84,
+        "RX": 138
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.85,
+          "sample_sd": null,
+          "min": 0.85,
+          "max": 0.85
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.07193833986574615,
+          "sample_sd": null,
+          "min": 0.07193833986574615,
+          "max": 0.07193833986574615
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.071936,
+          "sample_sd": null,
+          "min": 0.071936,
+          "max": 0.071936
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.5,
+          "sample_sd": null,
+          "min": 0.5,
+          "max": 0.5
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 18.0,
+          "sample_sd": null,
+          "min": 18.0,
+          "max": 18.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.3,
+          "sample_sd": null,
+          "min": 2.3,
+          "max": 2.3
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.210236694998457,
+          "sample_sd": null,
+          "min": 8.210236694998457,
+          "max": 8.210236694998457
+        }
+      },
+      "runtime": {
+        "total_s": 8.210236694998457,
+        "max_s": 8.210236694998457,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "89136c529dd34207477bba824372fe922c44d90fe2336b5c2576890df3ec5257"
+      ],
+      "run_ids": [
+        "cf0f36704a79441da366a60a4f14cf21"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "cf0f36704a79441da366a60a4f14cf21",
+          "seed": 20261005,
+          "request_sha256": "89136c529dd34207477bba824372fe922c44d90fe2336b5c2576890df3ec5257",
+          "manifest_sha256": "e9139153bc1c3e44178279145051bee420c7ddb2a4348b730bad5e9746c4313e",
+          "raw_output_sha256": "02d305ae4408339d4e09abbfc8252a29d64344ffae1252b53a369011a32a8b99",
+          "network_output_sha256": "e758dfd8de091679c0dd43626a2a8b5f84f609513ab48b9f3ffd5d7506047cf9",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "bbd2ae9873f5b5a8be79594ac8b4f720969692d61c94d8df070f2371f806f09c",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "6b85b5b3da783b67e549cda8ccd81bc856e1f29bc4449c2cf34eda06724e5065",
+            "inputs.json": "986b021bc8337eca5d449f7f7903e2165ff68435c0b074c605aa301105173d14",
+            "localization.json": "e5b0b6a6cd9c4748c20ecf858a4772668d852f64e282e56d6a648d0f03aed6a1",
+            "network_results.json": "e758dfd8de091679c0dd43626a2a8b5f84f609513ab48b9f3ffd5d7506047cf9",
+            "pipeline.json": "dfa4ec969fd62241314eae976d3e23a57d8e6f545ed326447feec32745cac1fa",
+            "scoring.json": "8834ea660e8bb13eab255191454d30e00051a187dc10e24c62b25c7bfd1938a4"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 51,
+          "pdr_phy": 0.85,
+          "pdr_denominator": 60,
+          "runtime_s": 8.210236694998457
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 7,
+        "payload_bytes": 51,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "payload-sweep-20tags-10s"
+      ],
+      "pdr_phy_numerator": 50,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 19,
+        "NO_PATH": 84,
+        "RX": 137
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.8333333333333334,
+          "sample_sd": null,
+          "min": 0.8333333333333334,
+          "max": 0.8333333333333334
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.11289833270405093,
+          "sample_sd": null,
+          "min": 0.11289833270405093,
+          "max": 0.11289833270405093
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.11289599999999998,
+          "sample_sd": null,
+          "min": 0.11289599999999998,
+          "max": 0.11289599999999998
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.5,
+          "sample_sd": null,
+          "min": 0.5,
+          "max": 0.5
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 19.0,
+          "sample_sd": null,
+          "min": 19.0,
+          "max": 19.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.283333333333333,
+          "sample_sd": null,
+          "min": 2.283333333333333,
+          "max": 2.283333333333333
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.16680649400223,
+          "sample_sd": null,
+          "min": 8.16680649400223,
+          "max": 8.16680649400223
+        }
+      },
+      "runtime": {
+        "total_s": 8.16680649400223,
+        "max_s": 8.16680649400223,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "28bffecab16cd096132ddb8dd4f92b4e53dc5ba4696873611fcd08bb0f2ca0f2"
+      ],
+      "run_ids": [
+        "b302af65013f41f3ad7539ac2421a1e1"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "b302af65013f41f3ad7539ac2421a1e1",
+          "seed": 20261005,
+          "request_sha256": "28bffecab16cd096132ddb8dd4f92b4e53dc5ba4696873611fcd08bb0f2ca0f2",
+          "manifest_sha256": "d67a9b552d3fe379d863c62183a4d67fe76da39a6b20fbc12851a48a67688803",
+          "raw_output_sha256": "7816d5f874d9124020d962b52b37e6dfc868d76ec839cd00b65e35c6a8728a71",
+          "network_output_sha256": "5ee8f3690b1e15a3d48fc34e2d2fb5182593aa56c7f1a8860fdf15b6a3d9d8ad",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "765ce153c67470e269c29e311243debfc2f676938b78c027c69718fb53b93952",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "4fd32fe4d92244ac56a90b0f83740c2ff0a24364fbc7c5b998f09df52d78fe8a",
+            "inputs.json": "5587390bcbf66e061a555c9e392c623024a03020018d8584ca54d83f6332c196",
+            "localization.json": "4d2a8c07c324739ce66b690ffe2128590809ee2e99150ed29d2e73ae20eaa83a",
+            "network_results.json": "5ee8f3690b1e15a3d48fc34e2d2fb5182593aa56c7f1a8860fdf15b6a3d9d8ad",
+            "pipeline.json": "90ed174fdc9da4521634ac9369b7672b0c9ce1debff8376831c732f6ad8fb984",
+            "scoring.json": "c72f079fbfd0f0a6d3dcf62dd83d37725604879611f3934aff5c6f5b2aefbd81"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 50,
+          "pdr_phy": 0.8333333333333334,
+          "pdr_denominator": 60,
+          "runtime_s": 8.16680649400223
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 9,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "sf-sweep-20tags-10s"
+      ],
+      "pdr_phy_numerator": 49,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 29,
+        "NO_PATH": 84,
+        "RX": 127
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.8166666666666667,
+          "sample_sd": null,
+          "min": 0.8166666666666667,
+          "max": 0.8166666666666667
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.1853462615395824,
+          "sample_sd": null,
+          "min": 0.1853462615395824,
+          "max": 0.1853462615395824
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.185344,
+          "sample_sd": null,
+          "min": 0.185344,
+          "max": 0.185344
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.4,
+          "sample_sd": null,
+          "min": 0.4,
+          "max": 0.4
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 29.0,
+          "sample_sd": null,
+          "min": 29.0,
+          "max": 29.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.1166666666666667,
+          "sample_sd": null,
+          "min": 2.1166666666666667,
+          "max": 2.1166666666666667
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.50968270100202,
+          "sample_sd": null,
+          "min": 8.50968270100202,
+          "max": 8.50968270100202
+        }
+      },
+      "runtime": {
+        "total_s": 8.50968270100202,
+        "max_s": 8.50968270100202,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "2393506c20e54730d170d01e97f99dc3169793bd36c35e9a2ff060ebbf17feb0"
+      ],
+      "run_ids": [
+        "4daa393c869741e4bb7e764f8a271b64"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "4daa393c869741e4bb7e764f8a271b64",
+          "seed": 20261005,
+          "request_sha256": "2393506c20e54730d170d01e97f99dc3169793bd36c35e9a2ff060ebbf17feb0",
+          "manifest_sha256": "f2e28eb25bb292b900111de1b2b630fdebba50090017267d5c963a747c3d65fa",
+          "raw_output_sha256": "fa34980ced5180652c7655086a00c17de490c9cac5b6e03c0d298adc45b1a729",
+          "network_output_sha256": "5cca2e0020a096337f50441d518bcac39ed1ab8d9588f782d319eed971131513",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "61e3adfe8b42fa73db4ec9e2b8ffff76c1f8b2f3de19f5161020f501882e7c83",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "589948d8b85a557e4815cd91ca2dcf5648dae9daab70ebcf53313370c1d6b152",
+            "inputs.json": "1e812d0afac833cc8c9a7673418f5b0fd1171eb30448e281a13a197a078a80c1",
+            "localization.json": "0c69f83610a2cad0b4431a1845383ec46082c3ae2f8fa667c0a937d67b91860a",
+            "network_results.json": "5cca2e0020a096337f50441d518bcac39ed1ab8d9588f782d319eed971131513",
+            "pipeline.json": "22f45f932af330c9c958d5b22d15c40981d7025a9d9b489245aa788766062f06",
+            "scoring.json": "9386ef13afa7cbda4b8e52adf91e603d6896118c3b7e8ccdc1253f4be46cd054"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 49,
+          "pdr_phy": 0.8166666666666667,
+          "pdr_denominator": 60,
+          "runtime_s": 8.50968270100202
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 10,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 10,
+        "sf": 12,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "OVERLOADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "sf-sweep-20tags-10s"
+      ],
+      "pdr_phy_numerator": 31,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 115,
+        "NO_PATH": 84,
+        "RX": 41
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.5166666666666667,
+          "sample_sd": null,
+          "min": 0.5166666666666667,
+          "max": 0.5166666666666667
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 1.4827537056466094,
+          "sample_sd": null,
+          "min": 1.4827537056466094,
+          "max": 1.4827537056466094
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 1.482752,
+          "sample_sd": null,
+          "min": 1.482752,
+          "max": 1.482752
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.05,
+          "sample_sd": null,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 115.0,
+          "sample_sd": null,
+          "min": 115.0,
+          "max": 115.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 0.6833333333333333,
+          "sample_sd": null,
+          "min": 0.6833333333333333,
+          "max": 0.6833333333333333
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.79374271100096,
+          "sample_sd": null,
+          "min": 8.79374271100096,
+          "max": 8.79374271100096
+        }
+      },
+      "runtime": {
+        "total_s": 8.79374271100096,
+        "max_s": 8.79374271100096,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "e1546a88d2ba4706110c3030b13e4f7e05464766d9d4b9e6664340c5923f5b66"
+      ],
+      "run_ids": [
+        "84bba75aad4342eb80b96218a7b294be"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "84bba75aad4342eb80b96218a7b294be",
+          "seed": 20261005,
+          "request_sha256": "e1546a88d2ba4706110c3030b13e4f7e05464766d9d4b9e6664340c5923f5b66",
+          "manifest_sha256": "389230a84e0db98e3f146a9bf54c8aee64f67561c23cf7fc0449bd974742fe2f",
+          "raw_output_sha256": "73499ccd0ccb5216fef91a3056d73343a62dffe54fec7eb0874cb6e2929c8185",
+          "network_output_sha256": "70c61f2234495135307850f47be05d6951451f514fe773b535964caca5369aad",
+          "generated_config_sha256": "35cc70935fa90d34be7bd822b6cd43c0982d482c3f42242b7f4e80a8fdf95fab",
+          "trajectory_sha256": "3c44b045f440c96346d488b713f11375956898ead941acfcb80dbae07880706c",
+          "experiment_spec_sha256": "d158dd9f23ba9d370e033fc1d468ab0b89b10b94b7c12fb26f7305ab0bf7ede9",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "b05c5c25132f259a07dbdffd43643c3c1a33985a48d6ee6b48cdc4f5877f1bc3",
+            "inputs.json": "f8c68197c0785374372cbc1665df659bf5813e6294248a01129ed93cd8d3b6b1",
+            "localization.json": "6da6fa88797097aadebbbca0fef12a5bf41280e921f09cb378ebd0586bea9e42",
+            "network_results.json": "70c61f2234495135307850f47be05d6951451f514fe773b535964caca5369aad",
+            "pipeline.json": "fa125cea4946298e7ec64b45323025d765adf57201dbd8335ef64efb9e96bbc2",
+            "scoring.json": "8e2a850ace8caeec172d90569f60d80abec95b9223c8449263d30ca1ff416e16"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 31,
+          "pdr_phy": 0.5166666666666667,
+          "pdr_denominator": 60,
+          "runtime_s": 8.79374271100096
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "NEAR_SYNCHRONIZED",
+        "phase_window_s": 0.01,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "OVERLOADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "synchronization-sweep-20tags"
+      ],
+      "pdr_phy_numerator": 3,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 93,
+        "NO_DEMODULATOR": 60,
+        "NO_PATH": 84,
+        "RX": 3
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.05,
+          "sample_sd": null,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.05657609798033058,
+          "sample_sd": null,
+          "min": 0.05657609798033058,
+          "max": 0.05657609798033058
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 93.0,
+          "sample_sd": null,
+          "min": 93.0,
+          "max": 93.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 0.05,
+          "sample_sd": null,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 8.573420124001132,
+          "sample_sd": null,
+          "min": 8.573420124001132,
+          "max": 8.573420124001132
+        }
+      },
+      "runtime": {
+        "total_s": 8.573420124001132,
+        "max_s": 8.573420124001132,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "15d837a35954b76b4a2d92db83c626c56770da56523f2da6b9488acbe8bf3386"
+      ],
+      "run_ids": [
+        "1742d0fc36334e438465758273668a2d"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "1742d0fc36334e438465758273668a2d",
+          "seed": 20261005,
+          "request_sha256": "15d837a35954b76b4a2d92db83c626c56770da56523f2da6b9488acbe8bf3386",
+          "manifest_sha256": "00281ad59ec46c593539abeecf456a2de51543941222e86a10416b90f15464a6",
+          "raw_output_sha256": "efad7362501f3acdd6a490e9f2fc0abb847f2186a0147255145e9893ebd05d2f",
+          "network_output_sha256": "554a8efe48af491f970d434f7caee60b46a24911d8be3dcda5f363c1f7850360",
+          "generated_config_sha256": "9bedfe20ee4d0933ccc23038e75c87e2984e858c5a491ec5a63af447bdd99c71",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "484c2bd2c974fedabf437f9bd5faa6c419398b7897c98015ccc1646427696a73",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "6ffc7fc17ab872586e9e8f3a5ad204c5b3caed0cd5e0c8e04115451c0f395a63",
+            "inputs.json": "7dc3e57c0b9eb75de5caa835d8ea96b5d3358ec0a6200eeb87627bd8eea7ba20",
+            "localization.json": "5ab14554a5cda022d26d0f95f0d960356cb9886ea744a17b7bd845fd00418fdf",
+            "network_results.json": "554a8efe48af491f970d434f7caee60b46a24911d8be3dcda5f363c1f7850360",
+            "pipeline.json": "2ef2ef40a459180c2bf3049770d3115b1782f3e2812cda9a6c6076094e669589",
+            "scoring.json": "405010fc3d49a7f378b70fc3fdeee3eea14fbcdf378b089da410281f44382648"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 3,
+          "pdr_phy": 0.05,
+          "pdr_denominator": 60,
+          "runtime_s": 8.573420124001132
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 5,
+      "completed_run_count": 5,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007,
+        20261008,
+        20261009
+      ],
+      "set_ids": [
+        "monte-carlo-population-60s",
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 270,
+      "pdr_phy_denominator": 300,
+      "requested_packet_count": 300,
+      "gateway_event_outcomes": {
+        "NO_PATH": 420,
+        "RX": 780
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 5,
+          "mean": 0.9,
+          "sample_sd": 0.0,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 5,
+          "mean": 0.05657832911042331,
+          "sample_sd": 9.68509026772193e-16,
+          "min": 0.05657832911042217,
+          "max": 0.056578329110424604
+        },
+        "mean_airtime_s": {
+          "n": 5,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 5,
+          "mean": 0.6,
+          "sample_sd": 0.0,
+          "min": 0.6,
+          "max": 0.6
+        },
+        "interference_gateway_events": {
+          "n": 5,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 5,
+          "mean": 2.6,
+          "sample_sd": 0.0,
+          "min": 2.6,
+          "max": 2.6
+        },
+        "runtime_s": {
+          "n": 5,
+          "mean": 9.441620941201473,
+          "sample_sd": 3.449416558515647,
+          "min": 7.405404906003241,
+          "max": 15.587349485000232
+        }
+      },
+      "runtime": {
+        "total_s": 47.20810470600736,
+        "max_s": 15.587349485000232,
+        "sample_count": 5
+      },
+      "request_hashes": [
+        "26575aa1c6434823846c4ed429c9b20223f25a4d5ec844fa14eb9f16642bef11",
+        "37a13d71ac1d1b43b0ed1b17bd5520730845793c106215840834df21e8163b5e",
+        "b7610f754d736d71dcc02bc4b76bf611a1e69b3355d19a5d858e63c97d92a1a9",
+        "d8a4c7da3bc1b266cd33307e892136cb4d00c2092154fb6070c52055df43eb86",
+        "e70892d09ac170451b936845d35be6e0cd1efec24c66344d9b6f89c5e139c535"
+      ],
+      "run_ids": [
+        "1ce19bc28da6475888e0ba083d34cd5a",
+        "6d0e798a851f48fe871ebef4c5a94f49",
+        "7cf6cdc1350b463383489b6f274f49ba",
+        "ad3bc978825f47c6a7e1d360b54b681d",
+        "b86faa98598b46ada80cab10e7b33247"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "6d0e798a851f48fe871ebef4c5a94f49",
+          "seed": 20261005,
+          "request_sha256": "26575aa1c6434823846c4ed429c9b20223f25a4d5ec844fa14eb9f16642bef11",
+          "manifest_sha256": "95795fb7eeb4a876ec84cbddc568dd57de31b1adc76c7d80a827d45a3c4edf35",
+          "raw_output_sha256": "b93bd8d9325e935eadf7b4f0a5bc07cd0cc24d99e739b084d59180574a97b704",
+          "network_output_sha256": "34923e01b0063f535baf65a119cc1f46638216642d0db0611f55a54c2b3c81cd",
+          "generated_config_sha256": "9bedfe20ee4d0933ccc23038e75c87e2984e858c5a491ec5a63af447bdd99c71",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "34dbf66733884f7c6fddbe2a77c4fb2ac887fc2794ff725c8100cc7a220801fd",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "1b0a689325882e21f2528acbfe13177fadb390decbe2a9d89bba2ebddf78bb21",
+            "inputs.json": "44ddfc2bf1a4d8ef14e25a7f0dce074dd441159eb2f2d462132fc331771afaca",
+            "localization.json": "802cf14534b608a9d6127e7254d4ecf820f9e893d5a9d38b73c14f8b9413a1e7",
+            "network_results.json": "34923e01b0063f535baf65a119cc1f46638216642d0db0611f55a54c2b3c81cd",
+            "pipeline.json": "70fad60de34301280d61312227aec244cc84df7f9265b9136f53b6218c341c58",
+            "scoring.json": "3c49f01c2d3fc5cf4890b6dcec8f2efb74754a672c2c0776295a30ecd2163e4b"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 15.587349485000232
+        },
+        {
+          "run_id": "b86faa98598b46ada80cab10e7b33247",
+          "seed": 20261006,
+          "request_sha256": "b7610f754d736d71dcc02bc4b76bf611a1e69b3355d19a5d858e63c97d92a1a9",
+          "manifest_sha256": "b1c125d84a04e0f0170ce8a9b6e1c1f83a5a582b925cbf8b46bffbc59c203315",
+          "raw_output_sha256": "b02cafa7ea8b1878f3894b1f30398ba3f9f8c258b192fa6ba60262aba936589a",
+          "network_output_sha256": "dcbcee2e5e30acce9efbc05da819d8f74e5436e406049680340a8493ea7da62e",
+          "generated_config_sha256": "5364541b7642052836a8e8a918e49515fa3b055c69d1f69e250785df02c5d22a",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "399c07eb6f038064b9f497ddb38a951f1c96ac89be9e08b9a3e4e40920f4d55d",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "1975f7710c54d76289bacd4660e870d46aa95f0027e4e6ca64fac877b9b61b83",
+            "inputs.json": "b2569002966a539c2dbdf7fb76769acdc4444f178dec036d01b5bd5b8a5457a4",
+            "localization.json": "b60f6c37f14192cc2ec273c202c261d82ae6c8b8476514a8a6e265ad3b7ec5f7",
+            "network_results.json": "dcbcee2e5e30acce9efbc05da819d8f74e5436e406049680340a8493ea7da62e",
+            "pipeline.json": "90935288161ef1b3defe0540ef19ae8aa6e57c2a5bac98a439d08883432bab06",
+            "scoring.json": "8099693c417426d5bba96a79799f5b769e15681d399de69c7d92f66d3676405b"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 8.157271314001264
+        },
+        {
+          "run_id": "ad3bc978825f47c6a7e1d360b54b681d",
+          "seed": 20261007,
+          "request_sha256": "d8a4c7da3bc1b266cd33307e892136cb4d00c2092154fb6070c52055df43eb86",
+          "manifest_sha256": "2d5c5155742fa87daa42185103ae03955eb81251329e166b93c2eee0a627ec29",
+          "raw_output_sha256": "a6a2c03ffe5f295db4dc6260e399c79e7666ebe4dd2794fb56a9ed4c920b3f1d",
+          "network_output_sha256": "68d704da6027dfbe8441ea3ad092da4006bf508bfcdaa9e42d7d9c2fd9ba354a",
+          "generated_config_sha256": "701c9f6a1989a907338db4f646661755d9befc578b0fe4f7c02a7d89c53a5eda",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "e1cd4af0354d5df08130da9ed46034c94eead4ab6ca7c985fc24abf6e1df59ea",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "23c5f20ccdf9eb74aa968cb3e13b10c6f39344d4f1deaaeeb6f4df9fbb90b902",
+            "inputs.json": "c26c1117018eed8b062a2cbd788d830e779848d7ce5092838c131ec8104d2f83",
+            "localization.json": "afc338ff72d45a5dedae04e69ee38d5dfe978cd6f02565d60d6e37257ef35e64",
+            "network_results.json": "68d704da6027dfbe8441ea3ad092da4006bf508bfcdaa9e42d7d9c2fd9ba354a",
+            "pipeline.json": "85471da0276ee6577a09e0d98f46bf14854dbf62f1ce3565df4a78247e26a7a8",
+            "scoring.json": "901bdd971e7482d20e5c9853ab24944d4c18981945b9d425df920e52517e9d76"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 7.405404906003241
+        },
+        {
+          "run_id": "7cf6cdc1350b463383489b6f274f49ba",
+          "seed": 20261008,
+          "request_sha256": "e70892d09ac170451b936845d35be6e0cd1efec24c66344d9b6f89c5e139c535",
+          "manifest_sha256": "1218b69a7f7d1c3fd24418679e7e6962af8b6382b0d821f55f371dd3b18fed6b",
+          "raw_output_sha256": "5df5f05253145f32ec341d9759029471164fcd809799481907702457f7a40006",
+          "network_output_sha256": "5c17afb8a8ebb82dd9f447235c9a893e2ff1df5b147e83509a7e1aa0f219d2d8",
+          "generated_config_sha256": "9fac43bd4eb015aad6dce48ffe7418d0234f9348a2888762525e084b0e752cfc",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "1c86ad8daf6d634ad99ad12db2f00958035a7513d23265a3cbaab608e0338e7a",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "e5e26159113f5767d19c0b61d91872cb7a8237d37d51f003748df64dff6ce85d",
+            "inputs.json": "0241a7c0c3b064d95e889e7b3917dda851728f89f28876b9ca6d6f9f414c08be",
+            "localization.json": "cb342522e9b141fe5c432a5d7187b61a772d40d6b4cc985230ac8bee47661ea4",
+            "network_results.json": "5c17afb8a8ebb82dd9f447235c9a893e2ff1df5b147e83509a7e1aa0f219d2d8",
+            "pipeline.json": "0e5cdab542a291ea1330b2637e7169da05966a986f15adc3a261d2e1a8bc8313",
+            "scoring.json": "55d8fcbb28db226530a61395991ec3529e2d81a1d85e78755cc0f4384dd927d2"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 7.8922610620029445
+        },
+        {
+          "run_id": "1ce19bc28da6475888e0ba083d34cd5a",
+          "seed": 20261009,
+          "request_sha256": "37a13d71ac1d1b43b0ed1b17bd5520730845793c106215840834df21e8163b5e",
+          "manifest_sha256": "d06d202c056fe1f03f5e78b503f71ef2b6c66a00ea3d4fd5a92ab9d3053d9ebc",
+          "raw_output_sha256": "37de6e6618476c79394653380b6f7f3d76da9152b622c003101edf870fe1a02a",
+          "network_output_sha256": "10c7f75cc2097e1081d3d6aa7beb527a608782ac819295647168fc2ec70c6b6c",
+          "generated_config_sha256": "d8fe0d315a489a32d3b24c9eb7a7280f01a47234202c5c7cf3ef52bc580a0309",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "250705514ab7560ceef11213fc53edad554519013096962d7925025721343a76",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "7a9fe00773468a2eda2ba57db0bd085590898cf64b4421c531a78fbef8741a70",
+            "inputs.json": "0af08a7683004d0cdf9347e43ab5fe9398211fa503d0799a547e243f02ea2e47",
+            "localization.json": "31e08fa1761f53dd6452fe0871db403aaaaecde65ce6a17c141948efafe25553",
+            "network_results.json": "10c7f75cc2097e1081d3d6aa7beb527a608782ac819295647168fc2ec70c6b6c",
+            "pipeline.json": "9634068c23707f88020405e23098e4ee13d2587502bc66114acc701444c94110",
+            "scoring.json": "b8874614f203599bbfdd1b5a127f4b76f0efa3814d24acc0a0b136380a107a72"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 8.16581793899968
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SOURCE_TIMESTAMP",
+        "phase_window_s": null,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "OVERLOADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "synchronization-sweep-20tags"
+      ],
+      "pdr_phy_numerator": 3,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 93,
+        "NO_DEMODULATOR": 60,
+        "NO_PATH": 84,
+        "RX": 3
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.05,
+          "sample_sd": null,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.05657609798033058,
+          "sample_sd": null,
+          "min": 0.05657609798033058,
+          "max": 0.05657609798033058
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 93.0,
+          "sample_sd": null,
+          "min": 93.0,
+          "max": 93.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 0.05,
+          "sample_sd": null,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 9.643464721000782,
+          "sample_sd": null,
+          "min": 9.643464721000782,
+          "max": 9.643464721000782
+        }
+      },
+      "runtime": {
+        "total_s": 9.643464721000782,
+        "max_s": 9.643464721000782,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "1a409d91ac9151435163739015026bbf5b7160c32acf3067955eeb69f3f27a2c"
+      ],
+      "run_ids": [
+        "d372a21d7cb04eb0901fc1c7b6097f54"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "d372a21d7cb04eb0901fc1c7b6097f54",
+          "seed": 20261005,
+          "request_sha256": "1a409d91ac9151435163739015026bbf5b7160c32acf3067955eeb69f3f27a2c",
+          "manifest_sha256": "693525af676b6c079727cee1d91ae0fcd5fd9773b5436ba19aa89c689da59990",
+          "raw_output_sha256": "fb80c45850115c9f2af6fb3605444b814d59572f9376bda38f1180d54eca3e49",
+          "network_output_sha256": "56c6c623ba7a7cbbfa2c2fd0a91a177630892e8a8c8f73859e05b8268ba136da",
+          "generated_config_sha256": "9bedfe20ee4d0933ccc23038e75c87e2984e858c5a491ec5a63af447bdd99c71",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "85d914c2b91df5b34fbc208896987d124f57c4f8f6f6b38cd3cbe942b4f29557",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "2f1ac2f7a5b56b61dffa5cf016e442500ca9fadacb88d473e3511bf6c7b104fd",
+            "inputs.json": "d69f2a88a2226c58d59865f3a542c052f564d3d7e7d4516461b87edf2616f140",
+            "localization.json": "3a5a17df517ecd918577284798e56838a09553b24dab766fd31cabb3d04c7563",
+            "network_results.json": "56c6c623ba7a7cbbfa2c2fd0a91a177630892e8a8c8f73859e05b8268ba136da",
+            "pipeline.json": "1af1a1dc5fe07a70a157f3a9a6684c1cd174d830c4504c1fc9a675ac073a5996",
+            "scoring.json": "405010fc3d49a7f378b70fc3fdeee3eea14fbcdf378b089da410281f44382648"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 3,
+          "pdr_phy": 0.05,
+          "pdr_denominator": 60,
+          "runtime_s": 9.643464721000782
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 4,
+        "cadence_s": 300,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 300,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "cadence-sweep-20tags"
+      ],
+      "pdr_phy_numerator": 54,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "NO_PATH": 84,
+        "RX": 156
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.9,
+          "sample_sd": null,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.056578329110416985,
+          "sample_sd": null,
+          "min": 0.056578329110416985,
+          "max": 0.056578329110416985
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.6,
+          "sample_sd": null,
+          "min": 0.6,
+          "max": 0.6
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 0.0,
+          "sample_sd": null,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 2.6,
+          "sample_sd": null,
+          "min": 2.6,
+          "max": 2.6
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 12.751841073000833,
+          "sample_sd": null,
+          "min": 12.751841073000833,
+          "max": 12.751841073000833
+        }
+      },
+      "runtime": {
+        "total_s": 12.751841073000833,
+        "max_s": 12.751841073000833,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "2125e83eefa58ad3237cffbce9ece701d646b2fd6b895f97d48923d8156765c5"
+      ],
+      "run_ids": [
+        "1b362a2c2ce54382a58ffcb26cb7019c"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "1b362a2c2ce54382a58ffcb26cb7019c",
+          "seed": 20261005,
+          "request_sha256": "2125e83eefa58ad3237cffbce9ece701d646b2fd6b895f97d48923d8156765c5",
+          "manifest_sha256": "a832d0162db9ad2c9343ed47b552f8d5a72cd733aa04cc3413d5b734da5fdb2e",
+          "raw_output_sha256": "f45d48eeab2221bbb67e2a07d7cee55cb79ff52f6cb95e129880eded013258f9",
+          "network_output_sha256": "3c26cf53248b8bf6a7e14fba41f844ff9caecf2e0a941da12a5efbd8297d32a2",
+          "generated_config_sha256": "d46b213adbd1f4cefa9436327173cc189bfe75f54ef197bcd301dc7681793dc0",
+          "trajectory_sha256": "428915fc8a4d93739d48ae79689411f5268cafe8d1b287cd54344bf3e5a2426c",
+          "experiment_spec_sha256": "230275adde496c1f05bc24188524b46040adad1259c1985b7475b7d25d58deac",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "c93eabcd20645cc967652f8159fe4f8baf6544984db7cd26bd7f7438e5d004e8",
+            "inputs.json": "87ec76d93713713b2d8caf97affd12e6a996c377239eebd7e5181a8ac8a07766",
+            "localization.json": "efc3b8d618aea19e49234fcb21dfeb956c7f2b7523eb86e050df8bae51361fee",
+            "network_results.json": "3c26cf53248b8bf6a7e14fba41f844ff9caecf2e0a941da12a5efbd8297d32a2",
+            "pipeline.json": "42520bc1054905d93d8cee3fe4c85bf76d01dc32c012698b70ad257cba22c462",
+            "scoring.json": "50eee97553ef7e5832fe8c5089596ab35078037aecb36617167e64ad4e6647b1"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 12.751841073000833
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 6,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "gateway-sweep-20tags-60s"
+      ],
+      "pdr_phy_numerator": 54,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 3,
+        "NO_PATH": 105,
+        "RX": 252
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.9,
+          "sample_sd": null,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.05657816058866963,
+          "sample_sd": null,
+          "min": 0.05657816058866963,
+          "max": 0.05657816058866963
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.85,
+          "sample_sd": null,
+          "min": 0.85,
+          "max": 0.85
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 3.0,
+          "sample_sd": null,
+          "min": 3.0,
+          "max": 3.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 4.2,
+          "sample_sd": null,
+          "min": 4.2,
+          "max": 4.2
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 12.225717061999603,
+          "sample_sd": null,
+          "min": 12.225717061999603,
+          "max": 12.225717061999603
+        }
+      },
+      "runtime": {
+        "total_s": 12.225717061999603,
+        "max_s": 12.225717061999603,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "844f0eb77edf3dc284f040a67ef6ba47e53e6b67b828e5297815f9a8c3bd4903"
+      ],
+      "run_ids": [
+        "33ca1620008a4d87a30424fa7eafaf7b"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "33ca1620008a4d87a30424fa7eafaf7b",
+          "seed": 20261005,
+          "request_sha256": "844f0eb77edf3dc284f040a67ef6ba47e53e6b67b828e5297815f9a8c3bd4903",
+          "manifest_sha256": "07f17a9ffca4e262dc3930569293f2f78859d05dcb3abd84786fa08a1324ede6",
+          "raw_output_sha256": "6d90c598d1c5399374562c83419f90c115fb71be08faff960e7058bec3cb159c",
+          "network_output_sha256": "83a976e6068017cfc71e9308622fc11344eb3e54b7c540cae731aefd27d4bace",
+          "generated_config_sha256": "c35feb0d478c273c2c729f86101937a10d0a4df19bbe7cdfdd186936a6193386",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "cfb4a8f9153ac1bceaf37b7d9da6ab119f501f02ebd06d5c029a2a4569e53de7",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "ae29c9b5a97169d1d958c756348fb6c965676d67e2abe60b0cc14d9c5db46440",
+            "inputs.json": "ea1066c49a5ef407d38c23592ade9980172ab9b9a93f91120ebf7eb9a3195c3e",
+            "localization.json": "0bf4254c4fc1d5744ee8c9c9c3630daa4d0b9864813b8c7347a92d7e05cdd3ed",
+            "network_results.json": "83a976e6068017cfc71e9308622fc11344eb3e54b7c540cae731aefd27d4bace",
+            "pipeline.json": "c4cc323d28d8b34ee4a068d96640c390e35966c50217dde0752cfce9fdbbc3f0",
+            "scoring.json": "d9cb30659ed64a781ed1f2c8bbd5cc5d7a9eca9cf3b0a2dc5ad4c54ab1a68eba"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 12.225717061999603
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 20,
+        "gateways": 8,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 1,
+      "completed_run_count": 1,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005
+      ],
+      "set_ids": [
+        "gateway-sweep-20tags-60s"
+      ],
+      "pdr_phy_numerator": 54,
+      "pdr_phy_denominator": 60,
+      "requested_packet_count": 60,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 6,
+        "NO_PATH": 123,
+        "RX": 351
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 1,
+          "mean": 0.9,
+          "sample_sd": null,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 1,
+          "mean": 0.05657807973720127,
+          "sample_sd": null,
+          "min": 0.05657807973720127,
+          "max": 0.05657807973720127
+        },
+        "mean_airtime_s": {
+          "n": 1,
+          "mean": 0.056576,
+          "sample_sd": null,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 1,
+          "mean": 0.9,
+          "sample_sd": null,
+          "min": 0.9,
+          "max": 0.9
+        },
+        "interference_gateway_events": {
+          "n": 1,
+          "mean": 6.0,
+          "sample_sd": null,
+          "min": 6.0,
+          "max": 6.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 1,
+          "mean": 5.85,
+          "sample_sd": null,
+          "min": 5.85,
+          "max": 5.85
+        },
+        "runtime_s": {
+          "n": 1,
+          "mean": 15.886377707000065,
+          "sample_sd": null,
+          "min": 15.886377707000065,
+          "max": 15.886377707000065
+        }
+      },
+      "runtime": {
+        "total_s": 15.886377707000065,
+        "max_s": 15.886377707000065,
+        "sample_count": 1
+      },
+      "request_hashes": [
+        "89a86c9d39687191d1b11f61b519341095bc4faf8f96c5434e479c8933b65dd5"
+      ],
+      "run_ids": [
+        "6e03464d224d4974905a7a5faa60713e"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "6e03464d224d4974905a7a5faa60713e",
+          "seed": 20261005,
+          "request_sha256": "89a86c9d39687191d1b11f61b519341095bc4faf8f96c5434e479c8933b65dd5",
+          "manifest_sha256": "333c55b0ec9607e8ba6c6b0249b5025bb0d4a8aa8a16d2a150cb4355674b83b6",
+          "raw_output_sha256": "1d8090c2c435d1143d203c113500073e1e35f48b1165d807b5b5f3a37a16888c",
+          "network_output_sha256": "0883f044cbdfc53af0c2e7afec027440e63892f3d66e44cb83646445849d3370",
+          "generated_config_sha256": "25f881962e916b0b327d536cd01d17faa516128e9e7aca3a867693527764202a",
+          "trajectory_sha256": "93286240c9c1902db8c2dd4771a2a70422e0b863bb5a29515b69d4179c353ca9",
+          "experiment_spec_sha256": "1935ee17ad927c00b650e46b216dea07c1a62c17542c9046b273289220568d13",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "36669150fc4cf3d9fa6cd921b387181f2f6ba41a5e54cf2c5d27c16a32fd3da7",
+            "inputs.json": "fc600538b032b83e75d10f53bbaf5d6e2a6a7a43050b08d2f594fcf3817a569f",
+            "localization.json": "8440cd903f23f710781e4a5a52d9d4322998e41a97e66a796b1d7319c9d30d4b",
+            "network_results.json": "0883f044cbdfc53af0c2e7afec027440e63892f3d66e44cb83646445849d3370",
+            "pipeline.json": "6a1225d08d4431a46b6f95b77db61f7913c9fa0a7f7d38957c81b65f96e88ad7",
+            "scoring.json": "243177f693443f5c5100e8d09e061eaae1a6236df6a5308ed4430111c48e2798"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 60,
+          "phy_received_packets": 54,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 60,
+          "runtime_s": 15.886377707000065
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 50,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 5,
+      "completed_run_count": 5,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007,
+        20261008,
+        20261009
+      ],
+      "set_ids": [
+        "monte-carlo-population-60s",
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 669,
+      "pdr_phy_denominator": 750,
+      "requested_packet_count": 750,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 79,
+        "NO_PATH": 1110,
+        "RX": 1811
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 5,
+          "mean": 0.892,
+          "sample_sd": 0.010954451150103331,
+          "min": 0.88,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 5,
+          "mean": 0.05657829779484434,
+          "sample_sd": 1.7213566337677928e-08,
+          "min": 0.056578270962715865,
+          "max": 0.05657831589542136
+        },
+        "mean_airtime_s": {
+          "n": 5,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 5,
+          "mean": 0.536,
+          "sample_sd": 0.029664793948382638,
+          "min": 0.5,
+          "max": 0.58
+        },
+        "interference_gateway_events": {
+          "n": 5,
+          "mean": 15.8,
+          "sample_sd": 10.084641788382967,
+          "min": 0.0,
+          "max": 26.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 5,
+          "mean": 2.4146666666666667,
+          "sample_sd": 0.06723094525588644,
+          "min": 2.3466666666666667,
+          "max": 2.52
+        },
+        "runtime_s": {
+          "n": 5,
+          "mean": 20.41757778040046,
+          "sample_sd": 5.547670222465273,
+          "min": 15.44612302799942,
+          "max": 28.998348991000967
+        }
+      },
+      "runtime": {
+        "total_s": 102.0878889020023,
+        "max_s": 28.998348991000967,
+        "sample_count": 5
+      },
+      "request_hashes": [
+        "2297fa63ce0c11623bda834713c2e0648e92214068ae2c8c0f544ae13ac42f9b",
+        "6c7d775972100c23657b011067ec42c4eef2594c94158fec8fbe0ae76918c71f",
+        "a024fef74891d88e74ebcf859b6fbffdba4c54c9571e859932319030bed96fef",
+        "a19bfe54468c540fc15e39e30cb0b119ebf5a1bfa08d9813d02f212202ee97f8",
+        "ff4b4ae21aae59ca11ebf7c809e24fc5eaa1c321b8c1be68822ab2ece29f680d"
+      ],
+      "run_ids": [
+        "321c7150da994e68a41360d453c0946d",
+        "42896f3ea85443278f82e5e716dd4f74",
+        "8bb342a9c881449ea606ffafeaf37d5f",
+        "8c665e878d6a460dbbdaa3d93f1a2e6d",
+        "a59aed61203d49d7989c549f71a54579"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "321c7150da994e68a41360d453c0946d",
+          "seed": 20261005,
+          "request_sha256": "a19bfe54468c540fc15e39e30cb0b119ebf5a1bfa08d9813d02f212202ee97f8",
+          "manifest_sha256": "4316ca81d2d5c933932cb3aefdbc876f934db721080ffb5e303c3f31c1495aca",
+          "raw_output_sha256": "faaf93ea4ffe8d3cd21b2d0773fe7db34e1eba3a7a18aa618b1047aa4795e059",
+          "network_output_sha256": "0dcf5549a673083646615caccee5af51a7d527dd5250b9c59c9b2cc7e048dc21",
+          "generated_config_sha256": "3d0d8239cd534329029ed9223e28e2b4d21a7112c8fe08bfc143d5f905e7c3e2",
+          "trajectory_sha256": "58b25672e60499e70ab6d066942fb479747a39dc967505bf4b6d0a154fa6a7b7",
+          "experiment_spec_sha256": "34e7ebce4ba15f53ce2605913fded825b8982a7912f548327aff650ec71d2f60",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "992b037d6b8938d8af54e066c2bc3cee228a50d87f693184aabe9813e470218e",
+            "inputs.json": "1c0e8672ca595e0e54daeae52b7e2c67c84064369f46eef461a3148315b24b1e",
+            "localization.json": "ac8690cd8b55dda0552a01a5980a546bc1eb49d62cc7d0b18bf4368ca7b23ea1",
+            "network_results.json": "0dcf5549a673083646615caccee5af51a7d527dd5250b9c59c9b2cc7e048dc21",
+            "pipeline.json": "f761241c8c78812c028a611ef036ad1974b15e8f40a6a1fbf73a9668975cac3d",
+            "scoring.json": "e756f1e589afcd014a067047289644e643894beabc3d83053f0117c3e74a66f3"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 150,
+          "phy_received_packets": 135,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 150,
+          "runtime_s": 28.998348991000967
+        },
+        {
+          "run_id": "42896f3ea85443278f82e5e716dd4f74",
+          "seed": 20261006,
+          "request_sha256": "a024fef74891d88e74ebcf859b6fbffdba4c54c9571e859932319030bed96fef",
+          "manifest_sha256": "9854278161bd9e2e151138182b81a6423a54b9f1cbf99f667c3e8bc508a9c696",
+          "raw_output_sha256": "126a6a802ebb1a577d2a54e1e3fbab8ef74ff36d73b03f565e5795fccc4c6e07",
+          "network_output_sha256": "48777f29cca40cc414d3255931deff772d84657e3d9a8e314d18b77edef57ad8",
+          "generated_config_sha256": "8d4d6e2e6b4bf68d58e2ac4467791f722a017b1c600f1d74192e11e3d8ebe6e6",
+          "trajectory_sha256": "58b25672e60499e70ab6d066942fb479747a39dc967505bf4b6d0a154fa6a7b7",
+          "experiment_spec_sha256": "d2876529722a87465dfb2d2502c1422826dfc260debb0ad6d6044d054dc55d88",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "ea4d810ba9e865e1ee908dbfe5d8e24024d4979b32f0db77d9a2b321267b37d5",
+            "inputs.json": "5adf274b4a1664b34f94f617a696bf1bc982ccc4c2a78a6e93faacec0b706f82",
+            "localization.json": "05b5049bc71b3bab115f8ab774a9dec7c6f5987d4b2463385d62f4a97cdea8ae",
+            "network_results.json": "48777f29cca40cc414d3255931deff772d84657e3d9a8e314d18b77edef57ad8",
+            "pipeline.json": "f7087ec28b9e224fa8b5a737d16f7f17350a593de48b95fc2bd774d5d558e453",
+            "scoring.json": "f97518a58cdbc9e922e772047db8c3ab0ae035cd20cc3c6d97090acecbeafbfe"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 150,
+          "phy_received_packets": 135,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 150,
+          "runtime_s": 17.170314734001295
+        },
+        {
+          "run_id": "8bb342a9c881449ea606ffafeaf37d5f",
+          "seed": 20261007,
+          "request_sha256": "6c7d775972100c23657b011067ec42c4eef2594c94158fec8fbe0ae76918c71f",
+          "manifest_sha256": "ae4328c4c7bcd9752f3aa05e378dc8208473b4531b9d4d2538159f6a814cef7b",
+          "raw_output_sha256": "3093d5f629be3663a83f64e79a3568236e9cdc5337fd46b0a0aa4fb5250d3a88",
+          "network_output_sha256": "24b69c4bd1619b8d438512caa271d0a4a104fbd862be0860390e6c1f0347c7c1",
+          "generated_config_sha256": "6a351ef1558844f0adf07ee043cf41bd5b2558678e1aaa61d51a7e86a7e1b910",
+          "trajectory_sha256": "58b25672e60499e70ab6d066942fb479747a39dc967505bf4b6d0a154fa6a7b7",
+          "experiment_spec_sha256": "4bfc13c7672b2ea5941927cc1482005fb5ecfa9d2d26821ff7ef1996ccb30b98",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "095b284055ec5049a77807736faa0e1f3fbc27ad7f33b72f911526c1e74bd12c",
+            "inputs.json": "d1d8e489265344c4cdb3db85446eb858cb441ed2447e384eb224c034bb0e14d7",
+            "localization.json": "5d7169c3d1cab060908f6f6c603e1bcafca8e0f8f5a2e34ef3748477a810b54f",
+            "network_results.json": "24b69c4bd1619b8d438512caa271d0a4a104fbd862be0860390e6c1f0347c7c1",
+            "pipeline.json": "465aa4c1c3f2bd7d465a9807a4740aef36f5fd8d0d201793fa3d2c5e5210ecb6",
+            "scoring.json": "0f311e997fdc5a02cd094168f5dc784a36e53e5098f73d4cc70251052713084b"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 150,
+          "phy_received_packets": 132,
+          "pdr_phy": 0.88,
+          "pdr_denominator": 150,
+          "runtime_s": 22.89656273199944
+        },
+        {
+          "run_id": "a59aed61203d49d7989c549f71a54579",
+          "seed": 20261008,
+          "request_sha256": "ff4b4ae21aae59ca11ebf7c809e24fc5eaa1c321b8c1be68822ab2ece29f680d",
+          "manifest_sha256": "dfbe25b9f0beb1249dbc37e87b061e002d3980234a4cab0a3fe4d29b4cff4f3c",
+          "raw_output_sha256": "8a81853cbce81d5894833e72fe3dbd4ec349cb15ce6356ba213faee2e3509277",
+          "network_output_sha256": "c20398531657a7163f080795e4d146b1b6209e9efda135ce54b7784bd9bfa8e6",
+          "generated_config_sha256": "726423a2f775e7e6413386e0cb9fd8ebd53997ccfbf6fea4b115e9f22b2027c8",
+          "trajectory_sha256": "58b25672e60499e70ab6d066942fb479747a39dc967505bf4b6d0a154fa6a7b7",
+          "experiment_spec_sha256": "3653e9942badc512e53b01cb68c698c6d8a40037f7a71ac9bfa90a5bdceecde3",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "1333189008a291fa87dd6b40ee712e8fbca9e054c4d22085bb3cd17e9c94ecf3",
+            "inputs.json": "6fabb05435c3d115025862a135badb07aa48f8ac629184e047c3066025c654e7",
+            "localization.json": "d06b92d952146b66135e284dd401e7ff172f1e44b745283fb3eb3013407882b6",
+            "network_results.json": "c20398531657a7163f080795e4d146b1b6209e9efda135ce54b7784bd9bfa8e6",
+            "pipeline.json": "bb4dd8e8e072a3ce505ba161eacd98aa2e133fcf49a08578f9c90b1c50a06300",
+            "scoring.json": "bd9e98a7f40f2ab3441ac773220a383895df78262631a1083ffa59977f164573"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 150,
+          "phy_received_packets": 135,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 150,
+          "runtime_s": 17.576539417001186
+        },
+        {
+          "run_id": "8c665e878d6a460dbbdaa3d93f1a2e6d",
+          "seed": 20261009,
+          "request_sha256": "2297fa63ce0c11623bda834713c2e0648e92214068ae2c8c0f544ae13ac42f9b",
+          "manifest_sha256": "91817769e2270816f9200a53de03e7f4277fae71cf52575cd5612f48661ba987",
+          "raw_output_sha256": "166cd512a2f1cf80d43437ea37eef604257a4923b533cb52ae25ee2e0c969754",
+          "network_output_sha256": "fa60fa67dbf8c2f054a180e1dd32079e9e8b9f168a5e8669ba9bcefdcaf79d91",
+          "generated_config_sha256": "72787b1174c46876575ed2a2535b13dbe8c2a1cdf0bd475dfdf15b3f28555154",
+          "trajectory_sha256": "58b25672e60499e70ab6d066942fb479747a39dc967505bf4b6d0a154fa6a7b7",
+          "experiment_spec_sha256": "b17c96dbb0eebe89a31d1e34fce46afd1567458c956b1d0f1c00b9f62ef08877",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "c106d9fc7f9fd2f5fb4afb0e467ce4b7e6d97c88e05fc8eb1b1ae3a3adbbc23b",
+            "inputs.json": "5607cad7d6fcb9d9946dee9233e12d85829ed15940d1af399541a779683d350a",
+            "localization.json": "dfcb30c8ce947f64853b923913a46801a7376d4e99426f3e5b6a63799de3946c",
+            "network_results.json": "fa60fa67dbf8c2f054a180e1dd32079e9e8b9f168a5e8669ba9bcefdcaf79d91",
+            "pipeline.json": "cb77e9c7b70fbcc7ea7e15c41b9549e5a8d4ab67a80052b45ca7ff4cf67ef5c3",
+            "scoring.json": "2db664ce4083ec30e8f27e9ee957aea9d87b4defc527d2107ec924fd30af1f30"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 150,
+          "phy_received_packets": 132,
+          "pdr_phy": 0.88,
+          "pdr_denominator": 150,
+          "runtime_s": 15.44612302799942
+        }
+      ],
+      "failed_runs": []
+    },
+    {
+      "configuration": {
+        "tags": 100,
+        "gateways": 4,
+        "cadence_s": 60,
+        "schedule": "SEEDED_PHASE",
+        "phase_window_s": 60,
+        "sf": 7,
+        "payload_bytes": 12,
+        "distribution": "uniform"
+      },
+      "quality_status_by_mean_pdr": "DEGRADED_SIMULATED",
+      "quality_thresholds": {
+        "robust_min_pdr_phy": 0.95,
+        "degraded_min_pdr_phy": 0.7,
+        "thresholds_are_product_requirements": false
+      },
+      "run_count": 5,
+      "completed_run_count": 5,
+      "failed_run_count": 0,
+      "seeds": [
+        20261005,
+        20261006,
+        20261007,
+        20261008,
+        20261009
+      ],
+      "set_ids": [
+        "monte-carlo-population-60s",
+        "population-sweep-60s"
+      ],
+      "pdr_phy_numerator": 1321,
+      "pdr_phy_denominator": 1500,
+      "requested_packet_count": 1500,
+      "gateway_event_outcomes": {
+        "INTERFERENCE": 235,
+        "NO_PATH": 2250,
+        "RX": 3515
+      },
+      "metrics": {
+        "pdr_phy": {
+          "n": 5,
+          "mean": 0.8806666666666667,
+          "sample_sd": 0.012560962454277852,
+          "min": 0.8666666666666667,
+          "max": 0.9
+        },
+        "mean_phy_latency_s": {
+          "n": 5,
+          "mean": 0.05657828887084903,
+          "sample_sd": 4.46549903775159e-09,
+          "min": 0.05657828150027137,
+          "max": 0.056578292587771355
+        },
+        "mean_airtime_s": {
+          "n": 5,
+          "mean": 0.056576,
+          "sample_sd": 0.0,
+          "min": 0.056576,
+          "max": 0.056576
+        },
+        "localization_input_availability": {
+          "n": 5,
+          "mean": 0.48466666666666663,
+          "sample_sd": 0.0050552502960343705,
+          "min": 0.48,
+          "max": 0.49
+        },
+        "interference_gateway_events": {
+          "n": 5,
+          "mean": 47.0,
+          "sample_sd": 10.488088481701515,
+          "min": 32.0,
+          "max": 58.0
+        },
+        "gateway_reception_diversity_mean": {
+          "n": 5,
+          "mean": 2.3433333333333333,
+          "sample_sd": 0.03496029493900514,
+          "min": 2.3066666666666666,
+          "max": 2.3933333333333335
+        },
+        "runtime_s": {
+          "n": 5,
+          "mean": 59.91333271580079,
+          "sample_sd": 28.69731351281858,
+          "min": 31.940598720000708,
+          "max": 104.05372147800153
+        }
+      },
+      "runtime": {
+        "total_s": 299.56666357900394,
+        "max_s": 104.05372147800153,
+        "sample_count": 5
+      },
+      "request_hashes": [
+        "588fa7c030f7c43c967d7a772b3bf9bf7350a448bcc39f8738f14d984d35a57c",
+        "5a2bd94ffd9ada333fae8573756dad19e58508216da06be9f9fed50cfcfdf33e",
+        "655daa6bed2e52d7ef5ec3466c313f97d084992a39e7dee187df500a5ac26223",
+        "88c47f189a19c2daeb97e7a5cac08136f90845d0adadd3ca0fc5dfb1d1919a1e",
+        "f8e8e78391d3a4c54e595c6c47533b5d0241776b2a29e398c91b03924d0eb873"
+      ],
+      "run_ids": [
+        "1cea35fae64f4a34bb2bf02d9e4a6b50",
+        "3e040d29ff3848318a2a3f415018cbbc",
+        "8ac2a8707c924240b0eeb73f6b7ea19f",
+        "cc3864a071ac4687aa9e21382c85dc1b",
+        "f81e9646bead4722be3ac40f8f5ca731"
+      ],
+      "run_evidence": [
+        {
+          "run_id": "8ac2a8707c924240b0eeb73f6b7ea19f",
+          "seed": 20261005,
+          "request_sha256": "5a2bd94ffd9ada333fae8573756dad19e58508216da06be9f9fed50cfcfdf33e",
+          "manifest_sha256": "cb3d4781e5a3a38c147eeb3e14ea56f75694eb644eee28060c626ddf40c60e8a",
+          "raw_output_sha256": "af02e86345af340fda5325745e425ac1f4cb08c657daf0fb71b27f6a61a27b6a",
+          "network_output_sha256": "3fd606fd969acc7c72c60647185195bc36e5858b0ed5922423d9108c807ffeba",
+          "generated_config_sha256": "b6db742e09ca0c7159c304530392d6efeb16c916a933c24c91c9e7feca650c59",
+          "trajectory_sha256": "1060ccfd9771598866d649fdad32269ad9bddf848e5102547c723dbda1c30cd0",
+          "experiment_spec_sha256": "d8682a3f96306602427cce4e35d41c33f6c3c74cdde47bf411f6aa8600511b3c",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "1001bded71738d7a96ef5f5c9081c98e57dfa3643309bda0a155d530f0f57d8b",
+            "inputs.json": "1c9c8be9efabcd5566ccf469601e621ac37ac333291261fe57ed9e719bc98a48",
+            "localization.json": "6eecc68e29ed41679998307194bcae507e39e55f2164aa5cd34b328e69229bf5",
+            "network_results.json": "3fd606fd969acc7c72c60647185195bc36e5858b0ed5922423d9108c807ffeba",
+            "pipeline.json": "24c38f00ebfd7d39b024c1eec0c65c4111dfbb8607c92f5ff95e73a35c951408",
+            "scoring.json": "13efcc6749453266677a62554e1a6d69a11e2b8a8b84351545652dd02ae20a79"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 300,
+          "phy_received_packets": 270,
+          "pdr_phy": 0.9,
+          "pdr_denominator": 300,
+          "runtime_s": 104.05372147800153
+        },
+        {
+          "run_id": "cc3864a071ac4687aa9e21382c85dc1b",
+          "seed": 20261006,
+          "request_sha256": "655daa6bed2e52d7ef5ec3466c313f97d084992a39e7dee187df500a5ac26223",
+          "manifest_sha256": "391b41809a026a14a45a02fc60884bcb6346591097bbd2ce4dfe27bff190a11f",
+          "raw_output_sha256": "308585d038f6eca108b08d25407fac30f00bbc14530f20701d62f146b6dbb39d",
+          "network_output_sha256": "52da0a9b0c37b5449d086ab02f53b6a852c2f7dc92b5773a9342f0e9e3c26383",
+          "generated_config_sha256": "43e6faff8870f69292917f8270633108407df4ed98a567e703f4b028c1d316f5",
+          "trajectory_sha256": "1060ccfd9771598866d649fdad32269ad9bddf848e5102547c723dbda1c30cd0",
+          "experiment_spec_sha256": "81b5eb04c02764c1b60c31d2de61abf67d9e335277e6d6166464d1e553ac4cce",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "4d74b453626cb11a574fab5ac3621c6169072ccc3fda8c6f1ffd0bf963a3e1be",
+            "inputs.json": "117540221e61d31647f0fece67bbe33cc784b8914e4604800aedcd21af295c30",
+            "localization.json": "c8875908df37965efacd84d451ffde7bfa384787c83999602dfdf7bdd0d76671",
+            "network_results.json": "52da0a9b0c37b5449d086ab02f53b6a852c2f7dc92b5773a9342f0e9e3c26383",
+            "pipeline.json": "f1f4255afb65c63e1838a414382e379c6aec20ec17184144dfbef4c6cba3f1dd",
+            "scoring.json": "fe5f96025a6b7f7aee46a830d5996ff7e58892545725536b618555d03bff6fd3"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 300,
+          "phy_received_packets": 265,
+          "pdr_phy": 0.8833333333333333,
+          "pdr_denominator": 300,
+          "runtime_s": 67.08492836699952
+        },
+        {
+          "run_id": "1cea35fae64f4a34bb2bf02d9e4a6b50",
+          "seed": 20261007,
+          "request_sha256": "88c47f189a19c2daeb97e7a5cac08136f90845d0adadd3ca0fc5dfb1d1919a1e",
+          "manifest_sha256": "c65eed4901713be8e6e644f831031d164c3f7b2f11fac3cd12a9c34b41df9310",
+          "raw_output_sha256": "721ea53ef40bf51e16a97c9210988ebae5e655bd5f9c4ccded328643e69d6962",
+          "network_output_sha256": "319af7300ddf0205a780b1e46ffc54f4da60162221ed5a80d9940266146102be",
+          "generated_config_sha256": "4e03757cedce2155e5c6d476bcc930bb2fe801bc7d451529e6746e2d6808532f",
+          "trajectory_sha256": "1060ccfd9771598866d649fdad32269ad9bddf848e5102547c723dbda1c30cd0",
+          "experiment_spec_sha256": "a1ef3f429f933f0784bb4da6ab75e90a77e86a244d8ce0124aff92b0e57f4b01",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "ff0594c860d38257043fe40d1c6d41133d3f2b16658d09ee00b2732daa51cf1e",
+            "inputs.json": "79221baff822d01d4b152416625cc8e8d505817ba17eccb99c4aacc684a72dfc",
+            "localization.json": "daefe142f5d09fe97d807360b188eb7ef8c606b492186c02de6902d2ba68aa99",
+            "network_results.json": "319af7300ddf0205a780b1e46ffc54f4da60162221ed5a80d9940266146102be",
+            "pipeline.json": "c6329338edb28dd8b33935d8be43f7d69a8a99e1ae237822079868210a7a5fa5",
+            "scoring.json": "ffe9896e6cace78c638d32dcb1363e381da3bc47f9250d0b39fa4e31e71e90d4"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 300,
+          "phy_received_packets": 262,
+          "pdr_phy": 0.8733333333333333,
+          "pdr_denominator": 300,
+          "runtime_s": 37.30059654800061
+        },
+        {
+          "run_id": "3e040d29ff3848318a2a3f415018cbbc",
+          "seed": 20261008,
+          "request_sha256": "588fa7c030f7c43c967d7a772b3bf9bf7350a448bcc39f8738f14d984d35a57c",
+          "manifest_sha256": "11083db0058a162ed1ed696c26295d96da5cb9c87d4180fd328a35ace5af468b",
+          "raw_output_sha256": "78f6f8303f404f25985cdc2661749d40a1047b96cd0cce90176073114ac805ab",
+          "network_output_sha256": "cd7b6566bf78b2f62cb811bd64f2b86fb907c7c66307497068c0b4410cb0b71f",
+          "generated_config_sha256": "88e6ce4827b0237ec9701b3b35e0d3e50e13cdb8a80353ec3e6ddab994b29048",
+          "trajectory_sha256": "1060ccfd9771598866d649fdad32269ad9bddf848e5102547c723dbda1c30cd0",
+          "experiment_spec_sha256": "5839582233cba6aa9240d97041867d88ce38b268c1ac7829bb73561c11f4fc50",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "8e1fd19b12b5635d24ab86f0cbc7945796ed4c8477beddebd8af4c45f34594f1",
+            "inputs.json": "de1c9be40db7d0fed49dd294f6baa24506baa0f60a933717d05487881a64290a",
+            "localization.json": "8b22dee421b3d35f2ebfb330d95cea8ecad1f1d0f8b7cd60a21183f3e0102234",
+            "network_results.json": "cd7b6566bf78b2f62cb811bd64f2b86fb907c7c66307497068c0b4410cb0b71f",
+            "pipeline.json": "637c032e508df34432a811a2760ae492576d7ac6138f6e8da1b416f9ae894e1d",
+            "scoring.json": "14f1f21ce8cd3be9f4101f71b92f6dad15895d73d25bbd78716ea440fac2cb94"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 300,
+          "phy_received_packets": 264,
+          "pdr_phy": 0.88,
+          "pdr_denominator": 300,
+          "runtime_s": 31.940598720000708
+        },
+        {
+          "run_id": "f81e9646bead4722be3ac40f8f5ca731",
+          "seed": 20261009,
+          "request_sha256": "f8e8e78391d3a4c54e595c6c47533b5d0241776b2a29e398c91b03924d0eb873",
+          "manifest_sha256": "c3295714b8647ea996274a5c5437319c4159d1b2eed04ea5c6519b6c3e993f15",
+          "raw_output_sha256": "5ca811f47ef852b9a30664edfd5858b3bfab66a88e1ea77713e849f4212c30ff",
+          "network_output_sha256": "04efbddaf17422607840a925cb525b45161efa23b45200d07d6250e525a83c68",
+          "generated_config_sha256": "44870bae2ab938737e82b2af0061134b137410266559a9c1c5e64c38fb9e7da6",
+          "trajectory_sha256": "1060ccfd9771598866d649fdad32269ad9bddf848e5102547c723dbda1c30cd0",
+          "experiment_spec_sha256": "211c68f239c5da833f1d8a4c3ec933af64724102b2975b7622d0e4e19bcecefe",
+          "network_artifact_sha256": {
+            "gateway_timestamps.json": "c719fd57f297316f54a1f368b59627d9d557ee7738be61eb912df1a2df7c59ff",
+            "inputs.json": "d21d6d80617aa0f0fc15a7991e40efb7bbb8eaf2875c5b946d80f402e68c36be",
+            "localization.json": "98c32000f87ded2c99f78ec6b96d394cbca487f991622d086a6bee01a0f0145a",
+            "network_results.json": "04efbddaf17422607840a925cb525b45161efa23b45200d07d6250e525a83c68",
+            "pipeline.json": "8e72aff139d622b892adc4ed95208a764d58aea9a76d9e896207466832e7cd98",
+            "scoring.json": "431b6b772882331ca3251db05f9b0f7f1022d08959eabd201b04ad4442723423"
+          },
+          "riose_sha": "722805fdd75fffa09a0bd221788d5bcb867d1abc",
+          "riose_dirty": false,
+          "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+          "frequencia_dirty": false,
+          "tx_attempted": 300,
+          "phy_received_packets": 260,
+          "pdr_phy": 0.8666666666666667,
+          "pdr_denominator": 300,
+          "runtime_s": 59.18681846600157
+        }
+      ],
+      "failed_runs": []
+    }
+  ],
+  "limitations": [
+    "PDR ends at gateway PHY; application delivery is not modeled.",
+    "Duty-cycle limiting and gateway outage/recovery are not modeled.",
+    "A PDR shortfall must be separated from Sionna NO_PATH and sensitivity outcomes before attributing it to contention.",
+    "The status thresholds are analysis labels, not product requirements or field capacity claims."
+  ]
+}

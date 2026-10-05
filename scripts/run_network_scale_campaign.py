@@ -186,14 +186,23 @@ def _summarize(report: dict[str, Any], cell: dict[str, Any], request_hash: str) 
     delivered = int(network["metrics"]["delivered_packets"])
     transmitted = int(network["metrics"]["transmitted_packets"])
     pdr = network["metrics"]["pdr"]
+    effective_phase_window = cell["phase_window_s"]
+    if cell["schedule"] == "SOURCE_TIMESTAMP":
+        effective_phase_window = None
+    elif cell["schedule"] == "SEEDED_PHASE" and effective_phase_window is None:
+        effective_phase_window = cell["cadence_s"]
+    elif cell["schedule"] == "NEAR_SYNCHRONIZED" and effective_phase_window is None:
+        effective_phase_window = 0.01
+    configuration = {key: cell[key] for key in (
+        "tags", "gateways", "cadence_s", "schedule", "phase_window_s",
+        "sf", "payload_bytes", "seed", "distribution", "load_class")}
+    configuration["phase_window_s"] = effective_phase_window
     interference_packets = sum(any(
         event["event_index"] == packet["event_index"] and event["outcome"] == "INTERFERENCE"
         for event in network["gateway_events"]) for packet in tx_packets)
     return {
         "status": "SIMULATED", "set_id": cell["set_id"],
-        "configuration": {key: cell[key] for key in (
-            "tags", "gateways", "cadence_s", "schedule", "phase_window_s",
-            "sf", "payload_bytes", "seed", "distribution", "load_class")},
+        "configuration": configuration,
         "run_id": report["run_id"], "workspace": str(workspace),
         "request_sha256": request_hash, "riose_sha": manifest["riose"]["revision"],
         "riose_dirty": manifest["riose"]["dirty"],
