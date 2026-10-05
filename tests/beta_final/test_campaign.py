@@ -15,6 +15,7 @@ from riose.beta_final.campaign import (
 )
 from riose.beta_final.contract import BetaContractError, load_scenario, validate_scenario
 from riose.beta_final.report import ReportError, render_results, verify_manifest
+from riose.simulation_contract.v1 import validate_request
 
 
 ROOT = Path(__file__).parents[2]
@@ -25,6 +26,7 @@ SPEC = json.loads((ROOT / "docs/research/beta-final/campaign-spec.json").read_te
 def test_scenario_contract_and_request_preserve_identity_time_and_config(row):
     scenario = load_scenario(ROOT / row["scenario"])
     request = json.loads((ROOT / row["request_template"]).read_text())
+    validate_request(request)
     validate_request_alignment(scenario, request)
 
     changed = copy.deepcopy(request)

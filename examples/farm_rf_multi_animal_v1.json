@@ -187,27 +187,6 @@
   "id_mappings": [
     {
       "source_system": "frequencia",
-      "source_kind": "animal_id",
-      "source_id": "animal-001",
-      "riose_kind": "animal_id",
-      "riose_id": "riose-animal-001"
-    },
-    {
-      "source_system": "RIOSE",
-      "source_kind": "device_id",
-      "source_id": "device-001",
-      "riose_kind": "device_id",
-      "riose_id": "riose-device-001"
-    },
-    {
-      "source_system": "frequencia",
-      "source_kind": "transmitter_id",
-      "source_id": "tx-001",
-      "riose_kind": "tag_id",
-      "riose_id": "riose-tag-001"
-    },
-    {
-      "source_system": "frequencia",
       "source_kind": "gateway_id",
       "source_id": "GW-1",
       "riose_kind": "gateway_id",
