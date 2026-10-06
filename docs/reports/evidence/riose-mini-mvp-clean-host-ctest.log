@@ -1,0 +1,28 @@
+Internal ctest changing into directory: /tmp/riose-mini-mvp-clean-firmware-host-debug
+Test project /tmp/riose-mini-mvp-clean-firmware-host-debug
+      Start  1: tag_host_cycle
+ 1/11 Test  #1: tag_host_cycle ...............................   Passed    0.00 sec
+      Start  2: tag_host_longrun_NORMAL
+ 2/11 Test  #2: tag_host_longrun_NORMAL ......................   Passed    0.00 sec
+      Start  3: tag_host_longrun_ACTIVE
+ 3/11 Test  #3: tag_host_longrun_ACTIVE ......................   Passed    0.00 sec
+      Start  4: tag_host_longrun_ALERT
+ 4/11 Test  #4: tag_host_longrun_ALERT .......................   Passed    0.02 sec
+      Start  5: tag_host_longrun_WORST_REASONABLE_CASE
+ 5/11 Test  #5: tag_host_longrun_WORST_REASONABLE_CASE .......   Passed    0.02 sec
+      Start  6: tag_host_counter_wrap
+ 6/11 Test  #6: tag_host_counter_wrap ........................   Passed    0.00 sec
+      Start  7: tag_host_fault_spi_timeout
+ 7/11 Test  #7: tag_host_fault_spi_timeout ...................   Passed    0.00 sec
+      Start  8: tag_host_fault_i2c_timeout
+ 8/11 Test  #8: tag_host_fault_i2c_timeout ...................   Passed    0.00 sec
+      Start  9: tag_host_fault_irq_missing
+ 9/11 Test  #9: tag_host_fault_irq_missing ...................   Passed    0.00 sec
+      Start 10: tag_host_synthetic_watchdog_classification
+10/11 Test #10: tag_host_synthetic_watchdog_classification ...   Passed    0.00 sec
+      Start 11: tag_host_synthetic_reset_classification
+11/11 Test #11: tag_host_synthetic_reset_classification ......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 11
+
+Total Test time (real) =   0.06 sec
