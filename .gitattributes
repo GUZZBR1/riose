@@ -11,3 +11,6 @@ RIOSE_INTEGRATION_CANDIDATE_REPORT.md text eol=lf
 RIOSE_INTEGRATION_PROVENANCE.json text eol=lf
 RIOSE_INTEGRATION_TEST_MATRIX.json text eol=lf
 RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json text eol=lf
+scripts/build_mvp3_renode_firmware.sh text eol=lf
+hardware/renode/README.md text eol=lf
+hardware/renode/tests/gazebo-bridge.robot text eol=lf

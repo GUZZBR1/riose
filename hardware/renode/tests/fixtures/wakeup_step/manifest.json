@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "provenance": "SIMULATED",
+  "description": "Dedicated deterministic LIS2DW12 wake comparator fixture; not Gazebo-derived or animal data.",
+  "datasets": [
+    {
+      "name": "WAKE_STEP",
+      "file": "wake_step.csv",
+      "axes": [
+        "x",
+        "y",
+        "z"
+      ],
+      "samples": 16,
+      "sample_rate_hz": 12.5,
+      "duration_s": 1.28,
+      "unit": "g",
+      "seed": 20261006,
+      "status": "SIMULATED",
+      "source": "Dedicated deterministic wake comparator regression fixture; not measured data."
+    }
+  ]
+}
