@@ -12,6 +12,7 @@
 #include <zephyr/logging/log.h>
 
 #include "tag_firmware.h"
+#include "tag_lis2dw12.h"
 #include "tag_reset_cause.h"
 
 LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
@@ -195,10 +196,7 @@ static int imu_read_fn(void *context, tag_imu_sample_t *sample)
     for (size_t axis = 0; axis < 3; ++axis) {
         const int16_t raw16 = (int16_t)((uint16_t)data[axis * 2] |
                                ((uint16_t)data[axis * 2 + 1] << 8));
-        /* CTRL1 selects high-performance 14-bit output, left-aligned in OUT_x.
-         * At +/-2 g the LIS2DW12 sensitivity is 0.244 mg/LSB. */
-        const int32_t raw14 = raw16 >> 2;
-        const int16_t mg = (int16_t)((raw14 * 244) / 1000);
+        const int16_t mg = tag_lis2dw12_hp14_raw_to_mg(raw16);
         if (axis == 0) sample->x_mg = mg;
         else if (axis == 1) sample->y_mg = mg;
         else sample->z_mg = mg;

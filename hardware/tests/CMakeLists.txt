@@ -10,6 +10,10 @@ target_link_libraries(hardware_integration PRIVATE tag_firmware sx1262_model lis
 target_compile_options(hardware_integration PRIVATE -Wall -Wextra -Wpedantic -Werror)
 enable_testing()
 add_test(NAME hardware_integration COMMAND hardware_integration)
+add_executable(lis2dw12_scale_test lis2dw12_scale.c)
+target_link_libraries(lis2dw12_scale_test PRIVATE tag_firmware)
+target_compile_options(lis2dw12_scale_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME lis2dw12_scale COMMAND lis2dw12_scale_test)
 add_test(NAME digital_fault_crc_corruption
   COMMAND hardware_integration --fault-scenario crc_corruption)
 add_test(NAME digital_fault_sx1262_busy_stuck
