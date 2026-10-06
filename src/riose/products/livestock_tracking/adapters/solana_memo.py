@@ -1,0 +1,196 @@
+"""Explicit, opt-in Solana Memo publication using the Solders Python SDK."""
+
+from __future__ import annotations
+
+import base64
+import json
+import re
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from math import isfinite
+from urllib.parse import urlsplit
+
+from ..domain.privacy import PublicCommitmentEnvelope, serialize_public_envelope
+
+MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+_HASH58 = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,64}\Z", re.ASCII)
+_SIGNATURE58 = re.compile(r"[1-9A-HJ-NP-Za-km-z]{80,90}\Z", re.ASCII)
+_ALLOWED_GENESIS = {
+    "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC": "devnet",
+    "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG": "devnet",
+    "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3zQawwpjk2NsNY": "testnet",
+}
+
+
+class SolanaRpcError(RuntimeError):
+    """Sanitized RPC/transport error; response bodies are never included."""
+
+
+@dataclass(frozen=True, slots=True)
+class SolanaMemoConfig:
+    rpc_url: str
+    expected_genesis_hash: str
+    timeout_s: float = 10.0
+
+    def __post_init__(self) -> None:
+        parsed = urlsplit(self.rpc_url) if type(self.rpc_url) is str else None
+        if parsed is None or parsed.scheme != "https" or not parsed.netloc:
+            raise ValueError("Solana RPC URL must be an explicit HTTPS URL")
+        if parsed.username is not None or parsed.password is not None:
+            raise ValueError("RPC credentials must not be embedded in the URL")
+        if type(self.expected_genesis_hash) is not str or _HASH58.fullmatch(self.expected_genesis_hash) is None:
+            raise ValueError("expected_genesis_hash must be a base58 cluster genesis hash")
+        if self.expected_genesis_hash not in _ALLOWED_GENESIS:
+            raise ValueError("only allowlisted Solana devnet or testnet genesis hashes are supported")
+        if isinstance(self.timeout_s, bool) or not isinstance(self.timeout_s, (int, float)) or not isfinite(self.timeout_s) or not 0.1 <= self.timeout_s <= 60:
+            raise ValueError("timeout_s must be between 0.1 and 60 seconds")
+
+    @property
+    def network_id(self) -> str:
+        return f"solana-{_ALLOWED_GENESIS[self.expected_genesis_hash]}-{self.expected_genesis_hash}"
+
+
+class SolanaMemoClient:
+    def __init__(self, config: SolanaMemoConfig) -> None:
+        self.config = config
+        self._next_id = 0
+
+    @property
+    def evidence_status(self) -> str:
+        """A single JSON-RPC endpoint is assumed evidence, not independent proof."""
+        return "ASSUMED"
+
+    def rpc(self, method: str, params: list[object]) -> object:
+        self._next_id += 1
+        request_id = self._next_id
+        payload = json.dumps({"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}, separators=(",", ":")).encode()
+        request = urllib.request.Request(self.config.rpc_url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=self.config.timeout_s) as response:
+                body = response.read(MAX_RESPONSE_BYTES + 1)
+        except (OSError, urllib.error.URLError, TimeoutError) as exc:
+            raise SolanaRpcError("RPC transport unavailable") from exc
+        if len(body) > MAX_RESPONSE_BYTES:
+            raise SolanaRpcError("RPC response exceeded the size limit")
+        try:
+            data = json.loads(body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise SolanaRpcError("RPC response was invalid") from exc
+        if type(data) is not dict or data.get("jsonrpc") != "2.0" or data.get("id") != request_id or "error" in data or "result" not in data:
+            raise SolanaRpcError("RPC request failed")
+        return data["result"]
+
+    def ensure_expected_cluster(self) -> None:
+        if self.rpc("getGenesisHash", []) != self.config.expected_genesis_hash:
+            raise SolanaRpcError("RPC cluster genesis hash did not match the configured network")
+
+    def prepare(self, envelope: PublicCommitmentEnvelope, keypair: object) -> tuple[bytes, str, int]:
+        """Build and sign locally; caller must persist returned bytes before sending."""
+        try:
+            from solders.hash import Hash
+            from solders.instruction import Instruction
+            from solders.message import MessageV0
+            from solders.pubkey import Pubkey
+            from solders.transaction import VersionedTransaction
+        except ImportError as exc:
+            raise SolanaRpcError("install the optional solana extra to use the Solana adapter") from exc
+        self.ensure_expected_cluster()
+        latest = self.rpc("getLatestBlockhash", [{"commitment": "confirmed"}])
+        if type(latest) is not dict or type(latest.get("value")) is not dict:
+            raise SolanaRpcError("RPC returned an invalid recent blockhash")
+        value = latest["value"]
+        try:
+            blockhash = Hash.from_string(value["blockhash"])
+            last_valid_height = value["lastValidBlockHeight"]
+            if type(last_valid_height) is not int or last_valid_height < 0:
+                raise ValueError
+            memo_data = serialize_public_envelope(envelope)
+            message = MessageV0.try_compile(
+                keypair.pubkey(),
+                [Instruction(Pubkey.from_string(MEMO_PROGRAM_ID), memo_data, [])],
+                [],
+                blockhash,
+            )
+            transaction = VersionedTransaction(message, [keypair])
+        except Exception as exc:
+            raise SolanaRpcError("could not build the signed Memo transaction") from exc
+        wire = bytes(transaction)
+        if len(wire) > 1232:
+            raise SolanaRpcError("signed transaction exceeds Solana packet size")
+        signature = str(transaction.signatures[0])
+        return wire, signature, last_valid_height
+
+    def submit(self, signed_transaction: bytes, expected_signature: str) -> str:
+        response = self.rpc("sendTransaction", [base64.b64encode(signed_transaction).decode("ascii"), {
+            "encoding": "base64", "preflightCommitment": "confirmed", "maxRetries": 0,
+        }])
+        if type(response) is not str or response != expected_signature:
+            raise SolanaRpcError("RPC response did not match the persisted transaction signature")
+        return response
+
+    def verify(self, signature: str, envelope: PublicCommitmentEnvelope) -> tuple[bool | None, int | None]:
+        """Return None for absent/unobservable; True only for successful confirmed memo match."""
+        if type(signature) is not str or _SIGNATURE58.fullmatch(signature) is None:
+            raise ValueError("signature must be a valid Solana transaction signature")
+        try:
+            from solders.signature import Signature
+            Signature.from_string(signature)
+        except Exception as exc:
+            raise ValueError("signature must be a valid Solana transaction signature") from exc
+        self.ensure_expected_cluster()
+        result = self.rpc("getTransaction", [signature, {
+            "commitment": "confirmed", "encoding": "jsonParsed", "maxSupportedTransactionVersion": 0,
+        }])
+        if result is None:
+            return None, None
+        if type(result) is not dict or type(result.get("meta")) is not dict or result["meta"].get("err") is not None:
+            return False, result.get("slot") if type(result) is dict and type(result.get("slot")) is int else None
+        tx = result.get("transaction")
+        msg = tx.get("message") if type(tx) is dict else None
+        instructions = msg.get("instructions") if type(msg) is dict else None
+        wanted = serialize_public_envelope(envelope)
+        matched = False
+        if type(instructions) is list:
+            for instruction in instructions:
+                if type(instruction) is not dict or instruction.get("programId") != MEMO_PROGRAM_ID:
+                    continue
+                raw = instruction.get("data")
+                if type(raw) is str:
+                    try:
+                        matched = _b58decode(raw) == wanted
+                    except ValueError:
+                        matched = False
+                    break
+                parsed = instruction.get("parsed")
+                if type(parsed) is str:
+                    matched = parsed.encode("utf-8") == wanted
+                    break
+        return matched, result.get("slot") if type(result.get("slot")) is int else None
+
+
+def load_keypair(path: str):
+    """Load a Solana CLI JSON keypair file without echoing or retaining its secret."""
+    try:
+        from solders.keypair import Keypair
+        with open(path, "rb") as stream:
+            document = json.loads(stream.read(4096))
+        if type(document) is not list or len(document) not in {32, 64} or any(type(byte) is not int or not 0 <= byte <= 255 for byte in document):
+            raise ValueError
+        return Keypair.from_bytes(bytes(document))
+    except ImportError as exc:
+        raise SolanaRpcError("install the optional solana extra to use the Solana adapter") from exc
+    except Exception as exc:
+        raise SolanaRpcError("keypair file is invalid or unreadable") from exc
+
+
+def _b58decode(value: str) -> bytes:
+    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    number = 0
+    for char in value:
+        if char not in alphabet:
+            raise ValueError("invalid base58 data")
+        number = number * 58 + alphabet.index(char)
+    decoded = number.to_bytes((number.bit_length() + 7) // 8, "big") if number else b""
+    return b"\0" * (len(value) - len(value.lstrip("1"))) + decoded

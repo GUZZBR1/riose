@@ -133,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
     dataset.add_argument("--anchors", type=int, default=8)
     dataset.add_argument("--duration", type=float, default=1800)
     dataset.add_argument("--period", type=float, default=30)
+    from .publication_cli import add_publication_commands
+    add_publication_commands(sub)
     args = parser.parse_args(argv)
     try:
         if args.command == "demo":
@@ -151,6 +153,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "dataset":
         run_dataset(args)
         return 0
+    if args.command == "publication":
+        from .publication_cli import run_publication_command
+        from .adapters.solana_memo import SolanaRpcError
+        try:
+            return run_publication_command(args)
+        except (ValueError, SolanaRpcError) as exc:
+            parser.error(str(exc))
     return 2
 
 

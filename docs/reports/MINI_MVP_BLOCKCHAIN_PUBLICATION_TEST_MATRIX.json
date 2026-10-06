@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "status_vocabulary": ["PASS", "BLOCKED_EXTERNAL", "NOT_TESTED"],
+  "overall": "PASS_WITH_LIMITATIONS",
+  "evidence_labels": ["TESTED_SOFTWARE", "MOCKED", "REAL_ON_CHAIN", "UNVERIFIED"],
+  "tests": [
+    {"id":"T1","area":"canonical base","status":"PASS","evidence":"Worktree HEAD and merge-base equal approved checkpoint 3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed."},
+    {"id":"T2","area":"Event V1 compatibility","status":"PASS","evidence":"Existing full suite event contract and golden digest tests pass."},
+    {"id":"T3","area":"Commitment V1 determinism","status":"PASS","evidence":"Golden vector and canonical encoding tests in test_commitment_privacy.py."},
+    {"id":"T4","area":"Privacy envelope","status":"PASS","evidence":"Envelope allowlist and prohibited animal/event data tests."},
+    {"id":"T5","area":"Offline queue","status":"PASS","evidence":"Outbox tests exercise durable local enqueue without RPC."},
+    {"id":"T6","area":"Atomic event plus intent","status":"PASS","evidence":"SQLite transaction test verifies event and outbox rollback/commit together."},
+    {"id":"T7","area":"Idempotency","status":"PASS","evidence":"Repeated request key does not create a second logical request; conflicting reuse rejected."},
+    {"id":"T8","area":"Attempt durability","status":"PASS","evidence":"Prepared wire transaction and signature persist before submit; retry does not generate a new attempt."},
+    {"id":"T9","area":"Crash/ambiguous recovery","status":"PASS","evidence":"Unknown attempt reconciles the exact persisted signature and is not blindly resent."},
+    {"id":"T10","area":"State transitions","status":"PASS","evidence":"Explicit queued/prepared/RPC accepted/unknown/confirmed/verified/rejected transitions tested."},
+    {"id":"T11","area":"Receipt correlation","status":"PASS","evidence":"Receipt request, commitment, and attempt correlation are checked."},
+    {"id":"T12","area":"Receipt immutability","status":"PASS","evidence":"SQLite triggers prevent receipt update and deletion."},
+    {"id":"T13","area":"RPC acceptance distinction","status":"PASS","evidence":"sendTransaction acceptance yields RPC_ACCEPTED only; confirmation requires getTransaction evidence."},
+    {"id":"T14","area":"Chain transaction verification","status":"PASS","evidence":"Mock RPC confirms matching memo/signature and rejects failed/mismatched transaction evidence."},
+    {"id":"T15","area":"Cluster allowlist","status":"PASS","evidence":"Unsupported genesis and non-HTTPS/malformed endpoints are rejected in adapter tests."},
+    {"id":"T16","area":"RPC protocol failures","status":"PASS","evidence":"Malformed IDs/responses and RPC errors exercise bounded failure handling."},
+    {"id":"T17","area":"Secret handling","status":"PASS","evidence":"Key parsing failures are sanitized; keys are not included in receipts or command output tests."},
+    {"id":"T18","area":"Mock evidence labeling","status":"PASS","evidence":"Mocked adapter receipts remain MOCKED and do not assert chain-confirmed/verified facts."},
+    {"id":"T19","area":"Real funded devnet publication","status":"BLOCKED_EXTERNAL","evidence":"Genesis was read, but devnet faucet requests returned errors and no funding/signature was obtained; no publication transaction submitted."},
+    {"id":"T20","area":"CLI lifecycle","status":"PASS","evidence":"Offline queue/status and explicit send/reconcile argument paths covered in test_publication_cli.py."},
+    {"id":"T21","area":"Clean reproduction","status":"PASS","evidence":"Offline dependency sync with dev and solana extras succeeded; full-suite result is in report."},
+    {"id":"T22","area":"Main/history protection","status":"PASS","evidence":"Changes remain on isolated mini-mvp/blockchain-publication worktree; no push/PR/merge or history rewrite."},
+    {"id":"T23","area":"Live remote freshness","status":"BLOCKED_EXTERNAL","evidence":"Safe fetch could not resolve github.com; cached fork/main and local ancestry match expected checkpoint."}
+  ]
+}
