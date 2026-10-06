@@ -24,8 +24,8 @@
     "worktree_registration_count": 66,
     "public_open_pr_count": 0,
     "public_base_core_ci": "FAILED_AT_BASE_MISSING_OPTIONAL_SOLANA_EXTRA",
-    "pull_request_ci_run": 81,
-    "pull_request_ci_conclusion": "SUCCESS; cad-export and core jobs passed",
+    "pull_request_ci_runs": [81, 85],
+    "pull_request_ci_conclusion": "SUCCESS; cad-export and core jobs passed on PRs 37 and 38",
     "unavailable_stale_worktree_paths_left_untouched": true,
     "root_dirty_state_preserved": [
       "GUZZ_PRESERVATION_MANIFEST.json",
@@ -82,6 +82,24 @@
       "decision": "Included bounded simulated evidence; older event-index campaign code and scripts were not ported."
     },
     {
+      "area": "tag_sensor_trace_and_axis_closure",
+      "source_worktree": "riose-tag-simulation-closure",
+      "source_head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "source_state": "dirty; original worktree preserved",
+      "included_paths": [
+        "hardware/firmware/zephyr/boards/nucleo_l031k6_renode.conf",
+        "hardware/renode/scripts/dataset_to_resd.py",
+        "hardware/renode/tests/platform-smoke.robot",
+        "hardware/renode/tests/test_dataset_to_resd.py",
+        "hardware/renode/tests/fixtures/lis2dw12/",
+        "src/riose/products/ear_tag/digital_twin/cli.py",
+        "src/riose/products/ear_tag/digital_twin/runner.py",
+        "tests/ear_tag/test_digital_twin.py",
+        "docs/research/tag-simulation-closure/"
+      ],
+      "decision": "Ported after the two focused Python test files passed (55 tests). Three profiles and an engineering axis probe have trace evidence; all results remain simulated."
+    },
+    {
       "area": "ci_optional_solana_test_dependency",
       "path": ".github/workflows/mvp2-core.yml",
       "change": "Install --extra solana together with --extra dev so optional Solana test dependencies declared by the project are present in CI."
@@ -116,9 +134,9 @@
       "reason": "Use cumulative corrected closure on research/network-contention-capacity-closure."
     },
     {
-      "ref_or_worktree": "dirty riose-tag-simulation-closure worktree",
+      "ref_or_worktree": "dirty riose-tag-simulation-closure antenna pilot",
       "classification": "PARTIALLY_USEFUL_NOT_READY",
-      "reason": "Uncommitted code, fixture, and evidence not independently rerun; original worktree preserved."
+      "reason": "Antenna remains partial: excitation tail not verified, S11 rejected, no accepted RF metrics or mesh refinement. Tag sensor trace/axis code and evidence were ported and focused tests passed; original worktree preserved."
     },
     {
       "ref_or_worktree": "dirty riose-wt-issue-10 worktree",
@@ -143,22 +161,23 @@
   ],
   "verification": {
     "uv_sync_locked_offline_dev_solana": "PASS",
-    "pytest_full": "788 passed, 7 skipped, 1 Starlette/httpx deprecation warning",
+    "pytest_full": "794 passed, 7 skipped, 1 Starlette/httpx deprecation warning",
     "pytest_event_identity_focus": "69 passed",
     "pytest_dynamic_localization_focus": "24 passed",
+    "pytest_tag_trace_focus": "55 passed",
     "ctest": "39/39 passed",
     "renode": "SKIP; Renode tooling unavailable",
     "git_diff_check": "PASS",
     "python_compileall": "PASS",
     "json_artifacts_parse": "PASS",
     "secret_scan": "PASS_HIGH_SIGNAL_PRIVATE_KEY_AND_TOKEN_MARKERS_NO_MATCHES; gitleaks/trufflehog unavailable",
-    "remote_push_and_fetch": "PASS_VIA_GITHUB_CONNECTOR; integration ref, merged PR, main SHA, and baseline document verified. Local Git CLI fetch/push was blocked by DNS and invalid token."
+    "remote_push_and_fetch": "PASS_VIA_GITHUB_CONNECTOR for PRs 37 and 38; the tag closure follow-up is prepared locally and awaits a PR run. Local Git CLI fetch/push was blocked by DNS and invalid token."
   },
   "evidence_limits": [
     "No new physical measurements or flash test were performed.",
     "The H.2 RIOSE identity changes depend on the external FREQUENCIA TxStart event-ID patch.",
     "RF realism results are simulated for bounded geometry; orientation and vegetation are model limitations.",
     "Network capacity results are simulated PHY-level evidence and make no generic deployment or application-delivery claim.",
-    "The public remote main SHA could not be fetched or updated during this run."
+    "The local Git CLI could not fetch or push because DNS resolution and its stored token failed; authenticated GitHub connector operations succeeded."
   ]
 }

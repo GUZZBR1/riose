@@ -9,7 +9,7 @@
 - Integration branch: `integration/pre-blockchain-baseline`, created from the reviewed `fork/main` tree. See `PRE_BLOCKCHAIN_INTEGRATION_PROVENANCE.json` for exact commits and evidence.
 - Baseline commit merged to `main`: `2beb7a5dd5681cbc7b5fc308f5e3a12301b85686` (PR #37).
 
-The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs before integration. Git CLI push/fetch was unavailable because `github.com` did not resolve and the local CLI token was invalid; the authenticated GitHub connector successfully published the integration branch and PR. The core workflow at the reviewed base had failed because its dependency install omitted the already-declared optional `solana` test extra. This candidate corrects that command; PR workflow run 81 passed both `cad-export` and `core` jobs.
+The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs before integration. Git CLI push/fetch was unavailable because `github.com` did not resolve and the local CLI token was invalid; the authenticated GitHub connector successfully published the integration branch and PR. The core workflow at the reviewed base had failed because its dependency install omitted the already-declared optional `solana` test extra. This candidate corrects that command; PR workflow runs 81 and 85 passed both `cad-export` and `core` jobs. The later tag-trace follow-up still requires its own PR run before merge.
 
 ## Integrated in this candidate
 
@@ -22,10 +22,10 @@ The target branch is the fork, not the upstream remote. The GitHub repository pa
 ## Inventory classification
 
 - **ALREADY_IN_MAIN:** The reviewed fork tip is based on the published integration and contains the core product, event/evidence contracts, SQLite persistence, API, Simulation Lab foundations, hardware simulation, intelligence, and Mini-MVP work. Issue branches 1–3, 21–28, movement/tag research, and Mini-MVP persistence, firmware/digital-twin, and simulation/localization refs are ancestors of the target. They do not need branch merges. Other issue refs are recorded individually in `PRE_BLOCKCHAIN_BRANCH_INVENTORY.json`.
-- **READY_TO_INTEGRATE:** H.2 stable event identity and the dynamic localization fault campaign were absent at the target tree and are included selectively here. The RF and network closure evidence was absent and is included as auditable research artifacts; their older campaign code is not copied because it uses the superseded `event_index` identity path.
+- **READY_TO_INTEGRATE:** H.2 stable event identity, the dynamic localization fault campaign, and the tag sensor trace/axis closure were absent at the target tree and are included selectively here. The tag slice bounds dataset conversion to the LIS2DW12 physical range, exercises STATIC/WALK/RUN plus a golden axis probe, and offers an explicit `--skip-antenna` path. Its evidence remains simulated. The RF and network closure evidence is included as auditable research artifacts; their older campaign code is not copied because it uses the superseded `event_index` identity path.
 - **SUPERSEDED / DUPLICATE:** Earlier issue and Mini-MVP branches whose commits are already ancestors or whose implementation is superseded by the integrated tree. The RF campaign baseline `research/rf-realism-campaign` is superseded by `research/rf-realism-gap-closure`. `research/network-scale-capacity` is superseded by `research/network-contention-capacity-closure`.
-- **PARTIALLY_USEFUL / NOT READY:** Dirty tag-simulation-closure worktree (uncommitted firmware trace, fixtures, and evidence), Issue 10 antenna worktree (dirty, stale README, no accepted RF metrics or mesh-refinement evidence), and Issue 9 CAD test edit (already superseded by optional-CadQuery handling in the target test). These source worktrees were not modified. Their partial claims and blockers are not promoted as completed capabilities.
-- **EXTERNAL_BLOCKED:** Renode is unavailable on this host; its test target skipped. Physical hardware, field calibration, Sionna raw campaign inputs, openEMS bindings, and FREQUENCIA's `TxStart` event-ID patch are external to this checkout. These do not invalidate the simulated/code baseline, but limit the associated claims.
+- **PARTIALLY_USEFUL / NOT READY:** The tag antenna pilot remains `PARTIAL_SIMULATED`: solver energy met its limit before excitation completion, S11 validation failed, and no RF metrics or mesh-refinement evidence are accepted. Issue 10's dirty antenna worktree has a stale README and no accepted RF metrics. Issue 9's dirty CAD test edit is superseded by optional-CadQuery handling in the target test. These source worktrees were not modified.
+- **EXTERNAL_BLOCKED:** Renode is unavailable on this host; the platform test target skipped. Physical hardware and field calibration are absent. The reported openEMS availability differed between worktrees and was not independently reconciled; in any case the retained pilot result is rejected. H.2 also depends on FREQUENCIA's external `TxStart` event-ID patch. These limits do not invalidate the simulated/code baseline, but constrain those claims.
 - **BLOCKCHAIN / OUT OF SCOPE:** The reviewed target already contains Web3/Solana publication and commitment files from earlier work. They predate this integration and were not edited, extended, or removed. The dirty `blockchain-hackathon-demo`, Mini-MVP blockchain, and issue-03 commitment worktrees/branches were excluded. This publication candidate must not be represented as a blockchain-free checkout; it is a pre-blockchain consolidation of eligible work on the existing target tree.
 
 Repository discovery found 51 local branches, 46 remote-tracking refs, and 66 worktree registrations. Several registrations point to unavailable stale WSL paths and were left alone. The root worktree's existing untracked preservation manifests and `riose-issue26/` directory were left untouched. The separate multichain worktree remains clean at the reviewed target SHA. No PRs were open in the public repository when checked. The branch-by-branch decisions and ref SHAs are recorded in the provenance JSON and supporting Git history.
@@ -34,7 +34,7 @@ Repository discovery found 51 local branches, 46 remote-tracking refs, and 66 wo
 
 - Root checkout: untracked preservation manifests, collision matrix, and `riose-issue26/` (preserved).
 - `riose-blockchain-hackathon-demo`: modified blockchain demo docs, Solana publication adapter/domain/CLI/verifier, tests, and untracked demo simulation/tests/research evidence (excluded as blockchain).
-- `riose-tag-simulation-closure`: modified Renode board config and scripts/tests, digital twin CLI/runner/test; untracked tag closure report/evidence and LIS2DW12 fixtures (partial, preserved).
+- `riose-tag-simulation-closure`: modified Renode board config and scripts/tests, digital twin CLI/runner/test; untracked tag closure report/evidence and LIS2DW12 fixtures. The focused code/evidence slice is now in this candidate after 55 passing tests; the original worktree remains untouched.
 - `riose-wt-issue-09`: modified mechanical model test plus untracked `.omx/` state (test edit already superseded; state preserved).
 - `riose-wt-issue-10`: modified README, antenna/mechanical model/tests/spec/toolchain docs; untracked antenna geometry/metrics/openEMS/sweeps/tests and integration map (partial, preserved).
 - `riose-wt-issue-01`, `riose-wt-issue-02`, `riose-wt-issue-03-commitment-v1`, and `riose-wt-issue-07`: dirty identity, evidence-bridge, commitment, and `.omx/` state respectively. The first two overlap integrated or blocked contract work; commitment is blockchain; `.omx/` is local state. All were preserved.
@@ -43,15 +43,16 @@ Repository discovery found 51 local branches, 46 remote-tracking refs, and 66 wo
 ## Verification and limitations
 
 - `uv sync --locked --offline --extra dev --extra solana` — passed.
-- `uv run --offline --extra dev --extra solana pytest -q` — 788 passed, 7 skipped; one existing Starlette/httpx deprecation warning.
+- `uv run --offline --extra dev --extra solana pytest -q` — 794 passed, 7 skipped; one existing Starlette/httpx deprecation warning.
 - `ctest --test-dir /tmp/riose-pre-blockchain-baseline-hardware-tests --output-on-failure` — 39/39 passed.
 - Focused identity + dynamic-localization regressions — 69 and 24 passed respectively before the full suite.
-- Renode check — skipped because Renode tools are unavailable on this host.
+- Tag digital-twin + RESD converter focused tests — 55 passed.
+- Renode check — skipped because Renode tools are unavailable on this host; no physical firmware flash was run.
 - No physical firmware flash, RF field measurement, or new Sionna/ns-3 campaign was run in this integration.
-- `git diff --check`, Python compilation, and secret-scan results are recorded after final validation.
+- `git diff --check`, Python compilation, JSON validation, and a high-signal private-key/token marker scan passed; no matching markers were found. `gitleaks` and `trufflehog` were unavailable.
 
 The external FREQUENCIA request-identity patch is required for real ns-3 adapter lineage. Until that dependency is published and verified, H.2's included RIOSE code should be treated as tested contract/validator support paired with the archived simulation evidence, not as a newly rerun adapter result. Existing Web3 files and any local-only partial work remain separately classified above.
 
 ## Publication state
 
-PR #37 was squash-merged after both required CI jobs passed. GitHub confirmed the merge commit above as `main` and the baseline document was fetched successfully from that commit. The local Git CLI could not fetch due DNS/authentication failure, so the remote ref and file checks were performed through the authenticated GitHub connector. The completion report records the final verified remote `main` SHA.
+PR #37 was squash-merged after both required CI jobs passed, and PR #38 published its corrected status record after the same two CI jobs passed again. GitHub confirmed the baseline commit on `main` and the baseline document was fetched successfully. The local Git CLI could not fetch due DNS/authentication failure, so remote ref and file checks were performed through the authenticated GitHub connector. The tag-trace follow-up included in this tree is awaiting its own remote CI/merge; the completion report must use the final verified `main` SHA after that PR.

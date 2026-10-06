@@ -1,0 +1,17 @@
+{
+  "provenance": "SIMULATED",
+  "datasets": [
+    {
+      "name": "GOLDEN_AXIS_PROBE",
+      "file": "golden_axis_probe.csv",
+      "sample_rate_hz": 12.5,
+      "samples": 4,
+      "duration_s": 0.32,
+      "axes": ["x", "y", "z"],
+      "unit": "g",
+      "seed": 0,
+      "status": "SIMULATED",
+      "source": "Controlled engineering fixture for axis order, polarity and scale; not animal behavior data"
+    }
+  ]
+}

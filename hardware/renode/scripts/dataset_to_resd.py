@@ -16,6 +16,8 @@ import tempfile
 from decimal import Decimal
 from pathlib import Path
 
+MAX_SENSOR_ACCELERATION_G = Decimal(16)
+
 
 def _renode_root(explicit: Path | None) -> Path:
     if explicit is not None:
@@ -91,6 +93,8 @@ def convert_dataset(
         if reader.fieldnames != ["timestamp_s", "x_g", "y_g", "z_g"]:
             raise ValueError(f"unexpected CSV columns in {source}")
         rows = list(reader)
+    if not rows:
+        raise ValueError(f"CSV must contain at least one acceleration sample: {source}")
     if len(rows) != dataset.get("samples"):
         raise ValueError("CSV sample count does not match the manifest")
     duration = Decimal(str(dataset["duration_s"]))
@@ -110,6 +114,8 @@ def convert_dataset(
             value = Decimal(row[f"{axis}_g"])
             if not value.is_finite():
                 raise ValueError(f"{axis}_g at row {index + 1} must be finite")
+            if abs(value) > MAX_SENSOR_ACCELERATION_G:
+                raise ValueError(f"{axis}_g at row {index + 1} exceeds the LIS2DW12 ±16 g physical range")
             vector.append(int(value * scale))
         acceleration_samples.append(tuple(vector))
 

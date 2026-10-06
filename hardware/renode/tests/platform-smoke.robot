@@ -8,6 +8,8 @@ ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
 ${STATIC_RESD}    %{RIOSE_LIS2DW12_STATIC_RESD=}
 ${WALK_RESD}      %{RIOSE_LIS2DW12_WALK_RESD=}
+${RUN_RESD}       %{RIOSE_LIS2DW12_RUN_RESD=}
+${GOLDEN_RESD}    %{RIOSE_LIS2DW12_GOLDEN_RESD=}
 
 *** Test Cases ***
 Loads MCU Surrogate, SX1262 And Native LIS2DW12
@@ -48,6 +50,11 @@ LIS2DW12 Auto Increment Burst Read Returns Configured Sample
     Should Contain    ${sample}    0x08
     Should Contain    ${sample}    0x40
     Execute Command    sysbus.i2c1.imu FinishTransmission
+    [Setup]    Create RIOSE Platform
+
+LIS2DW12 Rejects Missing RESD Instead Of Silently Falling Back
+    Configure LIS2DW12 RESD Playback
+    Run Keyword And Expect Error    *    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${CURDIR}/fixtures/lis2dw12/does-not-exist.resd
     [Setup]    Create RIOSE Platform
 
 Firmware Boots Sleeps Services IRQ And Returns To Sleep
@@ -181,6 +188,7 @@ Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${STATIC_RESD}' == ''    Set RIOSE_LIS2DW12_STATIC_RESD to the STATIC RESD output.
     Configure LIS2DW12 RESD Playback
+    Create Terminal Tester    sysbus.usart2    timeout=5    defaultPauseEmulation=False
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${STATIC_RESD}
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
@@ -189,6 +197,9 @@ Firmware Reads LIS2DW12 While STATIC RESD Is Loaded
     ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
     Should Be True    int($reads.strip(), 0) > 0
     Firmware LIS2DW12 Output Should Match RESD First Sample    ${STATIC_RESD}
+    ${trace}=    Wait For Line On Uart    SIMULATED_TRACE,v1,[0-9]+,[0-9]+,[0-9]+,IMU_READ,4,[0-9]+,0,-?[0-9]+,-?[0-9]+,-?[0-9]+,.*    treatAsRegex=True    timeout=10
+    Firmware LIS2DW12 Trace Should Match RESD First Sample    ${STATIC_RESD}    ${trace}
+    Log To Console    CAPTURED_FIRMWARE_TRACE profile=STATIC ${trace.Line}
     Log To Console    SIMULATED_STATIC_RESD_RAW_Z=${raw_z}
     [Setup]    Create RIOSE Platform
 
@@ -196,6 +207,7 @@ Firmware Reads LIS2DW12 While WALK RESD Is Loaded
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
     Skip If    '${WALK_RESD}' == ''    Set RIOSE_LIS2DW12_WALK_RESD to the WALK RESD output.
     Configure LIS2DW12 RESD Playback
+    Create Terminal Tester    sysbus.usart2    timeout=5    defaultPauseEmulation=False
     Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WALK_RESD}
     Execute Command    sysbus LoadELF @${ELF}
     Execute Command    emulation RunFor "0.25"
@@ -204,7 +216,46 @@ Firmware Reads LIS2DW12 While WALK RESD Is Loaded
     ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
     Should Be True    int($reads.strip(), 0) > 0
     Firmware LIS2DW12 Output Should Match RESD First Sample    ${WALK_RESD}
+    ${trace}=    Wait For Line On Uart    SIMULATED_TRACE,v1,[0-9]+,[0-9]+,[0-9]+,IMU_READ,4,[0-9]+,0,-?[0-9]+,-?[0-9]+,-?[0-9]+,.*    treatAsRegex=True    timeout=10
+    Firmware LIS2DW12 Trace Should Match RESD First Sample    ${WALK_RESD}    ${trace}
+    Log To Console    CAPTURED_FIRMWARE_TRACE profile=WALK ${trace.Line}
     Log To Console    SIMULATED_WALK_RESD_RAW_Z=${raw_z}
+    [Setup]    Create RIOSE Platform
+
+Firmware Reads LIS2DW12 While RUN RESD Is Loaded
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
+    Skip If    '${RUN_RESD}' == ''    Set RIOSE_LIS2DW12_RUN_RESD to the RUN RESD output.
+    Configure LIS2DW12 RESD Playback
+    Create Terminal Tester    sysbus.usart2    timeout=5    defaultPauseEmulation=False
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${RUN_RESD}
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    Firmware State Should Be    2
+    ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
+    ${raw_z}=    Execute Command    sysbus.i2c1.imu LastOutputZRaw
+    Should Be True    int($reads.strip(), 0) > 0
+    Firmware LIS2DW12 Output Should Match RESD First Sample    ${RUN_RESD}
+    ${trace}=    Wait For Line On Uart    SIMULATED_TRACE,v1,[0-9]+,[0-9]+,[0-9]+,IMU_READ,4,[0-9]+,0,-?[0-9]+,-?[0-9]+,-?[0-9]+,.*    treatAsRegex=True    timeout=10
+    Firmware LIS2DW12 Trace Should Match RESD First Sample    ${RUN_RESD}    ${trace}
+    Log To Console    CAPTURED_FIRMWARE_TRACE profile=RUN ${trace.Line}
+    Log To Console    SIMULATED_RUN_RESD_RAW_Z=${raw_z}
+    [Setup]    Create RIOSE Platform
+
+Firmware Reads Controlled Golden Axis Probe
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
+    Skip If    '${GOLDEN_RESD}' == ''    Convert the controlled golden_axis_probe.csv fixture to RESD.
+    Configure LIS2DW12 RESD Playback
+    Create Terminal Tester    sysbus.usart2    timeout=5    defaultPauseEmulation=False
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${GOLDEN_RESD}
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    Firmware State Should Be    2
+    ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
+    Should Be True    int($reads.strip(), 0) > 0
+    Firmware LIS2DW12 Output Should Match RESD First Sample    ${GOLDEN_RESD}
+    ${trace}=    Wait For Line On Uart    SIMULATED_TRACE,v1,[0-9]+,[0-9]+,[0-9]+,IMU_READ,4,[0-9]+,0,-?[0-9]+,-?[0-9]+,-?[0-9]+,.*    treatAsRegex=True    timeout=10
+    Firmware LIS2DW12 Trace Should Match RESD First Sample    ${GOLDEN_RESD}    ${trace}
+    Log To Console    CAPTURED_FIRMWARE_TRACE profile=GOLDEN_AXIS_PROBE ${trace.Line}
     [Setup]    Create RIOSE Platform
 
 SX1262 Config And FIFO Use SPI Command Bytes
@@ -484,6 +535,22 @@ Firmware LIS2DW12 Output Should Match RESD First Sample
         ${actual}=    Evaluate    (int($actual.strip(), 0) + 2**31) % 2**32 - 2**31
         ${expected}=    Evaluate    int($ug[int($index)] / 244) * 4
         Should Be Equal As Integers    ${actual}    ${expected}
+    END
+
+Firmware LIS2DW12 Trace Should Match RESD First Sample
+    [Arguments]    ${resd}    ${trace}
+    ${payload}=    Evaluate    pathlib.Path($resd).read_bytes()    modules=pathlib
+    ${metadata_size}=    Evaluate    struct.unpack_from('<Q', $payload, 37)[0]    modules=struct
+    ${ug}=    Evaluate    struct.unpack_from('<iii', $payload, 45 + $metadata_size)    modules=struct
+    ${trace_text}=    Set Variable    ${trace.Line}
+    ${fields}=    Evaluate    ("SIMULATED_TRACE" + str($trace_text).split("SIMULATED_TRACE", 1)[1]).strip().split(',')
+    Should Be Equal    ${fields}[5]    IMU_READ
+    Should Be Equal As Integers    ${fields}[8]    0
+    FOR    ${axis}    ${index}    IN    X    0    Y    1    Z    2
+        ${register}=    Evaluate    int($ug[int($index)] / 244) * 4
+        ${expected}=    Evaluate    int((int($register) >> 4) * 976 / 1000)
+        ${actual}=    Evaluate    (int($fields[9 + int($index)]) + 2**31) % 2**32 - 2**31
+        Should Be Equal As Integers    ${actual}    ${expected}    msg=firmware ${axis} trace value should match the selected RESD sample
     END
 
 Create RIOSE Platform
