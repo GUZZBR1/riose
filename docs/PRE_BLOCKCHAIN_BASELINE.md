@@ -8,8 +8,9 @@
 - Cached `origin/main` (`santleme/riose`): `5b17771f0f86b0bb0cdb526485e8e2f50e78fdea`, an ancestor of `fork/main`; the fork is 58 commits ahead.
 - Integration branch: `integration/pre-blockchain-baseline`, created from the reviewed `fork/main` tree. See `PRE_BLOCKCHAIN_INTEGRATION_PROVENANCE.json` for exact commits and evidence.
 - Baseline commit merged to `main`: `2beb7a5dd5681cbc7b5fc308f5e3a12301b85686` (PR #37).
+- Tag trace closure merged to `main`: `e32235b86d1e6f0042f6490b223bdf155bc2827f` (PR #39).
 
-The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs before integration. Git CLI push/fetch was unavailable because `github.com` did not resolve and the local CLI token was invalid; the authenticated GitHub connector successfully published the integration branch and PR. The core workflow at the reviewed base had failed because its dependency install omitted the already-declared optional `solana` test extra. This candidate corrects that command; PR workflow runs 81 and 85 passed both `cad-export` and `core` jobs. The later tag-trace follow-up still requires its own PR run before merge.
+The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs before integration. Git CLI push/fetch was unavailable because `github.com` did not resolve and the local CLI token was invalid; the authenticated GitHub connector published the integration branch and follow-up PRs. The core workflow at the reviewed base had failed because its dependency install omitted the already-declared optional `solana` test extra. The integration fixes that command. PR workflow runs 81, 85, and 89 passed both `cad-export` and `core` jobs; run 89 verified the tag-trace follow-up.
 
 ## Integrated in this candidate
 
@@ -55,4 +56,4 @@ The external FREQUENCIA request-identity patch is required for real ns-3 adapter
 
 ## Publication state
 
-PR #37 was squash-merged after both required CI jobs passed, and PR #38 published its corrected status record after the same two CI jobs passed again. GitHub confirmed the baseline commit on `main` and the baseline document was fetched successfully. The local Git CLI could not fetch due DNS/authentication failure, so remote ref and file checks were performed through the authenticated GitHub connector. The tag-trace follow-up included in this tree is awaiting its own remote CI/merge; the completion report must use the final verified `main` SHA after that PR.
+PR #37 published the baseline, PR #38 corrected its publication record, and PR #39 published the tag sensor trace closure. All three PR runs passed their required CI jobs. GitHub confirmed the baseline and tag-trace commits on `main` and key files were fetched successfully. The local Git CLI could not fetch due DNS/authentication failure, so remote ref and file checks were performed through the authenticated GitHub connector. The completion report records the final verified `main` SHA after the documentation status update.

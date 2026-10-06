@@ -15,6 +15,9 @@
     "baseline_main_merge_sha": "2beb7a5dd5681cbc7b5fc308f5e3a12301b85686",
     "pull_request": "https://github.com/GUZZBR1/riose/pull/37",
     "pull_request_merged": true,
+    "tag_trace_followup_pr": "https://github.com/GUZZBR1/riose/pull/39",
+    "tag_trace_merge_sha": "e32235b86d1e6f0042f6490b223bdf155bc2827f",
+    "tag_trace_pr_merged": true,
     "remote_publication": "PASS_VIA_AUTHENTICATED_GITHUB_CONNECTOR; local Git CLI DNS/token unavailable",
     "remote_main_verified": true
   },
@@ -24,8 +27,8 @@
     "worktree_registration_count": 66,
     "public_open_pr_count": 0,
     "public_base_core_ci": "FAILED_AT_BASE_MISSING_OPTIONAL_SOLANA_EXTRA",
-    "pull_request_ci_runs": [81, 85],
-    "pull_request_ci_conclusion": "SUCCESS; cad-export and core jobs passed on PRs 37 and 38",
+    "pull_request_ci_runs": [81, 85, 89],
+    "pull_request_ci_conclusion": "SUCCESS; cad-export and core jobs passed on PRs 37, 38, and 39",
     "unavailable_stale_worktree_paths_left_untouched": true,
     "root_dirty_state_preserved": [
       "GUZZ_PRESERVATION_MANIFEST.json",
@@ -171,7 +174,7 @@
     "python_compileall": "PASS",
     "json_artifacts_parse": "PASS",
     "secret_scan": "PASS_HIGH_SIGNAL_PRIVATE_KEY_AND_TOKEN_MARKERS_NO_MATCHES; gitleaks/trufflehog unavailable",
-    "remote_push_and_fetch": "PASS_VIA_GITHUB_CONNECTOR for PRs 37 and 38; the tag closure follow-up is prepared locally and awaits a PR run. Local Git CLI fetch/push was blocked by DNS and invalid token."
+    "remote_push_and_fetch": "PASS_VIA_GITHUB_CONNECTOR for PRs 37, 38, and 39; main and key files verified. Local Git CLI fetch/push was blocked by DNS and invalid token."
   },
   "evidence_limits": [
     "No new physical measurements or flash test were performed.",
