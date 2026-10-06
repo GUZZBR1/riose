@@ -1,0 +1,171 @@
+{
+  "actual_tx_gap_by_tag_s": {
+    "riose-tag-001": [
+      59.99999999999999
+    ],
+    "riose-tag-002": [
+      60.0
+    ]
+  },
+  "artifacts": {
+    "gateway_timestamps": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/gateway_timestamps.json",
+      "sha256": "798a4e3c53c2ce847eb1163f9001113c7f1af1c15b36b39432911e138fec46ed"
+    },
+    "network_results": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/network_results.json",
+      "sha256": "3d9874cf18573e174a86135014afcbf6c33105898acd2880457f039041de3148"
+    },
+    "request": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/request.json",
+      "sha256": "557cebf7179454b1247fade796b9f7f3f8c9d4ab526479533d2e76337c7c7bce"
+    },
+    "result": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/result.json",
+      "sha256": "685369ad7a3090a5d7917aa7186695614f5329837620c80cad84fca634a4083b"
+    },
+    "scoring": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/scoring.json",
+      "sha256": "17ae55089b630f51f2644c69b773478851d02cfa3cda0a8392dd2f06565b0dc2"
+    },
+    "summary": {
+      "path": "docs/research/beta-final/runs/temporal-identity-closure/summary.md",
+      "sha256": "60d3a54bfd3f8a212f4cd38c0f8e856b6653ce765c35234f09e9646c0d704daf"
+    }
+  },
+  "campaign_id": "riose-h2-temporal-identity-closure",
+  "campaign_manifest_canonical_sha256": "b45b11618bab06faad2f283900836098a0df8acc24aba30fd648f9bda9b57352",
+  "campaign_manifest_file_sha256": "3f0d9b6f896557c46e7436053d1a3eaf45350f584b707472003a9eb846d4a365",
+  "classification": "SIMULATED",
+  "events": [
+    {
+      "animal_id": "animal-001",
+      "clock_timestamp_gateway_count": 3,
+      "device_id": "device-001",
+      "drop_reason": null,
+      "gateway_outcomes": {
+        "GW-1": "RX",
+        "GW-2": "NO_PATH",
+        "GW-3": "RX",
+        "GW-4": "RX"
+      },
+      "packet_uid": 0,
+      "received_gateway_ids": [
+        "GW-1",
+        "GW-3",
+        "GW-4"
+      ],
+      "request_id": "req-36651cddc98848ede2f8f7c1",
+      "requested_timestamp_s": 0.0,
+      "scheduled_timestamp_s": 4.21439955920691,
+      "sequence_number": 0,
+      "source_timestamp_s": 0.0,
+      "tag_id": "riose-tag-001",
+      "transmitter_id": "tx-001",
+      "tx_outcome": "TRANSMITTED",
+      "tx_start_s": 4.214399559207
+    },
+    {
+      "animal_id": "animal-002",
+      "clock_timestamp_gateway_count": 2,
+      "device_id": "device-002",
+      "drop_reason": null,
+      "gateway_outcomes": {
+        "GW-1": "NO_PATH",
+        "GW-2": "RX",
+        "GW-3": "RX",
+        "GW-4": "NO_PATH"
+      },
+      "packet_uid": 1,
+      "received_gateway_ids": [
+        "GW-2",
+        "GW-3"
+      ],
+      "request_id": "req-8d2d1ec968a525de934a0ccb",
+      "requested_timestamp_s": 0.0,
+      "scheduled_timestamp_s": 16.992041539595853,
+      "sequence_number": 0,
+      "source_timestamp_s": 0.0,
+      "tag_id": "riose-tag-002",
+      "transmitter_id": "tx-002",
+      "tx_outcome": "TRANSMITTED",
+      "tx_start_s": 16.992041539596
+    },
+    {
+      "actual_tx_gap_from_previous_s": 59.99999999999999,
+      "animal_id": "animal-001",
+      "clock_timestamp_gateway_count": 3,
+      "device_id": "device-001",
+      "drop_reason": null,
+      "gateway_outcomes": {
+        "GW-1": "RX",
+        "GW-2": "NO_PATH",
+        "GW-3": "RX",
+        "GW-4": "RX"
+      },
+      "packet_uid": 2,
+      "received_gateway_ids": [
+        "GW-1",
+        "GW-3",
+        "GW-4"
+      ],
+      "request_id": "req-aa8875ea713fd71880007626",
+      "requested_timestamp_s": 60.0,
+      "scheduled_timestamp_s": 64.21439955920691,
+      "sequence_number": 1,
+      "source_timestamp_s": 60.0,
+      "tag_id": "riose-tag-001",
+      "transmitter_id": "tx-001",
+      "tx_outcome": "TRANSMITTED",
+      "tx_start_s": 64.214399559207
+    },
+    {
+      "actual_tx_gap_from_previous_s": 60.0,
+      "animal_id": "animal-002",
+      "clock_timestamp_gateway_count": 2,
+      "device_id": "device-002",
+      "drop_reason": null,
+      "gateway_outcomes": {
+        "GW-1": "NO_PATH",
+        "GW-2": "RX",
+        "GW-3": "RX",
+        "GW-4": "NO_PATH"
+      },
+      "packet_uid": 3,
+      "received_gateway_ids": [
+        "GW-2",
+        "GW-3"
+      ],
+      "request_id": "req-8246a7e00d7167bc2eaa6138",
+      "requested_timestamp_s": 60.0,
+      "scheduled_timestamp_s": 76.99204153959585,
+      "sequence_number": 1,
+      "source_timestamp_s": 60.0,
+      "tag_id": "riose-tag-002",
+      "transmitter_id": "tx-002",
+      "tx_outcome": "TRANSMITTED",
+      "tx_start_s": 76.992041539596
+    }
+  ],
+  "frequencia_revision": "0190048023269da695c84d0ff5e1cf3c6ed502d7",
+  "not_transmitted_count": 0,
+  "requested_count": 4,
+  "riose_revision": "2e5d5d92a6552f2cf6cfdba9e6566ac0e3d8aac9",
+  "run_id": "a1612c5387914adc918766c6b556f3f8",
+  "scenario_id": "brazil-rural-temporal-identity-closure",
+  "schema_version": "riose.beta.temporal-identity-closure-results/v1",
+  "seed": 83,
+  "source_cadence_by_tag_s": {
+    "riose-tag-001": [
+      0.0,
+      60.0
+    ],
+    "riose-tag-002": [
+      0.0,
+      60.0
+    ]
+  },
+  "traffic_interval_semantics": "seeded phase-window width; source timestamps define per-animal cadence",
+  "traffic_phase_window_s": 60.0,
+  "transmitted_count": 4
+}

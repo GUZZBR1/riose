@@ -26,7 +26,7 @@ from riose.simulation_contract import ContractError, canonical_json, content_has
 from riose.simulation_contract.v1 import RESULT_SCHEMA
 
 FREQUENCIA_URL = "https://github.com/GUZZBR1/frequencia.git"
-EXPECTED_FREQUENCIA_SHA = "ba2bdabf003722aae8292580e048f7092d0356d6"
+EXPECTED_FREQUENCIA_SHA = "0190048023269da695c84d0ff5e1cf3c6ed502d7"
 ANALYTIC_ENTRYPOINT = Path("experiments/farm_rf/run_experiment.py")
 ANALYTIC_BACKEND = "analytic_free_space_plus_flat_ground_reflection"
 MAX_LOG_BYTES = 2 * 1024 * 1024

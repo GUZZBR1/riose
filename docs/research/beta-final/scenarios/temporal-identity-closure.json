@@ -1,0 +1,118 @@
+{
+  "schema_version": "riose.beta.scenario-contract/v1",
+  "scenario_id": "brazil-rural-temporal-identity-closure",
+  "description": "Two synthetic animals with two source events each exactly 60 seconds apart to verify request identity, TX attribution, and source cadence.",
+  "seed": 11,
+  "identities": [
+    {
+      "animal_id": "riose-animal-001",
+      "tag_id": "riose-tag-001",
+      "device_id": "riose-device-001"
+    },
+    {
+      "animal_id": "riose-animal-002",
+      "tag_id": "riose-tag-002",
+      "device_id": "riose-device-002"
+    }
+  ],
+  "environment": {
+    "farm_id": "synthetic-farm-reference",
+    "coordinate_frame": "ENU_LOCAL",
+    "bounds_m": {
+      "east_min_m": 0,
+      "east_max_m": 1000,
+      "north_min_m": 0,
+      "north_max_m": 1000
+    },
+    "classification": "SIMULATED"
+  },
+  "rf": {
+    "mode": "sionna-rt",
+    "classification": "SIMULATED",
+    "parameters": {
+      "frequency_hz": 915000000,
+      "bandwidth_hz": 125000
+    }
+  },
+  "network": {
+    "mode": "ns-3-lorawan",
+    "classification": "SIMULATED",
+    "parameters": {
+      "spreading_factor": 7,
+      "payload_bytes": 12,
+      "traffic_interval_s": 60
+    }
+  },
+  "trajectory": {
+    "source": "inline synthetic two-animal request trajectory; ground truth is score-only input",
+    "classification": "SIMULATED",
+    "samples": [
+      {
+        "animal_id": "riose-animal-001",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          200.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "animal_id": "riose-animal-001",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 60.0,
+        "position_m": [
+          121.0,
+          200.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "animal_id": "riose-animal-002",
+        "tag_id": "riose-tag-002",
+        "timestamp_s": 0.0,
+        "position_m": [
+          700.0,
+          700.0,
+          10.0
+        ]
+      },
+      {
+        "animal_id": "riose-animal-002",
+        "tag_id": "riose-tag-002",
+        "timestamp_s": 60.0,
+        "position_m": [
+          701.0,
+          700.5,
+          10.02
+        ]
+      }
+    ]
+  },
+  "movement": {
+    "mode": "not-connected-to-RF-run",
+    "classification": "NOT_EVALUATED"
+  },
+  "faults": [
+    "NONE"
+  ],
+  "localization": {
+    "mode": "tdoa",
+    "classification": "SIMULATED",
+    "parameters": {
+      "quality_bounds_required": true
+    }
+  },
+  "blockchain": {
+    "mode": "offline-fake-not-in-RF-run",
+    "classification": "NOT_EVALUATED"
+  },
+  "expected_evidence": {
+    "scenario": "SIMULATED",
+    "rf": "SIMULATED",
+    "network": "SIMULATED",
+    "localization": "SIMULATED",
+    "movement": "NOT_EVALUATED",
+    "blockchain": "NOT_EVALUATED"
+  }
+}

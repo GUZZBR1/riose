@@ -1,0 +1,19 @@
+{
+  "classification": "SIMULATED",
+  "coordinate_frame": "synthetic local 2D Cartesian meters",
+  "epoch_interval_s": 1.0,
+  "epochs_per_trajectory": 24,
+  "catalog": [
+    {"name": "STATIC", "case": "static_control", "description": "fixed point at (500,500)"},
+    {"name": "STRAIGHT_WALK", "case": "straight_walk", "description": "linear path at 22 m/s"},
+    {"name": "TURN", "case": "turn", "description": "90 degree direction change at epoch 10"},
+    {"name": "STOP_AND_GO", "case": "stop_and_go", "description": "move, stationary interval, resume"},
+    {"name": "CURVE", "case": "curve", "description": "constant-radius circular arc"},
+    {"name": "BOUNDARY_CROSSING", "case": "boundary_crossing", "description": "linear pass near synthetic farm boundary"},
+    {"name": "NEAR_COLLINEAR_BAD_GEOMETRY", "case": "bad_geometry", "description": "linear path observed by near-collinear anchors"},
+    {"name": "LOW_COVERAGE_ZONE_CROSSING", "case": "bad_zone_crossing", "description": "predeclared epochs [10,15) remove two anchor observations as the path crosses a synthetic low-coverage zone"},
+    {"name": "ANCHOR_LOSS_WITH_CONTINUITY", "case": "anchor_loss_recovery", "description": "one anchor removed at epochs [8,14), three-anchor estimator service continues"},
+    {"name": "ANCHOR_LOSS_AND_RECOVERY", "case": "two_anchor_loss_recovery", "description": "two anchors removed at epochs [8,14), estimator becomes insufficient then recovers"}
+  ],
+  "animal_behavior_claim": false
+}

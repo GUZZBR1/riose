@@ -1,0 +1,35 @@
+{
+  "schema_version": "riose.dynamic-localization-replay/v1",
+  "classification": "SIMULATED",
+  "status": "PASS",
+  "primary": {
+    "riose_revision": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+    "worktree_clean": true,
+    "full_campaign_sha256": "e0ef0c32822fc660db35624a3411ca26d756afa155f25f51f9a5720679954c43"
+  },
+  "replay": {
+    "riose_revision": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+    "worktree_clean": true,
+    "seed": 100,
+    "cases": 28,
+    "epochs": 672,
+    "full_replay_sha256": "b0d5ccc9d8fefd11d1dc531d078cb2abdb37ed645b87edc2e1ee261c6ba2abcb"
+  },
+  "source_hashes": {
+    "campaign_source_sha256": "b4f413c8a8c3c54cc2501d041d180ab3623e82aea2481203c3d30801e0f34ae7",
+    "localization_v2_source_sha256": "f30f72b2159b50747c321cb5a19532f13043b6d2a51f1a1c32e9315d097a16cc",
+    "same_in_both_runs": true
+  },
+  "comparison": {
+    "compared_rows": 672,
+    "excluded_runtime_field": "runtime_ms",
+    "excluded_runtime_field_reason": "Wall-clock timing is observational instrumentation and is expected to vary between executions.",
+    "normalized_primary_sha256": "c0fc9cb2ab59ecb9c4805868b7df39c5e745ffd8e5feb1453dd71cb0d9155581",
+    "normalized_replay_sha256": "c0fc9cb2ab59ecb9c4805868b7df39c5e745ffd8e5feb1453dd71cb0d9155581",
+    "all_other_recorded_fields_equal": true
+  },
+  "limits": [
+    "This demonstrates deterministic synthetic estimator inputs and outputs for seed 100 under the same source revision.",
+    "It does not validate physical clocks, RF propagation, hardware, field accuracy, or biological interpretation."
+  ]
+}

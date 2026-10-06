@@ -38,7 +38,7 @@ jobs:
           python-version: "3.12"
           enable-cache: true
       - name: Install locked Python dependencies
-        run: uv sync --locked --extra dev
+        run: uv sync --locked --extra dev --extra solana
       - name: Validate hardware spec provenance
         run: uv run python -m riose.products.ear_tag.digital_twin validate-spec
       - name: Probe optional headless tools
