@@ -1,0 +1,41 @@
+{
+  "schema_version": "riose.integration-candidate-test-matrix/v1",
+  "branch": "integration/riose-candidate",
+  "base_sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+  "candidate_code_head": "479c818c81ffb007e7ee71d9ed960d0afabec78a",
+  "python": "CPython 3.12.3",
+  "dependency_setup": {
+    "command": "uv sync --offline --extra dev",
+    "status": "PASS",
+    "result": "Installed 47 packages from local cache; no network access required"
+  },
+  "checks": [
+    {"id": "T1", "name": "Syntax and compileall", "command": "python3 -m compileall -q src/riose", "status": "PASS", "result": "exit 0"},
+    {"id": "T2-T4,T9-T13", "name": "Focused Core, embedded contract, and promoted Intelligence Python tests", "command": "python3 -m pytest -q tests/ear_tag/test_movement_datasets.py tests/livestock_tracking/test_event_contract.py tests/livestock_tracking/test_intelligence_contracts.py tests/simulation_adapter tests/simulation_contract tests/test_evidence_bridge.py", "status": "PASS", "result": "131 passed"},
+    {"id": "T14-T15", "name": "Full Python collection and suite", "command": "uv run pytest -q", "status": "PASS", "result": "617 passed, 7 skipped, 1 deprecation warning, 64.97 s"},
+    {"id": "T5,T13", "name": "Embedded host CTest suite", "command": "cmake -S hardware/tests -B /tmp/riose-candidate-hardware-tests; cmake --build /tmp/riose-candidate-hardware-tests; ctest --test-dir /tmp/riose-candidate-hardware-tests --output-on-failure", "status": "PASS", "result": "39/39 passed, including lis2dw12_scale"},
+    {"id": "T5", "name": "Portable firmware host build and CTest", "command": "cmake -S hardware/firmware -B /tmp/riose-candidate-firmware; cmake --build /tmp/riose-candidate-firmware; ctest --test-dir /tmp/riose-candidate-firmware --output-on-failure", "status": "PASS", "result": "11/11 passed"},
+    {"id": "T6", "name": "Lock resolution", "command": "uv lock --check --offline", "status": "PASS", "result": "48 packages resolved; uv.lock unchanged"},
+    {"id": "T6", "name": "Offline dependency graph installation", "command": "uv sync --offline --extra dev", "status": "PASS", "result": "Resolved and installed project plus dev environment from cache"},
+    {"id": "T7", "name": "Source distribution and wheel", "command": "uv build --offline", "status": "PASS", "result": "Built cattle_rf-0.1.0.tar.gz and cattle_rf-0.1.0-py3-none-any.whl"},
+    {"id": "T8", "name": "Entrypoints", "command": "uv run cattle-rf --help; uv run riose --help; uv run riose mvp3 --help; uv run riose-movement-dataset catalog", "status": "PASS_WITH_LIMITATIONS", "result": "Commands exit successfully and catalog prints. Existing upstream riose dispatcher consumes nested --help and displays generic dispatcher usage; riose.cli blob is unchanged from base."},
+    {"id": "T9-T10", "name": "API and persistence", "command": "Included in uv run pytest -q", "status": "PASS", "result": "Full suite passed; Core API and SQLite observation behavior exercised"},
+    {"id": "T11", "name": "Identity and event contract", "command": "Included in focused and full Python suites", "status": "PASS", "result": "Event hash/version and prediction/simulation temporal identity tests passed"},
+    {"id": "T12", "name": "Movement contract", "command": "Included in focused and full Python suites", "status": "PASS", "result": "Movement catalog, fixture, and adapter tests passed; no model trained or promoted"},
+    {"id": "T13", "name": "LIS2DW12 scale regression", "command": "ctest --test-dir /tmp/riose-candidate-hardware-tests --output-on-failure", "status": "PASS", "result": "lis2dw12_scale passed in 39/39 suite"},
+    {"id": "T16", "name": "Zephyr native_sim gate", "command": "west build -b native_sim/native/64 -d /tmp/riose-candidate-zephyr hardware/firmware/zephyr", "status": "ENVIRONMENT_BLOCKED", "result": "west command missing; ZEPHYR_BASE unset"},
+    {"id": "T17", "name": "Renode smoke", "command": "make hardware-renode-test", "status": "ENVIRONMENT_BLOCKED", "result": "Tool check reports RENODE_AVAILABLE=false and RENODE_TEST_AVAILABLE=false; smoke tests skipped"},
+    {"id": "T17", "name": "Gazebo smoke", "command": "command -v gz; command -v gazebo", "status": "ENVIRONMENT_BLOCKED", "result": "Neither executable is installed/on PATH"},
+    {"id": "T18", "name": "Whitespace and evidence diff", "command": "git diff --check 5b17771..HEAD; git diff --exit-code 5b17771..HEAD -- results hardware/renode hardware/gazebo", "status": "PASS", "result": "No whitespace errors; no changed historical result, Renode, or Gazebo evidence paths"},
+    {"id": "REMOTE", "name": "Remote freshness", "command": "git fetch origin main; git fetch fork main", "status": "ENVIRONMENT_BLOCKED", "result": "DNS could not resolve github.com; pinned local refs and commits remain available"}
+  ],
+  "initial_environment_diagnostic": {
+    "command": "python3 -m pytest --collect-only -q",
+    "result": "590 tests collected; 4 modules could not import FastAPI under system Python",
+    "resolution": "Project dependency installation via uv sync --offline --extra dev succeeded; subsequent full uv run pytest passed",
+    "classification": "NOT_A_PRODUCT_DEFECT"
+  },
+  "known_warning": "Starlette emits a deprecation warning for httpx in TestClient.",
+  "unconfigured_checks": ["No lint or type-check command/configuration is declared in pyproject.toml; compileall and tests were run."],
+  "overall": "PASS_WITH_LIMITATIONS"
+}

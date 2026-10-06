@@ -36,7 +36,6 @@ inside livestock tracking.
 
 ```text
 src/riose/
-  evidence/                             # shared status-to-evidence contracts
   products/
     livestock_tracking/
       domain/                            # animal, farm, RF contracts and rules
@@ -50,7 +49,6 @@ src/riose/
       firmware/                          # virtual tag state/energy model
       cli.py                             # command composition only
     ear_tag/
-      movement_datasets/                # external bovine accelerometer catalog and provenance-preserving adapters
       digital_twin/                      # spec, readiness gate, orchestration
       signal/                            # offline XYZ validation and features
     <future_product>/                    # independent domain and adapters
@@ -61,8 +59,7 @@ hardware/
 tests/{livestock_tracking,ear_tag}/      # tests follow the owning product
 ```
 
-The dependency direction is: shared contracts ← product-local adapters;
-product domain → its application/use cases →
+The dependency direction is: product domain → its application/use cases →
 adapters and entry points. One product must not reach into another product's
 implementation. API, CLI, and hardware-tool integrations are composition
 boundaries; they should call application functions rather than contain domain
@@ -92,12 +89,6 @@ flowchart LR
   PREFLIGHT --> RUN
   RUN --> HW[Optional firmware, mechanical, antenna, power tools]
   RUN --> MVP2[results/mvp2 and digital-twin report]
-
-  RAW[Public bovine accelerometer files] --> ACQ[Explicit checksum-verified acquisition]
-  ACQ --> IMMUTABLE[Local raw file]
-  IMMUTABLE --> ADAPTER[ear_tag movement_datasets adapter]
-  ADAPTER --> CANONICAL[Canonical external movement samples]
-  ADAPTER --> EVIDENCE[Shared evidence bridge]
 ```
 
 The dashboard and CLI simulation paths share the same application pipeline.
@@ -109,12 +100,6 @@ tag/timestep and the newest observation for each tag/anchor/timestep; bounded
 history queries return the most recent samples in chronological order. The MVP2 runner records each optional
 tool's status and keeps missing external solvers visible in its report and
 readiness gate.
-
-The movement-dataset adapter is a separate ear-tag product capability. It
-reads external accelerometer files without modifying them, records source
-checksums and evidence provenance, and does not depend on the digital twin's
-simulated motion or on a behavior classifier. External neck/collar captures do
-not establish ear-tag validity.
 
 | User flow | Entry point | Persistent or generated output |
 |---|---|---|
@@ -174,24 +159,3 @@ The current episode API intentionally returns in-memory tuples for reproducible
 small-to-medium experiments. Converting the simulator to streaming is a later
 design step because localization, evaluation, and dashboard behavior currently
 consume complete episodes.
-
-## Behavior observation persistence
-
-Classified behavior is stored in the livestock-tracking `Store` SQLite database
-as an append-only `behavior_observations` history. Each row references the
-canonical `animals.animal_id`, records its observation time (Unix seconds in
-UTC), optional end time, optional confidence, model version, source identifier,
-observation kind, and the existing `EvidenceStatus`. Confidence is a producer
-confidence value in `[0, 1]`; it is not converted to or represented as a
-calibrated probability. Predictions require a model version. Manual annotations
-and ground truth use distinct observation kinds and may omit it.
-
-The additive `CREATE TABLE IF NOT EXISTS` schema change preserves existing
-SQLite rows. A required producer idempotency key is unique per animal: retrying
-the same key with identical content returns the original row, while different
-content under that key is rejected. Different keys preserve legitimate events
-at the same timestamp; ordering is timestamp then insertion id. History reads
-are bounded and paginated. Only bounded identifiers/provenance are stored;
-raw sensor payloads and XYZ samples are not copied into this table. A
-`SIMULATED` or `EXPERIMENTAL` status remains as written through storage and API
-reads.

@@ -12,9 +12,18 @@ python -m hardware.antenna.run --spec hardware/spec.yaml --output results/mvp2/a
 The command builds CSXCAD primitives from `hardware/spec.yaml`, then runs
 openEMS headlessly. It writes `antenna_experiments.json` and `antenna.csv` with
 the five scenario IDs: free space, PCB, battery, enclosure, and experimental
-animal proximity. S11 curves and far-field patterns are included in JSON and
-saved as per-run CSV artifacts. `--sweeps` adds `sweeps.csv` and per-case solver
-artifacts. A subset run cannot mark the full experiment `COMPLETED`.
+animal proximity. The 371-point S11 sweep covers 0.65 to 2.5 times the assumed
+center frequency. Its Gaussian excitation extends from 0.4 to 2.8 times center
+to keep measured sweep edges away from the pulse's low-energy cutoff. Resonances
+are interpolated at input-reactance zero crossings, choosing the crossing nearest
+the assumed center frequency; S11 minima are reported separately as matching
+metrics. This distinguishes electrical resonance from a good 50-ohm match.
+An S11 magnitude that exceeds the passive limit by at most 0.05 dB is clamped to
+0 dB for roundoff and recorded in solver evidence; larger violations fail the
+run. Metrics are also sampled at the exact assumed center frequency. S11 curves and far-field patterns are
+included in JSON and saved as per-run CSV artifacts. `--sweeps` adds
+`sweeps.csv` and per-case solver artifacts. A subset run cannot mark the full
+experiment `COMPLETED`.
 
 The consumed geometry and material records are marked `ASSUMED` unless the
 spec says otherwise; `MEASURED` is rejected for MVP 2. The provisional battery
@@ -24,9 +33,26 @@ requires mechanical review. Invalid sweep geometry is recorded per case as
 homogeneous dielectric sensitivity approximation, not tissue validation. A
 completed solver run records the input/spec/geometry
 hashes, solver version, mesh lines and hash, openEMS time-domain energy
-convergence statistics, and hashes of the result artifacts. Mesh refinement
-convergence is not run and remains an explicit limitation; cell resolution
-and time-domain convergence are not interchangeable.
+convergence statistics, and hashes of the result artifacts. Each scenario is
+run at coarse and fine mesh settings. The gate recomputes each grid hash from
+its coordinates, requires distinct grids with more total cells and smaller
+maximum cell spacing, and checks time-domain energy convergence independently
+for each mesh. Numerical acceptance limits are: resonance 2% relative; minimum,
+resonant, target-frequency, and full-curve S11 1 dB; input impedance components
+5 ohm; VSWR 0.5; efficiency 0.05 absolute; gain and directivity 0.5 dB; and
+accepted/radiated power 10% relative. The full radiation-pattern gain curve must
+agree within 1 dB on the same angular grid. Missing metrics, curves, or mesh
+evidence block convergence. These numerical mesh-stability criteria are not
+physical acceptance thresholds; the manifest records the criteria and deltas.
+The lumped port's `stop` end is placed at the ground plane per the openEMS port
+reference-plane convention. The candidate uses a parameterized partial ground
+plane that covers the complete feed trace and ends before the meander radiator;
+its dimensions remain `ASSUMED` and require RF/layout validation.
+
+Radiated power greater than accepted feed power is rejected as a physically
+invalid result and classified as an RF solver-result failure, not invalid user
+input. A converged FDTD run alone does not make RF metrics or the
+physical-prototype gate ready.
 
 The runner requires the native openEMS executable and Python bindings for
 CSXCAD/openEMS. Missing pieces, failed runs, non-convergence, and invalid

@@ -10,12 +10,12 @@ from .contracts import EvidenceStatus
 
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z", re.ASCII)
-_MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:+/-]{0,127}\Z", re.ASCII)
+_SOURCE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:+/-]{0,127}\Z", re.ASCII)
 
 
 @dataclass(frozen=True, slots=True)
 class BehaviorObservation:
-    """One classified behavior event; timestamps are Unix seconds in UTC."""
+    """One classified or annotated behavior observation; timestamps are Unix seconds."""
 
     animal_id: str
     timestamp_s: float
@@ -40,7 +40,7 @@ class BehaviorObservation:
             raise ValueError("end_timestamp_s must be finite and >= timestamp_s")
         if not isinstance(self.behavior, str) or not _IDENTIFIER.fullmatch(self.behavior):
             raise ValueError("behavior must be a non-empty identifier")
-        if not isinstance(self.source, str) or not _MODEL.fullmatch(self.source):
+        if not isinstance(self.source, str) or not _SOURCE.fullmatch(self.source):
             raise ValueError("source must be a non-empty bounded identifier")
         if self.observation_kind not in {"PREDICTION", "GROUND_TRUTH", "MANUAL_ANNOTATION"}:
             raise ValueError("unsupported observation_kind")
@@ -53,13 +53,13 @@ class BehaviorObservation:
         ):
             raise ValueError("confidence must be a finite value in [0, 1]")
         if self.model_version is not None and (
-            not isinstance(self.model_version, str) or not _MODEL.fullmatch(self.model_version)
+            not isinstance(self.model_version, str) or not _SOURCE.fullmatch(self.model_version)
         ):
             raise ValueError("model_version must be a non-empty bounded identifier")
         if self.sensor_position is not None and (
             not isinstance(self.sensor_position, str) or not _IDENTIFIER.fullmatch(self.sensor_position)
         ):
-            raise ValueError("sensor_position must be a non-empty bounded identifier")
+            raise ValueError("sensor_position must be a non-empty identifier")
         if self.observation_kind == "PREDICTION" and not self.model_version:
             raise ValueError("prediction requires model_version")
 

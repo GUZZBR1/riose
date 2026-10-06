@@ -56,7 +56,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "catalog":
-        catalog = Path(__file__).resolve().parents[5] / "datasets" / "movement_biosignature" / "catalog.json"
+        catalog = Path(__file__).resolve().with_name("catalog.json")
+        if not catalog.is_file():
+            catalog = Path(__file__).resolve().parents[5] / "datasets" / "movement_biosignature" / "catalog.json"
         if not catalog.is_file():
             parser.error("checked-in catalog.json was not found from this source checkout")
         print(catalog.read_text(encoding="utf-8"), end="")

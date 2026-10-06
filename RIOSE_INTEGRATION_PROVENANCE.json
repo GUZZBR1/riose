@@ -1,0 +1,112 @@
+{
+  "schema_version": "riose.integration-candidate-provenance/v1",
+  "branch": "integration/riose-candidate",
+  "worktree": "/home/gusta/projetos/RIOSE/riose-integration-candidate",
+  "base_sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+  "guzz_reference_sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+  "candidate_code_head": "479c818c81ffb007e7ee71d9ed960d0afabec78a",
+  "remotes": {
+    "origin": "https://github.com/santleme/riose.git",
+    "fork": "https://github.com/GUZZBR1/riose.git",
+    "fetch_status": "ENVIRONMENT_BLOCKED: DNS resolution for github.com failed; local audited refs used"
+  },
+  "sources": [
+    {
+      "origin": "CORE_MVP",
+      "source_branch": "integration/core-product-mvp",
+      "source_branch_head": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "source_sha": "9772e3a4f727a84e0f27eb1097674e266a7d8d2f",
+      "target_commit": "b28fa8601cdb4e13b5d9f0fb1e173e0bfa9be6b3",
+      "policy": "Selectively promote approved Core implementation; Core is authority for package, identity, event, API and persistence contracts.",
+      "files": [
+        ".gitattributes",
+        "datasets/movement_biosignature/catalog.json",
+        "datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.csv",
+        "datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.jsonl",
+        "datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.jsonl.manifest.json",
+        "pyproject.toml",
+        "src/riose/evidence/__init__.py",
+        "src/riose/evidence/bridge.py",
+        "src/riose/products/ear_tag/movement_datasets/__init__.py",
+        "src/riose/products/ear_tag/movement_datasets/__main__.py",
+        "src/riose/products/ear_tag/movement_datasets/acquisition.py",
+        "src/riose/products/ear_tag/movement_datasets/actbecalf.py",
+        "src/riose/products/ear_tag/movement_datasets/contract.py",
+        "src/riose/products/livestock_tracking/adapters/api.py",
+        "src/riose/products/livestock_tracking/adapters/persistence/sqlite_store.py",
+        "src/riose/products/livestock_tracking/domain/behavior.py",
+        "src/riose/products/livestock_tracking/domain/identity.py",
+        "tests/ear_tag/test_movement_datasets.py",
+        "tests/livestock_tracking/test_behavior_persistence.py",
+        "tests/livestock_tracking/test_core_product_integration.py",
+        "tests/livestock_tracking/test_event_contract.py",
+        "tests/test_evidence_bridge.py"
+      ]
+    },
+    {
+      "origin": "EMBEDDED_MVP",
+      "source_branch": "integration/embedded-physical-digital-mvp",
+      "source_branch_head": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "source_sha": "163143d25e96022e2467ebb59b8e5c08330b2b11",
+      "target_commit": "b0c160ecbf72ceeb5582a0c005c41fea0979498d",
+      "policy": "Promote LIS2DW12 shared conversion and regression; retain upstream SX1262, Renode, Gazebo and MVP3 boundaries.",
+      "files": [
+        "hardware/EMBEDDED_PHYSICAL_DIGITAL_CONTRACT.md",
+        "hardware/firmware/CMakeLists.txt",
+        "hardware/firmware/include/tag_lis2dw12.h",
+        "hardware/firmware/src/lis2dw12.c",
+        "hardware/firmware/zephyr/CMakeLists.txt",
+        "hardware/firmware/zephyr/src/main.c",
+        "hardware/tests/CMakeLists.txt",
+        "hardware/tests/lis2dw12_scale.c"
+      ]
+    },
+    {
+      "origin": "INTELLIGENCE_MVP",
+      "source_branch": "integration/intelligence-research-mvp",
+      "source_branch_head": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "source_sha": "222deb228e9b2cfde7ac3fbe1e64f489fce47d32",
+      "target_commit": "479c818c81ffb007e7ee71d9ed960d0afabec78a",
+      "policy": "Select only PRODUCT_OPTIONAL and REUSABLE_CONTRACT capabilities. Duplicate Core movement/evidence files were deduplicated in favor of Core.",
+      "files": [
+        ".gitattributes",
+        "INTELLIGENCE_RESEARCH_INTEGRATION_PACKET.md",
+        "INTELLIGENCE_RESEARCH_PROMOTION_MATRIX.json",
+        "docs/evidence-bridge.md",
+        "src/riose/products/livestock_tracking/domain/intelligence.py",
+        "src/riose/simulation_adapter/__init__.py",
+        "src/riose/simulation_adapter/__main__.py",
+        "src/riose/simulation_adapter/adapter.py",
+        "src/riose/simulation_contract/__init__.py",
+        "src/riose/simulation_contract/__main__.py",
+        "src/riose/simulation_contract/fixtures/request-v1.json",
+        "src/riose/simulation_contract/fixtures/result-v1.json",
+        "src/riose/simulation_contract/temporal_identity.py",
+        "src/riose/simulation_contract/v1.py",
+        "tests/livestock_tracking/test_intelligence_contracts.py",
+        "tests/simulation_adapter/test_adapter.py",
+        "tests/simulation_contract/test_temporal_identity.py",
+        "tests/simulation_contract/test_v1.py"
+      ]
+    }
+  ],
+  "excluded_capabilities": [
+    {"capability": "Behavior ML model and pipeline", "policy": "KEEP_RESEARCH", "reason": "No animal behavior model is promoted; synthetic-only metrics do not support product claims."},
+    {"capability": "BioSignature", "policy": "KEEP_EXPERIMENTAL", "reason": "Experimental signal without biological or field validation."},
+    {"capability": "Health anomaly", "policy": "KEEP_EXPERIMENTAL", "reason": "Investigation signal only; no diagnosis or veterinary risk claim."},
+    {"capability": "Reproduction", "policy": "KEEP_RESEARCH", "reason": "Activity proxies and hypotheses do not establish reproductive outcomes."},
+    {"capability": "Localization V2", "policy": "KEEP_RESEARCH", "reason": "Solver and campaign are not promoted; convergence is not accuracy."},
+    {"capability": "Simulation Lab runners and campaigns", "policy": "KEEP_RESEARCH", "reason": "Only reusable contracts and opt-in adapter were selected."},
+    {"capability": "RF and Network campaigns", "policy": "KEEP_RESEARCH", "reason": "Campaign machinery and results remain in their research lineage."},
+    {"capability": "FREQUENCIA", "policy": "EXTERNAL_DEPENDENCY", "reason": "No source code, history or runtime dependency was imported."},
+    {"capability": "Publication and blockchain", "policy": "DO_NOT_INTEGRATE", "reason": "Outside the approved scope and unrelated to selected capabilities."}
+  ],
+  "evidence_integrity": {
+    "historical_results_diff": "clean under results/",
+    "preservation_refs_current_count": 1801,
+    "preservation_refs_modified_by_assembly": false,
+    "main_refs_modified_by_assembly": false,
+    "historical_evidence_rewritten": false
+  },
+  "external_actions": {"push": false, "pull_request": false}
+}

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f2f0">
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="modulepreload" href="/assets/product-scene.js?v=20261005-1">
+  <link rel="modulepreload" href="/assets/vendor/three.module.js">
+  <meta name="description" content="RIOSE develops radio-based technology for livestock monitoring in GPS-denied environments.">
+  <title>RIOSE — Livestock technology</title>
+  <link rel="stylesheet" href="/assets/landing.css?v=20261005-1">
+</head>
+<body>
+  <header class="floating-header" id="floating-header">
+    <a class="nav-manifesto" href="/manifesto">manifesto</a>
+    <div class="brand-meaning">
+      <button class="wordmark-trigger" type="button" aria-label="Riose — significado do nome" aria-expanded="false" aria-controls="brand-definition-panel">
+        <span class="riose-logo"><span>Riose</span><img class="riose-mark" src="/assets/riose-mark.png" alt="" aria-hidden="true" width="107" height="104"></span>
+      </button>
+      <div class="brand-definition" id="brand-definition-panel" role="note" aria-hidden="true">
+        <div class="brand-definition-content">
+          <div class="definition-heading">
+            <strong>Riose</strong>
+            <span class="pronunciation">/ˈriː.oʊs/</span>
+          </div>
+          <span class="definition-kind">proper noun · origin</span>
+          <p>Named after Bel Riose, the general from <i>Foundation</i>, himself inspired by the Byzantine commander Belisarius.</p>
+          <p class="brand-thought">A name for seeing farther, operating at the edge, and turning the unseen into knowledge.</p>
+        </div>
+      </div>
+    </div>
+    <a class="location" href="https://www.google.com/maps/search/?api=1&amp;query=Sao+Paulo%2C+Brazil" target="_blank" rel="noopener noreferrer" aria-label="Open Sao Paulo, Brazil in Google Maps">sao paulo, brazil</a>
+  </header>
+
+  <main id="top">
+    <div class="hero-scroll-stage" id="hero-scroll-stage">
+      <section class="hero" aria-labelledby="hero-headline">
+        <div class="scene-wrap" id="scene-wrap" tabindex="0" role="group" aria-label="Interactive 3D product model" aria-describedby="scene-help">
+          <canvas id="product-canvas" aria-hidden="true"></canvas>
+        </div>
+        <div class="hero-copy" id="hero-copy">
+          <h1 class="hero-headline" id="hero-headline"><span class="hero-headline-line">The next-generation</span><span class="hero-headline-line">livestock ear tag.</span></h1>
+          <p class="hero-copy-subtitle"><span class="hero-subtitle-entrance">A hardware platform for sensing, tracking, and understanding the field.</span></p>
+        </div>
+        <p class="visually-hidden" id="scene-help">On desktop, hover over the tag for a slight response. Hold and drag or touch the product to rotate it; turn toward the rear while holding to reveal the internal assembly, and release to return the shell gradually to the exterior. The circuit board, main chip, copper traces and fixing points follow the available reference; wire routing is illustrative. Hold an arrow key to inspect while rotating, use plus or minus to zoom, or pinch on touch screens.</p>
+        <p class="visually-hidden" id="scene-status" role="status" aria-live="polite">Loading interactive product model.</p>
+      </section>
+    </div>
+
+    <section class="research" aria-labelledby="paper-title">
+      <article class="paper-entry">
+        <p class="paper-meta">Nature Communications · 2026</p>
+        <h2 class="paper-title" id="paper-title">Machine learning-assisted self-powered ear tag for animal welfare</h2>
+        <p class="authors">Xiaoyu Su, Peidi Fan, Ying Liu, Jianfeng Ping, Xunjia Li and Yuxiang Pan</p>
+        <p class="article-details">Nature Communications 17, 7094 (2026) · Published 02 June 2026 · DOI: 10.1038/s41467-026-73651-7</p>
+        <p class="abstract">The study presents an energy-autonomous livestock ear tag that combines motion-based and solar energy harvesting with microneedle sensors. The system tracks pH, potassium and calcium in interstitial fluid, then uses machine learning to interpret the signals as welfare-related metabolic states.</p>
+        <p class="abstract">The authors report average classification accuracy above 95% across five states, evaluated on 5,399 sampling windows from three animals using leave-one-animal-out validation. These results describe the study’s experimental cohort and are independent of the RIOSE product.</p>
+        <a class="paper-link" href="https://www.nature.com/articles/s41467-026-73651-7" target="_blank" rel="noopener noreferrer">Read paper <span aria-hidden="true">↗</span></a>
+      </article>
+    </section>
+  </main>
+
+  <script src="/assets/landing.js?v=20261005-1" defer></script>
+</body>
+</html>

@@ -12,6 +12,9 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 
+_ANGLE_ROUNDING_TOLERANCE_DEG = 1e-4
+
+
 def _number(value: Any, name: str, *, positive: bool = False,
             nonnegative: bool = False) -> float:
     if isinstance(value, bool):
@@ -108,7 +111,7 @@ def power_metrics(accepted_power_w: float, radiated_power_w: float,
     accepted = _number(accepted_power_w, "accepted_power_w", positive=True)
     radiated = _number(radiated_power_w, "radiated_power_w", nonnegative=True)
     if radiated > accepted:
-        raise ValueError("radiated_power_w cannot exceed accepted_power_w")
+        raise ValueError(f"radiated_power_w ({radiated:.9g}) cannot exceed accepted_power_w ({accepted:.9g})")
     efficiency = radiated / accepted
     gain = None
     if directivity_dbi is not None:
@@ -128,9 +131,14 @@ def parse_pattern_rows(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, floa
         theta = _number(row["theta_deg"], f"theta_deg at row {index}")
         phi = _number(row["phi_deg"], f"phi_deg at row {index}")
         gain = _number(row["gain_dbi"], f"gain_dbi at row {index}")
-        if not 0 <= theta <= 180:
+        if not -_ANGLE_ROUNDING_TOLERANCE_DEG <= theta <= 180 + _ANGLE_ROUNDING_TOLERANCE_DEG:
             raise ValueError(f"theta_deg at row {index} must be in [0, 180]")
-        if not 0 <= phi <= 360:
+        if not -_ANGLE_ROUNDING_TOLERANCE_DEG <= phi <= 360 + _ANGLE_ROUNDING_TOLERANCE_DEG:
             raise ValueError(f"phi_deg at row {index} must be in [0, 360]")
+        # openEMS stores NF2FF angle axes as float32 radians in HDF5; the
+        # representation of 2π converts back to 360.00001 degrees. Clamp only
+        # that storage-rounding error to the documented closed interval.
+        theta = min(180.0, max(0.0, theta))
+        phi = min(360.0, max(0.0, phi))
         parsed.append({"theta_deg": theta, "phi_deg": phi, "gain_dbi": gain})
     return parsed

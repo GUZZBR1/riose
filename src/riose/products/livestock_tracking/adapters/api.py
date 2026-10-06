@@ -7,21 +7,21 @@ from contextlib import asynccontextmanager
 from datetime import date
 import json
 import math
-import time
 from pathlib import Path
 from typing import Any, Literal
 import sqlite3
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..domain.behavior import BehaviorObservation
 from ..domain.contracts import Anchor, EvidenceStatus, FarmConfig
 from .persistence import Store
 from ..domain.identity import make_cryptographic_id
-from ..application.publication_observability import PublicationObservabilityService
 
 
 class AnimalCreate(BaseModel):
@@ -78,8 +78,10 @@ class BehaviorObservationCreate(BaseModel):
     observation_kind: Literal["PREDICTION", "GROUND_TRUTH", "MANUAL_ANNOTATION"]
     evidence_status: EvidenceStatus
     idempotency_key: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
-    sensor_position: str | None = Field(default=None, min_length=1, max_length=128,
-                                        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    sensor_position: str | None = Field(
+        default=None, min_length=1, max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+    )
 
     @field_validator("end_timestamp_s")
     @classmethod
@@ -192,6 +194,7 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             app.state.store.close()
 
     app = FastAPI(title="Cattle RF Local MVP", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_response(request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -212,24 +215,28 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return JSONResponse(status_code=422, content={"detail": json_safe(exc.errors())})
 
     app.state.store = Store(db_path)
-    app.state.publication_observability = PublicationObservabilityService()
     app.state.anchors = []
     app.state.last_config = None
     app.state.last_ground_truth = None
 
+    static_dir = Path(__file__).parent / "static"
+    app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="site-assets")
+
     @app.get("/", response_class=HTMLResponse)
+    def landing_page() -> str:
+        return (static_dir / "landing.html").read_text(encoding="utf-8")
+
+    @app.get("/manifesto", response_class=HTMLResponse)
+    def manifesto_page() -> str:
+        return (static_dir / "manifesto.html").read_text(encoding="utf-8")
+
+    @app.get("/demo", response_class=HTMLResponse)
     def dashboard() -> str:
-        return (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
+        return (static_dir / "index.html").read_text(encoding="utf-8")
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "evidence": "SIMULATED"}
-
-    @app.get("/api/publication/observability")
-    def publication_observability() -> dict[str, Any]:
-        """Expose a safe disabled/unknown state until a publisher owns metrics."""
-        snapshot = app.state.publication_observability.unavailable_snapshot(now=time.time())
-        return asdict(snapshot)
 
     @app.get("/api/animals")
     def animals() -> list[dict[str, Any]]:
@@ -253,15 +260,8 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         result["trajectory"] = app.state.store.animal_trajectory(animal_id, limit=100)
         return result
 
-    @app.get("/api/animals/{animal_id}/trajectory")
-    def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
-        result = app.state.store.animal_trajectory(animal_id, limit)
-        if result is None:
-            raise HTTPException(status_code=404, detail="animal not found")
-        return result
-
     @app.post("/api/animals/{animal_id}/behaviors", status_code=201)
-    def create_behavior_observation(animal_id: str, body: BehaviorObservationCreate) -> dict[str, Any]:
+    def create_behavior_observation(animal_id: str, body: BehaviorObservationCreate) -> Any:
         if animal_id != body.animal_id:
             raise HTTPException(status_code=422, detail="path animal_id must match body animal_id")
         if app.state.store.get_animal(animal_id) is None:
@@ -271,8 +271,8 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             saved, created = app.state.store.save_behavior_observation(observation)
             return JSONResponse(status_code=201 if created else 200, content=saved)
         except ValueError as exc:
-            raise HTTPException(status_code=409 if "idempotency_key" in str(exc) else 422,
-                                detail=str(exc)) from exc
+            status = 409 if "idempotency_key" in str(exc) else 422
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
 
     @app.get("/api/animals/{animal_id}/behaviors")
     def behavior_history(
@@ -294,6 +294,13 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             evidence_status=None if evidence_status is None else evidence_status.value,
             limit=limit, offset=offset,
         )
+        if result is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return result
+
+    @app.get("/api/animals/{animal_id}/trajectory")
+    def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
+        result = app.state.store.animal_trajectory(animal_id, limit)
         if result is None:
             raise HTTPException(status_code=404, detail="animal not found")
         return result
@@ -439,7 +446,7 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     def capabilities() -> dict[str, Any]:
         from ..simulation.advanced import advanced_capabilities
         return {"advanced_rf": advanced_capabilities(), "hardware": capability_status(),
-                "cellular": "FUTURE", "blockchain": "FUTURE"}
+                "cellular": "FUTURE"}
 
     @app.get("/api/metrics")
     def metrics() -> dict[str, Any]:

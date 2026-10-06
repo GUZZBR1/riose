@@ -84,13 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_behavior_history
 
 
 class Store:
-    def __init__(
-        self,
-        path: str | Path = "data/cattle_rf.sqlite3",
-        *,
-        enable_publication_outbox: bool = False,
-        enable_publication_receipts: bool = False,
-    ) -> None:
+    def __init__(self, path: str | Path = "data/cattle_rf.sqlite3") -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
@@ -100,23 +94,9 @@ class Store:
         self.connection.executescript(SCHEMA)
         columns = {row[1] for row in self.connection.execute("PRAGMA table_info(animal_events)")}
         if "schema_version" not in columns:
-            # NULL marks rows written before versioned event contracts existed.
+            # NULL identifies historical rows written before the v1 marker existed.
             self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
         self.connection.commit()
-        self.publication_outbox = None
-        self.publication_receipts = None
-        if enable_publication_outbox:
-            from .publication_outbox import OUTBOX_SCHEMA, SQLitePublicationOutbox
-
-            self.connection.executescript(OUTBOX_SCHEMA)
-            self.connection.commit()
-            self.publication_outbox = SQLitePublicationOutbox(self)
-        if enable_publication_receipts:
-            from .publication_receipts import RECEIPT_SCHEMA, SQLitePublicationReceiptRepository
-
-            self.connection.executescript(RECEIPT_SCHEMA)
-            self.connection.commit()
-            self.publication_receipts = SQLitePublicationReceiptRepository(self)
 
     def close(self) -> None:
         with self._lock:
@@ -163,6 +143,7 @@ class Store:
     def event_chain_evidence(self, animal_id: str) -> LocalChainEvidence | None:
         """Return a read-only summary without exposing the animal id or payload."""
         from ...domain.identity import event_chain_evidence
+
         with self._lock:
             return event_chain_evidence(self.connection, animal_id)
 
@@ -326,12 +307,7 @@ class Store:
     def save_behavior_observation(
         self, observation: BehaviorObservation
     ) -> tuple[dict[str, Any], bool]:
-        """Persist an observation once per animal/idempotency key.
-
-        Reusing a key with identical content is an idempotent retry. Reusing it
-        with different content fails instead of silently rewriting provenance.
-        Distinct keys preserve legitimate same-time observations.
-        """
+        """Persist once per animal/key; conflicting retries preserve the first record."""
         with self._lock:
             try:
                 self.connection.execute("BEGIN IMMEDIATE")
@@ -376,7 +352,7 @@ class Store:
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]] | None:
-        """Return an animal's behavior history in deterministic time order."""
+        """Return a deterministic, animal-scoped behavior history."""
         if type(limit) is not int or not 1 <= limit <= 1000:
             raise ValueError("limit must be an integer in [1, 1000]")
         if type(offset) is not int or offset < 0:
@@ -400,7 +376,9 @@ class Store:
                 args.append(value)
         args.extend((limit, offset))
         with self._lock:
-            if self.connection.execute("SELECT 1 FROM animals WHERE animal_id=?", (animal_id,)).fetchone() is None:
+            if self.connection.execute(
+                "SELECT 1 FROM animals WHERE animal_id=?", (animal_id,)
+            ).fetchone() is None:
                 return None
             rows = self.connection.execute(
                 "SELECT id,animal_id,timestamp_s,end_timestamp_s,behavior,confidence,model_version,"

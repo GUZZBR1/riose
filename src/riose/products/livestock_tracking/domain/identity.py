@@ -35,12 +35,6 @@ def _finite_number(value: Any) -> bool:
 _HASH_PATTERN = re.compile(r"[0-9a-f]{64}\Z", re.ASCII)
 
 
-class BlockchainAdapter(Protocol):
-    """Future optional adapter; local operation never depends on a chain."""
-
-    def publish(self, event_hash: str, payload: dict[str, Any]) -> str: ...
-
-
 class EventSigner(Protocol):
     def sign(self, digest: bytes) -> bytes: ...
 
@@ -59,6 +53,8 @@ class AnimalEvent:
 
 @dataclass(frozen=True, slots=True)
 class LocalChainEvidence:
+    """Local hash-chain verification summary; this is not a public attestation."""
+
     valid: bool
     head_digest: str | None
     event_count: int
@@ -122,6 +118,7 @@ def _validate_contract_input(animal_id: str, event_type: str, timestamp: float,
         raise ValueError("previous_hash must be a string")
     if not isinstance(payload, dict):
         raise ValueError("payload must be a JSON object")
+
     def validate_json(value: Any) -> None:
         if value is None or isinstance(value, (str, bool, int)):
             return
@@ -140,11 +137,12 @@ def _validate_contract_input(animal_id: str, event_type: str, timestamp: float,
                 validate_json(item)
             return
         raise ValueError(f"unsupported JSON value: {type(value).__name__}")
+
     try:
         validate_json(payload)
         json.dumps(payload, sort_keys=True, separators=(",", ":"),
                     ensure_ascii=False, allow_nan=False)
-    except (TypeError, ValueError) as exc:
+    except (RecursionError, TypeError, ValueError) as exc:
         raise ValueError("payload must contain finite JSON-compatible values with string keys") from exc
 
 
@@ -199,9 +197,7 @@ def verify_event_chain(connection: sqlite3.Connection, animal_id: str) -> bool:
         " FROM animal_events WHERE animal_id=? ORDER BY event_id", (animal_id,),
     )
     previous_hash = GENESIS_HASH
-    found_event = False
     for event_animal, event_type, timestamp, payload_json, stored_previous, stored_hash, schema_version in rows:
-        found_event = True
         try:
             if schema_version not in (None, EVENT_CONTRACT_V1):
                 return False
@@ -217,16 +213,15 @@ def verify_event_chain(connection: sqlite3.Connection, animal_id: str) -> bool:
         if calculated != stored_hash:
             return False
         previous_hash = stored_hash
-    return found_event
+    return True
 
 
 def event_chain_evidence(
     connection: sqlite3.Connection, animal_id: str
 ) -> LocalChainEvidence | None:
-    """Return a read-only, PII-free summary of one local event chain."""
+    """Return a PII-free summary of a local event chain, without a trust claim."""
     rows = connection.execute(
-        "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id",
-        (animal_id,),
+        "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id", (animal_id,)
     ).fetchall()
     if not rows:
         return None

@@ -17,7 +17,7 @@ components:
     model: {value: SX1262, unit: part_number, source: "MVP1 candidate; Semtech product page https://www.semtech.com/products/wireless-rf/lora-connect/sx1262", status: DATASHEET}
     center_frequency_hz: {value: 915000000, unit: Hz, source: "MVP1 firmware prototype setting; not a selected regulatory band", status: ASSUMED}
     tx_power_dbm: {value: 10, unit: dBm, source: "MVP1 firmware configuration", status: ASSUMED}
-    tx_stress_current_ma: {value: 45.0, unit: mA, source: "SX1262 published +14 dBm stress case; not the configured +10 dBm current https://www.semtech.com/amazon-sidewalk", status: DATASHEET}
+    tx_stress_current_ma: {value: 45.0, unit: mA, source: "SX1262 published +14 dBm stress current estimate; firmware TX-power configuration is profile-specific, and this is not a current measurement https://www.semtech.com/amazon-sidewalk", status: DATASHEET}
     rx_current_ma: {value: 4.6, unit: mA, source: "SX1262 product information; configuration dependent", status: DATASHEET}
     sleep_current_ma: {value: 0.0006, unit: mA, source: "MVP1 board-level allowance; requires selected module/configuration", status: ASSUMED}
     tx_duration_s: {value: 0.12, unit: s, source: "MVP1 configured profile; not measured airtime", status: ASSUMED}
@@ -81,7 +81,7 @@ mechanical:
     imu: {width_mm: {value: 2.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, height_mm: {value: 2.0, unit: mm, source: "Provisional package envelope", status: ASSUMED}, thickness_mm: {value: 0.7, unit: mm, source: "Provisional package envelope", status: ASSUMED}}
   antenna:
     width_mm: {value: 28.0, unit: mm, source: "Provisional meander footprint placeholder, not routed antenna geometry", status: ASSUMED}
-    height_mm: {value: 10.0, unit: mm, source: "Provisional meander footprint placeholder, not routed antenna geometry", status: ASSUMED}
+    height_mm: {value: 11.0, unit: mm, source: "ASSUMED free-space native openEMS tuning footprint; mechanical fit remains unvalidated", status: ASSUMED}
     thickness_mm: {value: 0.2, unit: mm, source: "Provisional conductor envelope", status: ASSUMED}
     keepout_mm: {value: 2.0, unit: mm, source: "Provisional RF clearance placeholder", status: ASSUMED}
   minimum_clearance_mm: {value: 0.5, unit: mm, source: "Provisional layout rule; pending review", status: ASSUMED}
@@ -105,11 +105,12 @@ antenna:
   center_frequency_hz: {value: 915000000, unit: Hz, source: "MVP1 firmware prototype setting; not selected regional band", status: ASSUMED}
   topology: {value: meandered_quarter_wave_monopole, unit: topology, source: "Initial simulation candidate only", status: ASSUMED}
   free_space_quarter_wave_length_mm: {value: 82.0, unit: mm, source: "c/(4f) at 915 MHz; ideal free-space reference, not tuned length", status: ASSUMED}
-  element_length_mm: {value: 82.0, unit: mm, source: "Initial electrical path length before tuning", status: ASSUMED}
+  element_length_mm: {value: 143.0, unit: mm, source: "ASSUMED free-space native openEMS tuning candidate; requires mesh and integrated-scenario validation", status: ASSUMED}
   trace_width_mm: {value: 1.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
   feed_mm: {value: 2.0, unit: mm, source: "Initial geometry assumption", status: ASSUMED}
   feed_gap_mm: {value: 0.5, unit: mm, source: "Provisional lumped-feed gap used by the free-space reference; requires feed review", status: ASSUMED}
   conductor_thickness_mm: {value: 0.035, unit: mm, source: "Nominal copper foil thickness used only for exploratory EM geometry", status: ASSUMED}
+  ground_plane_length_mm: {value: 36.5, unit: mm, source: "ASSUMED partial ground-plane extent for exploratory monopole candidate; requires RF/layout validation", status: ASSUMED}
   clearance_mm: {value: 2.0, unit: mm, source: "Initial keepout assumption", status: ASSUMED}
   meander_turns: {value: 4, unit: count, source: "Initial compact reference routing choice; requires RF/layout review", status: ASSUMED}
   sweeps:

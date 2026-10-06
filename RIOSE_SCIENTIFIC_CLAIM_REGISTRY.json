@@ -1,0 +1,129 @@
+{
+  "schema_version": "riose.scientific-claim-registry/v1",
+  "candidate": "integration/riose-candidate",
+  "base_sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+  "candidate_code_head": "479c818c81ffb007e7ee71d9ed960d0afabec78a",
+  "allowed_evidence_classes": [
+    "SIMULATED",
+    "REAL_ON_CHAIN",
+    "MEASURED_LAB",
+    "FIELD_VALIDATED",
+    "RESEARCH_SUPPORTED",
+    "UNVERIFIED",
+    "ASSUMED"
+  ],
+  "claims": [
+    {
+      "claim_id": "software-integration",
+      "claim": "Selected software contracts integrate and pass the recorded automated checks.",
+      "evidence_class": "SIMULATED",
+      "verification_status": "TESTED",
+      "evidence": ["617 passed and 7 skipped in full Python suite", "39/39 embedded CTest", "11/11 portable firmware host CTest", "offline wheel build and dependency resolution"],
+      "scope_limit": "Tests validate software behavior only; they are not physical or field validation."
+    },
+    {
+      "claim_id": "movement-contract",
+      "claim": "Movement dataset and transformation contracts preserve declared identity, unit, and source metadata.",
+      "evidence_class": "SIMULATED",
+      "verification_status": "TESTED",
+      "evidence": ["Synthetic three-row fixture", "movement adapter test suite"],
+      "scope_limit": "No trained behavior model is promoted; fixture is not animal evidence."
+    },
+    {
+      "claim_id": "behavior-model",
+      "claim": "Behavior ML remains a research capability and is not part of product runtime.",
+      "evidence_class": "RESEARCH_SUPPORTED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence promotion matrix", "Intelligence integration packet"],
+      "scope_limit": "Synthetic metrics do not establish behavior generalization or field performance."
+    },
+    {
+      "claim_id": "biosignature",
+      "claim": "BioSignature is experimental and is not an identity, health, or diagnostic claim.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence promotion matrix"],
+      "scope_limit": "No biological or field validation."
+    },
+    {
+      "claim_id": "health-anomaly",
+      "claim": "Health anomaly remains an experimental investigation signal and is not a diagnosis.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence promotion matrix"],
+      "scope_limit": "No veterinary outcome validation."
+    },
+    {
+      "claim_id": "reproduction",
+      "claim": "Reproduction capability remains research-only activity proxies and hypotheses.",
+      "evidence_class": "RESEARCH_SUPPORTED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence promotion matrix", "Intelligence integration packet"],
+      "scope_limit": "No pregnancy, estrus, fertility, or reproductive outcome validation."
+    },
+    {
+      "claim_id": "localization-v2",
+      "claim": "Localization V2 remains research; convergence and quality acceptance are not accuracy.",
+      "evidence_class": "SIMULATED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence integration packet known failure modes"],
+      "scope_limit": "No physical clock synchronization or field localization validation."
+    },
+    {
+      "claim_id": "rf-network-campaigns",
+      "claim": "RF and network campaign results remain simulated research evidence.",
+      "evidence_class": "SIMULATED",
+      "verification_status": "NOT_PROMOTED",
+      "evidence": ["Intelligence integration packet"],
+      "scope_limit": "No field RF calibration or general farm-scale capacity claim."
+    },
+    {
+      "claim_id": "embedded-sensor",
+      "claim": "The LIS2DW12 configured 14-bit scale conversion is protected by host regression tests.",
+      "evidence_class": "SIMULATED",
+      "verification_status": "TESTED",
+      "evidence": ["lis2dw12_scale CTest", "39/39 hardware CTest"],
+      "scope_limit": "No sensor calibration, silicon build, physical measurement, or field validation."
+    },
+    {
+      "claim_id": "hardware-physical",
+      "claim": "Physical hardware performance and field operation are not established by this candidate.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "NOT_TESTED",
+      "evidence": ["No physical hardware test was run"],
+      "scope_limit": "Do not state field validated."
+    },
+    {
+      "claim_id": "zephyr-target",
+      "claim": "Zephyr target build was not executed because west and ZEPHYR_BASE are unavailable.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "ENVIRONMENT_BLOCKED",
+      "evidence": ["west command not found", "ZEPHYR_BASE unset"],
+      "scope_limit": "Host C build does not prove Zephyr compilation."
+    },
+    {
+      "claim_id": "renode-gazebo",
+      "claim": "Live Renode and Gazebo smoke runs were not executed in this environment.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "ENVIRONMENT_BLOCKED",
+      "evidence": ["Renode availability check false", "gz and gazebo unavailable"],
+      "scope_limit": "Static contracts and unit tests do not prove live simulator execution."
+    },
+    {
+      "claim_id": "openems-sionna",
+      "claim": "No openEMS or Sionna simulation result is claimed by the candidate.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "NOT_RUN",
+      "evidence": ["No solver campaign was run; optional solver dependencies remain absent from product dependencies"],
+      "scope_limit": "Convergence is not accuracy; simulated is not physical."
+    },
+    {
+      "claim_id": "frequencia",
+      "claim": "FREQUENCIA remains an external dependency and no FREQUENCIA source or campaign was imported.",
+      "evidence_class": "UNVERIFIED",
+      "verification_status": "NOT_INTEGRATED",
+      "evidence": ["Candidate diff and runtime dependency graph"],
+      "scope_limit": "No end-to-end external simulator integration claim."
+    }
+  ]
+}

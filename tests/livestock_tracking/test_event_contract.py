@@ -5,8 +5,8 @@ import sqlite3
 
 import pytest
 
-from cattle_rf.db import Store
-from cattle_rf.identity import (
+from riose.products.livestock_tracking.adapters.persistence import Store
+from riose.products.livestock_tracking.domain.identity import (
     EVENT_CONTRACT_V1,
     append_event,
     canonical_event,

@@ -1,0 +1,592 @@
+{
+  "schema_version": "riose.intelligence-research-promotion-matrix/v1",
+  "audit_date": "2026-10-05",
+  "status": "PASS_WITH_LIMITATIONS",
+  "upstream_base_sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+  "guzz_reference_sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+  "branch": "integration/intelligence-research-mvp",
+  "items": [
+    {
+      "capability": "Movement XYZ input and feature contract",
+      "lineage": [
+        "upstream 5b17771: ear_tag/signal/engine.py",
+        "GUZZ issue 22 866d985"
+      ],
+      "canonical_implementation": "riose.products.ear_tag.signal.engine.SignalSample/SignalTrace/extract_features",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Dependency-light deterministic input/features with explicit units, rate, clock, identity and provenance; no sensor driver and no behavior claim.",
+      "dependencies": [
+        "NumPy",
+        "SciPy"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Transformation contract only; physical sensor values depend on source evidence.",
+      "target_location": "src/riose/products/ear_tag/signal/",
+      "evidence": [
+        "upstream base",
+        "GUZZ registry C14"
+      ],
+      "placement_status": "ALREADY_IN_UPSTREAM_BASE"
+    },
+    {
+      "capability": "Movement dataset catalog and acquisition helpers",
+      "lineage": [
+        "GUZZ issue 21 816049f"
+      ],
+      "canonical_implementation": "src/riose/products/ear_tag/movement_datasets/",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Provenance-safe external dataset acquisition/validation utility can be used offline and is not a runtime sensing dependency.",
+      "dependencies": [
+        "Python standard library",
+        "shared EvidenceBridgeRecord"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Dataset curation only; externally measured data do not validate RIOSE hardware.",
+      "target_location": "src/riose/products/ear_tag/movement_datasets/",
+      "evidence": [
+        "tests/ear_tag/test_movement_datasets.py",
+        "dataset catalog"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "ActBeCalf public measured dataset",
+      "lineage": [
+        "GUZZ issue 21 816049f"
+      ],
+      "canonical_implementation": "External Zenodo record 10.5281/zenodo.13259482; no local source file",
+      "policy": "KEEP_RESEARCH",
+      "why": "Neck-mounted external study with 30 calves; units/timezone undocumented and no demonstrated transfer to RIOSE ear tag.",
+      "dependencies": [
+        "Zenodo record"
+      ],
+      "test_status": "NOT_TESTED",
+      "scientific_status": "PUBLIC_MEASURED_DATA; local Phase A catalog says CC BY 4.0, but current rendered record does not expose a license; publisher file is 177608717 bytes, MD5 59bd00564af64d92489485fa5a8a3960; SHA-256 not computed because file not downloaded.",
+      "target_location": "datasets/movement_biosignature/catalog.json (metadata only)",
+      "evidence": [
+        "dataset catalog",
+        "DOI 10.5281/zenodo.13259482"
+      ],
+      "placement_status": "CATALOG_METADATA_ONLY"
+    },
+    {
+      "capability": "ActBeCalf three-row adapter fixture",
+      "lineage": [
+        "GUZZ issue 21 816049f",
+        "LF hardening ac684435"
+      ],
+      "canonical_implementation": "datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.csv",
+      "policy": "KEEP_RESEARCH",
+      "why": "Fabricated test rows validate parsing only; source labels are not mapped to RIOSE classes.",
+      "dependencies": [
+        "movement dataset adapter"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SYNTHETIC_DATA; CSV SHA-256 11698c1c9936643a00950f94ff1d4c0a9023a404dd058eb8b939210d40ea5e7b.",
+      "target_location": "datasets/movement_biosignature/fixtures/",
+      "evidence": [
+        "dataset adapter tests",
+        ".gitattributes"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "Precision Beef public dataset",
+      "lineage": [
+        "GUZZ issue 21 dataset catalog"
+      ],
+      "canonical_implementation": "External Zenodo record 10.5281/zenodo.4064802",
+      "policy": "KEEP_RESEARCH",
+      "why": "Labels are separate-device predictions, label timing is imperfect, and collar placement differs from ear tag.",
+      "dependencies": [
+        "Zenodo record"
+      ],
+      "test_status": "NOT_TESTED",
+      "scientific_status": "PUBLIC_MEASURED_DATA; local catalog says CC BY 4.0, but current rendered record does not expose a license; bytes not downloaded; published test split is animal IDs 04/10/11.",
+      "target_location": "datasets/movement_biosignature/catalog.json (metadata only)",
+      "evidence": [
+        "dataset catalog",
+        "DOI 10.5281/zenodo.4064802"
+      ],
+      "placement_status": "CATALOG_METADATA_ONLY"
+    },
+    {
+      "capability": "Japanese Black Beef v2 public dataset",
+      "lineage": [
+        "GUZZ issue 21 dataset catalog"
+      ],
+      "canonical_implementation": "External Zenodo record 10.5281/zenodo.5849025",
+      "policy": "DO_NOT_INTEGRATE",
+      "why": "Conflicting license declarations; automated acquisition/redistribution disabled pending clarification.",
+      "dependencies": [
+        "Zenodo record",
+        "license resolution"
+      ],
+      "test_status": "NOT_TESTED",
+      "scientific_status": "PUBLIC_MEASURED_DATA; record description states CC BY-NC-ND 4.0 while Phase A API metadata recorded CC BY 4.0; file not downloaded, so acquisition/redistribution remain disabled.",
+      "target_location": "datasets/movement_biosignature/catalog.json (metadata only)",
+      "evidence": [
+        "dataset catalog",
+        "DOI 10.5281/zenodo.5849025"
+      ],
+      "placement_status": "CATALOG_METADATA_ONLY"
+    },
+    {
+      "capability": "Behavior ML pipeline and model",
+      "lineage": [
+        "GUZZ issue 23 6fdc34a"
+      ],
+      "canonical_implementation": "Behavior baseline v1, 3 acceleration aggregate features, logistic regression and standard scaler",
+      "policy": "KEEP_RESEARCH",
+      "why": "All 144 windows are synthetic; synthetic holdout metrics of 1.0 do not support animal behavior capability.",
+      "dependencies": [
+        "NumPy",
+        "scikit-learn",
+        "animal-disjoint fixture"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; animal-disjoint 96/24/24 windows; 1.0 accuracy/balanced accuracy/macro-F1 on 24 synthetic test windows; majority accuracy 0.333, macro-F1 0.167.",
+      "target_location": "research/behavior/; existing source lineage at GUZZ issue 23",
+      "evidence": [
+        "models/behavior/behavior-baseline-v1.json",
+        "datasets/behavior_ml/fixture.json",
+        "GUZZ registry C15"
+      ],
+      "placement_status": "REFERENCE_ONLY; research source remains on GUZZ issue 23"
+    },
+    {
+      "capability": "Behavior prediction and Core persistence seam",
+      "lineage": [
+        "GUZZ issue 24 55b10ac",
+        "isolated contract added in this MVP"
+      ],
+      "canonical_implementation": "BehaviorPrediction and BehaviorPredictionStore Protocol",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Typed identity/window/model/feature/input provenance can be implemented by Core without Intelligence owning a second database.",
+      "dependencies": [
+        "Core-owned persistence adapter"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Metadata contract only; score is not a calibrated probability; not a classifier endorsement.",
+      "target_location": "src/riose/products/livestock_tracking/domain/intelligence.py",
+      "evidence": [
+        "tests/livestock_tracking/test_intelligence_contracts.py",
+        "docs/architecture.md at issue 24"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "Behavior persistence implementation",
+      "lineage": [
+        "GUZZ issue 24 55b10ac"
+      ],
+      "canonical_implementation": "BehaviorObservation plus GUZZ SQLite/API additive implementation",
+      "policy": "NEEDS_MORE_EVIDENCE",
+      "why": "The upstream base has a different Core persistence schema; migration/API ownership belongs to Chat 5/Core and was intentionally not ported here.",
+      "dependencies": [
+        "Core schema migration and API contract"
+      ],
+      "test_status": "HISTORICALLY_REPORTED",
+      "scientific_status": "Persistence does not validate predicted behavior.",
+      "target_location": "Core adapter after Core review; no duplicate store in this branch",
+      "evidence": [
+        "GUZZ issue 24 tests",
+        "INTEGRATION_COLLISION_MATRIX.md CI-05/CI-13"
+      ],
+      "placement_status": "REFERENCE_ONLY; Core migration not ported"
+    },
+    {
+      "capability": "BioSignature individual change signal",
+      "lineage": [
+        "GUZZ issue 25 fe4b841"
+      ],
+      "canonical_implementation": "livestock_tracking.domain.biosignature; synthetic scenario fixture",
+      "policy": "KEEP_EXPERIMENTAL",
+      "why": "Within-animal change score is not identity verification, clinical state or health diagnosis.",
+      "dependencies": [
+        "movement feature window",
+        "baseline policy"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; no field or biological validation.",
+      "target_location": "research/biosignature/",
+      "evidence": [
+        "docs/biosignature-v1.md",
+        "tests/livestock_tracking/test_biosignature.py"
+      ],
+      "placement_status": "REFERENCE_ONLY; research source remains on GUZZ issue 25"
+    },
+    {
+      "capability": "Health anomaly detection",
+      "lineage": [
+        "GUZZ issue 27 b79ee4e"
+      ],
+      "canonical_implementation": "ear_tag.health_anomaly.analysis; investigation-only boundary",
+      "policy": "KEEP_EXPERIMENTAL",
+      "why": "Deviation output supports investigation only; no veterinary outcome labels or diagnosis evidence.",
+      "dependencies": [
+        "movement windows",
+        "animal baseline"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; anomaly is not risk or diagnosis.",
+      "target_location": "research/health/",
+      "evidence": [
+        "docs/health-anomaly-experimental.md",
+        "tests/ear_tag/test_health_anomaly.py"
+      ],
+      "placement_status": "REFERENCE_ONLY; research source remains on GUZZ issue 27"
+    },
+    {
+      "capability": "Reproduction activity proxy and hypotheses",
+      "lineage": [
+        "GUZZ issue 26 core 7a7e058",
+        "boundary clarification 90e5acb; observed live branch ac684435"
+      ],
+      "canonical_implementation": "livestock_tracking.reproduction plus retrospective notes",
+      "policy": "KEEP_RESEARCH",
+      "why": "No outcome-labeled study validates reproductive claims; activity proxies do not demonstrate pregnancy, estrus or fertility.",
+      "dependencies": [
+        "movement/activity features",
+        "future outcome-labeled data"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED / hypothesis-generating only.",
+      "target_location": "research/reproduction/",
+      "evidence": [
+        "docs/reproduction-intelligence.md",
+        "GUZZ registry C20"
+      ],
+      "placement_status": "REFERENCE_ONLY; research source remains on GUZZ issue 26"
+    },
+    {
+      "capability": "Localization V1 comparison estimators",
+      "lineage": [
+        "GUZZ main 72ad695"
+      ],
+      "canonical_implementation": "livestock_tracking.localization estimators",
+      "policy": "KEEP_RESEARCH",
+      "why": "Retain as baseline/control for comparing V2; generated observations are simulated.",
+      "dependencies": [
+        "RFObservation",
+        "anchor geometry"
+      ],
+      "test_status": "NOT_TESTED",
+      "scientific_status": "SIMULATED; no field accuracy validation.",
+      "target_location": "research/localization/v1-controls/",
+      "evidence": [
+        "GUZZ registry C09"
+      ],
+      "placement_status": "REFERENCE_ONLY; GUZZ main"
+    },
+    {
+      "capability": "Localization V2 TDoA solver",
+      "lineage": [
+        "initial af204c3",
+        "robustness 192047d",
+        "hardening 9dc62fc",
+        "final 641c4fa"
+      ],
+      "canonical_implementation": "research/localization-v2-final 641c4fa; solver blob 12edcdd9f8e656683dd571993b1bb86a9334ecc1",
+      "policy": "KEEP_RESEARCH",
+      "why": "Reference-clock calibrated synthetic solver is not field-validated; V1 remains control.",
+      "dependencies": [
+        "synthetic beacon timestamps",
+        "clock calibration"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; convergence and quality decisions are not accuracy.",
+      "target_location": "research/localization/v2/",
+      "evidence": [
+        "GUZZ registry C10",
+        "localization V2 worktree commits"
+      ],
+      "placement_status": "REFERENCE_ONLY; research source remains on GUZZ localization final"
+    },
+    {
+      "capability": "Dynamic localization fault campaign",
+      "lineage": [
+        "Localization V2 final 641c4fa",
+        "dynamic faults 632d423"
+      ],
+      "canonical_implementation": "research/dynamic-localization-faults/experiment.py and immutable results",
+      "policy": "KEEP_EXPERIMENTAL",
+      "why": "Synthetic sensitivity campaign includes retained false-confidence controls; campaign is not a product accuracy envelope.",
+      "dependencies": [
+        "canonical TDoA V2 solver",
+        "seeded fault scenarios"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "6,720 synthetic attempts; wrong-calibration 50/240 and poor-geometry+jitter 3/240 accepted errors >10 m.",
+      "target_location": "research/dynamic-localization/",
+      "evidence": [
+        "docs/research/dynamic-localization/results.json",
+        "GUZZ registry C11"
+      ],
+      "placement_status": "REFERENCE_ONLY; historical experiment retained at source ref"
+    },
+    {
+      "capability": "Simulation request/result v1 contract",
+      "lineage": [
+        "older 2c9c477",
+        "canonical GUZZ lab bcc49af"
+      ],
+      "canonical_implementation": "riose.simulation_contract.v1",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Strict versioned exchange schema is reusable without adopting a backend or its scientific claims.",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Contract and simulated outcome semantics only.",
+      "target_location": "src/riose/simulation_contract/",
+      "evidence": [
+        "tests/simulation_contract/test_v1.py",
+        "GUZZ Simulation Lab bcc49af"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "Simulation result adapter",
+      "lineage": [
+        "GUZZ Simulation Lab bcc49af"
+      ],
+      "canonical_implementation": "riose.simulation_adapter.adapter",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Converts only explicit fields, preserves provenance sidecar and fails closed on ambiguous IDs; receiver RSSI/ToF need opt-in semantics.",
+      "dependencies": [
+        "canonical livestock RFObservation/Estimate contracts",
+        "simulation contract"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Preserves source evidence classification; no accuracy claim.",
+      "target_location": "src/riose/simulation_adapter/",
+      "evidence": [
+        "tests/simulation_adapter/test_adapter.py",
+        "GUZZ Simulation Lab bcc49af"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "Simulation Lab runner / FARM / FREQUENCIA bridge",
+      "lineage": [
+        "upstream lab 2c9c477",
+        "GUZZ lab bcc49af",
+        "Beta timing identity extension 2e5d5d9"
+      ],
+      "canonical_implementation": "Separate GUZZ Simulation Lab worktree; runner not copied",
+      "policy": "KEEP_RESEARCH",
+      "why": "Backend dispatch is campaign tooling with optional simulators; FREQUENCIA is a separate external repository.",
+      "dependencies": [
+        "optional FREQUENCIA CLI/files",
+        "optional Sionna/ns-3 paths"
+      ],
+      "test_status": "HISTORICALLY_REPORTED",
+      "scientific_status": "SIMULATED; fixed analytic smoke fallback and unsupported backend capabilities must remain explicit.",
+      "target_location": "research/simulation-lab/",
+      "evidence": [
+        "GUZZ registry C02/C04/C06",
+        "separate worktree bcc49af"
+      ],
+      "placement_status": "REFERENCE_ONLY; backend runner not integrated"
+    },
+    {
+      "capability": "FREQUENCIA dependency boundary",
+      "lineage": [
+        "external GUZZBR1/frequencia; campaign pins ba2bdab and 0190048"
+      ],
+      "canonical_implementation": "External simulator contract/CLI/files/manifests only",
+      "policy": "DO_NOT_INTEGRATE",
+      "why": "Separate laboratory/simulator; history and simulator dependencies must not enter RIOSE product runtime.",
+      "dependencies": [
+        "External repository only when a research run explicitly requests it"
+      ],
+      "test_status": "NOT_TESTED",
+      "scientific_status": "Simulation only; no FREQUENCIA run executed in this MVP.",
+      "target_location": "External dependency manifest boundary; no vendored code",
+      "evidence": [
+        "FREQUENCIA checkout HEAD observed ba2bdab; dirty checkout preserved"
+      ],
+      "placement_status": "EXTERNAL_DEPENDENCY_ONLY"
+    },
+    {
+      "capability": "Temporal request/packet identity",
+      "lineage": [
+        "Beta H.1 FIFO",
+        "H.2 explicit identity implementation 2e5d5d9",
+        "follow-up 9ae9ee1/a3c5f50"
+      ],
+      "canonical_implementation": "riose.simulation_contract.temporal_identity.RequestTimeline; semantics traced to Beta H.2",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Identity-based joins are necessary to prevent cross-request temporal attribution; FIFO approach is superseded.",
+      "dependencies": [
+        "Versioned simulator request/result contract",
+        "external event IDs"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Four-request corrected campaign historically reported; not rerun here.",
+      "target_location": "src/riose/simulation_contract/ (identity fields); runner-specific join remains research",
+      "evidence": [
+        "tests/simulation_contract/test_temporal_identity.py",
+        "Beta H.2 simulation_lab/test_farm_rf.py",
+        "GUZZ Simulation Lab tests/simulation_lab/test_farm_network.py"
+      ],
+      "placement_status": "INTEGRATED_CONTRACT; runner implementation remains research reference"
+    },
+    {
+      "capability": "RF realism campaigns",
+      "lineage": [
+        "2c9c477",
+        "cecda8d",
+        "44216b3"
+      ],
+      "canonical_implementation": "RF gap-closure research campaign 44216b3",
+      "policy": "KEEP_RESEARCH",
+      "why": "Bounded specular NLOS control demonstrates model path behavior only; isotropic antenna limits orientation claims.",
+      "dependencies": [
+        "FARM/analytic model",
+        "campaign configs"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; vegetation unmodeled/not tested; no field calibration.",
+      "target_location": "research/rf-campaigns/",
+      "evidence": [
+        "RF campaign and closure manifests",
+        "GUZZ registry C07"
+      ],
+      "placement_status": "REFERENCE_ONLY; historical campaign retained at source refs"
+    },
+    {
+      "capability": "Network scale and contention campaigns",
+      "lineage": [
+        "2c9c477",
+        "a3e8f1b",
+        "4152f8a"
+      ],
+      "canonical_implementation": "Contention closure 4152f8a; invalid initial runs excluded",
+      "policy": "KEEP_RESEARCH",
+      "why": "Corrected finite model schedules do not justify deployment capacity claims; prior FIFO executions were invalid.",
+      "dependencies": [
+        "Simulation request identity",
+        "scheduled TX audit",
+        "scenario denominator"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED; 9 one-second runs invalid (315 identity mismatches); corrected 2100 TX starts; scenario results only.",
+      "target_location": "research/network-campaigns/",
+      "evidence": [
+        "docs/research/network-scale/results.md",
+        "capacity-envelope.json",
+        "GUZZ registry C08"
+      ],
+      "placement_status": "REFERENCE_ONLY; historical campaign retained at source refs"
+    },
+    {
+      "capability": "Shared evidence bridge/provenance mapping",
+      "lineage": [
+        "Event Contract → Evidence Bridge 04e0070 → Beta evidence pipeline"
+      ],
+      "canonical_implementation": "riose.evidence.bridge",
+      "policy": "PRODUCT_OPTIONAL",
+      "why": "Shared status/provenance mapping helps preserve measured/synthetic/simulated distinctions without external publication.",
+      "dependencies": [
+        "Python standard library"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Metadata mapping only; does not validate underlying claim.",
+      "target_location": "src/riose/evidence/",
+      "evidence": [
+        "tests/test_evidence_bridge.py",
+        "docs/evidence-bridge.md"
+      ],
+      "placement_status": "INTEGRATED_IN_THIS_BRANCH"
+    },
+    {
+      "capability": "Historical invalid/failed runs and evidence",
+      "lineage": [
+        "Campaign-specific immutable manifests/results across preservation refs"
+      ],
+      "canonical_implementation": "Existing preserved evidence references; no new rewritten copy",
+      "policy": "KEEP_HISTORICAL",
+      "why": "Failed and superseded runs explain scientific lineage and must not be rewritten to match current code.",
+      "dependencies": [
+        "Preservation refs and source SHA"
+      ],
+      "test_status": "HISTORICALLY_REPORTED",
+      "scientific_status": "Historical evidence, with invalidation/supersession labels retained.",
+      "target_location": "Existing refs/preservation/* and campaign-specific immutable artifacts",
+      "evidence": [
+        "GUZZ_PRESERVATION_MANIFEST.md",
+        "INTEGRATION_COLLISION_MATRIX.md"
+      ],
+      "placement_status": "PRESERVED_IN_EXISTING_REFS; no evidence copy rewritten"
+    },
+    {
+      "capability": "Movement and RF context correlation",
+      "lineage": [
+        "GUZZ issue 28 implementation 2e2ef41",
+        "current red-team notes 044b90b"
+      ],
+      "canonical_implementation": "Movement/RF context with exact opaque-tag matching, temporal alignment, conflict rejection and abstention",
+      "policy": "KEEP_EXPERIMENTAL",
+      "why": "Correlated movement and RF evidence can support an investigation signal, but RF context alone does not establish behavior, location truth or animal identity.",
+      "dependencies": [
+        "Movement feature windows",
+        "RF observations",
+        "clock and tag identity contract"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "SIMULATED/EXPERIMENTAL; no live clocks or field correlation validation.",
+      "target_location": "research/movement-rf-context/",
+      "evidence": [
+        "tests/livestock_tracking/test_movement_rf_context.py",
+        "GUZZ issue 28 worktree HEAD 044b90b"
+      ],
+      "placement_status": "REFERENCE_ONLY; experimental implementation remains at GUZZ issue 28"
+    },
+    {
+      "capability": "FARM Sionna propagation model",
+      "lineage": [
+        "GUZZ Simulation Lab bcc49af",
+        "independent from GPU antenna sensitivity experiment"
+      ],
+      "canonical_implementation": "riose.simulation_lab.farm_rf in the separate GUZZ Simulation Lab checkout",
+      "policy": "KEEP_RESEARCH",
+      "why": "This is a model backend for controlled research cases, not a measurement oracle or product RF guarantee.",
+      "dependencies": [
+        "Optional Sionna/Mitsuba/Dr.Jit stack",
+        "synthetic scene inputs"
+      ],
+      "test_status": "HISTORICALLY_REPORTED",
+      "scientific_status": "SIMULATED; compare backends as model disagreement, not error against ground truth.",
+      "target_location": "research/simulation-lab/farm_rf.py",
+      "evidence": [
+        "RF campaign results and gap-closure evidence",
+        "GUZZ Simulation Lab bcc49af"
+      ],
+      "placement_status": "REFERENCE_ONLY; backend not integrated into product runtime"
+    },
+    {
+      "capability": "Simulation evidence package pipeline",
+      "lineage": [
+        "Beta research/riose-beta-final bfc6e86"
+      ],
+      "canonical_implementation": "simulation_evidence pipeline for hashed manifests, input provenance, safe paths and secret screening",
+      "policy": "KEEP_RESEARCH",
+      "why": "Useful campaign packaging tools remain tied to the research runner; hash/path integrity does not establish scientific validity.",
+      "dependencies": [
+        "Simulation result manifests",
+        "campaign files",
+        "filesystem boundary"
+      ],
+      "test_status": "TESTED_NOW",
+      "scientific_status": "Evidence packaging metadata only; does not validate model, measurement or claim.",
+      "target_location": "research/simulation-evidence/",
+      "evidence": [
+        "tests/simulation_evidence/test_pipeline.py",
+        "Beta riose-beta-final worktree"
+      ],
+      "placement_status": "REFERENCE_ONLY; package not copied to this branch"
+    }
+  ]
+}
