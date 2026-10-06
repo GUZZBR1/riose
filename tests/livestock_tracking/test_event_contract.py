@@ -113,6 +113,74 @@ def test_verifier_rejects_nonstandard_json_constants(tmp_path):
     store.close()
 
 
+def test_verifier_detects_deleted_middle_event_but_local_chain_cannot_prove_tail_completeness(tmp_path):
+    store = Store(tmp_path / "missing-events.sqlite3")
+    store.create_animal("cow-1", "tag-1", "crypto-1")
+    first = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 1}, 1.0)
+    middle = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 2}, 2.0)
+    tail = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 3}, 3.0)
+
+    store.connection.execute("DELETE FROM animal_events WHERE event_id=?", (middle.event_id,))
+    store.connection.commit()
+    assert not store.verify_animal_chain("cow-1")
+
+    store.connection.execute("DELETE FROM animal_events WHERE event_id=?", (tail.event_id,))
+    store.connection.commit()
+    assert store.verify_animal_chain("cow-1")
+    assert first.hash != tail.hash
+    store.close()
+
+
+def test_verifier_rejects_reordered_events(tmp_path):
+    store = Store(tmp_path / "reordered-events.sqlite3")
+    store.create_animal("cow-1", "tag-1", "crypto-1")
+    first = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 1}, 1.0)
+    second = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 2}, 2.0)
+    store.connection.execute("UPDATE animal_events SET event_id=1000 WHERE event_id=?", (first.event_id,))
+    store.connection.execute("UPDATE animal_events SET event_id=? WHERE event_id=?", (first.event_id, second.event_id))
+    store.connection.execute("UPDATE animal_events SET event_id=? WHERE event_id=1000", (second.event_id,))
+    store.connection.commit()
+    assert not store.verify_animal_chain("cow-1")
+    store.close()
+
+
+def test_event_order_uses_event_id_for_equal_and_out_of_order_timestamps(tmp_path):
+    store = Store(tmp_path / "timestamp-order.sqlite3")
+    store.create_animal("cow-1", "tag-1", "crypto-1")
+    earlier_id = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 1}, 20.0)
+    equal_time_id = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 2}, 20.0)
+    out_of_order_id = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 3}, 10.0)
+
+    rows = store.connection.execute(
+        "SELECT event_id,timestamp,previous_hash,hash FROM animal_events "
+        "WHERE animal_id='cow-1' ORDER BY event_id"
+    ).fetchall()
+    assert [row[0] for row in rows] == [1, earlier_id.event_id, equal_time_id.event_id, out_of_order_id.event_id]
+    assert [row[1] for row in rows[1:]] == [20.0, 20.0, 10.0]
+    assert [row[2] for row in rows[1:]] == [rows[0][3], rows[1][3], rows[2][3]]
+    assert store.verify_animal_chain("cow-1")
+    store.close()
+
+
+def test_writer_refuses_to_extend_an_already_invalid_chain(tmp_path):
+    store = Store(tmp_path / "invalid-head.sqlite3")
+    store.create_animal("cow-1", "tag-1", "crypto-1")
+    event = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 1}, 1.0)
+    store.connection.execute(
+        "UPDATE animal_events SET payload='{}' WHERE event_id=?", (event.event_id,)
+    )
+    store.connection.commit()
+    before = store.connection.execute("SELECT COUNT(*) FROM animal_events").fetchone()[0]
+
+    with pytest.raises(ValueError, match="invalid event chain"):
+        store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 2}, 2.0)
+
+    assert store.connection.execute("SELECT COUNT(*) FROM animal_events").fetchone()[0] == before
+    assert not store.connection.in_transaction
+    assert not store.verify_animal_chain("cow-1")
+    store.close()
+
+
 def test_legacy_sqlite_hash_remains_verifiable_without_rehash(tmp_path):
     path = tmp_path / "legacy.sqlite3"
     connection = sqlite3.connect(path)

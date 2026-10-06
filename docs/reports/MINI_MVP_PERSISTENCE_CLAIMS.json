@@ -1,0 +1,71 @@
+{
+  "mission": "MINI-MVP 5 — Persistence, Event-Chain & Reliability",
+  "base_sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+  "branch": "mini-mvp/persistence-reliability",
+  "claims": [
+    {
+      "claim_id": "PERSIST-001",
+      "claim": "Canonical Store/API event appends serialize the chain-head read and event insert across independent local SQLite writer processes.",
+      "evidence_status": "TESTED",
+      "evidence": [
+        "Two-process barrier reproduction of the pre-fix read/read/insert fork in a disposable database.",
+        "Post-fix spawned-process tests: 2×40, 4×40, and 8×40 writes, all successful with valid final chains and PRAGMA integrity_check=ok."
+      ],
+      "limitations": [
+        "Only canonical Store/API paths were exercised.",
+        "Direct callers passing an already-active deferred transaction to append_event must instead use a write-serializing transaction.",
+        "No claim is made for distributed hosts or shared network filesystems."
+      ]
+    },
+    {
+      "claim_id": "PERSIST-002",
+      "claim": "The event hash contract remains deterministic for the frozen v1 canonical byte vector.",
+      "evidence_status": "TESTED",
+      "evidence": ["Exact canonical UTF-8 byte vector and SHA-256 digest regression test passed."]
+    },
+    {
+      "claim_id": "PERSIST-003",
+      "claim": "The local verifier detects changes to hashed fields and interior chain structure, but cannot prove that the log has not been truncated at its tail.",
+      "evidence_status": "TESTED_WITH_EXPLICIT_LIMITATION",
+      "evidence": [
+        "Tamper tests modify event type, timestamp, payload, previous hash and hash.",
+        "Interior deletion and event reordering fail verification.",
+        "A test demonstrates tail deletion still verifies because there is no external head checkpoint."
+      ]
+    },
+    {
+      "claim_id": "PERSIST-004",
+      "claim": "An identical behavior-observation retry with the same animal and idempotency key returns the original record, and conflicting reuse is rejected.",
+      "evidence_status": "TESTED",
+      "evidence": ["Existing Store/API idempotency and reopen tests passed in the full suite."]
+    },
+    {
+      "claim_id": "PERSIST-005",
+      "claim": "Event API writes do not provide request-level idempotency; repeating a request is another append.",
+      "evidence_status": "CONFIRMED_FROM_CONTRACT",
+      "evidence": ["EventCreate has no idempotency key and the event table has no request deduplication field/index."],
+      "limitations": ["A lost response followed by retry may create an additional event; clients needing retry safety require a future explicit idempotency contract."]
+    },
+    {
+      "claim_id": "PERSIST-006",
+      "claim": "The tested SQLite configuration uses WAL, FULL synchronous mode, a 5-second busy timeout and foreign-key enforcement.",
+      "evidence_status": "OBSERVED_AT_RUNTIME",
+      "evidence": ["Fresh Store runtime query returned journal_mode=wal, synchronous=2, busy_timeout=5000, foreign_keys=1."]
+    },
+    {
+      "claim_id": "PERSIST-007",
+      "claim": "The final Python suite passed with 629 tests and 7 skips.",
+      "evidence_status": "TESTED",
+      "evidence": ["Full pytest output from a clean detached checkout: 630 passed, 7 skipped, one existing Starlette/httpx deprecation warning, 50.67 seconds."]
+    },
+    {
+      "claim_id": "PERSIST-008",
+      "claim": "The persistence layer is production-scalable or safe for arbitrary concurrency.",
+      "evidence_status": "NOT_CLAIMED",
+      "evidence": ["Local stress is bounded at 2/4/8 processes and 40 writes per worker; results are correctness evidence only, not a production benchmark."]
+    }
+  ],
+  "multi_worker_deployment_gate": "YES_TESTED",
+  "verdict": "PASS_WITH_LIMITATIONS",
+  "final_head": "Recorded in the final response; the report and claims file are part of the same containing commit, so no self-referential commit hash is embedded here."
+}
