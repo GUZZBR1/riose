@@ -105,7 +105,7 @@ This audit records the evidence collected after implementation.
 | D1-D4 | PASS | Generic dispatcher routes exact chain/network/adapter; CLI send/process/reconcile uses it; normalized target-specific receipts and state tests |
 | D5-D6 | PASS within signed-wire semantics | Persisted PREPARED wire is validated before replay; absent RPC evidence stays uncertain; claims, renewal, and fenced writes prevent duplicate local attempts; repeated Solana wire has the same signature |
 | D7-D8 | PASS | Independent-target and Event V1 failure tests; CLI process entrypoint test |
-| D9 | PASS in working tree; clean checkout pending | Full regression: 797 passed, 7 skipped, one upstream Starlette deprecation warning; Python compileall and git diff check passed |
+| D9 | PASS | Full regression in worktree and detached clean checkout at code commit: 797 passed, 7 skipped, one upstream Starlette deprecation warning in each; Python compileall and git diff check passed |
 | D10 | PASS after fixes | Independent red team found CONFIRMED downgrade, stale claim race, and misleading Solana rejection. All were fixed and covered by regressions |
 | D11 | EXTERNAL_BLOCKER | No Solana keypair at the standard WSL path and Devnet DNS unavailable; no transaction submitted; `REAL_ON_CHAIN=UNVERIFIED` |
 | D12 | PASS | `MULTICHAIN_MVP2_EVM_HANDOFF.md` defines the future adapter's signed-wire, network, nonce, receipt, and recovery requirements |
@@ -117,7 +117,7 @@ This audit records the evidence collected after implementation.
 | T7-T9 | PASS | Confirmed/verified no-republish, safe RETRYABLE, terminal REJECTED tests |
 | T10-T13 | PASS | Reopened SQLite PREPARED recovery, duplicate dispatch, separate-Store worker contention, stale-claim recovery |
 | T14-T16 | PASS | Failed target leaves Event V1 valid and sibling target independent; existing SQLite/event-chain regression |
-| T17 | PASS in working tree | Full regression 797 passed, 7 skipped |
+| T17 | PASS | Full regression 797 passed, 7 skipped in the worktree and detached clean checkout |
 
 Fault injection covered adapter missing, prepare failure, persisted PREPARED
 crash/restart, submit timeout and mismatched return, receipt RPC timeout or
