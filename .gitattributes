@@ -1,3 +1,9 @@
 /datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.csv text eol=lf
 /datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.jsonl text eol=lf
 /datasets/movement_biosignature/fixtures/actbecalf_synthetic_fixture.jsonl.manifest.json text eol=lf
+INTELLIGENCE_RESEARCH_INTEGRATION_PACKET.md text eol=lf
+INTELLIGENCE_RESEARCH_PROMOTION_MATRIX.json text eol=lf
+src/riose/products/livestock_tracking/domain/intelligence.py text eol=lf
+src/riose/simulation_contract/temporal_identity.py text eol=lf
+tests/livestock_tracking/test_intelligence_contracts.py text eol=lf
+tests/simulation_contract/test_temporal_identity.py text eol=lf
