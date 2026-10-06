@@ -1,0 +1,605 @@
+{
+  "classification": "SYNTHETIC_REFERENCE_NOT_SURVEYED",
+  "repository_provenance": {
+    "commit": "ba2bdabf003722aae8292580e048f7092d0356d6",
+    "branch": "main",
+    "working_tree_dirty": true,
+    "classification": "SIMULATION_NOT_FIELD_MEASUREMENT",
+    "python_version": "3.12.3",
+    "sionna_rt_version": "2.2.0",
+    "tensorflow_version": null,
+    "mitsuba_version": "3.9.1",
+    "drjit_version": "1.5.0",
+    "host_platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "gpu": "NOT_QUERIED"
+  },
+  "config_path": "farm_config.yaml",
+  "config_sha256": "5e6469f5bc6ef1b478824a1a22aeae0e061114a100ea8ac0bfeff2397a19b043",
+  "experiment_spec_path": "experiment_spec.yaml",
+  "experiment_spec_sha256": "6cd3fc7bf1f12ad9b65350947ab6e2725b72edda54982f1f64c1417fd4ad0841",
+  "scenario_generation_provenance": {
+    "source": "farm.virtual_farm.FarmScenario",
+    "classification": "SIMULATION",
+    "frequency_hz": "915000000.0",
+    "bandwidth_hz": "125000.0",
+    "seed": "20261013"
+  },
+  "trajectory": {
+    "source": "SYNTHETIC RIOSE request trajectory",
+    "frame": "ENU local",
+    "csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+    "timestamp_count": 3
+  },
+  "solver_configuration": {
+    "max_depth": 1,
+    "los": true,
+    "specular_reflection": true,
+    "cfr_points": 5,
+    "max_num_paths_per_src": 1000,
+    "samples_per_src": 1000
+  },
+  "antenna_assumptions": {
+    "classification": "IDEALIZED_SIMULATION_ANTENNA_NOT_PHYSICAL_HARDWARE",
+    "tx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization",
+    "rx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization",
+    "gain_db": null,
+    "orientation": "backend default",
+    "frequency_dependence": "idealized pattern held fixed; not a physical antenna model"
+  },
+  "path_classification": {
+    "los_enabled": true,
+    "specular_reflection_enabled": true,
+    "meaning": "NLOS with LOS enabled is a ray-traced geometric obstruction result; NLOS with LOS disabled is configuration-forced."
+  },
+  "effective_rf_configuration": {
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14.0,
+    "seed": 20261013,
+    "technology": null,
+    "static_material_itu": {},
+    "static_custom_materials": {
+      "farm-terrain": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      },
+      "farm-obstacles": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      }
+    }
+  },
+  "scenario_metadata": {
+    "name": "brazil_rural_reference_smoke",
+    "classification": "SYNTHETIC_REFERENCE_SCENARIO",
+    "coordinate_system": "local ENU; x east, y north, z elevation, metres; gateway z config is height above local terrain",
+    "terrain": {
+      "grid_spacing_m": 100.0,
+      "relief_amplitude_m": 18.0,
+      "soil": {
+        "material": "rural_soil",
+        "relative_permittivity": 15.0,
+        "conductivity_s_per_m": 0.035
+      }
+    },
+    "land_use": {
+      "pasture_fraction": 0.78,
+      "paddocks": 4,
+      "fence_height_m": 1.4,
+      "road_width_m": 8.0,
+      "tree_count": 36,
+      "tree_height_m": 8.0,
+      "tree_canopy_radius_m": 3.0,
+      "corral": {
+        "center_m": [
+          500.0,
+          500.0
+        ],
+        "size_m": [
+          100.0,
+          80.0
+        ]
+      },
+      "shed": {
+        "center_m": [
+          610.0,
+          500.0
+        ],
+        "size_m": [
+          35.0,
+          24.0
+        ],
+        "height_m": 6.0
+      },
+      "water_trough_count": 4,
+      "feeder_count": 4,
+      "trees": [
+        {
+          "tree_id": "TREE-001",
+          "x_m": 748.426086437989,
+          "y_m": 209.42219122221678,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-002",
+          "x_m": 172.7359996682638,
+          "y_m": 286.5873417982733,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-003",
+          "x_m": 138.22099524876057,
+          "y_m": 470.2354250884467,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-004",
+          "x_m": 347.82212395742187,
+          "y_m": 118.7685809658957,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-005",
+          "x_m": 318.9209507068365,
+          "y_m": 876.6786616456585,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-006",
+          "x_m": 308.32781307411915,
+          "y_m": 525.0443821208867,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-007",
+          "x_m": 480.182770652301,
+          "y_m": 320.6565865410715,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-008",
+          "x_m": 820.9644528839881,
+          "y_m": 131.13028639265752,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-009",
+          "x_m": 688.8600518901216,
+          "y_m": 876.9121323407653,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-010",
+          "x_m": 430.8968316112927,
+          "y_m": 668.4362480025826,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-011",
+          "x_m": 446.0931573293044,
+          "y_m": 283.3244773811116,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-012",
+          "x_m": 500.19986871509326,
+          "y_m": 803.3344104042127,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-013",
+          "x_m": 426.8857094428937,
+          "y_m": 765.9263250904668,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-014",
+          "x_m": 810.2592090413049,
+          "y_m": 325.47805646938133,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-015",
+          "x_m": 365.6510872942262,
+          "y_m": 620.1828349174591,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-016",
+          "x_m": 533.0851330265034,
+          "y_m": 282.1677258627425,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-017",
+          "x_m": 722.5692517813395,
+          "y_m": 423.3880750347416,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-018",
+          "x_m": 575.2470612210886,
+          "y_m": 858.5001186775562,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-019",
+          "x_m": 123.05923172163398,
+          "y_m": 686.1681433366359,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-020",
+          "x_m": 603.2519833713133,
+          "y_m": 362.0059211687346,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-021",
+          "x_m": 815.6760127988667,
+          "y_m": 781.8023052829918,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-022",
+          "x_m": 757.5662062543734,
+          "y_m": 389.46057720484055,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-023",
+          "x_m": 680.5691500635735,
+          "y_m": 880.9191051274994,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-024",
+          "x_m": 854.4158794483394,
+          "y_m": 470.24496501910676,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-025",
+          "x_m": 688.7424212751939,
+          "y_m": 647.428224032421,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-026",
+          "x_m": 288.844436665628,
+          "y_m": 453.5983275207854,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-027",
+          "x_m": 242.69672874089173,
+          "y_m": 440.2907940296855,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-028",
+          "x_m": 913.5652586705578,
+          "y_m": 872.8644588494868,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-029",
+          "x_m": 313.47657875644995,
+          "y_m": 518.2633982497671,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-030",
+          "x_m": 315.32204497408276,
+          "y_m": 190.10323436716808,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-031",
+          "x_m": 301.19370633343186,
+          "y_m": 80.91875285822363,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-032",
+          "x_m": 84.34967362340703,
+          "y_m": 607.3473894529635,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-033",
+          "x_m": 221.88968016488695,
+          "y_m": 900.9461367661039,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-034",
+          "x_m": 656.3247776451863,
+          "y_m": 625.6229346848205,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-035",
+          "x_m": 537.0865014150402,
+          "y_m": 136.04393644324477,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        },
+        {
+          "tree_id": "TREE-036",
+          "x_m": 773.9718347243618,
+          "y_m": 265.1002022098197,
+          "height_m": 8.0,
+          "canopy_radius_m": 3.0
+        }
+      ],
+      "internal_roads": [
+        {
+          "road_id": "ROAD-E",
+          "centerline_m": [
+            [
+              0,
+              180.0
+            ],
+            [
+              1000.0,
+              180.0
+            ]
+          ],
+          "width_m": 8.0
+        },
+        {
+          "road_id": "ROAD-N",
+          "centerline_m": [
+            [
+              180.0,
+              0
+            ],
+            [
+              180.0,
+              1000.0
+            ]
+          ],
+          "width_m": 8.0
+        }
+      ],
+      "paddock_fences": [
+        {
+          "fence_id": "F-01",
+          "height_m": 1.4,
+          "line_m": [
+            [
+              500.0,
+              0
+            ],
+            [
+              500.0,
+              1000.0
+            ]
+          ]
+        },
+        {
+          "fence_id": "F-02",
+          "height_m": 1.4,
+          "line_m": [
+            [
+              0,
+              500.0
+            ],
+            [
+              1000.0,
+              500.0
+            ]
+          ]
+        }
+      ],
+      "water_troughs": [
+        {
+          "trough_id": "WATER-01",
+          "position_m": [
+            250.0,
+            250.0
+          ]
+        },
+        {
+          "trough_id": "WATER-02",
+          "position_m": [
+            750.0,
+            250.0
+          ]
+        },
+        {
+          "trough_id": "WATER-03",
+          "position_m": [
+            250.0,
+            750.0
+          ]
+        },
+        {
+          "trough_id": "WATER-04",
+          "position_m": [
+            750.0,
+            750.0
+          ]
+        }
+      ],
+      "feeders": [
+        {
+          "feeder_id": "FEED-01",
+          "position_m": [
+            300.0,
+            300.0
+          ]
+        },
+        {
+          "feeder_id": "FEED-02",
+          "position_m": [
+            700.0,
+            300.0
+          ]
+        },
+        {
+          "feeder_id": "FEED-03",
+          "position_m": [
+            300.0,
+            700.0
+          ]
+        },
+        {
+          "feeder_id": "FEED-04",
+          "position_m": [
+            700.0,
+            700.0
+          ]
+        }
+      ]
+    },
+    "materials": {
+      "soil": "permittivity/conductivity are approximate fixed rural-soil assumptions at 915 MHz, not site measurements",
+      "pasture": "grass represented as land-use metadata; not raytraced",
+      "trees": "procedural inventory only; trunks and canopies are not raytraced or assigned a vegetation RF material",
+      "fences": "paddock boundaries and height are inventory geometry; wire impedance/mesh is not modeled",
+      "shed": "generic building geometry; wall material is an explicit Sionna proxy, not measured construction",
+      "obstacle_mesh": "shed cuboid plus an optional RF test reflector; one explicitly configured Sionna material proxy is assigned to this combined mesh",
+      "rf_test_reflector": "idealized geometry-test surface only when explicitly configured; not a farm asset"
+    },
+    "features": [
+      "relief",
+      "soil",
+      "pastures",
+      "trees",
+      "fences/paddocks",
+      "internal roads",
+      "corral",
+      "shed",
+      "water troughs",
+      "feeders"
+    ],
+    "rf_obstacles": [
+      "terrain",
+      "shed"
+    ],
+    "configured_but_not_raytraced": [
+      "trees",
+      "pastures",
+      "fences",
+      "internal roads",
+      "corral",
+      "water troughs",
+      "feeders"
+    ],
+    "limitations": [
+      "no georeferenced survey or real Brazilian property supplied",
+      "terrain and asset positions are synthetic, deterministic approximations",
+      "vegetation and fences are not raytraced; soil and building RF parameters require field calibration",
+      "current 2D TDoA solver assumes one configured source height; it does not use local terrain elevation as estimator input"
+    ]
+  },
+  "material_provenance": {
+    "classification": "UNCALIBRATED_PROXY",
+    "static_materials": {},
+    "source": "explicit configured constant-permittivity/conductivity proxy",
+    "field_calibrated": false,
+    "frequency_dependence": "ITU presets are resolved by Sionna at the scene frequency",
+    "static_custom_materials": {
+      "farm-terrain": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      },
+      "farm-obstacles": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      }
+    },
+    "rural_soil": {
+      "source_type": "scenario_proxy",
+      "relative_permittivity": 15.0,
+      "conductivity_s_m": 0.035,
+      "used_for_static_meshes": true,
+      "calibrated": false
+    }
+  },
+  "transmitters": [
+    {
+      "device_id": "tx-001",
+      "position_m": [
+        272.06644632985694,
+        188.67349710298433,
+        14.349472258646998
+      ]
+    }
+  ],
+  "receivers": [
+    {
+      "device_id": "rx-GW-1",
+      "position_m": [
+        20.0,
+        20.0,
+        12.0
+      ]
+    },
+    {
+      "device_id": "rx-GW-2",
+      "position_m": [
+        980.0,
+        20.0,
+        12.0
+      ]
+    },
+    {
+      "device_id": "rx-GW-3",
+      "position_m": [
+        980.0,
+        980.0,
+        12.0
+      ]
+    },
+    {
+      "device_id": "rx-GW-4",
+      "position_m": [
+        20.0,
+        980.0,
+        12.0
+      ]
+    }
+  ],
+  "static_meshes": {
+    "farm-terrain": "geometry/brazil_reference_terrain.ply",
+    "farm-obstacles": "geometry/brazil_reference_rf_obstacles.ply"
+  }
+}

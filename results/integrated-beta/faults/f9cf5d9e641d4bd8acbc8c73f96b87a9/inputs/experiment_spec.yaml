@@ -1,0 +1,13 @@
+experiment_id: farm-gateway-outage-gw1
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-integrated-beta-final/results/integrated-beta/faults/f9cf5d9e641d4bd8acbc8c73f96b87a9/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/f9cf5d9e641d4bd8acbc8c73f96b87a9/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-integrated-beta-final/results/integrated-beta/faults/f9cf5d9e641d4bd8acbc8c73f96b87a9/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261003

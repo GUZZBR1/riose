@@ -50,7 +50,7 @@ class AnimalCreate(BaseModel):
 class EventCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
     animal_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
-    event_type: Literal["OWNER_CHANGED", "WEIGHT_RECORDED", "VACCINATION", "HEALTH_EVENT", "TRANSFER", "SLAUGHTER"]
+    event_type: Literal["OWNER_CHANGED", "WEIGHT_RECORDED", "VACCINATION", "HEALTH_EVENT", "TRANSFER", "SLAUGHTER", "SIMULATION_RUN_RECORDED"]
     payload: dict[str, Any] = Field(default_factory=dict)
     timestamp: float | None = Field(default=None, allow_inf_nan=False)
 
@@ -215,7 +215,7 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return JSONResponse(status_code=422, content={"detail": json_safe(exc.errors())})
 
     app.state.store = Store(db_path)
-    app.state.anchors = []
+    app.state.anchors = app.state.store.list_anchors()
     app.state.last_config = None
     app.state.last_ground_truth = None
 

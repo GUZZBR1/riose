@@ -1,0 +1,178 @@
+{
+  "observations": 9,
+  "snapshot_count": 3,
+  "status_counts": {
+    "LOS": 6,
+    "NLOS": 0,
+    "NO_PATH": 3
+  },
+  "geometric_nlos_count": 0,
+  "configuration_forced_nlos_count": 0,
+  "status_by_timestamp": [
+    {
+      "timestamp_s": 0.0,
+      "status_counts": {
+        "LOS": 2,
+        "NLOS": 0,
+        "NO_PATH": 1
+      },
+      "geometric_nlos_count": 0,
+      "configuration_forced_nlos_count": 0,
+      "path_count": 3,
+      "valid_received_power_count": 2,
+      "dominant_path_delay_s": {
+        "count": 2,
+        "min": 2.62309822574025e-06,
+        "median": 3.2479465517099015e-06,
+        "max": 3.872794877679553e-06
+      },
+      "received_power_dbm": {
+        "min": -78.97310780654462,
+        "median": -74.91855574525212,
+        "max": -70.86400368395964,
+        "mean": -74.91855574525212,
+        "stdev": 5.734002514427629
+      },
+      "execution_seconds": 1.4974577039993164,
+      "cache": "miss"
+    },
+    {
+      "timestamp_s": 1.0,
+      "status_counts": {
+        "LOS": 2,
+        "NLOS": 0,
+        "NO_PATH": 1
+      },
+      "geometric_nlos_count": 0,
+      "configuration_forced_nlos_count": 0,
+      "path_count": 3,
+      "valid_received_power_count": 2,
+      "dominant_path_delay_s": {
+        "count": 2,
+        "min": 2.6218704078928567e-06,
+        "median": 3.245536845497554e-06,
+        "max": 3.869203283102252e-06
+      },
+      "received_power_dbm": {
+        "min": -78.96504981262404,
+        "median": -74.9225472727943,
+        "max": -70.88004473296456,
+        "mean": -74.9225472727943,
+        "stdev": 5.716961917754902
+      },
+      "execution_seconds": 0.05480261100092321,
+      "cache": "hit"
+    },
+    {
+      "timestamp_s": 2.0,
+      "status_counts": {
+        "LOS": 2,
+        "NLOS": 0,
+        "NO_PATH": 1
+      },
+      "geometric_nlos_count": 0,
+      "configuration_forced_nlos_count": 0,
+      "path_count": 3,
+      "valid_received_power_count": 2,
+      "dominant_path_delay_s": {
+        "count": 2,
+        "min": 2.620647137518972e-06,
+        "median": 3.243129867769312e-06,
+        "max": 3.865612598019652e-06
+      },
+      "received_power_dbm": {
+        "min": -78.95698679800289,
+        "median": -74.9294126404793,
+        "max": -70.90183848295571,
+        "mean": -74.9294126404793,
+        "stdev": 5.695849997033251
+      },
+      "execution_seconds": 0.06613231299888866,
+      "cache": "hit"
+    }
+  ],
+  "state_transitions": [],
+  "finite_received_power_count": 6,
+  "received_power_dbm": {
+    "count": 6,
+    "min": -78.97310780654462,
+    "median": -74.9294126404793,
+    "max": -70.86400368395964,
+    "mean": -74.92350521950858,
+    "stdev": 4.427307674385993
+  },
+  "finite_power_deltas_db": [
+    {
+      "receiver_id": "rx-GW-3",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 0.0,
+      "to_timestamp_s": 1.0,
+      "delta_db": 0.00805799392057338
+    },
+    {
+      "receiver_id": "rx-GW-3",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 1.0,
+      "to_timestamp_s": 2.0,
+      "delta_db": 0.00806301462115755
+    },
+    {
+      "receiver_id": "rx-GW-4",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 0.0,
+      "to_timestamp_s": 1.0,
+      "delta_db": -0.016041049004925867
+    },
+    {
+      "receiver_id": "rx-GW-4",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 1.0,
+      "to_timestamp_s": 2.0,
+      "delta_db": -0.021793749991147138
+    }
+  ],
+  "dominant_path_delay_deltas_s": [
+    {
+      "receiver_id": "rx-GW-3",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 0.0,
+      "to_timestamp_s": 1.0,
+      "delta_s": -3.5915945773012936e-09
+    },
+    {
+      "receiver_id": "rx-GW-3",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 1.0,
+      "to_timestamp_s": 2.0,
+      "delta_s": -3.5906850825995207e-09
+    },
+    {
+      "receiver_id": "rx-GW-4",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 0.0,
+      "to_timestamp_s": 1.0,
+      "delta_s": -1.2278178473934531e-09
+    },
+    {
+      "receiver_id": "rx-GW-4",
+      "transmitter_id": "tx-001",
+      "from_timestamp_s": 1.0,
+      "to_timestamp_s": 2.0,
+      "delta_s": -1.2232703738845885e-09
+    }
+  ],
+  "path_count": 9,
+  "same_geometry_reproducibility": {
+    "comparison_count": 0,
+    "matching_count": 0,
+    "mismatching_count": 0,
+    "tolerance": {
+      "relative": 1e-09,
+      "absolute": 1e-15,
+      "note": "numeric outputs compared for repeated geometry within one run"
+    },
+    "comparisons": []
+  },
+  "transmitter_count": 1,
+  "receiver_count": 3
+}

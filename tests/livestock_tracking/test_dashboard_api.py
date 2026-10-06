@@ -51,6 +51,28 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     assert debug == sorted(debug, key=lambda row: row["timestamp"])
 
 
+def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions(tmp_path):
+    from riose.products.livestock_tracking.domain.contracts import Anchor
+
+    db_path = tmp_path / "restart-dashboard.sqlite3"
+    first_app = create_app(db_path)
+    first_app.state.store.create_animal("cow-no-fix", "tag-no-fix", "crypto-no-fix")
+    first_app.state.store.save_anchors([Anchor("anchor-a", 10, 20, kind="simulated")])
+    first_app.state.store.close()
+
+    restarted = create_app(db_path)
+    client = TestClient(restarted)
+    assert client.get("/api/anchors").json() == [
+        {"anchor_id":"anchor-a", "x":10.0, "y":20.0, "height_m":3.0,
+         "kind":"simulated", "enabled":True}
+    ]
+    assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
+    page = client.get("/demo")
+    assert page.status_code == 200
+    assert "sem posição aceite" in page.text
+    client.close()
+
+
 def test_dashboard_rerun_replaces_duplicate_visible_samples_and_keeps_latest_page(tmp_path):
     client = TestClient(create_app(tmp_path / "rerun-history.sqlite3"))
     common = {"animal_count": 1, "anchor_count": 4, "duration_s": 90,

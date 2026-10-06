@@ -115,6 +115,8 @@ def _send_or_reconcile(args: argparse.Namespace, outbox: object) -> int:
         if current in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED, PublicationState.UNKNOWN}:
             outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.CONFIRMED,
                                       slot=slot, evidence_status=evidence_status)
+            current = PublicationState.CONFIRMED
+        if current is PublicationState.CONFIRMED:
             outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.VERIFIED,
                                       slot=slot, evidence_status=evidence_status)
     else:
@@ -138,10 +140,12 @@ def _public_status(request: dict[str, object], outbox: object | None = None) -> 
     if outbox is not None:
         receipts = outbox.receipts(request["publication_id"])
         local_valid = outbox.verify_local_binding(request["publication_id"])
+        validated_receipt = lambda item: item["evidence_status"] == "VALIDATED"
         result["verification"] = {
             "LOCAL_HASH_VALID": local_valid,
             "RECEIPT_PRESENT": bool(receipts),
-            "CHAIN_CONFIRMED": any(item["state"] in {"CONFIRMED", "VERIFIED"} and item["evidence_status"] not in {"MOCKED", "SIMULATED"} for item in receipts),
-            "CHAIN_VERIFIED": local_valid and request["status"] == "VERIFIED" and any(item["state"] == "VERIFIED" and item["evidence_status"] not in {"MOCKED", "SIMULATED"} for item in receipts),
+            "CHAIN_CONFIRMED": any(item["state"] in {"CONFIRMED", "VERIFIED"} and validated_receipt(item) for item in receipts),
+            "CHAIN_VERIFIED": local_valid and request["status"] == "VERIFIED" and any(item["state"] == "VERIFIED" and validated_receipt(item) for item in receipts),
+            "CHAIN_OBSERVED_ASSUMED": any(item["state"] in {"CONFIRMED", "VERIFIED"} and item["evidence_status"] == "ASSUMED" for item in receipts),
         }
     return result

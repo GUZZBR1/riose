@@ -1,0 +1,41 @@
+{
+  "health": {
+    "status": "ok",
+    "evidence": "SIMULATED"
+  },
+  "demo_http_status": 200,
+  "dashboard_browser_rendering": "NOT_TESTED",
+  "animal_created": true,
+  "api_animal_count": 1,
+  "anchors_saved": 4,
+  "anchors_exposed_by_api": 4,
+  "telemetry_persisted": 12,
+  "positions_persisted": 0,
+  "behavior_status": "UNAVAILABLE",
+  "event_chain_valid": true,
+  "publication_status": "QUEUED",
+  "local_commitment_binding_valid": true,
+  "real_on_chain": "UNVERIFIED",
+  "receipts": 0,
+  "run": {
+    "run_id": "c93252ed65524582abec8f384b8d9ed3",
+    "campaign_id": "farm-rf-smoke-v1",
+    "scenario_id": "brazil-rural-reference-smoke",
+    "classification": "SIMULATED",
+    "backend": "frequencia.sionna-rt",
+    "request_sha256": "2de954646f483c0ae9f7d267ea64470905b84142238ed8f8a02cf39bb01c4548",
+    "result_sha256": "42858863626e6f07667e826691d293e6037f306e1d418c3f58facbb7a341a60a",
+    "observations_converted": 12,
+    "estimates_converted": 2,
+    "accepted_positions_persisted": 0,
+    "behavior": {
+      "status": "UNAVAILABLE",
+      "predictions": []
+    },
+    "truth_persisted": false,
+    "coordinate_frame": "ENU_LOCAL"
+  },
+  "reopen_verification": true,
+  "reopen_api_anchors": 4,
+  "publication_id": "201c422939ab5e684f8aa50ed36df260"
+}

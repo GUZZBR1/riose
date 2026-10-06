@@ -1,0 +1,13 @@
+experiment_id: farm-rf-localization-failure-v1
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-integrated-beta-final/results/integrated-beta/faults/ee392b04b6c34905ae33fca513b54855/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/ee392b04b6c34905ae33fca513b54855/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-integrated-beta-final/results/integrated-beta/faults/ee392b04b6c34905ae33fca513b54855/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261003

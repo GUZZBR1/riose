@@ -128,6 +128,15 @@ class Store:
             )
             self.connection.commit()
 
+    def list_anchors(self) -> list[Any]:
+        from ...domain.contracts import Anchor
+
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT anchor_id,x,y,height_m,kind,enabled FROM anchors ORDER BY anchor_id"
+            ).fetchall()
+        return [Anchor(**dict(row) | {"enabled": bool(row["enabled"])}) for row in rows]
+
     def create_animal(self, animal_id: str, hardware_id: str, cryptographic_id: str,
                       **profile: Any) -> dict[str, Any]:
         import time
