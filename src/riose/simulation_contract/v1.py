@@ -184,8 +184,18 @@ def validate_request(doc: Any) -> dict[str, Any]:
         previous: dict[str, float] = {}
         timestamps_by_tag: dict[str, set[float]] = {}
         for i, raw in enumerate(samples):
-            sample = _object(raw, f"trajectory.samples[{i}]", {"tag_ref", "timestamp_s", "position_m"})
+            sample = _object(raw, f"trajectory.samples[{i}]", {"tag_ref", "timestamp_s", "position_m"},
+                             {"request_id", "sequence_number"})
             tag_ref = _text(sample["tag_ref"], f"trajectory.samples[{i}].tag_ref")
+            if "request_id" in sample:
+                _text(sample["request_id"], f"trajectory.samples[{i}].request_id")
+            if "sequence_number" in sample:
+                sequence_number = sample["sequence_number"]
+                if isinstance(sequence_number, bool) or not isinstance(sequence_number, int) or sequence_number < 0:
+                    raise ContractError(f"trajectory.samples[{i}].sequence_number must be a nonnegative integer")
+                expected_sequence = len(timestamps_by_tag.get(tag_ref, set()))
+                if sequence_number != expected_sequence:
+                    raise ContractError(f"trajectory.samples[{i}].sequence_number must increase from zero per tag")
             if tag_ref not in known_tags:
                 raise ContractError(f"trajectory sample references unknown tag {tag_ref!r}")
             _number(sample["timestamp_s"], f"trajectory.samples[{i}].timestamp_s", minimum=0)
@@ -194,6 +204,14 @@ def validate_request(doc: Any) -> dict[str, Any]:
             previous[tag_ref] = float(sample["timestamp_s"])
             timestamps_by_tag.setdefault(tag_ref, set()).add(float(sample["timestamp_s"]))
             _position(sample["position_m"], f"trajectory.samples[{i}].position_m")
+        request_ids = [sample["request_id"] for sample in samples if "request_id" in sample]
+        if request_ids and (len(request_ids) != len(samples) or len(set(request_ids)) != len(request_ids)):
+            raise ContractError("trajectory request_id values must be present and unique for every sample")
+        if any("sequence_number" in sample for sample in samples):
+            if (any("sequence_number" not in sample for sample in samples)
+                    or any(len({sample["sequence_number"] for sample in samples if sample["tag_ref"] == tag})
+                           != sum(sample["tag_ref"] == tag for sample in samples) for tag in known_tags)):
+                raise ContractError("trajectory sequence_number values must be present and unique per tag")
         if set(timestamps_by_tag) != known_tags or len({frozenset(values) for values in timestamps_by_tag.values()}) != 1:
             raise ContractError("every tag must have a trajectory sample at each shared timestamp")
     radio = _object(d["radio"], "request.radio", {"frequency_hz", "bandwidth_hz", "tx_power_dbm", "phy"})

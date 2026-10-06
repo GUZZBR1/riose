@@ -1,4 +1,5 @@
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -20,6 +21,7 @@ from riose.simulation_lab.farm_rf import (
     _validate_operational_bounds,
     _validate_localization_result,
     _validate_network_result,
+    _validate_temporal_rows,
 )
 
 
@@ -28,6 +30,78 @@ ROOT = Path(__file__).parents[2]
 
 def request_doc():
     return load_json((ROOT / "examples" / "farm_rf_v1.json").read_text(encoding="utf-8"), kind="request")
+
+
+def not_transmitted_network(request):
+    settings = request["solver"]["parameters"]["network"]
+    tag_by_ref = {tag["tag_ref"]: tag for tag in request["tags"]}
+    sequences = {}
+    packets = []
+    events = []
+    for index, sample in enumerate(request["trajectory"]["samples"]):
+        tag = tag_by_ref[sample["tag_ref"]]
+        sequence = sequences.get(sample["tag_ref"], 0)
+        sequences[sample["tag_ref"]] = sequence + 1
+        request_id = sample.get("request_id") or "req-" + hashlib.sha256(
+            f"{request.get('campaign_id', 'campaign')}:{request.get('scenario_id', 'scenario')}:{request.get('seed', 0)}:{sample['tag_ref']}:{sequence}".encode()).hexdigest()[:24]
+        animal = tag["animal_ref"]
+        timestamp = float(sample["timestamp_s"])
+        phase_hash = hashlib.sha256(f"{request['seed']}:{animal}".encode()).digest()
+        scheduled = timestamp + int.from_bytes(phase_hash[:8], "big") / 2**64 * settings["traffic_interval_s"]
+        packets.append({"event_index": index, "packet_id": request_id, "request_id": request_id,
+                        "sequence_number": sequence, "animal_id": animal,
+                        "run_id": None, "scenario_id": request["scenario_id"],
+                        "campaign_id": request["campaign_id"], "tag_id": tag["tag_ref"],
+                        "device_id": tag["device_ref"],
+                        "transmitter_id": tag["transmitter_ref"],
+                        "timestamp_s": timestamp, "requested_timestamp_s": timestamp,
+                        "scheduled_timestamp_s": scheduled, "tx_start_s": None, "airtime_s": None,
+                        "tx_outcome": "NOT_TRANSMITTED", "drop_reason": "NO_PHY_TX_OBSERVED",
+                        "packet_uid": None, "received_gateway_ids": []})
+        for receiver in request["receivers"]:
+            events.append({"event_index": index, "packet_id": request_id, "request_id": request_id,
+                           "sequence_number": sequence, "animal_id": animal,
+                           "run_id": None, "scenario_id": request["scenario_id"],
+                           "campaign_id": request["campaign_id"], "tag_id": tag["tag_ref"],
+                           "device_id": tag["device_ref"],
+                           "transmitter_id": tag["transmitter_ref"],
+                           "timestamp_s": timestamp, "requested_timestamp_s": timestamp,
+                           "scheduled_timestamp_s": scheduled, "gateway_id": receiver["gateway_ref"],
+                           "tx_outcome": "NOT_TRANSMITTED", "tx_start_s": None, "packet_uid": None,
+                           "outcome": "NOT_TRANSMITTED"})
+    return {"network_backend": "ns-3.48/lorawan-v0.3.7", "channel_backend": "sionna-rt",
+            "run_id": None, "scenario_id": request["scenario_id"], "campaign_id": request["campaign_id"],
+            "classification": "SIMULATED_NETWORK_FROM_SIONNA", "frequency_hz": request["radio"]["frequency_hz"],
+            "tx_power_dbm": request["radio"]["tx_power_dbm"], "sf": settings["spreading_factor"],
+            "payload_bytes": settings["payload_bytes"], "traffic_interval_s": settings["traffic_interval_s"],
+            "traffic_phase_window_s": settings["traffic_interval_s"],
+            "traffic_schedule": "source_timestamp_plus_seeded_device_phase_window", "seed": request["seed"],
+            "time_resolution_ps": 1, "packets": packets, "gateway_events": events,
+            "metrics": {"requested_packets": len(packets), "transmitted_packets": 0,
+                        "not_transmitted_packets": len(packets), "requested_count": len(packets),
+                        "transmitted_count": 0, "not_transmitted_count": len(packets),
+                        "delivered_packets": 0, "pdr": None}}
+
+
+def mark_transmitted(network, index):
+    packet = network["packets"][index]
+    packet.update(tx_start_s=packet["scheduled_timestamp_s"], airtime_s=0.05,
+                  tx_outcome="TRANSMITTED", drop_reason=None, packet_uid=index,
+                  received_gateway_ids=[])
+    for event in network["gateway_events"]:
+        if event["event_index"] == index:
+            event.update(outcome="RX", tx_outcome="TRANSMITTED",
+                         tx_start_s=packet["tx_start_s"], packet_uid=packet["packet_uid"])
+            packet["received_gateway_ids"].append(event["gateway_id"])
+    transmitted = sum(row["tx_outcome"] == "TRANSMITTED" for row in network["packets"])
+    delivered = sum(bool(row["received_gateway_ids"]) for row in network["packets"])
+    network["metrics"].update(transmitted_packets=transmitted,
+                              not_transmitted_packets=len(network["packets"]) - transmitted,
+                              transmitted_count=transmitted,
+                              not_transmitted_count=len(network["packets"]) - transmitted,
+                              delivered_packets=delivered,
+                              pdr=delivered / transmitted if transmitted else None)
+    return packet
 
 
 def localization_metrics(eligible=0, converged=0):
@@ -74,38 +148,17 @@ def test_network_result_backend_mismatch_fails_closed():
 
 def test_network_result_unknown_gateway_fails_closed():
     request = request_doc()
-    settings = request["solver"]["parameters"]["network"]
-    packets = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-                "tx_start_s": None, "received_gateway_ids": []} for index in range(3)]
-    events = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-               "gateway_id": ("GW-UNKNOWN" if index == 0 and gateway == 0 else receiver["gateway_ref"]),
-               "outcome": "NOT_TRANSMITTED"}
-              for index in range(3) for gateway, receiver in enumerate(request["receivers"])]
-    network = {"network_backend": "ns-3.48/lorawan-v0.3.7", "channel_backend": "sionna-rt",
-               "classification": "SIMULATED_NETWORK_FROM_SIONNA", "frequency_hz": 915000000,
-               "tx_power_dbm": 14.0, "sf": settings["spreading_factor"],
-               "payload_bytes": settings["payload_bytes"], "traffic_interval_s": settings["traffic_interval_s"],
-               "seed": request["seed"], "time_resolution_ps": 1, "packets": packets,
-               "gateway_events": events, "metrics": {}}
+    network = not_transmitted_network(request)
+    network["gateway_events"][0]["gateway_id"] = "GW-UNKNOWN"
     with pytest.raises(RunnerError, match="unknown packet or gateway"):
         _validate_network_result(request, network)
 
 
 def test_network_packets_must_match_requested_trajectory_identity_and_time():
     request = request_doc()
-    settings = request["solver"]["parameters"]["network"]
-    packets = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-                "tx_start_s": None, "received_gateway_ids": []} for index in range(3)]
-    events = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-               "gateway_id": receiver["gateway_ref"], "outcome": "NOT_TRANSMITTED"}
-              for index in range(3) for receiver in request["receivers"]]
-    network = {"network_backend": "ns-3.48/lorawan-v0.3.7", "channel_backend": "sionna-rt",
-               "classification": "SIMULATED_NETWORK_FROM_SIONNA", "frequency_hz": 915000000,
-               "tx_power_dbm": 14.0, "sf": settings["spreading_factor"],
-               "payload_bytes": settings["payload_bytes"], "traffic_interval_s": settings["traffic_interval_s"],
-               "seed": request["seed"], "time_resolution_ps": 1, "packets": packets,
-               "gateway_events": events,
-               "metrics": {"transmitted_packets": 0, "delivered_packets": 0, "pdr": None}}
+    network = not_transmitted_network(request)
+    packets = network["packets"]
+    events = network["gateway_events"]
     packets[0]["timestamp_s"] = 100.0
     for event in events:
         if event["event_index"] == 0:
@@ -114,10 +167,96 @@ def test_network_packets_must_match_requested_trajectory_identity_and_time():
         _validate_network_result(request, network)
 
 
+@pytest.mark.parametrize("field,value,match", [
+    ("request_id", "req-wrong", "request identity"),
+    ("device_id", "device-wrong", "identity"),
+    ("scheduled_timestamp_s", -1.0, "scheduled timestamp"),
+])
+def test_network_packet_identity_and_schedule_are_bound_to_request(field, value, match):
+    request = request_doc()
+    network = not_transmitted_network(request)
+    network["packets"][0][field] = value
+    with pytest.raises(RunnerError, match=match):
+        _validate_network_result(request, network)
+
+
+def test_network_packet_uids_must_be_unique():
+    request = request_doc()
+    network = not_transmitted_network(request)
+    first = mark_transmitted(network, 0)
+    second = mark_transmitted(network, 1)
+    second["packet_uid"] = first["packet_uid"]
+    for event in network["gateway_events"]:
+        if event["request_id"] == second["request_id"]:
+            event["packet_uid"] = first["packet_uid"]
+    with pytest.raises(RunnerError, match="PHY UID"):
+        _validate_network_result(request, network)
+
+
+@pytest.mark.parametrize("offset_s,valid", [(-1e-12, True), (-2e-12, False)])
+def test_tx_start_validation_respects_ns3_one_picosecond_resolution(offset_s, valid):
+    request = request_doc()
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    packet["tx_start_s"] = packet["scheduled_timestamp_s"] + offset_s
+    for event in network["gateway_events"]:
+        if event["request_id"] == packet["request_id"]:
+            event["tx_start_s"] = packet["tx_start_s"]
+    if valid:
+        _validate_network_result(request, network)
+    else:
+        with pytest.raises(RunnerError, match="valid TX time"):
+            _validate_network_result(request, network)
+
+
+@pytest.mark.parametrize("field,value", [("device_id", "foreign-device"),
+                                          ("transmitter_id", "foreign-tx"),
+                                          ("campaign_id", "foreign-campaign")])
+def test_gateway_event_identity_must_match_its_packet(field, value):
+    request = request_doc()
+    network = not_transmitted_network(request)
+    mark_transmitted(network, 0)
+    network["gateway_events"][0][field] = value
+    with pytest.raises(RunnerError, match="does not match its packet identity"):
+        _validate_network_result(request, network)
+
+
+def test_not_transmitted_request_cannot_have_gateway_rx():
+    request = request_doc()
+    network = not_transmitted_network(request)
+    network["gateway_events"][0]["outcome"] = "RX"
+    with pytest.raises(RunnerError, match="contradicts the packet TX outcome"):
+        _validate_network_result(request, network)
+
+
+def test_temporal_rows_must_match_full_packet_and_gateway_identity():
+    request = request_doc()
+    request["receivers"] = request["receivers"][:1]
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    event = network["gateway_events"][0]
+    temporal = {"packet_id": packet["request_id"], "request_id": packet["request_id"],
+                "sequence_number": packet["sequence_number"], "run_id": packet["run_id"],
+                "scenario_id": packet["scenario_id"], "campaign_id": packet["campaign_id"],
+                "animal_id": packet["animal_id"], "tag_id": packet["tag_id"],
+                "device_id": packet["device_id"], "transmitter_id": packet["transmitter_id"],
+                "timestamp_s": packet["timestamp_s"],
+                "requested_timestamp_s": packet["requested_timestamp_s"],
+                "scheduled_timestamp_s": packet["scheduled_timestamp_s"],
+                "tx_start_s": packet["tx_start_s"], "packet_uid": packet["packet_uid"],
+                "gateway_id": event["gateway_id"], "network_outcome": event["outcome"],
+                "classification": "SIMULATED", "clock_timestamp_s": packet["tx_start_s"]}
+    _validate_temporal_rows(network, [temporal])
+    temporal["animal_id"] = "foreign-animal"
+    with pytest.raises(RunnerError, match="temporal artifact identity/time"):
+        _validate_temporal_rows(network, [temporal])
+
+
 def test_failed_localization_cannot_smuggle_a_coordinate():
     request = request_doc()
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "tx_start_s": 0.0}]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-001",
                                    "tdoa_status": "LT3_TIMESTAMPS", "tdoa_position_m": [0, 0]}],
                     "metrics": localization_metrics()}
     with pytest.raises(RunnerError, match="failed.*must not contain"):
@@ -128,12 +267,9 @@ def test_two_gateway_tdoa_failure_is_reported_without_a_position():
     request = deepcopy(request_doc())
     request["receivers"] = request["receivers"][:2]
     request["trajectory"]["samples"] = request["trajectory"]["samples"][:1]
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                            "tx_start_s": 1.0}],
-               "gateway_events": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                                   "gateway_id": gateway, "outcome": "RX"}
-                                  for gateway in ("GW-1", "GW-2")]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-001",
                                   "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}],
                     "metrics": localization_metrics()}
     _validate_localization_result(request, network, localization)
@@ -156,9 +292,9 @@ def test_localization_estimate_device_must_match_packet_animal():
     second.update(tag_ref="riose-tag-002", transmitter_ref="tx-002",
                   animal_ref="animal-002", device_ref="device-002")
     request["tags"].append(second)
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                            "tx_start_s": 0.0}]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-002",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-002",
                                    "tdoa_status": "SOLVER_FAILED", "tdoa_position_m": None}]}
     with pytest.raises(RunnerError, match="does not match its packet animal/device identity"):
         _validate_localization_result(request, network, localization)
@@ -166,17 +302,17 @@ def test_localization_estimate_device_must_match_packet_animal():
 
 def test_localization_requires_complete_packet_set_and_consistent_metrics():
     request = request_doc()
-    network = {"packets": [
-        {"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0, "tx_start_s": 0.0},
-        {"event_index": 1, "animal_id": "animal-001", "timestamp_s": 1.0, "tx_start_s": 1.0},
-    ]}
-    first = {"packet_id": "0", "device_id": "device-001", "tdoa_status": "NO_PACKET",
+    network = not_transmitted_network(request)
+    network["packets"] = network["packets"][:2]
+    first_packet = mark_transmitted(network, 0)
+    second_packet = mark_transmitted(network, 1)
+    first = {"packet_id": first_packet["request_id"], "device_id": "device-001", "tdoa_status": "NO_PACKET",
              "tdoa_position_m": None}
     with pytest.raises(RunnerError, match="omits packet estimates"):
         _validate_localization_result(request, network,
             {"estimates": [first], "metrics": localization_metrics()})
 
-    estimates = [first, {"packet_id": "1", "device_id": "device-001",
+    estimates = [first, {"packet_id": second_packet["request_id"], "device_id": "device-001",
                          "tdoa_status": "SOLVER_FAILED", "tdoa_position_m": None}]
     with pytest.raises(RunnerError, match="metrics disagree with complete estimate statuses"):
         _validate_localization_result(request, network,
@@ -235,11 +371,9 @@ def test_result_keeps_phy_reception_distinct_from_path_and_localization_failure(
         {"transmitter_id": "tx-001", "status": "LOS", "received_power_dbm": -80.0,
          "paths": [{"delay_s": 1e-7, "coefficient": {"real": 1.0, "imag": 0.0}}]},
     ]}]}]}
-    network = {"network_backend": "ns-3.48/lorawan-v0.3.7", "packets": [
-        {"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0, "tx_start_s": 1.0}],
-        "gateway_events": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                            "gateway_id": "GW-1", "outcome": "RX"}]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-001",
                                   "tdoa_position_m": None, "tdoa_status": "LT3_TIMESTAMPS"}],
                     "metrics": localization_metrics()}
     result = _result(request, raw, {}, {"repository_provenance": {"sionna_rt_version": "test"}},
@@ -258,8 +392,9 @@ def test_result_keeps_phy_reception_distinct_from_path_and_localization_failure(
 
 def test_ground_truth_is_used_only_by_separate_post_estimation_scoring():
     request = request_doc()
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0}]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-001",
                                   "tdoa_position_m": [120.0, 200.0], "tdoa_status": "CONVERGED"}],
                     "metrics": {"tdoa": {"eligible_packets": 1, "converged_packets": 1,
                                              "convergence": 1.0}}}
@@ -280,8 +415,12 @@ def test_ground_truth_is_used_only_by_separate_post_estimation_scoring():
 
 def test_converged_remote_zero_residual_estimate_is_operationally_rejected():
     request = request_doc()
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0}]}
-    localization = {"estimates": [{"packet_id": "0", "device_id": "device-001",
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    for event in network["gateway_events"]:
+        if event["request_id"] == packet["request_id"]:
+            event["outcome"] = "NO_PATH"
+    localization = {"estimates": [{"packet_id": packet["request_id"], "device_id": "device-001",
         "tdoa_position_m": [1248.8757, -4000.8982], "tdoa_status": "CONVERGED",
         "tdoa_residual_rms_m": 8e-14}], "metrics": localization_metrics(1, 1)}
     score = _score_after_estimation(request, network, localization)
@@ -392,18 +531,7 @@ def test_zero_and_perfect_pdr_are_preserved_without_inference():
                    "gateway_events": [], "network_backend": "ns-3.48/lorawan-v0.3.7"}
         assert _network_summary(network, None, None)["pdr"] == value
     request = request_doc()
-    config = request["solver"]["parameters"]["network"]
-    packets = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-                "tx_start_s": None, "received_gateway_ids": []} for index in range(3)]
-    events = [{"event_index": index, "animal_id": "animal-001", "timestamp_s": float(index),
-               "gateway_id": receiver["gateway_ref"], "outcome": "NOT_TRANSMITTED"}
-              for index in range(3) for receiver in request["receivers"]]
-    untransmitted = {"network_backend": "ns-3.48/lorawan-v0.3.7", "channel_backend": "sionna-rt",
-        "classification": "SIMULATED_NETWORK_FROM_SIONNA", "frequency_hz": 915000000,
-        "tx_power_dbm": 14.0, "sf": config["spreading_factor"], "payload_bytes": config["payload_bytes"],
-        "traffic_interval_s": config["traffic_interval_s"], "seed": request["seed"],
-        "time_resolution_ps": 1, "packets": packets, "gateway_events": events,
-        "metrics": {"transmitted_packets": 0, "delivered_packets": 0, "pdr": None}}
+    untransmitted = not_transmitted_network(request)
     _validate_network_result(request, untransmitted)
     assert _network_summary(untransmitted, None, None)["pdr"] is None
 
@@ -424,10 +552,9 @@ def test_path_can_exist_when_ns3_reports_phy_loss():
         {"transmitter_id": "tx-001", "status": "LOS", "received_power_dbm": -90.0,
          "paths": [{"delay_s": 1e-7, "coefficient": {"real": 1.0, "imag": 0.0}}]},
     ]}]}]}
-    network = {"packets": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                            "tx_start_s": 1.0}],
-               "gateway_events": [{"event_index": 0, "animal_id": "animal-001", "timestamp_s": 0.0,
-                                   "gateway_id": "GW-1", "outcome": "INTERFERENCE"}]}
+    network = not_transmitted_network(request)
+    packet = mark_transmitted(network, 0)
+    network["gateway_events"][0]["outcome"] = "INTERFERENCE"
     result = _result(request, raw, {}, {"repository_provenance": {}}, "a" * 64, "b" * 64,
                      network, [], {"estimates": []})
     observation = result["observations"][0]

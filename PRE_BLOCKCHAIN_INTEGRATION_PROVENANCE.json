@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "repository": "GUZZBR1/riose",
+  "target_remote": "fork",
+  "base": {
+    "fork_main": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+    "local_main": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "upstream_origin_main_cached": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+    "upstream_is_ancestor_of_fork": true
+  },
+  "integration": {
+    "branch": "integration/pre-blockchain-baseline",
+    "base": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+    "final_sha": "see refs/heads/integration/pre-blockchain-baseline (self-referential SHA intentionally resolves from Git metadata)",
+    "remote_push": "BLOCKED_DNS_AND_INVALID_GITHUB_TOKEN",
+    "remote_main_verified": false
+  },
+  "discovery": {
+    "local_branch_count": 51,
+    "remote_tracking_ref_count": 46,
+    "worktree_registration_count": 66,
+    "public_open_pr_count": 0,
+    "public_latest_core_ci": "FAILED_AT_BASE_MISSING_OPTIONAL_SOLANA_EXTRA",
+    "unavailable_stale_worktree_paths_left_untouched": true,
+    "root_dirty_state_preserved": [
+      "GUZZ_PRESERVATION_MANIFEST.json",
+      "GUZZ_PRESERVATION_MANIFEST.md",
+      "INTEGRATION_COLLISION_MATRIX.md",
+      "riose-issue26/"
+    ]
+  },
+  "included": [
+    {
+      "area": "simulation_lab_event_identity",
+      "source_commits": [
+        "75dc4689aa66ee3dc97675f90f5d845d4d184098",
+        "9ae9ee1bf83eb910cdfce9b25e136adcf89f7e99",
+        "a3c5f50a6f656797bc9db9e5354805b74f00237a",
+        "2e5d5d92a6552f2cf6cfdba9e6566ac0e3d8aac9"
+      ],
+      "integration_form": "Included in the single Lore-protocol pre-blockchain baseline commit on integration/pre-blockchain-baseline.",
+      "decision": "Selectively ported request identity across radio events, gateway timestamps, clocks, and fail-closed validators; did not cherry-pick the broad Beta archive changes.",
+      "external_dependency": "FREQUENCIA commit 0190048023269da695c84d0ff5e1cf3c6ed502d7 is required to preserve event IDs at TxStart."
+    },
+    {
+      "area": "dynamic_localization_fault_campaign",
+      "source_ref": "research/riose-beta-final",
+      "included_paths": [
+        "src/riose/products/livestock_tracking/localization/tdoa_v2.py",
+        "research/dynamic-localization-faults/experiment.py",
+        "tests/livestock_tracking/test_tdoa_v2.py",
+        "tests/research/test_dynamic_localization.py",
+        "docs/research/dynamic-localization/"
+      ],
+      "decision": "Included with adverse false-accept results and simulated-only limitations retained."
+    },
+    {
+      "area": "rf_realism_closure_evidence",
+      "source_ref": "research/rf-realism-gap-closure",
+      "source_commit": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "included_paths": [
+        "docs/research/rf-realism/gap-closure.md",
+        "docs/research/rf-realism/gap-closure-evidence.json"
+      ],
+      "decision": "Included bounded simulated evidence only; old event-index campaign code was not ported."
+    },
+    {
+      "area": "network_contention_capacity_closure_evidence",
+      "source_ref": "research/network-contention-capacity-closure",
+      "source_commit": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "included_paths": [
+        "docs/research/network-scale/results.md",
+        "docs/research/network-scale/capacity-envelope.json",
+        "docs/research/network-scale/contention-closure-spec.json",
+        "docs/research/network-scale/contention-closure-corrected-spec.json"
+      ],
+      "decision": "Included bounded simulated evidence; older event-index campaign code and scripts were not ported."
+    },
+    {
+      "area": "ci_optional_solana_test_dependency",
+      "path": ".github/workflows/mvp2-core.yml",
+      "change": "Install --extra solana together with --extra dev so optional Solana test dependencies declared by the project are present in CI."
+    }
+  ],
+  "already_in_target": [
+    "codex/issue-01-event-contract-v1",
+    "codex/issue-02-evidence-bridge",
+    "codex/issue-21-dataset-foundation",
+    "codex/issue-22-signal-engine",
+    "codex/issue-23-behavior-ml",
+    "codex/issue-24-behavior-persistence",
+    "codex/issue-25-biosignature",
+    "codex/issue-26-reproduction-intelligence",
+    "codex/issue-27-health-anomaly",
+    "codex/issue-28-movement-rf-context",
+    "mini-mvp/persistence-reliability",
+    "mini-mvp/firmware-digital-twin",
+    "mini-mvp/simulation-localization",
+    "research/tag-simulation-closure",
+    "research/movement-intelligence-e2e"
+  ],
+  "excluded_or_deferred": [
+    {
+      "ref_or_worktree": "research/rf-realism-campaign",
+      "classification": "SUPERSEDED",
+      "reason": "Final RF closure evidence is on research/rf-realism-gap-closure."
+    },
+    {
+      "ref_or_worktree": "research/network-scale-capacity",
+      "classification": "SUPERSEDED",
+      "reason": "Use cumulative corrected closure on research/network-contention-capacity-closure."
+    },
+    {
+      "ref_or_worktree": "dirty riose-tag-simulation-closure worktree",
+      "classification": "PARTIALLY_USEFUL_NOT_READY",
+      "reason": "Uncommitted code, fixture, and evidence not independently rerun; original worktree preserved."
+    },
+    {
+      "ref_or_worktree": "dirty riose-wt-issue-10 worktree",
+      "classification": "PARTIALLY_USEFUL_NOT_READY",
+      "reason": "Dirty antenna/mechanical edits, stale README, no accepted RF metrics or mesh-refinement evidence; original worktree preserved."
+    },
+    {
+      "ref_or_worktree": "dirty riose-wt-issue-09 worktree",
+      "classification": "SUPERSEDED",
+      "reason": "The target test already includes optional CadQuery handling; source worktree preserved."
+    },
+    {
+      "ref_or_worktree": "research/blockchain-hackathon-demo, mini-mvp/blockchain-publication, codex/issue-03-commitment-v1, dirty blockchain worktree",
+      "classification": "BLOCKCHAIN_OUT_OF_SCOPE",
+      "reason": "Excluded and preserved. Existing target Web3 files predate this candidate and were not altered."
+    },
+    {
+      "ref_or_worktree": "root worktree untracked preservation manifests and riose-issue26/",
+      "classification": "USER_STATE_PRESERVED",
+      "reason": "Not copied into the integration tree."
+    }
+  ],
+  "verification": {
+    "uv_sync_locked_offline_dev_solana": "PASS",
+    "pytest_full": "788 passed, 7 skipped, 1 Starlette/httpx deprecation warning",
+    "pytest_event_identity_focus": "69 passed",
+    "pytest_dynamic_localization_focus": "24 passed",
+    "ctest": "39/39 passed",
+    "renode": "SKIP; Renode tooling unavailable",
+    "git_diff_check": "PASS",
+    "python_compileall": "PASS",
+    "json_artifacts_parse": "PASS",
+    "secret_scan": "PASS_HIGH_SIGNAL_PRIVATE_KEY_AND_TOKEN_MARKERS_NO_MATCHES; gitleaks/trufflehog unavailable",
+    "remote_push_and_fetch": "BLOCKED; github.com DNS resolution failed and gh token was invalid"
+  },
+  "evidence_limits": [
+    "No new physical measurements or flash test were performed.",
+    "The H.2 RIOSE identity changes depend on the external FREQUENCIA TxStart event-ID patch.",
+    "RF realism results are simulated for bounded geometry; orientation and vegetation are model limitations.",
+    "Network capacity results are simulated PHY-level evidence and make no generic deployment or application-delivery claim.",
+    "The public remote main SHA could not be fetched or updated during this run."
+  ]
+}
