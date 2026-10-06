@@ -1,0 +1,20 @@
+{
+  "schema_version": "riose.simulation-localization.clean-reproduction/v1",
+  "checkout_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+  "checkout_clean_at_start": true,
+  "command_tests": "python -m pytest -q tests/simulation_contract tests/simulation_adapter tests/simulation_lab",
+  "tests": "113 passed",
+  "campaign_run_id": "b61c05161bbf4ae3913a422b049a35f9",
+  "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+  "riose_dirty_during_campaign": false,
+  "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "backend": "frequencia.sionna-rt",
+  "runtime_s": 4.591355665999799,
+  "network_backend": "ns-3.48/lorawan-v0.3.7",
+  "transmitted_packets": 2,
+  "network_result_sha256": "3821d9996ba42baace25d78ec7f1bd86443191e7646c8b7166a034e36c016170",
+  "localization_sha256": "3a9f021cb138a35635e89c4396c3cb9d4b29677beabcc26f0dcd0da823513304",
+  "classification": "SIMULATED",
+  "status": "PASS",
+  "delivered_packets": 2
+}

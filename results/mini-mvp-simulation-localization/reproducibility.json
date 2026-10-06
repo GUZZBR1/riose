@@ -1,0 +1,41 @@
+{
+  "schema_version": "riose.simulation-localization.reproducibility/v1",
+  "classification": "SIMULATED",
+  "same_request_sha256": true,
+  "same_seed": true,
+  "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+  "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "raw_sionna_normalized_hashes_match": true,
+  "raw_sionna_normalization_exclusions": [
+    "experiment_spec_sha256 (contains per-run spec identity)",
+    "snapshots[].execution_seconds (measured runtime varies)"
+  ],
+  "raw_sionna_normalized_sha256": "36ba3e47b55b45adc3b0af02a7c391ec371df1d3da47b0ba68936c933d184c6b",
+  "deterministic_network_artifacts": {
+    "network/network_results.json": {
+      "sha256_first": "3821d9996ba42baace25d78ec7f1bd86443191e7646c8b7166a034e36c016170",
+      "sha256_repeat": "3821d9996ba42baace25d78ec7f1bd86443191e7646c8b7166a034e36c016170",
+      "match": true
+    },
+    "network/gateway_timestamps.json": {
+      "sha256_first": "dfdd1acc4333553c37157c516b6c95ab6f26b3f105db7cff3984aedb4c9f599a",
+      "sha256_repeat": "dfdd1acc4333553c37157c516b6c95ab6f26b3f105db7cff3984aedb4c9f599a",
+      "match": true
+    },
+    "network/localization.json": {
+      "sha256_first": "3a9f021cb138a35635e89c4396c3cb9d4b29677beabcc26f0dcd0da823513304",
+      "sha256_repeat": "3a9f021cb138a35635e89c4396c3cb9d4b29677beabcc26f0dcd0da823513304",
+      "match": true
+    },
+    "network/scoring.json": {
+      "sha256_first": "b567d7c2d8f419d836ef84b125f90dddd046aeac1ec0cea444ff71c9c859024b",
+      "sha256_repeat": "b567d7c2d8f419d836ef84b125f90dddd046aeac1ec0cea444ff71c9c859024b",
+      "match": true
+    }
+  },
+  "runtime_s": {
+    "first": 7.285862179000105,
+    "repeat": 5.705999337000321
+  },
+  "status": "PASS_WITH_LIMITATIONS"
+}

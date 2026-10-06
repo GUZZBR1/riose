@@ -1,0 +1,92 @@
+{
+  "schema_version": "riose.mini-mvp.simulation-localization.claim-registry/v1",
+  "mission": "RIOSE Mini-MVP 2 — Simulation & Localization",
+  "base_sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+  "implementation_checkpoint_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+  "allowed_evidence_classification": "SIMULATED",
+  "claims": [
+    {
+      "claim_id": "simulation-boundary-v1",
+      "claim": "RIOSE validates a versioned Simulation Request V1, invokes an explicitly selected external FREQUENCIA backend, and records a V1 result and provenance manifest.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "TESTED_AND_RUNTIME_EXECUTED",
+      "evidence": ["55 contract/adapter tests", "58 simulation lab tests", "clean-checkout campaign"],
+      "limitations": ["FREQUENCIA must be installed separately", "analytic smoke does not bind request-specific fields"]
+    },
+    {
+      "claim_id": "sionna-rf",
+      "claim": "A small synthetic farm RF campaign executed through Sionna RT 2.2.0 on CPU with explicit synthetic terrain/shed geometry and returned LOS, NLOS, and NO_PATH classes across paired runs.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["Run index and Sionna raw output", "Sionna environment manifest", "mesh SHA-256 values"],
+      "limitations": ["No field-calibrated materials", "farm trees/fences/pasture are not all in the ray-traced mesh", "GPU was not used", "not physical validation"]
+    },
+    {
+      "claim_id": "analytic-backend",
+      "claim": "FREQUENCIA analytic free-space plus flat-ground-reflection smoke is available as a separate backend and does not silently substitute for Sionna.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["Analytic smoke run manifest", "No-fallback boundary tests"],
+      "limitations": ["Request radio/geometry/seed were NOT_EFFECTIVE", "No request-specific observations were emitted", "not paired with Sionna"]
+    },
+    {
+      "claim_id": "network-phy-scale",
+      "claim": "The 20-tag synthetic campaign exercised Sionna channel output through ns-3 3.48/LoRaWAN v0.3.7 and reported packet reception, gateway receptions, NO_PATH, and localization separately.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["network-scale-20-tags run package", "ns-3 network result and gateway event artifacts"],
+      "limitations": ["PDR is unique transmitted packets received by at least one gateway at PHY", "application/network-server delivery is unavailable and unclaimed", "one channel/sub-band and one traffic interval", "20 tags only"]
+    },
+    {
+      "claim_id": "interference",
+      "claim": "The synchronized synthetic control produced deterministic gateway interference events and zero packet reception while keeping NO_PATH and NOT_TRANSMITTED distinct.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["farm-rf-collision-v1 run package", "collision and event reconciliation tests"],
+      "limitations": ["No application-level delivery model", "not a field capacity result"]
+    },
+    {
+      "claim_id": "tdoa-quality",
+      "claim": "External FREQUENCIA TDoA can converge while quality rejects an estimate outside request-declared operational bounds; ground truth is used only for post-estimation scoring.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "TESTED_AND_RUNTIME_EXECUTED",
+      "evidence": ["False-confidence unit cases", "seed 20261011 result with two converged estimates and 1319.494 m conditional RMSE, both rejected", "estimator-call firewall test"],
+      "limitations": ["TDoA remains research-only", "quality acceptance does not establish accuracy", "no clock hardware calibration"]
+    },
+    {
+      "claim_id": "gateway-failure",
+      "claim": "Removing one gateway preserves the remaining PHY reception results and yields no eligible TDoA estimate in the executed scenario.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["farm-gateway-outage-gw1 run package"],
+      "limitations": ["One gateway outage only", "multi-gateway simultaneous outage and recovery were not run"]
+    },
+    {
+      "claim_id": "reproducibility",
+      "claim": "With identical input and seed, normalized Sionna RF outputs and the network, timestamps, localization, and scoring outputs are compatible and match in the recorded CPU environment.",
+      "evidence_classification": "SIMULATED",
+      "verification_status": "RUNTIME_EXECUTED",
+      "evidence": ["reproducibility.json", "clean-checkout-reproduction.json"],
+      "limitations": ["Per-run ExperimentSpec hash and solver execution durations vary", "no GPU determinism claim", "three additional seeds are a small screening set"]
+    },
+    {
+      "claim_id": "physical-validation",
+      "claim": "No physical, laboratory, or field validation claim is established by this mission.",
+      "evidence_classification": "UNVERIFIED",
+      "verification_status": "NOT_TESTED",
+      "evidence": ["No physical hardware or field measurements were used"],
+      "limitations": ["All reported RF/network/localization metrics remain SIMULATED"]
+    }
+  ],
+  "promotion": {
+    "simulation_contract_and_adapter": "PRODUCT_OPTIONAL",
+    "external_runner": "PRODUCT_OPTIONAL",
+    "frequencia": "EXTERNAL",
+    "sionna_rf_campaigns": "RESEARCH",
+    "network_scale_and_collision_campaigns": "RESEARCH",
+    "frequencia_tdoa": "RESEARCH",
+    "antenna_model": "EXPERIMENTAL",
+    "field_or_hardware_validation": "NOT_ESTABLISHED"
+  },
+  "scientific_classification": "SIMULATED"
+}

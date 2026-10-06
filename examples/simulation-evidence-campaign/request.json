@@ -1,0 +1,41 @@
+{
+  "schema_version": "riose.simulation.request/v1",
+  "campaign_id": "demo-campaign-001",
+  "scenario_id": "pasture-east",
+  "seed": 41,
+  "backend": "fixture-only",
+  "coordinate_frame": "ENU_LOCAL",
+  "units": {
+    "position": "m",
+    "timestamp": "s",
+    "frequency": "Hz",
+    "bandwidth": "Hz",
+    "power": "dBm",
+    "delay": "s",
+    "phase": "rad"
+  },
+  "tags": [
+    {"tag_ref": "tag-riose-01", "transmitter_ref": "tx-source-01", "position_m": [12.0, 7.5, 1.2], "trajectory_ref": "traj-01"}
+  ],
+  "receivers": [
+    {"receiver_ref": "rx-source-01", "anchor_ref": "anchor-riose-01", "position_m": [0.0, 0.0, 3.0]},
+    {"receiver_ref": "rx-source-02", "anchor_ref": "anchor-riose-02", "position_m": [25.0, 0.0, 3.0]}
+  ],
+  "id_mappings": [
+    {"source_system": "frequencia", "source_kind": "transmitter_id", "source_id": "tx-source-01", "riose_kind": "tag_id", "riose_id": "tag-riose-01"},
+    {"source_system": "frequencia", "source_kind": "receiver_id", "source_id": "rx-source-01", "riose_kind": "anchor_id", "riose_id": "anchor-riose-01"},
+    {"source_system": "frequencia", "source_kind": "receiver_id", "source_id": "rx-source-02", "riose_kind": "anchor_id", "riose_id": "anchor-riose-02"}
+  ],
+  "trajectory": {
+    "samples": [
+      {"tag_ref": "tag-riose-01", "timestamp_s": 0.0, "position_m": [12.0, 7.5, 1.2]},
+      {"tag_ref": "tag-riose-01", "timestamp_s": 1.0, "position_m": [12.8, 7.9, 1.2]}
+    ],
+    "reference": null
+  },
+  "radio": {"frequency_hz": 915000000, "bandwidth_hz": 125000, "tx_power_dbm": 14.0, "phy": {"modulation": "unspecified-fixture"}},
+  "solver": {"parameters": {}},
+  "input_references": [],
+  "provenance": {"riose_revision": null, "frequencia_revision": null, "dirty": true, "created_at": "2026-10-03T00:00:00Z"},
+  "expected_evidence": "SIMULATED"
+}

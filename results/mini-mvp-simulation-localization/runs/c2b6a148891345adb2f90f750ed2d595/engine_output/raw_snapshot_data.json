@@ -1,0 +1,2124 @@
+{
+  "classification": "SIMULATED_SYNTHETIC_REFERENCE_NOT_FIELD_MEASUREMENT",
+  "experiment_id": "farm-rf-collision-v1",
+  "config_sha256": "f2966387459b15ae5bc277c397fca63bd29fc23c867e58bde3a28223bddd6be8",
+  "experiment_spec_sha256": "fd46d315676ca29f70990014a71822ace054c5c6350465a8f83b896e4c48af98",
+  "coordinate_system": "ENU local",
+  "trajectory_source": "SYNTHETIC RIOSE request trajectory",
+  "trajectory_csv": "trajectory.csv",
+  "doppler_available": false,
+  "consistency_checks": {
+    "same_geometry_reproducibility": {
+      "comparison_count": 0,
+      "matching_count": 0,
+      "mismatching_count": 0,
+      "tolerance": {
+        "relative": 1e-09,
+        "absolute": 1e-15,
+        "note": "numeric outputs compared for repeated geometry within one run"
+      },
+      "comparisons": []
+    }
+  },
+  "snapshots": [
+    {
+      "classification": "SIMULATED",
+      "backend": "sionna-rt",
+      "sionna_version": "2.2.0",
+      "environment_id": "FARM",
+      "coordinate_frame": "ENU local",
+      "timestamp_s": 0.0,
+      "frequency_hz": 915000000,
+      "bandwidth_hz": 125000,
+      "tx_power_dbm": 14.0,
+      "tx_power_w": 0.025118864315095794,
+      "seed": 20261003,
+      "samples_per_src": 1000,
+      "max_num_paths_per_src": 1000,
+      "max_depth": 1,
+      "los": true,
+      "specular_reflection": true,
+      "transmitters": [
+        {
+          "id": "tx-001",
+          "position_m": [
+            120.0,
+            200.0,
+            10.780054003131093
+          ]
+        },
+        {
+          "id": "tx-002",
+          "position_m": [
+            130.0,
+            205.0,
+            10.780054003131093
+          ]
+        }
+      ],
+      "receivers": [
+        {
+          "id": "rx-GW-1",
+          "position_m": [
+            20.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-2",
+          "position_m": [
+            980.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-3",
+          "position_m": [
+            980.0,
+            980.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-4",
+          "position_m": [
+            20.0,
+            980.0,
+            12.0
+          ]
+        }
+      ],
+      "actor_poses": {},
+      "scene_actor_positions_m": {},
+      "material_assumptions": {
+        "static": {
+          "farm-terrain": "medium_dry_ground",
+          "farm-obstacles": "concrete"
+        },
+        "static_custom": {
+          "farm-terrain": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          },
+          "farm-obstacles": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          }
+        },
+        "actors": {},
+        "calibration": "uncalibrated configured Sionna material assumptions"
+      },
+      "provenance": {
+        "source": "farm.virtual_farm.FarmScenario",
+        "classification": "SIMULATION",
+        "frequency_hz": "915000000.0",
+        "bandwidth_hz": "125000.0",
+        "seed": "20261003"
+      },
+      "cache_hit": false,
+      "records": [
+        {
+          "receiver_id": "rx-GW-1",
+          "receiver_position_m": [
+            20.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 0.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 6.868625632705516e-07,
+                  "coefficient": {
+                    "real": 0.00012661911023315042,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 4.0271565704140654e-10,
+                  "path_power_dbm": -63.95001485280821
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 6.869060484859801e-07,
+                  "coefficient": {
+                    "real": -0.00012258111382834613,
+                    "imag": -8.329711818078067e-06
+                  },
+                  "path_power_w": 3.7918215704034036e-10,
+                  "path_power_dbm": -64.21152107202221
+                }
+              ],
+              "path_power_sum_w": 7.818978140817468e-10,
+              "received_power_w": 1.3283930608244974e-11,
+              "received_power_dbm": -78.76673401707724,
+              "cir": [
+                {
+                  "delay_s": 6.868625632705516e-07,
+                  "coefficient": {
+                    "real": -0.0001255444367416203,
+                    "imag": -1.646186865400523e-05
+                  }
+                },
+                {
+                  "delay_s": 6.869060484859801e-07,
+                  "coefficient": {
+                    "real": 0.00012269917351659387,
+                    "imag": -6.3580200730939396e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 3.3380056265741587e-06,
+                    "imag": -2.2750919015379623e-05
+                  },
+                  "received_power_w": 1.328151404236891e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 2.4876499082893133e-07,
+                    "imag": -2.2994196115178056e-05
+                  },
+                  "received_power_w": 1.3282728323349118e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -2.8452632250264287e-06,
+                    "imag": -2.2819887817604467e-05
+                  },
+                  "received_power_w": 1.3283930608244974e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -5.887901352252811e-06,
+                    "imag": -2.2231142793316394e-05
+                  },
+                  "received_power_w": 1.3285143583205366e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -8.823888492770493e-06,
+                    "imag": -2.123860758729279e-05
+                  },
+                  "received_power_w": 1.328635853618165e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 7.179791055023088e-07,
+                  "coefficient": {
+                    "real": -0.00011818399070762098,
+                    "imag": -6.469713298429269e-06
+                  },
+                  "path_power_w": 3.518980286204202e-10,
+                  "path_power_dbm": -64.53583166133468
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 7.1794960376792e-07,
+                  "coefficient": {
+                    "real": 0.0001211365160997957,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 3.68595609880485e-10,
+                  "path_power_dbm": -64.3344984170521
+                }
+              ],
+              "path_power_sum_w": 7.204936385009053e-10,
+              "received_power_w": 4.9302351475140616e-12,
+              "received_power_dbm": -83.07132366557991,
+              "cir": [
+                {
+                  "delay_s": 7.179791055023088e-07,
+                  "coefficient": {
+                    "real": -0.00011063619604101405,
+                    "imag": -4.2058829421876e-05
+                  }
+                },
+                {
+                  "delay_s": 7.1794960376792e-07,
+                  "coefficient": {
+                    "real": 0.00010755760740721598,
+                    "imag": 5.572625377681106e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": -6.758738891221583e-06,
+                    "imag": 1.2270196748431772e-05
+                  },
+                  "received_power_w": 4.929282719828992e-12
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -4.968031134922057e-06,
+                    "imag": 1.3098699128022417e-05
+                  },
+                  "received_power_w": 4.9297592889660676e-12
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -3.078588633798063e-06,
+                    "imag": 1.3667424354935065e-05
+                  },
+                  "received_power_w": 4.9302351475140616e-12
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -1.127889845520258e-06,
+                    "imag": 1.3965056496090256e-05
+                  },
+                  "received_power_w": 4.930705924480263e-12
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 8.453644113615155e-07,
+                    "imag": 1.3985676559968852e-05
+                  },
+                  "received_power_w": 4.93117944987324e-12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-2",
+          "receiver_position_m": [
+            980.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 0.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-3",
+          "receiver_position_m": [
+            980.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 0.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.872794877679553e-06,
+                  "coefficient": {
+                    "real": 2.2456631995737553e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2667451327009346e-11,
+                  "path_power_dbm": -78.97310755752655
+                }
+              ],
+              "path_power_sum_w": 1.2667451327009346e-11,
+              "received_power_w": 1.2667450600676337e-11,
+              "received_power_dbm": -78.97310780654462,
+              "cir": [
+                {
+                  "delay_s": 3.872794877679553e-06,
+                  "coefficient": {
+                    "real": -1.7534912331029773e-05,
+                    "imag": 1.4029509657120798e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": -1.4887571524013765e-05,
+                    "imag": -1.6812509784358554e-05
+                  },
+                  "received_power_w": 1.2667450084625144e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -2.2374359105015174e-05,
+                    "imag": -1.9205153876100667e-06
+                  },
+                  "received_power_w": 1.2667451430555306e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -1.7534912331029773e-05,
+                    "imag": 1.4029509657120798e-05
+                  },
+                  "received_power_w": 1.2667450600676337e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -3.035337613255251e-06,
+                    "imag": 2.225055141025223e-05
+                  },
+                  "received_power_w": 1.2667451123414314e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 1.3136443158145994e-05,
+                    "imag": 1.8213570001535118e-05
+                  },
+                  "received_power_w": 1.266745008252126e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.836895302811172e-06,
+                  "coefficient": {
+                    "real": 2.2666743461741135e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2905601736488765e-11,
+                  "path_power_dbm": -78.89221741236801
+                }
+              ],
+              "path_power_sum_w": 1.2905601736488765e-11,
+              "received_power_w": 1.2905602609535895e-11,
+              "received_power_dbm": -78.89221711857347,
+              "cir": [
+                {
+                  "delay_s": 3.836895302811172e-06,
+                  "coefficient": {
+                    "real": 1.3383174746195436e-06,
+                    "imag": 2.262720045109745e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": -2.249514000141062e-05,
+                    "imag": 2.783876880130265e-06
+                  },
+                  "received_power_w": 1.2905602615809864e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -1.4503177226288244e-05,
+                    "imag": 1.7419502910343e-05
+                  },
+                  "received_power_w": 1.2905601036681971e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 1.3383174746195436e-06,
+                    "imag": 2.262720045109745e-05
+                  },
+                  "received_power_w": 1.2905602609535895e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 1.6455473087262362e-05,
+                    "imag": 1.558841540827416e-05
+                  },
+                  "received_power_w": 1.2905602497744849e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 2.266646333737299e-05,
+                    "imag": 1.1273459676885977e-07
+                  },
+                  "received_power_w": 1.2905601991530593e-11
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-4",
+          "receiver_position_m": [
+            20.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 0.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.62309822574025e-06,
+                  "coefficient": {
+                    "real": 3.315541835036129e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.7612709523898245e-11,
+                  "path_power_dbm": -75.58890975702579
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.6237682959617814e-06,
+                  "coefficient": {
+                    "real": -2.3955029973876663e-05,
+                    "imag": -7.590786481159739e-06
+                  },
+                  "path_power_w": 1.5861645987786375e-11,
+                  "path_power_dbm": -77.99651747262968
+                }
+              ],
+              "path_power_sum_w": 4.347435551168462e-11,
+              "received_power_w": 8.195956252488626e-11,
+              "received_power_dbm": -70.86400368395964,
+              "cir": [
+                {
+                  "delay_s": 2.62309822574025e-06,
+                  "coefficient": {
+                    "real": 2.1940781152807176e-05,
+                    "imag": -2.4857272364897653e-05
+                  }
+                },
+                {
+                  "delay_s": 2.6237682959617814e-06,
+                  "coefficient": {
+                    "real": 7.88273973739706e-06,
+                    "imag": -2.386055166425649e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 5.712086203857325e-05,
+                    "imag": 4.983153303328436e-07
+                  },
+                  "received_power_w": 8.196388911210727e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 4.995386188966222e-05,
+                    "imag": -2.770499122561887e-05
+                  },
+                  "received_power_w": 8.196172030678338e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 2.9823520890204236e-05,
+                    "imag": -4.871782584814355e-05
+                  },
+                  "received_power_w": 8.195956252488626e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 1.95421034732135e-06,
+                    "imag": -5.7087330787908286e-05
+                  },
+                  "received_power_w": 8.19573852446144e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -2.64215050265193e-05,
+                    "imag": -5.064188735559583e-05
+                  },
+                  "received_power_w": 8.195523527664775e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.611665195217938e-06,
+                  "coefficient": {
+                    "real": -2.4038597985054366e-05,
+                    "imag": -7.632404958712868e-06
+                  },
+                  "path_power_w": 1.5978305481321768e-11,
+                  "path_power_dbm": -77.96469280036588
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.611034688015934e-06,
+                  "coefficient": {
+                    "real": 3.3308606361970305e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.7868457034676792e-11,
+                  "path_power_dbm": -75.54887075774522
+                }
+              ],
+              "path_power_sum_w": 4.384676251599856e-11,
+              "received_power_w": 8.539886040162534e-11,
+              "received_power_dbm": -70.68547924680877,
+              "cir": [
+                {
+                  "delay_s": 2.611665195217938e-06,
+                  "coefficient": {
+                    "real": 1.785276981536299e-05,
+                    "imag": -1.7815340470406227e-05
+                  }
+                },
+                {
+                  "delay_s": 2.611034688015934e-06,
+                  "coefficient": {
+                    "real": 2.7332198442309164e-05,
+                    "imag": -1.9037181118619628e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 5.494550714502111e-05,
+                    "imag": 1.95154789253138e-05
+                  },
+                  "received_power_w": 8.540068917575705e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 5.7453158660791814e-05,
+                    "imag": -9.947877515514847e-06
+                  },
+                  "received_power_w": 8.539976063327242e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 4.518497007666156e-05,
+                    "imag": -3.6852521589025855e-05
+                  },
+                  "received_power_w": 8.539886040162534e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 2.129623680957593e-05,
+                    "imag": -5.427912401501089e-05
+                  },
+                  "received_power_w": 8.539793446472505e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -8.069233444985002e-06,
+                    "imag": -5.774603414465673e-05
+                  },
+                  "received_power_w": 8.539702972691558e-11
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "execution_seconds": 1.6074419300002774,
+      "doppler_available": false,
+      "doppler_status": "NOT_AVAILABLE_BACKEND_DOES_NOT_EXPORT_DOPPLER"
+    },
+    {
+      "classification": "SIMULATED",
+      "backend": "sionna-rt",
+      "sionna_version": "2.2.0",
+      "environment_id": "FARM",
+      "coordinate_frame": "ENU local",
+      "timestamp_s": 1.0,
+      "frequency_hz": 915000000,
+      "bandwidth_hz": 125000,
+      "tx_power_dbm": 14.0,
+      "tx_power_w": 0.025118864315095794,
+      "seed": 20261003,
+      "samples_per_src": 1000,
+      "max_num_paths_per_src": 1000,
+      "max_depth": 1,
+      "los": true,
+      "specular_reflection": true,
+      "transmitters": [
+        {
+          "id": "tx-001",
+          "position_m": [
+            121.0,
+            200.5,
+            10.801050604761606
+          ]
+        },
+        {
+          "id": "tx-002",
+          "position_m": [
+            131.0,
+            205.5,
+            10.801050604761606
+          ]
+        }
+      ],
+      "receivers": [
+        {
+          "id": "rx-GW-1",
+          "position_m": [
+            20.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-2",
+          "position_m": [
+            980.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-3",
+          "position_m": [
+            980.0,
+            980.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-4",
+          "position_m": [
+            20.0,
+            980.0,
+            12.0
+          ]
+        }
+      ],
+      "actor_poses": {},
+      "scene_actor_positions_m": {},
+      "material_assumptions": {
+        "static": {
+          "farm-terrain": "medium_dry_ground",
+          "farm-obstacles": "concrete"
+        },
+        "static_custom": {
+          "farm-terrain": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          },
+          "farm-obstacles": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          }
+        },
+        "actors": {},
+        "calibration": "uncalibrated configured Sionna material assumptions"
+      },
+      "provenance": {
+        "source": "farm.virtual_farm.FarmScenario",
+        "classification": "SIMULATION",
+        "frequency_hz": "915000000.0",
+        "bandwidth_hz": "125000.0",
+        "seed": "20261003"
+      },
+      "cache_hit": true,
+      "records": [
+        {
+          "receiver_id": "rx-GW-1",
+          "receiver_position_m": [
+            20.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 1.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 6.899431923557131e-07,
+                  "coefficient": {
+                    "real": 0.00012605375377461314,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 3.9912742135689744e-10,
+                  "path_power_dbm": -63.98888433742195
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 6.899858817632776e-07,
+                  "coefficient": {
+                    "real": -0.0001220914418809116,
+                    "imag": -8.201996024581604e-06
+                  },
+                  "path_power_w": 3.7611964885056314e-10,
+                  "path_power_dbm": -64.24673978025419
+                }
+              ],
+              "path_power_sum_w": 7.752470702074606e-10,
+              "received_power_w": 1.2624023360300578e-11,
+              "received_power_dbm": -78.98802210487614,
+              "cir": [
+                {
+                  "delay_s": 6.899431923557131e-07,
+                  "coefficient": {
+                    "real": -3.7490830436581746e-05,
+                    "imag": -0.00012034943210892379
+                  }
+                },
+                {
+                  "delay_s": 6.899858817632776e-07,
+                  "coefficient": {
+                    "real": 5.653583866660483e-05,
+                    "imag": 0.00010852322884602472
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 2.151336411770899e-05,
+                    "imag": -6.297203071881086e-06
+                  },
+                  "received_power_w": 1.2621716948504806e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 2.046675217570737e-05,
+                    "imag": -9.145354852080345e-06
+                  },
+                  "received_power_w": 1.2622868844427479e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 1.9045008230023086e-05,
+                    "imag": -1.1826203262899071e-05
+                  },
+                  "received_power_w": 1.2624023360300578e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 1.727417838992551e-05,
+                    "imag": -1.4290599210653454e-05
+                  },
+                  "received_power_w": 1.2625205020740944e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 1.5186604287009686e-05,
+                    "imag": -1.6493322618771344e-05
+                  },
+                  "received_power_w": 1.2626314669947596e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 7.210903163468174e-07,
+                  "coefficient": {
+                    "real": 0.0001206089073093608,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 3.6539177383149485e-10,
+                  "path_power_dbm": -64.37241234268112
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 7.21119079116761e-07,
+                  "coefficient": {
+                    "real": -0.00011771480785682797,
+                    "imag": -6.362196927511832e-06
+                  },
+                  "path_power_w": 3.490832259864273e-10,
+                  "path_power_dbm": -64.57071019236682
+                }
+              ],
+              "path_power_sum_w": 7.144749998179221e-10,
+              "received_power_w": 4.624232160526144e-12,
+              "received_power_dbm": -83.34960370196441,
+              "cir": [
+                {
+                  "delay_s": 7.210903163468174e-07,
+                  "coefficient": {
+                    "real": 3.556308365659788e-05,
+                    "imag": 0.00011524658475536853
+                  }
+                },
+                {
+                  "delay_s": 7.21119079116761e-07,
+                  "coefficient": {
+                    "real": -4.708196865976788e-05,
+                    "imag": -0.00010807655780809
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": -1.3062133803032339e-05,
+                    "imag": 3.665903932414949e-06
+                  },
+                  "received_power_w": 4.6233327290768265e-12
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -1.2414760931278579e-05,
+                    "imag": 5.4726406233385205e-06
+                  },
+                  "received_power_w": 4.623782187019914e-12
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -1.1518885003169999e-05,
+                    "imag": 7.170026947278529e-06
+                  },
+                  "received_power_w": 4.624232160526144e-12
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -1.03924103314057e-05,
+                    "imag": 8.724106010049582e-06
+                  },
+                  "received_power_w": 4.624689826985929e-12
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -9.057803254108876e-06,
+                    "imag": 1.0103707609232515e-05
+                  },
+                  "received_power_w": 4.6251040137511245e-12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-2",
+          "receiver_position_m": [
+            980.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 1.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-3",
+          "receiver_position_m": [
+            980.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 1.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.869203283102252e-06,
+                  "coefficient": {
+                    "real": 2.247747397632338e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2690975539422027e-11,
+                  "path_power_dbm": -78.96504992948329
+                }
+              ],
+              "path_power_sum_w": 1.2690975539422027e-11,
+              "received_power_w": 1.2690975880908694e-11,
+              "received_power_dbm": -78.96504981262404,
+              "cir": [
+                {
+                  "delay_s": 3.869203283102252e-06,
+                  "coefficient": {
+                    "real": -9.711378879728727e-06,
+                    "imag": -2.0271309040253982e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 1.9745983081520535e-05,
+                    "imag": -1.0739322533481754e-05
+                  },
+                  "received_power_w": 1.2690977045989952e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 6.920116902620066e-06,
+                    "imag": -2.1385716536315158e-05
+                  },
+                  "received_power_w": 1.2690976879796191e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -9.711378879728727e-06,
+                    "imag": -2.0271309040253982e-05
+                  },
+                  "received_power_w": 1.2690975880908694e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -2.10022262763232e-05,
+                    "imag": -8.008954864635598e-06
+                  },
+                  "received_power_w": 1.269097629874912e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -2.074317126243841e-05,
+                    "imag": 8.657814760226756e-06
+                  },
+                  "received_power_w": 1.2690977400452467e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.833306891465327e-06,
+                  "coefficient": {
+                    "real": 2.2687961973133497e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2929775110021053e-11,
+                  "path_power_dbm": -78.88409028818467
+                }
+              ],
+              "path_power_sum_w": 1.2929775110021053e-11,
+              "received_power_w": 1.2929775414167517e-11,
+              "received_power_dbm": -78.88409018602579,
+              "cir": [
+                {
+                  "delay_s": 3.833306891465327e-06,
+                  "coefficient": {
+                    "real": -2.242851405753754e-05,
+                    "imag": -3.421313749640831e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 1.946860265888972e-06,
+                    "imag": -2.2604277546633966e-05
+                  },
+                  "received_power_w": 1.2929775356331766e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -1.4031074897502549e-05,
+                    "imag": -1.7828981071943417e-05
+                  },
+                  "received_power_w": 1.2929775369968422e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -2.242851405753754e-05,
+                    "imag": -3.421313749640831e-06
+                  },
+                  "received_power_w": 1.2929775414167517e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -1.8708620700635947e-05,
+                    "imag": 1.283476194657851e-05
+                  },
+                  "received_power_w": 1.2929774714430389e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -4.881113454757724e-06,
+                    "imag": 2.2156677005114034e-05
+                  },
+                  "received_power_w": 1.292977475767408e-11
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-4",
+          "receiver_position_m": [
+            20.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 1.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.6218704078928567e-06,
+                  "coefficient": {
+                    "real": 3.317093796795234e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.7638565870189048e-11,
+                  "path_power_dbm": -75.58484495698056
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.6225443434668705e-06,
+                  "coefficient": {
+                    "real": -2.3958520614542067e-05,
+                    "imag": -7.596157047373708e-06
+                  },
+                  "path_power_w": 1.5867895849439703e-11,
+                  "path_power_dbm": -77.99480658724863
+                }
+              ],
+              "path_power_sum_w": 4.350646171962875e-11,
+              "received_power_w": 8.165739604844779e-11,
+              "received_power_dbm": -70.88004473296456,
+              "cir": [
+                {
+                  "delay_s": 2.6218704078928567e-06,
+                  "coefficient": {
+                    "real": 3.308440500404686e-05,
+                    "imag": -2.3944432996358955e-06
+                  }
+                },
+                {
+                  "delay_s": 2.6225443434668705e-06,
+                  "coefficient": {
+                    "real": 2.2085319869802333e-05,
+                    "imag": -1.1997955880360678e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 4.075333708897233e-05,
+                    "imag": 3.9877151721157134e-05
+                  },
+                  "received_power_w": 8.166197330130034e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 5.5105392675613984e-05,
+                    "imag": 1.4639884284406435e-05
+                  },
+                  "received_power_w": 8.165968247380673e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 5.516972305485979e-05,
+                    "imag": -1.4392398952622898e-05
+                  },
+                  "received_power_w": 8.165739604844779e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 4.093005554750562e-05,
+                    "imag": -3.9692306017968804e-05
+                  },
+                  "received_power_w": 8.165511311002987e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 1.6078734915936366e-05,
+                    "imag": -5.4700387408956885e-05
+                  },
+                  "received_power_w": 8.165283972824344e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.6098543912667083e-06,
+                  "coefficient": {
+                    "real": 3.3323656680295244e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.789364715541998e-11,
+                  "path_power_dbm": -75.54494697067143
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.6104892185685458e-06,
+                  "coefficient": {
+                    "real": -2.4041848519118503e-05,
+                    "imag": -7.637559065187816e-06
+                  },
+                  "path_power_w": 1.5984208167005667e-11,
+                  "path_power_dbm": -77.9630887313754
+                }
+              ],
+              "path_power_sum_w": 4.387785532242565e-11,
+              "received_power_w": 8.526484628862733e-11,
+              "received_power_dbm": -70.69229986530624,
+              "cir": [
+                {
+                  "delay_s": 2.6098543912667083e-06,
+                  "coefficient": {
+                    "real": 3.31385490426328e-05,
+                    "imag": -3.507501787680667e-06
+                  }
+                },
+                {
+                  "delay_s": 2.6104892185685458e-06,
+                  "coefficient": {
+                    "real": 2.405645136605017e-05,
+                    "imag": -7.591444045829121e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 3.9176997233880684e-05,
+                    "imag": 4.312424789532088e-05
+                  },
+                  "received_power_w": 8.526693613885627e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 5.528950714506209e-05,
+                    "imag": 1.8373000784777105e-05
+                  },
+                  "received_power_w": 8.526590348678842e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 5.719500040868297e-05,
+                    "imag": -1.1098945833509788e-05
+                  },
+                  "received_power_w": 8.526484628862733e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 4.4404048821888864e-05,
+                    "imag": -3.7718607927672565e-05
+                  },
+                  "received_power_w": 8.526379796321791e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 2.0203489839332178e-05,
+                    "imag": -5.464604328153655e-05
+                  },
+                  "received_power_w": 8.526274579019247e-11
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "execution_seconds": 0.0675227840001753,
+      "doppler_available": false,
+      "doppler_status": "NOT_AVAILABLE_BACKEND_DOES_NOT_EXPORT_DOPPLER"
+    },
+    {
+      "classification": "SIMULATED",
+      "backend": "sionna-rt",
+      "sionna_version": "2.2.0",
+      "environment_id": "FARM",
+      "coordinate_frame": "ENU local",
+      "timestamp_s": 2.0,
+      "frequency_hz": 915000000,
+      "bandwidth_hz": 125000,
+      "tx_power_dbm": 14.0,
+      "tx_power_w": 0.025118864315095794,
+      "seed": 20261003,
+      "samples_per_src": 1000,
+      "max_num_paths_per_src": 1000,
+      "max_depth": 1,
+      "los": true,
+      "specular_reflection": true,
+      "transmitters": [
+        {
+          "id": "tx-001",
+          "position_m": [
+            122.0,
+            201.0,
+            10.82175341157224
+          ]
+        },
+        {
+          "id": "tx-002",
+          "position_m": [
+            132.0,
+            206.0,
+            10.82175341157224
+          ]
+        }
+      ],
+      "receivers": [
+        {
+          "id": "rx-GW-1",
+          "position_m": [
+            20.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-2",
+          "position_m": [
+            980.0,
+            20.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-3",
+          "position_m": [
+            980.0,
+            980.0,
+            12.0
+          ]
+        },
+        {
+          "id": "rx-GW-4",
+          "position_m": [
+            20.0,
+            980.0,
+            12.0
+          ]
+        }
+      ],
+      "actor_poses": {},
+      "scene_actor_positions_m": {},
+      "material_assumptions": {
+        "static": {
+          "farm-terrain": "medium_dry_ground",
+          "farm-obstacles": "concrete"
+        },
+        "static_custom": {
+          "farm-terrain": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          },
+          "farm-obstacles": {
+            "relative_permittivity": 15.0,
+            "conductivity_s_m": 0.035
+          }
+        },
+        "actors": {},
+        "calibration": "uncalibrated configured Sionna material assumptions"
+      },
+      "provenance": {
+        "source": "farm.virtual_farm.FarmScenario",
+        "classification": "SIMULATION",
+        "frequency_hz": "915000000.0",
+        "bandwidth_hz": "125000.0",
+        "seed": "20261003"
+      },
+      "cache_hit": true,
+      "records": [
+        {
+          "receiver_id": "rx-GW-1",
+          "receiver_position_m": [
+            20.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 2.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 6.930301310603681e-07,
+                  "coefficient": {
+                    "real": 0.0001254922681255266,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 3.9557964598813514e-10,
+                  "path_power_dbm": -64.02766062530999
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 6.930721383469063e-07,
+                  "coefficient": {
+                    "real": -0.00012160497135482728,
+                    "imag": -8.074938705249224e-06
+                  },
+                  "path_power_w": 3.730898308777376e-10,
+                  "path_power_dbm": -64.28186588144568
+                }
+              ],
+              "path_power_sum_w": 7.686694768658728e-10,
+              "received_power_w": 1.208429269855181e-11,
+              "received_power_dbm": -79.17778764048673,
+              "cir": [
+                {
+                  "delay_s": 6.930301310603681e-07,
+                  "coefficient": {
+                    "real": 9.00707600521855e-05,
+                    "imag": -8.738173346500844e-05
+                  }
+                },
+                {
+                  "delay_s": 6.930721383469063e-07,
+                  "coefficient": {
+                    "real": -7.134705811040476e-05,
+                    "imag": 9.880571451503783e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 1.4962490240577608e-05,
+                    "imag": 1.603497366886586e-05
+                  },
+                  "received_power_w": 1.2082085687928235e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 1.7000151274260134e-05,
+                    "imag": 1.3857672456651926e-05
+                  },
+                  "received_power_w": 1.2083184248974386e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 1.8723701941780746e-05,
+                    "imag": 1.1423981050029397e-05
+                  },
+                  "received_power_w": 1.208429269855181e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 2.0101273548789322e-05,
+                    "imag": 8.778886694926769e-06
+                  },
+                  "received_power_w": 1.2085440440992145e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 2.1107247448526323e-05,
+                    "imag": 5.971181963104755e-06
+                  },
+                  "received_power_w": 1.2086466772774927e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 7.242646802296804e-07,
+                  "coefficient": {
+                    "real": -0.0001172488191514276,
+                    "imag": -6.255163043533685e-06
+                  },
+                  "path_power_w": 3.4629902892574897e-10,
+                  "path_power_dbm": -64.60548726275489
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 7.242365427373443e-07,
+                  "coefficient": {
+                    "real": 0.00012008495832560584,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 3.6222400104005885e-10,
+                  "path_power_dbm": -64.41022776622961
+                }
+              ],
+              "path_power_sum_w": 7.085230299658079e-10,
+              "received_power_w": 4.330671337822553e-12,
+              "received_power_dbm": -83.63444774382877,
+              "cir": [
+                {
+                  "delay_s": 7.242646802296804e-07,
+                  "coefficient": {
+                    "real": 4.065794200869277e-05,
+                    "imag": -0.00011015146446879953
+                  }
+                },
+                {
+                  "delay_s": 7.242365427373443e-07,
+                  "coefficient": {
+                    "real": -5.351782601792365e-05,
+                    "imag": 0.00010749995271908119
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": -1.1598247510846704e-05,
+                    "imag": -6.152557034511119e-06
+                  },
+                  "received_power_w": 4.3298216192921e-12
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": -1.2353713827906176e-05,
+                    "imag": -4.4470070861279964e-06
+                  },
+                  "received_power_w": 4.3302439673768e-12
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": -1.2859884009230882e-05,
+                    "imag": -2.6515117497183383e-06
+                  },
+                  "received_power_w": 4.330671337822553e-12
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -1.3106517144478858e-05,
+                    "imag": -8.023271220736206e-07
+                  },
+                  "received_power_w": 4.331108134264637e-12
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -1.3088545529171824e-05,
+                    "imag": 1.0632429621182382e-06
+                  },
+                  "received_power_w": 4.331509764718626e-12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-2",
+          "receiver_position_m": [
+            980.0,
+            20.0,
+            12.0
+          ],
+          "timestamp_s": 2.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "NO_PATH",
+              "path_classification": "NO_PATH_LOS_ENABLED",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [],
+              "path_power_sum_w": null,
+              "received_power_w": null,
+              "received_power_dbm": null,
+              "cir": [],
+              "cfr": null
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-3",
+          "receiver_position_m": [
+            980.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 2.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.865612598019652e-06,
+                  "coefficient": {
+                    "real": 2.2498348698718473e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2714558581433733e-11,
+                  "path_power_dbm": -78.95698712875239
+                }
+              ],
+              "path_power_sum_w": 1.2714558581433733e-11,
+              "received_power_w": 1.2714559549747706e-11,
+              "received_power_dbm": -78.95698679800289,
+              "cir": [
+                {
+                  "delay_s": 3.865612598019652e-06,
+                  "coefficient": {
+                    "real": 2.1933306925348006e-05,
+                    "imag": -5.010566837881925e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 6.160557404655265e-06,
+                    "imag": 2.1638465113937855e-05
+                  },
+                  "received_power_w": 1.2714557221348487e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 1.9361277736607008e-05,
+                    "imag": 1.1459348570497241e-05
+                  },
+                  "received_power_w": 1.2714559864632526e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 2.1933306925348006e-05,
+                    "imag": -5.010566837881925e-06
+                  },
+                  "received_power_w": 1.2714559549747706e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 1.2464691280911211e-05,
+                    "imag": -1.8729846487985924e-05
+                  },
+                  "received_power_w": 1.2714558180105e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -3.84662052965723e-06,
+                    "imag": -2.2167074348544702e-05
+                  },
+                  "received_power_w": 1.271455809171539e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 3.8297189348668326e-06,
+                  "coefficient": {
+                    "real": 2.2709218683303334e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 1.2954014681250074e-11,
+                  "path_power_dbm": -78.87595615080313
+                }
+              ],
+              "path_power_sum_w": 1.2954014681250074e-11,
+              "received_power_w": 1.2954015512356951e-11,
+              "received_power_dbm": -78.87595587216741,
+              "cir": [
+                {
+                  "delay_s": 3.8297189348668326e-06,
+                  "coefficient": {
+                    "real": 7.955722139740828e-06,
+                    "imag": -2.1270052457111888e-05
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 2.175411100324709e-05,
+                    "imag": 6.516689609270543e-06
+                  },
+                  "received_power_w": 1.2954014073350388e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 2.0339477487141266e-05,
+                    "imag": -1.0100214240083005e-05
+                  },
+                  "received_power_w": 1.2954016161741082e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 7.955722139740828e-06,
+                    "imag": -2.1270052457111888e-05
+                  },
+                  "received_power_w": 1.2954015512356951e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": -8.718567187315784e-06,
+                    "imag": -2.0968911485397257e-05
+                  },
+                  "received_power_w": 1.2954015924032795e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": -2.0690917153842747e-05,
+                    "imag": -9.359195246361196e-06
+                  },
+                  "received_power_w": 1.2954014056307822e-11
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "receiver_id": "rx-GW-4",
+          "receiver_position_m": [
+            20.0,
+            980.0,
+            12.0
+          ],
+          "timestamp_s": 2.0,
+          "links": [
+            {
+              "transmitter_id": "tx-001",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.620647137518972e-06,
+                  "coefficient": {
+                    "real": 3.318642848171294e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.766438579442393e-11,
+                  "path_power_dbm": -75.58078967562736
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.6213256205664948e-06,
+                  "coefficient": {
+                    "real": -2.3962009436218068e-05,
+                    "imag": -7.601420293212868e-06
+                  },
+                  "path_power_w": 1.587410459894115e-11,
+                  "path_power_dbm": -77.99310762332432
+                }
+              ],
+              "path_power_sum_w": 4.353849039336508e-11,
+              "received_power_w": 8.124864964142359e-11,
+              "received_power_dbm": -70.90183848295571,
+              "cir": [
+                {
+                  "delay_s": 2.620647137518972e-06,
+                  "coefficient": {
+                    "real": 2.5852072212728672e-05,
+                    "imag": 2.0808876797673292e-05
+                  }
+                },
+                {
+                  "delay_s": 2.6213256205664948e-06,
+                  "coefficient": {
+                    "real": 2.4498745915479958e-05,
+                    "imag": 5.636574769596336e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 3.293160261819139e-06,
+                    "imag": 5.6779535952955484e-05
+                  },
+                  "received_power_w": 8.125351279268919e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 3.081328031839803e-05,
+                    "imag": 4.7803820052649826e-05
+                  },
+                  "received_power_w": 8.125107244637356e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 5.035081994719803e-05,
+                    "imag": 2.644545202201698e-05
+                  },
+                  "received_power_w": 8.124864964142359e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 5.684507777914405e-05,
+                    "imag": -1.7626080079935491e-06
+                  },
+                  "received_power_w": 8.124620438787434e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 4.861420893575996e-05,
+                    "imag": -2.9513239496736787e-05
+                  },
+                  "received_power_w": 8.124376688680707e-11
+                }
+              ]
+            },
+            {
+              "transmitter_id": "tx-002",
+              "status": "LOS",
+              "path_classification": "LOS_DIRECT_PATH_PRESENT",
+              "los_enabled": true,
+              "specular_reflection_enabled": true,
+              "paths": [
+                {
+                  "path_index": 0,
+                  "delay_s": 2.6086788693646668e-06,
+                  "coefficient": {
+                    "real": 3.333868517074734e-05,
+                    "imag": 0.0
+                  },
+                  "path_power_w": 2.7918812096976543e-11,
+                  "path_power_dbm": -75.5410306422593
+                },
+                {
+                  "path_index": 1,
+                  "delay_s": 2.6093177893926622e-06,
+                  "coefficient": {
+                    "real": -2.404507358733099e-05,
+                    "imag": -7.642615855729673e-06
+                  },
+                  "path_power_w": 1.5990044591594977e-11,
+                  "path_power_dbm": -77.96150325130773
+                }
+              ],
+              "path_power_sum_w": 4.390885668857152e-11,
+              "received_power_w": 8.511533101048158e-11,
+              "received_power_dbm": -70.69992207558401,
+              "cir": [
+                {
+                  "delay_s": 2.6086788693646668e-06,
+                  "coefficient": {
+                    "real": 3.109291719738394e-05,
+                    "imag": 1.2029067875118926e-05
+                  }
+                },
+                {
+                  "delay_s": 2.6093177893926622e-06,
+                  "coefficient": {
+                    "real": 2.4963306714198552e-05,
+                    "imag": 3.66175436283811e-06
+                  }
+                }
+              ],
+              "cfr": [
+                {
+                  "offset_hz": -62500.0,
+                  "h": {
+                    "real": 1.5713907487224787e-05,
+                    "imag": 5.605059050139971e-05
+                  },
+                  "received_power_w": 8.51176726950539e-11
+                },
+                {
+                  "offset_hz": -31250.0,
+                  "h": {
+                    "real": 4.116996569791809e-05,
+                    "imag": 4.115316551178694e-05
+                  },
+                  "received_power_w": 8.51165052490038e-11
+                },
+                {
+                  "offset_hz": 0.0,
+                  "h": {
+                    "real": 5.6056225730571896e-05,
+                    "imag": 1.5690822692704387e-05
+                  },
+                  "received_power_w": 8.511533101048158e-11
+                },
+                {
+                  "offset_hz": 31250.0,
+                  "h": {
+                    "real": 5.655113636748865e-05,
+                    "imag": -1.3799408407066949e-05
+                  },
+                  "received_power_w": 8.511413376775613e-11
+                },
+                {
+                  "offset_hz": 62500.0,
+                  "h": {
+                    "real": 4.2527844925643876e-05,
+                    "imag": -3.9746581023791805e-05
+                  },
+                  "received_power_w": 8.511296825901125e-11
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "execution_seconds": 0.0397720909995769,
+      "doppler_available": false,
+      "doppler_status": "NOT_AVAILABLE_BACKEND_DOES_NOT_EXPORT_DOPPLER"
+    }
+  ],
+  "ground_truth_trajectory": [
+    {
+      "timestamp_s": 0.0,
+      "transmitter_id": "tx-001",
+      "actor_id": "tx-001",
+      "position_m": [
+        120.0,
+        200.0,
+        10.780054003131093
+      ]
+    },
+    {
+      "timestamp_s": 0.0,
+      "transmitter_id": "tx-002",
+      "actor_id": "tx-002",
+      "position_m": [
+        130.0,
+        205.0,
+        10.780054003131093
+      ]
+    },
+    {
+      "timestamp_s": 1.0,
+      "transmitter_id": "tx-001",
+      "actor_id": "tx-001",
+      "position_m": [
+        121.0,
+        200.5,
+        10.801050604761606
+      ]
+    },
+    {
+      "timestamp_s": 1.0,
+      "transmitter_id": "tx-002",
+      "actor_id": "tx-002",
+      "position_m": [
+        131.0,
+        205.5,
+        10.801050604761606
+      ]
+    },
+    {
+      "timestamp_s": 2.0,
+      "transmitter_id": "tx-001",
+      "actor_id": "tx-001",
+      "position_m": [
+        122.0,
+        201.0,
+        10.82175341157224
+      ]
+    },
+    {
+      "timestamp_s": 2.0,
+      "transmitter_id": "tx-002",
+      "actor_id": "tx-002",
+      "position_m": [
+        132.0,
+        206.0,
+        10.82175341157224
+      ]
+    }
+  ]
+}
