@@ -197,23 +197,28 @@ class Store:
     def save_episode(self, observations: Iterable[Any], estimates: Iterable[Any],
                      truth: Iterable[Any], persist_truth: bool = True) -> None:
         with self._lock:
-            self.connection.executemany(
-                "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status) VALUES(?,?,?,?,?,?,?,?,?)",
-                ((o.timestamp_s, o.tag_id, o.anchor_id, o.rssi_dbm, o.snr_db,
-                  int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value)
-                 for o in observations),
-            )
-            self.connection.executemany(
-                "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status) VALUES(?,?,?,?,?,?,?)",
-                ((e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value)
-                 for e in estimates),
-            )
-            if persist_truth:
+            try:
+                self.connection.execute("BEGIN IMMEDIATE")
                 self.connection.executemany(
-                    "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
-                    ((t.timestamp_s, t.tag_id, t.x, t.y) for t in truth),
+                    "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status) VALUES(?,?,?,?,?,?,?,?,?)",
+                    ((o.timestamp_s, o.tag_id, o.anchor_id, o.rssi_dbm, o.snr_db,
+                      int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value)
+                     for o in observations),
                 )
-            self.connection.commit()
+                self.connection.executemany(
+                    "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status) VALUES(?,?,?,?,?,?,?)",
+                    ((e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value)
+                     for e in estimates),
+                )
+                if persist_truth:
+                    self.connection.executemany(
+                        "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
+                        ((t.timestamp_s, t.tag_id, t.x, t.y) for t in truth),
+                    )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
 
     def telemetry(self, limit: int = 1000, tag_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
