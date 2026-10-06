@@ -163,7 +163,7 @@ def test_public_status_does_not_promote_assumed_or_unknown_receipts_to_validated
         def verify_local_binding(self, _publication_id):
             return True
 
-    request = {"publication_id":"pub-1", "event_id":1, "destination":"solana-memo",
+    request = {"publication_id":"pub-1", "event_id":1, "chain":"solana", "destination":"solana-memo",
                "network":"devnet", "commitment":"digest", "status":"VERIFIED"}
     assumed = _public_status(request, Receipts("ASSUMED"))["verification"]
     unknown = _public_status(request, Receipts("UNKNOWN"))["verification"]

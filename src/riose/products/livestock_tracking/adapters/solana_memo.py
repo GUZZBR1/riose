@@ -5,12 +5,14 @@ from __future__ import annotations
 import base64
 import json
 import re
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from math import isfinite
 from urllib.parse import urlsplit
 
+from ..domain.publication import ChainReceipt, PreparedPublication
 from ..domain.privacy import PublicCommitmentEnvelope, serialize_public_envelope
 
 MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
@@ -168,6 +170,64 @@ class SolanaMemoClient:
                     matched = parsed.encode("utf-8") == wanted
                     break
         return matched, result.get("slot") if type(result.get("slot")) is int else None
+
+
+class SolanaMemoAdapter:
+    """Thin chain-neutral publication boundary over the existing Memo client."""
+
+    chain = "solana"
+
+    def __init__(self, client: SolanaMemoClient, signer: object) -> None:
+        self.client = client
+        self.signer = signer
+        self.network = client.config.network_id
+
+    def prepare(self, commitment: PublicCommitmentEnvelope) -> PreparedPublication:
+        payload, signature, last_valid_height = self.client.prepare(commitment, self.signer)
+        return PreparedPublication(
+            transaction_id=signature,
+            payload=payload,
+            metadata={"last_valid_block_height": last_valid_height},
+        )
+
+    def submit(self, prepared: PreparedPublication) -> str:
+        height = prepared.metadata.get("last_valid_block_height")
+        if type(height) is not int or height < 0:
+            raise ValueError("prepared Solana publication is missing its expiry metadata")
+        return self.client.submit(prepared.payload, prepared.transaction_id)
+
+    def get_receipt(
+        self, transaction_id: str, commitment: PublicCommitmentEnvelope
+    ) -> ChainReceipt | None:
+        matched, slot = self.client.verify(transaction_id, commitment)
+        if matched is None:
+            return None
+        return ChainReceipt(
+            chain=self.chain,
+            network=self.network,
+            transaction_id=transaction_id,
+            status="CONFIRMED" if matched else "REJECTED",
+            block_ref=str(slot) if slot is not None else None,
+            confirmed_at=time.time() if matched else None,
+            error=None if matched else "TRANSACTION_OR_MEMO_MISMATCH",
+            retry_metadata={"slot": slot} if slot is not None else {},
+            evidence_status=self.client.evidence_status,
+        )
+
+    def verify(self, commitment: PublicCommitmentEnvelope, receipt: ChainReceipt) -> bool | None:
+        if receipt.chain != self.chain or receipt.network != self.network:
+            return False
+        matched, slot = self.client.verify(receipt.transaction_id, commitment)
+        if matched is None:
+            return None
+        return bool(matched and (receipt.block_ref is None or receipt.block_ref == (str(slot) if slot is not None else None)))
+
+    def healthcheck(self) -> bool:
+        try:
+            self.client.ensure_expected_cluster()
+        except SolanaRpcError:
+            return False
+        return True
 
 
 def load_keypair(path: str):

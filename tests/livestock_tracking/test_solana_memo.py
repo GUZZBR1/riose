@@ -3,9 +3,10 @@ import base64
 import pytest
 
 from riose.products.livestock_tracking.adapters.solana_memo import (
-    MEMO_PROGRAM_ID, SolanaMemoClient, SolanaMemoConfig, SolanaRpcError,
+    MEMO_PROGRAM_ID, SolanaMemoAdapter, SolanaMemoClient, SolanaMemoConfig, SolanaRpcError,
 )
 from riose.products.livestock_tracking.domain.commitment import create_commitment_v1, public_envelope
+from riose.products.livestock_tracking.domain.publication import ChainAdapter
 
 GENESIS = "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC"
 
@@ -93,6 +94,22 @@ def test_confirmation_requires_successful_transaction_and_exact_public_memo():
     assert failed.verify(signature, envelope) == (False, 9)
     mismatch = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "transaction": {"message": {"instructions": [{"programId": MEMO_PROGRAM_ID, "data": _b58encode(b"wrong")}]}}})
     assert mismatch.verify(signature, envelope) == (False, 9)
+
+
+def test_existing_solana_client_adapts_without_recomputing_commitment():
+    from solders.keypair import Keypair
+
+    envelope = _envelope()
+    client = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS))
+    adapter = SolanaMemoAdapter(client, Keypair())
+    assert isinstance(adapter, ChainAdapter)
+    prepared = adapter.prepare(envelope)
+    assert prepared.transaction_id
+    assert prepared.metadata == {"last_valid_block_height": 100}
+    assert adapter.submit(prepared) == prepared.transaction_id
+    assert client.calls[0][0] == "getGenesisHash"
+    assert client.calls[1][0] == "getLatestBlockhash"
+    assert adapter.healthcheck()
 
 
 def test_missing_transaction_remains_unverified_and_url_must_be_explicit_https():

@@ -13,6 +13,7 @@ def add_publication_commands(commands: argparse._SubParsersAction) -> None:
     queue.add_argument("--db", required=True)
     queue.add_argument("--event-id", required=True, type=int)
     queue.add_argument("--destination", default="solana-memo")
+    queue.add_argument("--chain", help="chain identifier; defaults from the destination adapter")
     queue.add_argument("--network", required=True, help="explicit identifier including the expected cluster genesis hash")
     queue.add_argument("--idempotency-key")
     status = actions.add_parser("status", help="show a local publication request")
@@ -41,6 +42,7 @@ def run_publication_command(args: argparse.Namespace) -> int:
         if args.publication_action == "queue":
             request = outbox.enqueue_event(
                 args.event_id, destination=args.destination, network=args.network,
+                chain=args.chain,
                 idempotency_key=args.idempotency_key,
             )
             print(json.dumps(_public_status(request, outbox), sort_keys=True))
@@ -67,7 +69,7 @@ def _send_or_reconcile(args: argparse.Namespace, outbox: object) -> int:
     if request is None:
         raise ValueError("publication request was not found")
     config = SolanaMemoConfig(args.rpc_url, args.expected_genesis_hash)
-    if request["network"] != config.network_id or request["destination"] != "solana-memo":
+    if request["chain"] != "solana" or request["network"] != config.network_id or request["destination"] != "solana-memo":
         raise ValueError("configured network does not match the queued request")
     client = SolanaMemoClient(config)
     evidence_status = getattr(client, "evidence_status", "ASSUMED")
@@ -132,6 +134,7 @@ def _public_status(request: dict[str, object], outbox: object | None = None) -> 
     result = {
         "publication_id": request["publication_id"],
         "event_id": request["event_id"],
+        "chain": request.get("chain", str(request["destination"]).split("-", 1)[0]),
         "destination": request["destination"],
         "network": request["network"],
         "commitment": request["commitment"],
