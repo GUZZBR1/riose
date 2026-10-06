@@ -1,0 +1,46 @@
+{
+  "mission": "MINI-MVP 5 — Persistence, Event-Chain & Reliability",
+  "base_sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+  "findings": [
+    {
+      "knowledge_id": "RIOSE-PERSIST-CHAIN-LOCK-001",
+      "finding": "SQLite serializes physical writes, but a chain append must reserve the writer lock before reading the current head. The prior Store append path read the head before a write transaction and could fork across separate processes.",
+      "evidence_status": "REPRODUCED_AND_FIXED_FOR_STORE_API_PATHS",
+      "candidate_consumers": ["Mini-MVP 3 — Blockchain/Publication", "Mini-MVP 4 — Intelligence", "Mini-MVP 6 — Integrated Beta"],
+      "recommended_effect": "Route shared-database event writes through Store.append_animal_event/append_event with no active transaction, or through a caller-owned BEGIN IMMEDIATE transaction. Preserve the same local-process concurrency tests in integration.",
+      "creates_dependency": false
+    },
+    {
+      "knowledge_id": "RIOSE-PERSIST-CHAIN-COMPLETENESS-002",
+      "finding": "A local previous-hash chain detects interior deletion and hashed-field edits, but cannot detect tail truncation or a full-chain rewrite without an external immutable checkpoint or signature authority.",
+      "evidence_status": "TESTED_LIMITATION",
+      "candidate_consumers": ["Mini-MVP 3 — Blockchain/Publication", "Mini-MVP 6 — Integrated Beta"],
+      "recommended_effect": "Do not describe LOCAL_HASH_CHAIN verification as public attestation or complete tamper-proofing. If publication needs truncation evidence, define its anchoring contract in the publication authority and consume it as a separate layer.",
+      "creates_dependency": false
+    },
+    {
+      "knowledge_id": "RIOSE-PERSIST-EVENT-RETRY-003",
+      "finding": "Behavior observation writes have an idempotency key; POST /api/events does not. Retrying the same event request creates another event.",
+      "evidence_status": "CONFIRMED_FROM_API_AND_SCHEMA",
+      "candidate_consumers": ["Mini-MVP 6 — Integrated Beta"],
+      "recommended_effect": "Before enabling automatic event-request retries, agree on an explicit idempotency-key contract and version its inclusion in canonical event data without rehashing v1 history.",
+      "creates_dependency": false
+    },
+    {
+      "knowledge_id": "RIOSE-PERSIST-OBSERVATION-PROVENANCE-004",
+      "finding": "Prediction observations reuse the behavior_observations table and preserve model_version, source, observation_kind, timestamps and evidence_status; no second prediction store was identified.",
+      "evidence_status": "TESTED_BY_EXISTING_ROUND_TRIP_AND_REOPEN_TESTS",
+      "candidate_consumers": ["Mini-MVP 4 — Intelligence", "Mini-MVP 6 — Integrated Beta"],
+      "recommended_effect": "Continue using the canonical observation persistence path and keep unavailable provenance explicit rather than fabricating fields.",
+      "creates_dependency": false
+    },
+    {
+      "knowledge_id": "RIOSE-PERSIST-LOCAL-SQLITE-005",
+      "finding": "The tested deployment profile is local SQLite WAL with FULL synchronous mode, foreign keys enabled and a 5-second busy timeout. Cross-host and shared-network-filesystem semantics were not tested.",
+      "evidence_status": "OBSERVED_AND_BOUNDED",
+      "candidate_consumers": ["Mini-MVP 6 — Integrated Beta"],
+      "recommended_effect": "Keep multi-process writers on one host/local filesystem unless a separate deployment qualification establishes the filesystem and locking guarantees.",
+      "creates_dependency": false
+    }
+  ]
+}
