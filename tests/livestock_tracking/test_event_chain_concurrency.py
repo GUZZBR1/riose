@@ -16,6 +16,17 @@ import pytest
 from riose.products.livestock_tracking.adapters.persistence import Store
 
 
+def test_store_persistence_pragmas_match_the_local_reliability_contract(tmp_path):
+    store = Store(tmp_path / "reliability-pragmas.sqlite3")
+    try:
+        assert store.connection.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+        assert store.connection.execute("PRAGMA synchronous").fetchone()[0] == 2
+        assert store.connection.execute("PRAGMA busy_timeout").fetchone()[0] == 5000
+        assert store.connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    finally:
+        store.close()
+
+
 def _append_from_process(path: str, worker: int, count: int, results) -> None:
     store = Store(path)
     try:

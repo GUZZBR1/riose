@@ -103,10 +103,12 @@ class Store:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
-        self.connection = sqlite3.connect(self.path, check_same_thread=False)
+        self.connection = sqlite3.connect(self.path, timeout=5.0, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys=ON")
         self.connection.executescript(SCHEMA)
+        self.connection.execute("PRAGMA synchronous=FULL")
+        self.connection.execute("PRAGMA busy_timeout=5000")
         columns = {row[1] for row in self.connection.execute("PRAGMA table_info(animal_events)")}
         if "schema_version" not in columns:
             # NULL identifies historical rows written before the v1 marker existed.
