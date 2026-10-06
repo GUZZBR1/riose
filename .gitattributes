@@ -7,3 +7,7 @@ src/riose/products/livestock_tracking/domain/intelligence.py text eol=lf
 src/riose/simulation_contract/temporal_identity.py text eol=lf
 tests/livestock_tracking/test_intelligence_contracts.py text eol=lf
 tests/simulation_contract/test_temporal_identity.py text eol=lf
+RIOSE_INTEGRATION_CANDIDATE_REPORT.md text eol=lf
+RIOSE_INTEGRATION_PROVENANCE.json text eol=lf
+RIOSE_INTEGRATION_TEST_MATRIX.json text eol=lf
+RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json text eol=lf
