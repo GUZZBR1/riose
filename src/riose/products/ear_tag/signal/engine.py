@@ -1,10 +1,12 @@
 """Pure XYZ validation, segmentation, optional resampling, and features.
 
-Input acceleration is converted to g. Timestamps are seconds on one monotonic
-clock. The declared rate must agree with the median timestamp interval within
-5%; individual intervals may jitter by at most the configured fraction, and a
-gap larger than 1.5 nominal periods is rejected. Each contiguous animal,
-session, mount-position, and evidence run is processed independently.
+Known acceleration units are converted to g. Unknown units retain their
+source scale and use a separate ``*_source`` feature schema. Timestamps are
+seconds on one monotonic clock. The declared rate must agree with the median
+timestamp interval within 5%; individual intervals may jitter by at most the
+configured fraction, and a gap larger than 1.5 nominal periods is rejected.
+Each contiguous animal, session, mount-position, and evidence run is processed
+independently.
 
 Downsampling uses SciPy's polyphase FIR resampler (anti-alias filtering); small
 accepted timestamp jitter is first interpolated onto a uniform source grid.
@@ -28,6 +30,13 @@ FEATURE_NAMES = (
     "rms_x_g", "rms_y_g", "rms_z_g",
     "mean_magnitude_g", "rms_magnitude_g", "sma_g",
     "jerk_rms_g_per_s", "energy_g2_s", "dominant_frequency_hz",
+)
+UNKNOWN_UNIT_FEATURE_NAMES = (
+    "mean_x_source", "mean_y_source", "mean_z_source",
+    "std_x_source", "std_y_source", "std_z_source",
+    "rms_x_source", "rms_y_source", "rms_z_source",
+    "mean_magnitude_source", "rms_magnitude_source", "sma_source",
+    "jerk_rms_source_per_s", "energy_source2_s", "dominant_frequency_hz",
 )
 _UNIT_TO_G = {"g": 1.0, "mg": 0.001, "m/s^2": 1.0 / GRAVITY_M_S2}
 
@@ -114,6 +123,8 @@ def extract_features(trace: SignalTrace, config: WindowConfig) -> tuple[FeatureW
         raise ValueError("all samples in one trace must declare the same unit")
     trace_unit = rows[0][0].unit
     full_scale_g = None
+    if trace.full_scale is not None and trace_unit not in _UNIT_TO_G:
+        raise ValueError("full_scale requires a documented acceleration unit")
     if trace.full_scale is not None:
         full_scale_g = _finite_positive(trace.full_scale, "full_scale") * _UNIT_TO_G[trace_unit]
 
@@ -134,6 +145,7 @@ def extract_features(trace: SignalTrace, config: WindowConfig) -> tuple[FeatureW
         observed_rate, rate_relative_error = _validate_clock(
             times, source_rate, config.max_jitter_fraction
         )
+        feature_names = FEATURE_NAMES if trace_unit in _UNIT_TO_G else UNKNOWN_UNIT_FEATURE_NAMES
         target_rate = config.target_sample_rate_hz or source_rate
         if target_rate > source_rate and config.target_sample_rate_hz is not None:
             raise ValueError("upsampling is unsupported because it cannot add measured information")
@@ -167,7 +179,8 @@ def extract_features(trace: SignalTrace, config: WindowConfig) -> tuple[FeatureW
             stop = start + window_samples
             window_values = values[start:stop]
             window_times = times[start:stop]
-            features = _features(window_values, window_times, target_rate)
+            features = _features(window_values, window_times, target_rate,
+                                 source_unit_known=trace_unit in _UNIT_TO_G)
             first = samples[0]
             meta: dict[str, object] = {
                 "pipeline_version": PIPELINE_VERSION,
@@ -179,7 +192,9 @@ def extract_features(trace: SignalTrace, config: WindowConfig) -> tuple[FeatureW
                 "segment_sample_count": len(values),
                 "sample_rate_hz": target_rate,
                 "input_unit": first.unit,
-                "canonical_unit": "g",
+                "canonical_unit": "g" if trace_unit in _UNIT_TO_G else "UNKNOWN",
+                "feature_value_units": ("g-based" if trace_unit in _UNIT_TO_G
+                                        else "native source numeric scale; physical unit unknown"),
                 "sensor_position": first.sensor_position,
                 "animal_id": first.animal_id,
                 "session_id": first.session_id,
@@ -195,12 +210,12 @@ def extract_features(trace: SignalTrace, config: WindowConfig) -> tuple[FeatureW
                 "max_jitter_fraction": config.max_jitter_fraction,
                 "nyquist_hz": target_rate / 2.0,
                 "frequency_resolution_hz": target_rate / window_samples,
-                "feature_schema": FEATURE_NAMES,
+                "feature_schema": feature_names,
                 **resample_meta,
             }
             output.append(FeatureWindow(
-                FEATURE_NAMES,
-                tuple(float(features[name]) for name in FEATURE_NAMES),
+                feature_names,
+                tuple(float(features[name]) for name in feature_names),
                 float(window_times[0]),
                 float(window_times[-1]),
                 tuple(sorted(meta.items())),
@@ -225,7 +240,7 @@ def _validate_config(config: WindowConfig) -> None:
 def _validate_sample(sample: SignalSample) -> tuple[SignalSample, np.ndarray]:
     if type(sample) is not SignalSample:
         raise ValueError("samples must be SignalSample instances")
-    if sample.unit not in _UNIT_TO_G:
+    if sample.unit != "UNKNOWN" and sample.unit not in _UNIT_TO_G:
         raise ValueError(f"unsupported acceleration unit: {sample.unit!r}")
     for name in ("animal_id", "session_id", "sensor_position", "evidence_status"):
         value = getattr(sample, name)
@@ -236,7 +251,7 @@ def _validate_sample(sample: SignalSample) -> tuple[SignalSample, np.ndarray]:
         _finite_number(sample.x, "x"),
         _finite_number(sample.y, "y"),
         _finite_number(sample.z, "z"),
-    ], dtype=np.float64) * _UNIT_TO_G[sample.unit]
+    ], dtype=np.float64) * _UNIT_TO_G.get(sample.unit, 1.0)
     # Frozen dataclass prevents ordinary mutation, but reject booleans as numeric inputs.
     if not math.isfinite(timestamp) or not np.isfinite(xyz).all():
         raise ValueError("sample values must be finite")
@@ -291,7 +306,8 @@ def _resample(
     )
 
 
-def _features(values: np.ndarray, times: np.ndarray, rate: float) -> dict[str, float]:
+def _features(values: np.ndarray, times: np.ndarray, rate: float, *,
+              source_unit_known: bool = True) -> dict[str, float]:
     means = np.mean(values, axis=0)
     centered = values - means
     magnitude = np.linalg.norm(values, axis=1)
@@ -301,7 +317,7 @@ def _features(values: np.ndarray, times: np.ndarray, rate: float) -> dict[str, f
     frequencies = np.fft.rfftfreq(len(values), d=1.0 / rate)
     dominant_index = int(np.argmax(power[1:]) + 1)  # DC is excluded by construction.
     energy = float(np.sum(np.sum(values * values, axis=1)) / rate)
-    return {
+    features = {
         "mean_x_g": float(means[0]), "mean_y_g": float(means[1]), "mean_z_g": float(means[2]),
         "std_x_g": float(np.std(values[:, 0])), "std_y_g": float(np.std(values[:, 1])),
         "std_z_g": float(np.std(values[:, 2])),
@@ -317,6 +333,22 @@ def _features(values: np.ndarray, times: np.ndarray, rate: float) -> dict[str, f
             float(frequencies[dominant_index]) if float(np.max(power[1:])) > 1e-24 else 0.0
         ),
     }
+    if source_unit_known:
+        return features
+    suffixes = {
+        "_g_per_s": "_source_per_s",
+        "_g2_s": "_source2_s",
+        "_g": "_source",
+    }
+    renamed: dict[str, float] = {}
+    for name, value in features.items():
+        replacement = name
+        for suffix, target in suffixes.items():
+            if name.endswith(suffix):
+                replacement = name[:-len(suffix)] + target
+                break
+        renamed[replacement] = value
+    return renamed
 
 
 def _sample_key(sample: SignalSample) -> tuple[str, str, str, str, str]:
