@@ -1,0 +1,75 @@
+{
+  "schema_version": "riose.antenna-pilot-evidence/v1",
+  "classification": "PARTIAL_SIMULATED",
+  "scope": "Current-spec free-space scenario only; no hardware or field validation",
+  "spec_sha256": "3d3bf8c40183d2cd176cc54f6288af5114e6b36f2f3b5d2b0f811089de0d22cc",
+  "geometry_sha256": "cdf58104c6dc51e71a05bcfb4804c6a0042df0d8102c4ff1b1df65738c088fcb",
+  "input_sha256": "5c90283be98a87d4d38862d8643de0e29db0b5f01b7a010fb4e0dfc3e9e2ffab",
+  "runtime": {
+    "openems_python": "0.37.0rc3.post1.dev31+g6761a36e2",
+    "openems_executable": "0.37.0-rc3-31-g6761a36",
+    "csxcad_python": "0.7.0rc3.post1.dev7+g65e759115",
+    "csxcad_executable_banner": "v0.7.0-rc3-7-g65e7591",
+    "octave_available": false,
+    "bindings": {
+      "openEMS": true,
+      "CSXCAD": true
+    }
+  },
+  "configuration": {
+    "scenario": "ANTENNA_FREE_SPACE",
+    "center_frequency_hz": 915000000,
+    "sweep_start_hz": 686250000,
+    "sweep_stop_hz": 1143750000,
+    "sweep_samples": 401,
+    "excitation": "Gaussian; excitation duration 42362 time steps",
+    "max_time_steps": 300000,
+    "end_criteria_energy_fraction": 0.00001,
+    "boundary": "PML_8 on all six faces",
+    "mesh_rule": "lambda/20 maximum cell at upper sweep frequency, feature edge lines, smoothing ratio 1.4",
+    "port": "50 ohm z-directed lumped port",
+    "geometry_summary": "82 mm four-run XY meander above a finite PEC ground sheet; free-space scenario has no PCB substrate",
+    "material_status": "ASSUMED geometry and PEC conductor simplification"
+  },
+  "mesh": {
+    "cell_count": 45864,
+    "solver_grid_dimensions": [40, 50, 25],
+    "max_cell_mm": [13.071064510177393, 12.519346929584444, 12.533946196425546],
+    "mesh_sha256": "1f78f6a38a99a661692fd3602ba9578bcdafad765127d35da3dafc505e0de315"
+  },
+  "time_domain": {
+    "solver_energy_criterion_met": true,
+    "final_time_step": 39114,
+    "excitation_time_steps": 42362,
+    "wall_seconds": 262.31,
+    "energy_residual_fraction": 0.0000012322222324902275,
+    "threshold_fraction": 0.00001,
+    "qualification": "The solver energy criterion was reported before the nominal excitation length; completion of the remaining source tail is not established. Treat this as energy-criterion evidence only."
+  },
+  "rf_postprocessing": {
+    "experiment_status": "PARTIAL_OR_BLOCKED",
+    "scenario_status": "FAILED",
+    "result_class": "NO_SIMULATION_RESULT",
+    "runner_status": "FAILED",
+    "runner_error": "invalid/missing openEMS RF result: s11_db at row 0 must be <= 0 dB",
+    "accepted_rf_metrics": false,
+    "diagnostic_recalculation_only": true,
+    "s11_db_min": -0.0574516921550558,
+    "s11_db_min_frequency_hz": 1143750000,
+    "s11_db_max": 0.0037342310694439594,
+    "s11_db_max_frequency_hz": 686250000,
+    "s11_db_at_center_frequency": -0.013793808648890323,
+    "s11_minimum_at_sweep_edge": true,
+    "input_impedance_at_center_ohm_diagnostic_only": {
+      "real": 0.12264905878681033,
+      "imag": -72.27128722436998
+    },
+    "gain_efficiency_and_accepted_impedance": null
+  },
+  "artifact_hashes": {
+    "setup_xml_sha256": "c0cf689af8b8c11cdefeb5035b5d3d7bbc9a21e2bc827ac1f0f6b0698d48d037",
+    "geometry_json_sha256": "8c0ac09a719eb1444831358ceaf3faf75ac2e9bb983e50d65383bebbd87064fb",
+    "run_statistics_sha256": "a9afa652b406e2e60c5a43d78e58174400c5027625125d0f994202362633836a"
+  },
+  "decision": "The time-domain energy criterion was met, but before the nominal excitation length; the source tail therefore remains unverified. RF postprocessing failed validation, no multi-mesh evidence exists, and one scenario cannot pass the antenna gate. Keep antenna isolated from tag demo runs."
+}

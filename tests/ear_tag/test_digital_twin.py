@@ -330,6 +330,14 @@ def test_run_resolves_spec_and_output_before_tools_use_checkout_cwd(tmp_path, mo
     assert any(argument.startswith("-DEXTRA_CONF_FILE=") and argument.endswith("nucleo_l031k6_renode.conf")
                for argument in zephyr_command)
 
+    commands.clear()
+    summary = runner.run_twin(Path("spec.yaml"), Path("relative-output-skip"), skip_antenna=True)
+    assert not any(name in {"antenna", "antenna_capabilities"} for name, _, _ in commands)
+    assert summary["stages"]["antenna"]["status"] == "NOT_RUN"
+    assert summary["stages"]["antenna"]["required"] is False
+    assert summary["stages"]["antenna_sweeps"]["status"] == "NOT_RUN"
+    assert "antenna: NOT_RUN" not in summary["gate"]["blockers"]
+
 
 def test_antenna_sweep_evidence_accepts_solver_csv_fields_over_default_limit(tmp_path):
     import csv

@@ -1,0 +1,60 @@
+{
+  "schema_version": "riose.lis2dw12.renode-firmware-trace/v1",
+  "status": "SIMULATED",
+  "capture_method": "Renode Robot terminal tester attached to sysbus.usart2; line returned by Wait For Line On Uart from Zephyr firmware output",
+  "firmware_elf_sha256": "2b89915e779c870cf8ed63623f28a89cd3da03b51ae9851977b4a284d330c8f6",
+  "capture_file": "firmware-trace-capture.log",
+  "capture_file_sha256": "a344afba2a23869e4948599ed0e28c52afa4e002214fe2e09e3ccca9c6490591",
+  "renode_tests": "Four profile-bound UART trace tests passed in two consecutive repetitions; captured lines are retained in capture_file.",
+  "toolchain": {
+    "zephyr": "4.2.1",
+    "renode": "1.17.0+20260907gitf1dd1b4af",
+    "board_build": "nucleo_l031k6 with nucleo_l031k6_renode.conf",
+    "platform_model": "STM32L071 surrogate"
+  },
+  "trace_event": "IMU_READ",
+  "trace_fields": ["marker", "schema_version", "sequence_u32", "timestamp_us_u64", "state_u32", "event_name", "event_id_u32", "source_u32", "result_i32", "value0_u32", "value1_u32", "value2_u32", "packet_hex"],
+  "decoded_imu_read_values": "For IMU_READ only, value0_u32/value1_u32/value2_u32 are interpreted as signed two's-complement int32 milligrams by the Robot assertion.",
+  "capture_iterations": 2,
+  "deterministic_replay": true,
+  "lineage_check": "Robot assertion parsed the first XYZ RESD sample, applied the LIS2DW12 register quantization and firmware mg conversion, then compared all three resulting signed values with this firmware-originated trace event.",
+  "profiles": {
+    "STATIC": {
+      "dataset": "hardware/models/lis2dw12/datasets/static.csv",
+      "dataset_sha256": "fafbc464874b97e877b3b35d38201e8d6f86d00f41b03849845261f35fa9b1cd",
+      "resd_sha256": "e3e97db1892eed70314f54b15a17f68db26b32554ce6b863c66b976427b229f5",
+      "resd_samples": 128,
+      "firmware_trace_line": "I: SIMULATED_TRACE,v1,19,9000,3,IMU_READ,4,3,0,0,0,1001,",
+      "firmware_values_mg": [0, 0, 1001],
+      "renode_output_z_raw": "0x00004028"
+    },
+    "WALK": {
+      "dataset": "hardware/models/lis2dw12/datasets/walk.csv",
+      "dataset_sha256": "e1b0da6e675577daad8d855e95ede3b2b6272b5f0380bc38eafcd39e1fd8ee94",
+      "resd_sha256": "87796ed42bbb1eeaf7d961fd081cc2bbb142ffbd0b2bccf74fefac8086291125",
+      "resd_samples": 128,
+      "firmware_trace_line": "I: SIMULATED_TRACE,v1,19,9000,3,IMU_READ,4,3,0,4294967295,56,1159,",
+      "firmware_values_mg": [-1, 56, 1159],
+      "renode_output_z_raw": "0x00004A48"
+    },
+    "RUN": {
+      "dataset": "hardware/models/lis2dw12/datasets/run.csv",
+      "dataset_sha256": "f2845f9e8325b143eb15988341d4b5110a23a1b0216f4f780900a051c0f78a7d",
+      "resd_sha256": "267343d0141ab19fab73a252f5ce6f3f5d6445d1c1a3e447e62bfe2e71fc7562",
+      "resd_samples": 128,
+      "firmware_trace_line": "I: SIMULATED_TRACE,v1,19,9000,3,IMU_READ,4,3,0,0,327,1558,",
+      "firmware_values_mg": [0, 327, 1558],
+      "renode_output_z_raw": "0x000063D4"
+    },
+    "GOLDEN_AXIS_PROBE": {
+      "dataset": "hardware/renode/tests/fixtures/lis2dw12/golden_axis_probe.csv",
+      "dataset_sha256": "4e0636d43473d45ec63a3608bcbaeb5567f62e6805b74b248473d167ecd0efd3",
+      "resd_sha256": "3c9c84725258b5aa8743369da3380f09d1d5fee98de84146cbfa0e91694391b3",
+      "resd_samples": 4,
+      "first_sample_g": [0.25, -0.125, 1.5],
+      "firmware_trace_line": "I: SIMULATED_TRACE,v1,19,9000,3,IMU_READ,4,3,0,249,4294967172,1499,",
+      "firmware_values_mg": [249, -124, 1499],
+      "renode_output_xyz_raw": ["0x00001000", "0xFFFFF800", "0x0000600C"]
+    }
+  }
+}
