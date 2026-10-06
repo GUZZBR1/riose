@@ -11,16 +11,21 @@
   "integration": {
     "branch": "integration/pre-blockchain-baseline",
     "base": "b2de3a9a58f911e24dc9a8395717f520542282b3",
-    "final_sha": "see refs/heads/integration/pre-blockchain-baseline (self-referential SHA intentionally resolves from Git metadata)",
-    "remote_push": "BLOCKED_DNS_AND_INVALID_GITHUB_TOKEN",
-    "remote_main_verified": false
+    "integration_branch_sha": "c570d934b68f4432cb52461559ae375f80abeb9b",
+    "baseline_main_merge_sha": "2beb7a5dd5681cbc7b5fc308f5e3a12301b85686",
+    "pull_request": "https://github.com/GUZZBR1/riose/pull/37",
+    "pull_request_merged": true,
+    "remote_publication": "PASS_VIA_AUTHENTICATED_GITHUB_CONNECTOR; local Git CLI DNS/token unavailable",
+    "remote_main_verified": true
   },
   "discovery": {
     "local_branch_count": 51,
     "remote_tracking_ref_count": 46,
     "worktree_registration_count": 66,
     "public_open_pr_count": 0,
-    "public_latest_core_ci": "FAILED_AT_BASE_MISSING_OPTIONAL_SOLANA_EXTRA",
+    "public_base_core_ci": "FAILED_AT_BASE_MISSING_OPTIONAL_SOLANA_EXTRA",
+    "pull_request_ci_run": 81,
+    "pull_request_ci_conclusion": "SUCCESS; cad-export and core jobs passed",
     "unavailable_stale_worktree_paths_left_untouched": true,
     "root_dirty_state_preserved": [
       "GUZZ_PRESERVATION_MANIFEST.json",
@@ -147,7 +152,7 @@
     "python_compileall": "PASS",
     "json_artifacts_parse": "PASS",
     "secret_scan": "PASS_HIGH_SIGNAL_PRIVATE_KEY_AND_TOKEN_MARKERS_NO_MATCHES; gitleaks/trufflehog unavailable",
-    "remote_push_and_fetch": "BLOCKED; github.com DNS resolution failed and gh token was invalid"
+    "remote_push_and_fetch": "PASS_VIA_GITHUB_CONNECTOR; integration ref, merged PR, main SHA, and baseline document verified. Local Git CLI fetch/push was blocked by DNS and invalid token."
   },
   "evidence_limits": [
     "No new physical measurements or flash test were performed.",

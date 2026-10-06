@@ -7,9 +7,9 @@
 - Initial local `main`: `e57b235a452c6e8d258d1708d5fd53ce56cecfb3`.
 - Cached `origin/main` (`santleme/riose`): `5b17771f0f86b0bb0cdb526485e8e2f50e78fdea`, an ancestor of `fork/main`; the fork is 58 commits ahead.
 - Integration branch: `integration/pre-blockchain-baseline`, created from the reviewed `fork/main` tree. See `PRE_BLOCKCHAIN_INTEGRATION_PROVENANCE.json` for exact commits and evidence.
-- Final SHA: resolve `refs/heads/integration/pre-blockchain-baseline` from Git metadata. The self-referential SHA is reported explicitly in the publication result.
+- Baseline commit merged to `main`: `2beb7a5dd5681cbc7b5fc308f5e3a12301b85686` (PR #37).
 
-The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs. Local fetch/push credentials were unavailable during this run; no remote write or remote verification has succeeded yet. The latest public core workflow at the base failed because its dependency install omitted the already-declared optional `solana` test extra. This candidate corrects that workflow command and passes the full suite with the extra installed.
+The target branch is the fork, not the upstream remote. The GitHub repository page showed `fork/main` at the reviewed base and zero open PRs before integration. Git CLI push/fetch was unavailable because `github.com` did not resolve and the local CLI token was invalid; the authenticated GitHub connector successfully published the integration branch and PR. The core workflow at the reviewed base had failed because its dependency install omitted the already-declared optional `solana` test extra. This candidate corrects that command; PR workflow run 81 passed both `cad-export` and `core` jobs.
 
 ## Integrated in this candidate
 
@@ -54,4 +54,4 @@ The external FREQUENCIA request-identity patch is required for real ns-3 adapter
 
 ## Publication state
 
-This document is part of the local integration candidate. Publication is complete only after pushing `integration/pre-blockchain-baseline`, reconciling a PR or safe main update, fetching from GitHub, and confirming that `GUZZBR1/riose` `main` equals the exact final integration SHA. The current run cannot claim that remote gate passed.
+PR #37 was squash-merged after both required CI jobs passed. GitHub confirmed the merge commit above as `main` and the baseline document was fetched successfully from that commit. The local Git CLI could not fetch due DNS/authentication failure, so the remote ref and file checks were performed through the authenticated GitHub connector. The completion report records the final verified remote `main` SHA.
