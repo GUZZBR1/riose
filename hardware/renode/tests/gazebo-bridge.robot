@@ -1,10 +1,11 @@
 *** Settings ***
-Documentation     Firmware reads Gazebo-derived SIMULATED RESD samples and exposes a boot-only logical TX payload.
+Documentation     Firmware reads SIMULATED RESD samples; the movement wake contract uses a dedicated deterministic step fixture.
 
 *** Variables ***
 ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
 ${GAZEBO_RESD}    %{RIOSE_LIS2DW12_GAZEBO_RESD=}
+${WAKE_RESD}      %{RIOSE_LIS2DW12_WAKE_RESD=}
 ${TX_TRACE_OUTPUT}    %{RIOSE_RENODE_TX_TRACE=}
 
 *** Test Cases ***
@@ -88,9 +89,9 @@ LIS2DW12 Accepts Individual Gazebo Acceleration Samples
     Should Be Equal    ${irq_after_read.strip()}    False
     [Setup]    Create RIOSE Platform
 
-Firmware Wakes From Gazebo Motion Comparator And Transmits
+Firmware Wakes From Simulated Motion Comparator And Transmits
     Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
-    Skip If    '${GAZEBO_RESD}' == ''    Set RIOSE_LIS2DW12_GAZEBO_RESD to the bridge-generated movement RESD file.
+    Skip If    '${WAKE_RESD}' == ''    Set RIOSE_LIS2DW12_WAKE_RESD to the deterministic wake-step RESD fixture.
     # Start from production firmware register configuration and let movement
     # samples pass through the configured WU comparator model.
     Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 1
@@ -104,9 +105,9 @@ Firmware Wakes From Gazebo Motion Comparator And Transmits
     Should Be Equal As Integers    ${ctrl1}    0x14    base=16
     ${sample_rate}=    Execute Command    sysbus.i2c1.imu SampleRate
     Should Be Equal As Integers    ${sample_rate}    13
-    # At emulation time 0.25 s, align the trace's first Gazebo sample with
+    # At emulation time 0.25 s, align the wake fixture's first sample with
     # the current Renode timestamp instead of seeking 0.25 s into the motion.
-    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${GAZEBO_RESD} sampleOffsetTime=-250000000
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WAKE_RESD} sampleOffsetTime=-250000000
     # Include the firmware's configured 100 ms RX window after TX_DONE, then
     # observe its transition back to SLEEP.
     Execute Command    emulation RunFor "0.50"

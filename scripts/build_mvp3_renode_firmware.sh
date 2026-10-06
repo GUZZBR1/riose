@@ -9,14 +9,29 @@ if [[ -n "${RIOSE_ZEPHYR_ELF:-}" && -f "$RIOSE_ZEPHYR_ELF" ]]; then
   exit 0
 fi
 
-# This board profile needs enough Zephyr stack/heap for the existing app when
-# it is driven under Renode. Keep generated configuration/build output in /tmp.
-set +u
-source "$repo_root/hardware/activate-mvp2-toolchain.sh"
-set -u
+# Renode uses an STM32L071 surrogate without the physical board's RTC/STOP
+# behavior. Disable PM and keep enough stack/heap for the app. Keep generated
+# configuration/build output in /tmp.
+if [[ -z "${ZEPHYR_BASE:-}" ]]; then
+  zephyr_setup="${RIOSE_ZEPHYR_SETUP:-$HOME/.local/opt/riose-zephyr-env.sh}"
+  if [[ -f "$zephyr_setup" ]]; then
+    # Zephyr alone is sufficient; do not require unrelated CAD/EM dependencies.
+    # shellcheck disable=SC1090
+    source "$zephyr_setup"
+  else
+    # Legacy setup remains a fallback for workspaces without the focused setup.
+    # shellcheck disable=SC1091
+    source "$repo_root/hardware/activate-mvp2-toolchain.sh"
+  fi
+fi
+if ! command -v west >/dev/null 2>&1; then
+  echo "west is required to build the Renode firmware image." >&2
+  exit 2
+fi
 cat >"$renode_conf" <<'EOF'
 CONFIG_MAIN_STACK_SIZE=2048
 CONFIG_HEAP_MEM_POOL_SIZE=1024
+CONFIG_PM=n
 EOF
 west build -b nucleo_l031k6 -d "$build_dir" "$repo_root/hardware/firmware/zephyr" \
   -- -DEXTRA_CONF_FILE="$renode_conf" >&2
