@@ -1,0 +1,4 @@
+dateTime,calfId,accX,accY,accZ,behaviour,segId
+2024-01-01T12:00:00.000,fixture-calf-a,0.012,-0.031,0.998,standing,segment-1
+2024-01-01T12:00:00.040,fixture-calf-a,0.018,-0.027,1.004,oral_manipulation_of_pen,segment-1
+2024-01-01T12:00:00.080,fixture-calf-a,0.021,-0.022,0.991,unseen_behavior,segment-2

@@ -25,9 +25,13 @@ dev = ["pytest>=8,<9", "httpx>=0.27,<1"]
 [project.scripts]
 cattle-rf = "riose.products.livestock_tracking.cli:main"
 riose = "riose.cli:main"
+riose-movement-dataset = "riose.products.ear_tag.movement_datasets.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cattle_rf", "src/riose"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"datasets/movement_biosignature/catalog.json" = "riose/products/ear_tag/movement_datasets/catalog.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "hardware"]
