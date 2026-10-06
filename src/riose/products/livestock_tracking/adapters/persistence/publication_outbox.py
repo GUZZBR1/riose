@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS publication_outbox (
 );
 CREATE INDEX IF NOT EXISTS idx_publication_outbox_due
   ON publication_outbox(available_at,publication_id) WHERE completed_at IS NULL;
+CREATE TABLE IF NOT EXISTS publication_processing_claims (
+  publication_id TEXT PRIMARY KEY REFERENCES publication_requests(publication_id),
+  token TEXT NOT NULL,
+  expires_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS publication_attempts (
   attempt_id TEXT PRIMARY KEY,
   publication_id TEXT NOT NULL REFERENCES publication_requests(publication_id),
@@ -162,6 +167,80 @@ class SQLitePublicationOutbox:
             store.connection.executescript(_SCHEMA)
             self._upgrade_legacy_schema(store.connection)
             store.connection.commit()
+
+    def claim_processing(self, publication_id: str, *, lease_seconds: float = 120.0) -> str | None:
+        """Claim one target across Store connections; stale claims can be recovered."""
+        _identifier(publication_id, "publication_id")
+        if not 1 <= lease_seconds <= 3600:
+            raise ValueError("lease_seconds must be between 1 and 3600")
+        token = secrets.token_hex(16)
+        now = time.time()
+        with self.store._lock:
+            con = self.store.connection
+            con.execute("BEGIN IMMEDIATE")
+            try:
+                if con.execute("SELECT 1 FROM publication_requests WHERE publication_id=?", (publication_id,)).fetchone() is None:
+                    raise ValueError("publication request was not found")
+                con.execute("DELETE FROM publication_processing_claims WHERE publication_id=? AND expires_at<=?", (publication_id, now))
+                if con.execute("SELECT 1 FROM publication_processing_claims WHERE publication_id=?", (publication_id,)).fetchone():
+                    con.commit()
+                    return None
+                con.execute("INSERT INTO publication_processing_claims VALUES(?,?,?)", (publication_id, token, now + lease_seconds))
+                con.commit()
+                return token
+            except Exception:
+                con.rollback()
+                raise
+
+    def release_processing(self, publication_id: str, token: str) -> None:
+        _identifier(publication_id, "publication_id")
+        _identifier(token, "token")
+        with self.store._lock:
+            self.store.connection.execute(
+                "DELETE FROM publication_processing_claims WHERE publication_id=? AND token=?", (publication_id, token)
+            )
+            self.store.connection.commit()
+
+    def renew_processing(self, publication_id: str, token: str, *, lease_seconds: float = 120.0) -> bool:
+        """Extend only the live owner's claim; never revive an expired token."""
+        _identifier(publication_id, "publication_id")
+        _identifier(token, "token")
+        now = time.time()
+        with self.store._lock:
+            con = self.store.connection
+            con.execute("BEGIN IMMEDIATE")
+            try:
+                changed = con.execute(
+                    "UPDATE publication_processing_claims SET expires_at=? "
+                    "WHERE publication_id=? AND token=? AND expires_at>?",
+                    (now + lease_seconds, publication_id, token, now),
+                ).rowcount
+                con.commit()
+                return changed == 1
+            except Exception:
+                con.rollback()
+                raise
+
+    def owns_processing(self, publication_id: str, token: str) -> bool:
+        _identifier(publication_id, "publication_id")
+        _identifier(token, "token")
+        with self.store._lock:
+            row = self.store.connection.execute(
+                "SELECT 1 FROM publication_processing_claims "
+                "WHERE publication_id=? AND token=? AND expires_at>?",
+                (publication_id, token, time.time()),
+            ).fetchone()
+        return row is not None
+
+    @staticmethod
+    def _require_live_claim(con: sqlite3.Connection, publication_id: str, token: str) -> None:
+        _identifier(token, "claim_token")
+        if con.execute(
+            "SELECT 1 FROM publication_processing_claims "
+            "WHERE publication_id=? AND token=? AND expires_at>?",
+            (publication_id, token, time.time()),
+        ).fetchone() is None:
+            raise RuntimeError("publication processing claim was lost")
 
     @staticmethod
     def _upgrade_legacy_schema(con: sqlite3.Connection) -> None:
@@ -500,12 +579,14 @@ class SQLitePublicationOutbox:
         transaction_id: str,
         payload: bytes,
         metadata: dict[str, Any] | None = None,
+        claim_token: str | None = None,
         now: float | None = None,
     ) -> dict[str, Any]:
         """Persist an adapter-neutral prepared payload before network submission."""
         return self._prepare_attempt(
             publication_id, adapter_id=adapter_id, transaction_id=transaction_id,
-            payload=payload, metadata={} if metadata is None else metadata, now=now,
+            payload=payload, metadata={} if metadata is None else metadata,
+            claim_token=claim_token, now=now,
         )
 
     def _prepare_attempt(
@@ -519,6 +600,7 @@ class SQLitePublicationOutbox:
         legacy_signature: str | None = None,
         legacy_signed_transaction: bytes | None = None,
         legacy_last_valid_block_height: int | None = None,
+        claim_token: str | None = None,
         now: float | None = None,
     ) -> dict[str, Any]:
         _identifier(publication_id, "publication_id")
@@ -535,6 +617,8 @@ class SQLitePublicationOutbox:
             con = self.store.connection
             con.execute("BEGIN IMMEDIATE")
             try:
+                if claim_token is not None:
+                    self._require_live_claim(con, publication_id, claim_token)
                 request = con.execute(
                     "SELECT status,adapter_id,destination FROM publication_requests WHERE publication_id=?", (publication_id,)
                 ).fetchone()
@@ -623,6 +707,7 @@ class SQLitePublicationOutbox:
         error: str | None = None,
         retry_metadata: dict[str, Any] | None = None,
         evidence_status: str = "ASSUMED",
+        claim_token: str | None = None,
         now: float | None = None,
     ) -> None:
         if not isinstance(state, PublicationState):
@@ -650,6 +735,8 @@ class SQLitePublicationOutbox:
             con = self.store.connection
             con.execute("BEGIN IMMEDIATE")
             try:
+                if claim_token is not None:
+                    self._require_live_claim(con, publication_id, claim_token)
                 request = con.execute(
                     "SELECT status,chain,adapter_id,destination,commitment,network FROM publication_requests WHERE publication_id=?", (publication_id,)
                 ).fetchone()

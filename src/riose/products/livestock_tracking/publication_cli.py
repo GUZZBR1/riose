@@ -1,4 +1,4 @@
-"""Narrow CLI commands for explicitly configured local publication."""
+"""Opt-in CLI commands for durable publication processing."""
 
 from __future__ import annotations
 
@@ -14,22 +14,23 @@ def add_publication_commands(commands: argparse._SubParsersAction) -> None:
     queue.add_argument("--event-id", required=True, type=int)
     queue.add_argument("--destination", default="solana-memo")
     queue.add_argument("--chain", help="chain identifier; defaults from the destination adapter")
-    queue.add_argument("--network", required=True, help="explicit identifier including the expected cluster genesis hash")
+    queue.add_argument("--network", required=True, help="explicit network identifier")
     queue.add_argument("--idempotency-key")
     status = actions.add_parser("status", help="show a local publication request")
     status.add_argument("--db", required=True)
     status.add_argument("--publication-id", required=True)
-    send = actions.add_parser("send", help="sign, persist, and submit one devnet/testnet Memo")
-    send.add_argument("--db", required=True)
-    send.add_argument("--publication-id", required=True)
-    send.add_argument("--rpc-url", required=True)
-    send.add_argument("--expected-genesis-hash", required=True)
-    send.add_argument("--keypair", required=True)
-    reconcile = actions.add_parser("reconcile", help="query the exact persisted signature; never creates a new attempt")
-    reconcile.add_argument("--db", required=True)
-    reconcile.add_argument("--publication-id", required=True)
-    reconcile.add_argument("--rpc-url", required=True)
-    reconcile.add_argument("--expected-genesis-hash", required=True)
+    for name, help_text in (
+        ("send", "prepare, persist, submit, and observe one publication"),
+        ("process", "process a queued publication or resume its persisted attempt"),
+        ("reconcile", "observe or safely resend the exact persisted attempt"),
+    ):
+        command = actions.add_parser(name, help=help_text)
+        command.add_argument("--db", required=True)
+        command.add_argument("--publication-id", required=True)
+        command.add_argument("--rpc-url", required=True)
+        command.add_argument("--expected-genesis-hash", required=True)
+        if name != "reconcile":
+            command.add_argument("--keypair", help="required only when preparing a new Solana attempt")
 
 
 def run_publication_command(args: argparse.Namespace) -> int:
@@ -42,8 +43,7 @@ def run_publication_command(args: argparse.Namespace) -> int:
         if args.publication_action == "queue":
             request = outbox.enqueue_event(
                 args.event_id, destination=args.destination, network=args.network,
-                chain=args.chain,
-                idempotency_key=args.idempotency_key,
+                chain=args.chain, idempotency_key=args.idempotency_key,
             )
             print(json.dumps(_public_status(request, outbox), sort_keys=True))
             return 0
@@ -53,7 +53,7 @@ def run_publication_command(args: argparse.Namespace) -> int:
                 raise ValueError("publication request was not found")
             print(json.dumps({**_public_status(request, outbox), "receipts": outbox.receipts(args.publication_id)}, sort_keys=True))
             return 0
-        if args.publication_action in {"send", "reconcile"}:
+        if args.publication_action in {"send", "process", "reconcile"}:
             return _send_or_reconcile(args, outbox)
         return 2
     finally:
@@ -61,73 +61,39 @@ def run_publication_command(args: argparse.Namespace) -> int:
 
 
 def _send_or_reconcile(args: argparse.Namespace, outbox: object) -> int:
-    from .adapters.solana_memo import SolanaMemoClient, SolanaMemoConfig, SolanaRpcError, load_keypair
-    from .domain.privacy import parse_public_envelope_json
+    from .adapters.solana_memo import SolanaMemoAdapter, SolanaMemoClient, SolanaMemoConfig, load_keypair
+    from .application.publication_dispatcher import PublicationDispatcher
     from .domain.publication_state import PublicationState
 
     request = outbox.get(args.publication_id)
     if request is None:
         raise ValueError("publication request was not found")
     config = SolanaMemoConfig(args.rpc_url, args.expected_genesis_hash)
-    if request["chain"] != "solana" or request["network"] != config.network_id or request["destination"] != "solana-memo":
+    if (request["chain"], request["network"], request["adapter_id"]) != (
+        "solana", config.network_id, "solana-memo"
+    ):
         raise ValueError("configured network does not match the queued request")
-    client = SolanaMemoClient(config)
-    evidence_status = getattr(client, "evidence_status", "ASSUMED")
-    if not outbox.verify_local_binding(args.publication_id):
-        raise ValueError("local event prefix or commitment binding failed verification")
-
-    if args.publication_action == "send":
-        if PublicationState(request["status"]) is not PublicationState.QUEUED:
-            raise ValueError("request is not QUEUED; use reconcile to inspect its persisted attempt")
-        keypair = load_keypair(args.keypair)
-        envelope = parse_public_envelope_json(request["envelope"])
-        signed_tx, signature, last_valid_height = client.prepare(envelope, keypair)
-        attempt = outbox.prepare_attempt(
-            args.publication_id, signature=signature, signed_transaction=signed_tx,
-            last_valid_block_height=last_valid_height,
-        )
-        try:
-            client.submit(attempt["signed_transaction"], attempt["signature"])
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.RPC_ACCEPTED,
-                                      evidence_status=evidence_status)
-        except SolanaRpcError:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.UNKNOWN,
-                                      reason_code="RPC_UNAVAILABLE", evidence_status=evidence_status)
-            print(json.dumps({**_public_status(outbox.get(args.publication_id), outbox), "recovery": "query persisted signature; no new transaction was created"}, sort_keys=True))
-            return 3
-    attempt = outbox.latest_attempt(args.publication_id)
-    if attempt is None:
-        raise ValueError("no signed attempt exists to reconcile")
-    envelope = parse_public_envelope_json(request["envelope"])
-    try:
-        matched, slot = client.verify(attempt["signature"], envelope)
-    except SolanaRpcError:
-        state = PublicationState(request["status"])
-        if state in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED}:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.UNKNOWN,
-                                      reason_code="RPC_UNAVAILABLE", evidence_status=evidence_status)
-        print(json.dumps({**_public_status(outbox.get(args.publication_id), outbox), "recovery": "retry reconciliation later"}, sort_keys=True))
-        return 3
-    current = PublicationState(outbox.get(args.publication_id)["status"])
-    if matched is None:
-        if current in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED}:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.UNKNOWN,
-                                      reason_code="NOT_OBSERVED", evidence_status=evidence_status)
-    elif matched:
-        if current in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED, PublicationState.UNKNOWN}:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.CONFIRMED,
-                                      slot=slot, evidence_status=evidence_status)
-            current = PublicationState.CONFIRMED
-        if current is PublicationState.CONFIRMED:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.VERIFIED,
-                                      slot=slot, evidence_status=evidence_status)
-    else:
-        if current is not PublicationState.REJECTED:
-            outbox.record_observation(args.publication_id, attempt["attempt_id"], state=PublicationState.REJECTED,
-                                      slot=slot, reason_code="TRANSACTION_OR_MEMO_MISMATCH",
-                                      evidence_status=evidence_status)
-    print(json.dumps({**_public_status(outbox.get(args.publication_id), outbox), "receipts": outbox.receipts(args.publication_id)}, sort_keys=True))
-    return 0 if matched else 3
+    state = PublicationState(request["status"])
+    if args.publication_action == "send" and state is not PublicationState.QUEUED:
+        raise ValueError("request is not QUEUED; use process or reconcile")
+    preparing = args.publication_action != "reconcile" and state in {
+        PublicationState.QUEUED, PublicationState.RETRYABLE
+    }
+    keypair_path = getattr(args, "keypair", None)
+    if preparing and not keypair_path:
+        raise ValueError("a keypair is required to prepare a new attempt")
+    signer = load_keypair(keypair_path) if preparing else None
+    dispatcher = PublicationDispatcher(outbox, [SolanaMemoAdapter(SolanaMemoClient(config), signer)])
+    result = (
+        dispatcher.reconcile(args.publication_id)
+        if args.publication_action == "reconcile"
+        else dispatcher.process(args.publication_id)
+    )
+    print(json.dumps({
+        **_public_status(result, outbox),
+        "receipts": outbox.receipts(args.publication_id),
+    }, sort_keys=True))
+    return 0 if result["status"] == PublicationState.VERIFIED.value else 3
 
 
 def _public_status(request: dict[str, object], outbox: object | None = None) -> dict[str, object]:

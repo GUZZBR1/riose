@@ -20,7 +20,7 @@ ALLOWED_TRANSITIONS = {
     PublicationState.QUEUED: {PublicationState.PREPARED, PublicationState.REJECTED},
     PublicationState.PREPARED: {PublicationState.RPC_ACCEPTED, PublicationState.UNKNOWN, PublicationState.RETRYABLE, PublicationState.CONFIRMED, PublicationState.REJECTED},
     PublicationState.RPC_ACCEPTED: {PublicationState.CONFIRMED, PublicationState.UNKNOWN, PublicationState.RETRYABLE, PublicationState.REJECTED},
-    PublicationState.UNKNOWN: {PublicationState.CONFIRMED, PublicationState.RETRYABLE, PublicationState.REJECTED},
+    PublicationState.UNKNOWN: {PublicationState.RPC_ACCEPTED, PublicationState.CONFIRMED, PublicationState.RETRYABLE, PublicationState.REJECTED},
     PublicationState.RETRYABLE: {PublicationState.PREPARED, PublicationState.REJECTED},
     PublicationState.CONFIRMED: {PublicationState.VERIFIED, PublicationState.UNKNOWN},
     PublicationState.VERIFIED: set(),

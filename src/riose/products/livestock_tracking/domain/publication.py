@@ -39,14 +39,21 @@ class ChainAdapter(Protocol):
 
     Implementations may encode the same public commitment differently for a
     chain, but must never replace or recompute its digest.
+    Repeating submit with one persisted PreparedPublication must be safe: a
+    worker can lose its claim while an RPC request is still in flight.
+    RETRYABLE must only be reported with safe_to_retry after the adapter has
+    established that a new signed attempt cannot duplicate a successful one.
     """
 
     chain: str
     network: str
+    adapter_id: str
 
     def prepare(self, commitment: PublicCommitmentEnvelope) -> PreparedPublication: ...
 
     def submit(self, prepared: PreparedPublication) -> str: ...
+
+    def validate_prepared(self, prepared: PreparedPublication, commitment: PublicCommitmentEnvelope) -> None: ...
 
     def get_receipt(
         self, transaction_id: str, commitment: PublicCommitmentEnvelope
