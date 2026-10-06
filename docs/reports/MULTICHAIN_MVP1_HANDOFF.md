@@ -95,9 +95,6 @@ uv run --offline --extra dev --extra solana pytest -q \
 63 passed
 ```
 
-Full regression and clean-checkout reproduction will be recorded here after the
-final commits are tested.
-
 Current source-worktree verification:
 
 ```text
@@ -116,6 +113,21 @@ passed
 
 The repository exposes no configured lint/type-check target and no `ruff`,
 `mypy`, or `pyright` executable was available in the checkout.
+
+Clean-checkout reproduction:
+
+```text
+Commit tested: c98e8221acf5d350c78d2d566e78f9dab00b312f
+Checkout: /home/gusta/projetos/RIOSE/riose-multichain-mvp1-clean
+State before run: detached at the commit, clean `git status --short`
+Environment: recreated by uv from the offline cache
+Command: uv run --offline --extra dev --extra solana pytest -q
+Result: 763 passed, 7 skipped, 1 existing Starlette/httpx deprecation warning
+Duration: 57.99 seconds
+```
+
+The follow-up commit only records this reproduction in the reports; it does not
+change application code or tests.
 
 ## Mini-MVP 2 handoff
 

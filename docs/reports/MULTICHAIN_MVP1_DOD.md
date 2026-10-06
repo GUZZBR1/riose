@@ -30,7 +30,7 @@ Each criterion must be evidenced by a test, inspection or reproducible command.
 | D7 | PASS | Failure injection verifies one target can reject while the other remains queued and the local event chain remains valid. |
 | D8 | PASS | Existing Solana CLI/client tests and legacy SQLite migration tests pass. The full Solana execution path remains unchanged. |
 | D9 | PASS | Existing queue rollback and event-chain concurrency tests pass; migration lock contention verifies foreign-key enforcement is restored. |
-| D10 | PENDING CLEAN CHECKOUT | Source worktree full regression: 763 passed, 7 skipped. Clean detached checkout reproduction is recorded in the final handoff after the commit is tested. |
+| D10 | PASS | Full regression passed in the source worktree and in a clean detached checkout at `c98e8221acf5d350c78d2d566e78f9dab00b312f`: 763 passed, 7 skipped in each. The handoff records the command, environment recreation, path, and duration. |
 | D11 | PASS | Independent final red-team review found no remaining P1/P2 findings after the fixes listed in the handoff. |
 | D12 | PASS | `MULTICHAIN_MVP1_HANDOFF.md` lists the generic execution/recovery work and evidence gates for Mini-MVP 2. |
 
