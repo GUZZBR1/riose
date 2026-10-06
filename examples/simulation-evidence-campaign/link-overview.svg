@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80">
+  <title>Evidence pipeline fixture artifact</title>
+  <rect width="320" height="80" fill="#f4f4f4"/>
+  <text x="16" y="35" font-family="sans-serif" font-size="14">Fixture artifact (no simulator run)</text>
+  <text x="16" y="58" font-family="sans-serif" font-size="12">SIMULATED evidence pipeline demonstration</text>
+</svg>
