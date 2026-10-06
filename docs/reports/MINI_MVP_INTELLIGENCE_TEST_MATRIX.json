@@ -1,0 +1,28 @@
+{
+  "mission": "RIOSE Mini-MVP 4 — Intelligence & Animal Behavior",
+  "verdict": "PASS_WITH_LIMITATIONS",
+  "tests": [
+    {"id":"T1","name":"compileall","status":"PASS","evidence":"python -m compileall -q src tests; exit 0"},
+    {"id":"T2","name":"dataset manifest/checksum","status":"PASS","evidence":"177608717 bytes; publisher MD5 59bd00564af64d92489485fa5a8a3960; local SHA-256 1aec91cc9454919e865be204d503899a89ebdba3ca5f81ee2cb22942f456f26d"},
+    {"id":"T3","name":"animal split integrity","status":"PASS","evidence":"30 animals partitioned 18 train / 6 validation / 6 test; all intersections empty"},
+    {"id":"T4","name":"temporal leakage","status":"PASS_WITH_LIMITATIONS","evidence":"0 overlapping feature windows; 5 source-time overlap pairs, all within training partition and grouped by animal; no test/train shared windows; 0 backward or duplicate times within annotation segments"},
+    {"id":"T5","name":"label mapping","status":"PASS_WITH_LIMITATIONS","evidence":"50 raw label strings preserved/namespaced; support gate learned from train animals; low-support classes grouped as other_unselected without ontology equivalence claim"},
+    {"id":"T6","name":"movement parsing","status":"PASS_WITH_LIMITATIONS","evidence":"2,467,162 samples; 4,016 annotation segments; 25 Hz nominal; 24 gaps >60 ms; axes and timezone unknown; source has no session identifiers"},
+    {"id":"T7","name":"deterministic features","status":"PASS","evidence":"versioned 15-feature schema; deterministic/edge-case unit tests; 29,908 windows; SHA-256 0895c67ede95354739d5c76e639c3cbe90ed09f5d4f636162c879667f3dad954"},
+    {"id":"T8","name":"baseline model","status":"PASS","evidence":"Held-out majority baseline accuracy 0.5278969957, balanced accuracy 0.0588235294, macro-F1 0.0406477198"},
+    {"id":"T9","name":"behavior training","status":"PASS","evidence":"Logistic Regression selected from majority/LR/tree/ExtraTrees using validation macro-F1; seed 23; scaler train-only for selection, refit train+validation"},
+    {"id":"T10","name":"held-out evaluation","status":"PASS_WITH_LIMITATIONS","evidence":"6 held-out animals / 6,524 windows; accuracy 0.5335683630; balanced accuracy 0.1991068220; macro-F1 0.1885424913; test not used for model selection"},
+    {"id":"T11","name":"grouped CV","status":"PASS_WITH_LIMITATIONS","evidence":"5 GroupKFold folds by animal; mean accuracy 0.5392926516 (population SD 0.0693356502), balanced accuracy 0.2272041326 (SD 0.0024581142), macro-F1 0.2126439944 (SD 0.0079637551); worst fold accuracy 0.4300867888, balanced accuracy 0.2248915658, macro-F1 0.2002563779; CV is not an independent second holdout"},
+    {"id":"T12","name":"prediction contract","status":"PASS","evidence":"model/feature versions, input/window reference, animal, source-relative time basis, prediction, provenance, uncalibrated model_score and null confidence covered by contract tests"},
+    {"id":"T13","name":"persistence boundary","status":"PASS_WITH_LIMITATIONS","evidence":"Core Store behavior_predictions table; 6,524 rows round-trip after reopen; duplicate writes idempotent; no separate database or animal FK; concurrency not tested"},
+    {"id":"T14","name":"BioSignature boundary","status":"PASS_WITH_LIMITATIONS","evidence":"INSUFFICIENT_HISTORY; sparse annotated clips do not prove daily coverage; no biomarker claim"},
+    {"id":"T15","name":"Health anomaly boundary","status":"PASS_WITH_LIMITATIONS","evidence":"NOT_EVALUABLE without clinical outcomes or health metrics; no diagnostic claim"},
+    {"id":"T16","name":"Reproduction isolation","status":"PASS_WITH_LIMITATIONS","evidence":"INSUFFICIENT_EVIDENCE; no reproductive ground truth/outcomes; research only"},
+    {"id":"T17","name":"robustness","status":"PASS","evidence":"Focused behavior/signal/store/group-CV tests cover unknown units, invalid/short/non-finite inputs, unknown/missing classes, one-class folds, artifact validation, idempotency and time basis; 58 focused tests passed"},
+    {"id":"T18","name":"E2E pipeline","status":"PASS","evidence":"External measured dataset -> parse -> windows/features -> validation selection -> held-out model -> prediction -> Core SQLite persistence; 29,908 windows, 6,524 persisted test predictions"},
+    {"id":"T19","name":"clean checkout reproduction","status":"PASS","evidence":"Detached clean worktree at recovery snapshot a6d3b49397344a60cdd1618d8f94e7e0ba95a2f8; replay completed and manifest/metrics comparison recorded in report"},
+    {"id":"T20","name":"current regression suite","status":"PASS","evidence":"656 passed, 7 skipped, 1 Starlette deprecation warning; canonical baseline 617 passed / 7 skipped"},
+    {"id":"T21","name":"git diff --check","status":"PASS","evidence":"git diff --check; exit 0"}
+  ],
+  "limitations": ["Remote fetch failed due DNS, so live canonical main advancement is unverified.", "Official dataset rights/license field is empty.", "Model scores support research only; field performance was not evaluated.", "Full-run grouped CV overlaps the same animal cohort used by the separate holdout experiment and is reported separately."]
+}

@@ -8,6 +8,7 @@ provenance attached to each prediction.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 import math
 import re
 from typing import Protocol, Sequence
@@ -19,13 +20,21 @@ _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/+-]{0,191}\Z", re.ASCII)
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z", re.ASCII)
 
 
+class PredictionTimeBasis(str, Enum):
+    """Clock basis for a prediction window; source-relative is not UTC."""
+
+    UTC_UNIX_SECONDS = "UTC_UNIX_SECONDS"
+    SOURCE_RELATIVE_SECONDS = "SOURCE_RELATIVE_SECONDS"
+
+
 @dataclass(frozen=True, slots=True)
 class BehaviorPrediction:
     """A model output over one movement window, with reproducible provenance.
 
-    ``confidence`` is a model score in [0, 1], not a calibrated probability.
-    The interval uses UTC Unix seconds. Ground truth and manual labels use a
-    separate data path and must never be passed as estimator input.
+    ``model_score`` is an uncalibrated score in [0, 1]; ``confidence`` remains
+    null unless a separately calibrated confidence is available. Window bounds
+    use ``time_basis``; ``created_at_s`` is UTC Unix seconds. Ground truth and
+    manual labels use a separate data path and must never enter estimator input.
     """
 
     animal_id: str
@@ -42,6 +51,8 @@ class BehaviorPrediction:
     source_ref: str
     input_sha256: str
     prediction_id: str
+    time_basis: PredictionTimeBasis = PredictionTimeBasis.UTC_UNIX_SECONDS
+    model_score: float | None = None
 
     def __post_init__(self) -> None:
         for name in ("animal_id", "tag_id", "behavior", "model_version",
@@ -59,8 +70,14 @@ class BehaviorPrediction:
             not _finite(self.confidence) or not 0 <= self.confidence <= 1
         ):
             raise ValueError("confidence must be a finite score in [0, 1] or null")
+        if self.model_score is not None and (
+            not _finite(self.model_score) or not 0 <= self.model_score <= 1
+        ):
+            raise ValueError("model_score must be a finite score in [0, 1] or null")
         if not isinstance(self.evidence_status, EvidenceStatus):
             raise ValueError("evidence_status must be an EvidenceStatus")
+        if not isinstance(self.time_basis, PredictionTimeBasis):
+            raise ValueError("time_basis must be a PredictionTimeBasis")
         for name in ("model_sha256", "input_sha256"):
             if not isinstance(getattr(self, name), str) or not _SHA256.fullmatch(getattr(self, name)):
                 raise ValueError(f"{name} must be a lowercase SHA-256 digest")

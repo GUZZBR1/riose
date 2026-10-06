@@ -18,6 +18,7 @@ from riose.products.ear_tag.signal import (
     WindowConfig,
     extract_features,
 )
+from riose.products.ear_tag.signal.engine import UNKNOWN_UNIT_FEATURE_NAMES
 
 
 def make_trace(values: np.ndarray, rate: float = 12.5, *, unit: str = "g",
@@ -116,6 +117,14 @@ def test_axis_permutation_is_reflected_in_axis_features_but_not_magnitude() -> N
 def test_explicit_unit_conversion(unit: str, scale: float) -> None:
     values = np.tile([1.0 * scale, 0.0, 0.0], (100, 1))
     assert one_window(make_trace(values, unit=unit), 8.0).features["mean_x_g"] == pytest.approx(1.0)
+
+
+def test_unknown_unit_keeps_native_scale_and_never_claims_g() -> None:
+    values = np.tile([0.8, 0.2, -0.1], (100, 1))
+    result = one_window(make_trace(values, unit="UNKNOWN"), 8.0)
+    assert result.feature_names == UNKNOWN_UNIT_FEATURE_NAMES
+    assert result.features["mean_x_source"] == pytest.approx(0.8)
+    assert result.provenance["canonical_unit"] == "UNKNOWN"
 
 
 def test_resampling_records_rate_and_anti_aliases_above_target_nyquist() -> None:

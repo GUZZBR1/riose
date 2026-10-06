@@ -80,6 +80,21 @@ CREATE TABLE IF NOT EXISTS behavior_observations (
 );
 CREATE INDEX IF NOT EXISTS idx_behavior_history
   ON behavior_observations(animal_id,timestamp_s,id);
+CREATE TABLE IF NOT EXISTS behavior_predictions (
+  prediction_id TEXT PRIMARY KEY, animal_id TEXT NOT NULL, tag_id TEXT NOT NULL,
+  window_start_s REAL NOT NULL, window_end_s REAL NOT NULL, created_at_s REAL NOT NULL,
+  behavior TEXT NOT NULL, confidence REAL, model_score REAL, model_version TEXT NOT NULL,
+  model_sha256 TEXT NOT NULL, feature_version TEXT NOT NULL,
+  evidence_status TEXT NOT NULL, source_ref TEXT NOT NULL, input_sha256 TEXT NOT NULL,
+  time_basis TEXT NOT NULL,
+  CHECK(window_start_s >= 0), CHECK(window_end_s > window_start_s),
+  CHECK(created_at_s >= 0), CHECK(confidence IS NULL OR (confidence >= 0 AND confidence <= 1)),
+  CHECK(model_score IS NULL OR (model_score >= 0 AND model_score <= 1)),
+  CHECK(evidence_status IN ('VALIDATED','SIMULATED','ASSUMED','EXPERIMENTAL','FUTURE')),
+  CHECK(time_basis IN ('UTC_UNIX_SECONDS','SOURCE_RELATIVE_SECONDS'))
+);
+CREATE INDEX IF NOT EXISTS idx_behavior_predictions_animal_window
+  ON behavior_predictions(animal_id,window_start_s,prediction_id);
 """
 
 
@@ -388,6 +403,107 @@ class Store:
                 args,
             ).fetchall()
             return [dict(row) for row in rows]
+
+    def save_behavior_prediction(self, prediction: Any) -> bool:
+        """Persist an intelligence prediction without inventing an animal profile.
+
+        The prediction contract owns validation. External research subjects need
+        not be inserted into the registered-device ``animals`` table.
+        """
+        from ...domain.intelligence import BehaviorPrediction, PredictionTimeBasis
+
+        if not isinstance(prediction, BehaviorPrediction):
+            raise TypeError("prediction must be a BehaviorPrediction")
+        values = {
+            "prediction_id": prediction.prediction_id,
+            "animal_id": prediction.animal_id,
+            "tag_id": prediction.tag_id,
+            "window_start_s": float(prediction.window_start_s),
+            "window_end_s": float(prediction.window_end_s),
+            "created_at_s": float(prediction.created_at_s),
+            "behavior": prediction.behavior,
+            "confidence": None if prediction.confidence is None else float(prediction.confidence),
+            "model_score": None if prediction.model_score is None else float(prediction.model_score),
+            "model_version": prediction.model_version,
+            "model_sha256": prediction.model_sha256,
+            "feature_version": prediction.feature_version,
+            "evidence_status": prediction.evidence_status.value,
+            "source_ref": prediction.source_ref,
+            "input_sha256": prediction.input_sha256,
+            "time_basis": prediction.time_basis.value,
+        }
+        columns = tuple(values)
+        with self._lock:
+            try:
+                self.connection.execute("BEGIN IMMEDIATE")
+                existing = self.connection.execute(
+                    "SELECT * FROM behavior_predictions WHERE prediction_id=?",
+                    (prediction.prediction_id,),
+                ).fetchone()
+                if existing is not None:
+                    if any(existing[key] != value for key, value in values.items()):
+                        raise ValueError("prediction_id already exists with different prediction data")
+                    self.connection.commit()
+                    return False
+                marks = ",".join("?" for _ in columns)
+                self.connection.execute(
+                    f"INSERT INTO behavior_predictions({','.join(columns)}) VALUES({marks})",
+                    tuple(values[name] for name in columns),
+                )
+                self.connection.commit()
+                return True
+            except Exception:
+                self.connection.rollback()
+                raise
+
+    def list_behavior_predictions(self, animal_id: str, *, limit: int = 100):
+        """List predictions by animal and source clock, without UTC conversion."""
+        from ...domain.contracts import EvidenceStatus
+        from ...domain.intelligence import BehaviorPrediction, PredictionTimeBasis
+
+        if type(limit) is not int or not 1 <= limit <= 10000:
+            raise ValueError("limit must be an integer in [1, 10000]")
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT * FROM behavior_predictions WHERE animal_id=? "
+                "ORDER BY window_start_s,prediction_id LIMIT ?", (animal_id, limit),
+            ).fetchall()
+        return [BehaviorPrediction(
+            animal_id=row["animal_id"], tag_id=row["tag_id"],
+            window_start_s=row["window_start_s"], window_end_s=row["window_end_s"],
+            created_at_s=row["created_at_s"], behavior=row["behavior"],
+            confidence=row["confidence"], model_score=row["model_score"],
+            model_version=row["model_version"],
+            model_sha256=row["model_sha256"], feature_version=row["feature_version"],
+            evidence_status=EvidenceStatus(row["evidence_status"]),
+            source_ref=row["source_ref"], input_sha256=row["input_sha256"],
+            prediction_id=row["prediction_id"],
+            time_basis=PredictionTimeBasis(row["time_basis"]),
+        ) for row in rows]
+
+    def get_behavior_prediction(self, prediction_id: str):
+        """Fetch one prediction so deterministic replays can reuse its creation time."""
+        from ...domain.contracts import EvidenceStatus
+        from ...domain.intelligence import BehaviorPrediction, PredictionTimeBasis
+
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT * FROM behavior_predictions WHERE prediction_id=?", (prediction_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        return BehaviorPrediction(
+            animal_id=row["animal_id"], tag_id=row["tag_id"],
+            window_start_s=row["window_start_s"], window_end_s=row["window_end_s"],
+            created_at_s=row["created_at_s"], behavior=row["behavior"],
+            confidence=row["confidence"], model_score=row["model_score"],
+            model_version=row["model_version"], model_sha256=row["model_sha256"],
+            feature_version=row["feature_version"],
+            evidence_status=EvidenceStatus(row["evidence_status"]),
+            source_ref=row["source_ref"], input_sha256=row["input_sha256"],
+            prediction_id=row["prediction_id"],
+            time_basis=PredictionTimeBasis(row["time_basis"]),
+        )
 
 
 def _valid_behavior_time(value: Any) -> bool:
