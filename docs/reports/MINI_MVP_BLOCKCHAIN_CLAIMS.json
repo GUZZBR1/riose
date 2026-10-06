@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "claims": [
+    {"claim":"Existing Event V1 identity and event hash semantics remain unchanged.","evidence_status":"TESTED_SOFTWARE","evidence":"Baseline and full suite pass, including existing event golden tests."},
+    {"claim":"Commitment V1 output is deterministic for its canonical input.","evidence_status":"TESTED_SOFTWARE","evidence":"Golden commitment vector and serialization tests."},
+    {"claim":"Public envelope excludes direct animal/event identity fields.","evidence_status":"TESTED_SOFTWARE","evidence":"Envelope allowlist and privacy tests."},
+    {"claim":"Publication intent and local event insertion can commit atomically.","evidence_status":"TESTED_SOFTWARE","evidence":"SQLite atomicity tests against existing Store connection."},
+    {"claim":"A send RPC response is not represented as chain confirmation.","evidence_status":"TESTED_SOFTWARE","evidence":"State transitions and mocked RPC lifecycle tests."},
+    {"claim":"Mocked receipts cannot establish real chain verification.","evidence_status":"MOCKED","evidence":"Evidence label propagation tests ensure MOCKED does not assert chain facts."},
+    {"claim":"A funded devnet transaction was submitted and confirmed.","evidence_status":"UNVERIFIED","evidence":"No faucet signature was obtained; no transaction was submitted."},
+    {"claim":"The live remote main still equals the approved checkpoint.","evidence_status":"UNVERIFIED","evidence":"Live fetch was blocked by DNS; cached fork/main ancestry equals checkpoint."},
+    {"claim":"Publication persistence is safe across multiple processes.","evidence_status":"UNVERIFIED","evidence":"Out of scope; current validation covers existing single-process Store lock/transaction boundary."},
+    {"claim":"A public commitment proves animal facts, authorship, or field truth.","evidence_status":"NOT_CLAIMED","evidence":"Blockchain anchoring proves none of these properties."}
+  ]
+}
