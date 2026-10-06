@@ -1,0 +1,255 @@
+{
+  "classification": "SIMULATED_SYNTHETIC_REFERENCE_NOT_FIELD_MEASUREMENT",
+  "experiment_id": "rf-los-excluded-smoke",
+  "environment": "FARM",
+  "backend": "sionna-rt",
+  "status": "PASS",
+  "frequency_hz": 915000000,
+  "bandwidth_hz": 125000,
+  "technology": null,
+  "seed": 20261003,
+  "timestamps_s": [
+    0.0,
+    1.0,
+    2.0
+  ],
+  "metrics": {
+    "observations": 12,
+    "snapshot_count": 3,
+    "status_counts": {
+      "LOS": 0,
+      "NLOS": 6,
+      "NO_PATH": 6
+    },
+    "geometric_nlos_count": 0,
+    "configuration_forced_nlos_count": 6,
+    "status_by_timestamp": [
+      {
+        "timestamp_s": 0.0,
+        "status_counts": {
+          "LOS": 0,
+          "NLOS": 2,
+          "NO_PATH": 2
+        },
+        "geometric_nlos_count": 0,
+        "configuration_forced_nlos_count": 2,
+        "path_count": 2,
+        "valid_received_power_count": 2,
+        "dominant_path_delay_s": {
+          "count": 2,
+          "min": 6.869060484859801e-07,
+          "median": 1.6553371722238808e-06,
+          "max": 2.6237682959617814e-06
+        },
+        "received_power_dbm": {
+          "min": -77.99651739671278,
+          "median": -71.10401951709743,
+          "max": -64.21152163748208,
+          "mean": -71.10401951709743,
+          "stdev": 9.747463979979825
+        },
+        "execution_seconds": 1.7327906889995575,
+        "cache": "miss"
+      },
+      {
+        "timestamp_s": 1.0,
+        "status_counts": {
+          "LOS": 0,
+          "NLOS": 2,
+          "NO_PATH": 2
+        },
+        "geometric_nlos_count": 0,
+        "configuration_forced_nlos_count": 2,
+        "path_count": 2,
+        "valid_received_power_count": 2,
+        "dominant_path_delay_s": {
+          "count": 2,
+          "min": 6.899858817632776e-07,
+          "median": 1.656265112615074e-06,
+          "max": 2.6225443434668705e-06
+        },
+        "received_power_dbm": {
+          "min": -77.99480667570931,
+          "median": -71.1207733246296,
+          "max": -64.24673997354986,
+          "mean": -71.1207733246296,
+          "stdev": 9.72135119330192
+        },
+        "execution_seconds": 0.07663229999980103,
+        "cache": "hit"
+      },
+      {
+        "timestamp_s": 2.0,
+        "status_counts": {
+          "LOS": 0,
+          "NLOS": 2,
+          "NO_PATH": 2
+        },
+        "geometric_nlos_count": 0,
+        "configuration_forced_nlos_count": 2,
+        "path_count": 2,
+        "valid_received_power_count": 2,
+        "dominant_path_delay_s": {
+          "count": 2,
+          "min": 6.930721383469063e-07,
+          "median": 1.6571988794567005e-06,
+          "max": 2.6213256205664948e-06
+        },
+        "received_power_dbm": {
+          "min": -77.99310734933687,
+          "median": -71.13748687437564,
+          "max": -64.28186639941443,
+          "mean": -71.13748687437564,
+          "stdev": 9.695311454172838
+        },
+        "execution_seconds": 0.07943609899939474,
+        "cache": "hit"
+      }
+    ],
+    "state_transitions": [],
+    "finite_received_power_count": 6,
+    "received_power_dbm": {
+      "count": 6,
+      "min": -77.99651739671278,
+      "median": -71.13748687437564,
+      "max": -64.21152163748208,
+      "mean": -71.12075990536755,
+      "stdev": 7.530178049986272
+    },
+    "finite_power_deltas_db": [
+      {
+        "receiver_id": "rx-GW-1",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 0.0,
+        "to_timestamp_s": 1.0,
+        "delta_db": -0.03521833606778557
+      },
+      {
+        "receiver_id": "rx-GW-1",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 1.0,
+        "to_timestamp_s": 2.0,
+        "delta_db": -0.035126425864561384
+      },
+      {
+        "receiver_id": "rx-GW-4",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 0.0,
+        "to_timestamp_s": 1.0,
+        "delta_db": 0.0017107210034623677
+      },
+      {
+        "receiver_id": "rx-GW-4",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 1.0,
+        "to_timestamp_s": 2.0,
+        "delta_db": 0.001699326372445853
+      }
+    ],
+    "dominant_path_delay_deltas_s": [
+      {
+        "receiver_id": "rx-GW-1",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 0.0,
+        "to_timestamp_s": 1.0,
+        "delta_s": 3.079833277297439e-09
+      },
+      {
+        "receiver_id": "rx-GW-1",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 1.0,
+        "to_timestamp_s": 2.0,
+        "delta_s": 3.0862565836287104e-09
+      },
+      {
+        "receiver_id": "rx-GW-4",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 0.0,
+        "to_timestamp_s": 1.0,
+        "delta_s": -1.2239524949109182e-09
+      },
+      {
+        "receiver_id": "rx-GW-4",
+        "transmitter_id": "tx-001",
+        "from_timestamp_s": 1.0,
+        "to_timestamp_s": 2.0,
+        "delta_s": -1.2187229003757238e-09
+      }
+    ],
+    "path_count": 6,
+    "same_geometry_reproducibility": {
+      "comparison_count": 0,
+      "matching_count": 0,
+      "mismatching_count": 0,
+      "tolerance": {
+        "relative": 1e-09,
+        "absolute": 1e-15,
+        "note": "numeric outputs compared for repeated geometry within one run"
+      },
+      "comparisons": []
+    },
+    "transmitter_count": 1,
+    "receiver_count": 4
+  },
+  "figures": [
+    "plots/farm_generic_received_power.svg",
+    "plots/farm_generic_received_power.png",
+    "plots/farm_generic_link_state.svg",
+    "plots/farm_generic_link_state.png",
+    "plots/farm_generic_path_count.svg",
+    "plots/farm_generic_path_count.png",
+    "plots/farm_generic_path_delay_power.svg",
+    "plots/farm_generic_path_delay_power.png",
+    "plots/farm_generic_trajectory_xy.svg",
+    "plots/farm_generic_trajectory_xy.png"
+  ],
+  "rf_configuration": {
+    "tx_power_dbm": 14.0,
+    "static_material_itu": {},
+    "static_custom_materials": {
+      "farm-terrain": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      },
+      "farm-obstacles": {
+        "relative_permittivity": 15.0,
+        "conductivity_s_m": 0.035
+      }
+    }
+  },
+  "antenna_assumptions": {
+    "classification": "IDEALIZED_SIMULATION_ANTENNA_NOT_PHYSICAL_HARDWARE",
+    "tx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization",
+    "rx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization",
+    "gain_db": null,
+    "orientation": "backend default",
+    "frequency_dependence": "idealized pattern held fixed; not a physical antenna model"
+  },
+  "performance": {
+    "snapshot_seconds": [
+      1.7327906889995575,
+      0.07663229999980103,
+      0.07943609899939474
+    ],
+    "mean_snapshot_seconds": 0.6296196959995844,
+    "wall_seconds": 4.434407372000351,
+    "result_bytes": 811806,
+    "peak_process_rss_bytes": 379785216,
+    "cache_hits": 2,
+    "cache_misses": 1
+  },
+  "provenance": {
+    "commit": "ba2bdabf003722aae8292580e048f7092d0356d6",
+    "branch": "main",
+    "working_tree_dirty": true,
+    "classification": "SIMULATION_NOT_FIELD_MEASUREMENT",
+    "config_sha256": "5ccc812e794affff77ea7568e5514d301074179bac809e4e6a26df4f9f8e0334",
+    "experiment_spec_sha256": "30ef4d2df8c3dea9c3ec8fa12859046ed1e45365104e2d646b92605d52fc4b4f"
+  },
+  "limitations": [
+    "no georeferenced survey or real Brazilian property supplied",
+    "terrain and asset positions are synthetic, deterministic approximations",
+    "vegetation and fences are not raytraced; soil and building RF parameters require field calibration",
+    "current 2D TDoA solver assumes one configured source height; it does not use local terrain elevation as estimator input"
+  ]
+}

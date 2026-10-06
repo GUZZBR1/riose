@@ -1,0 +1,13 @@
+experiment_id: farm-rf-collision-v1
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/c2b6a148891345adb2f90f750ed2d595/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/c2b6a148891345adb2f90f750ed2d595/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/c2b6a148891345adb2f90f750ed2d595/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261003

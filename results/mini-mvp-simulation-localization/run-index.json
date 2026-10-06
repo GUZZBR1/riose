@@ -1,0 +1,784 @@
+{
+  "schema_version": "riose.simulation-localization.run-index/v1",
+  "classification": "SIMULATED",
+  "riose_campaign_code_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+  "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "runs": [
+    {
+      "run_id": "595d686592b8401fbcc63c005beb7e73",
+      "campaign_id": "farm-rf-smoke-v1",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "2de954646f483c0ae9f7d267ea64470905b84142238ed8f8a02cf39bb01c4548",
+      "result_sha256": "1e46880e7e185796508fa9da29207641900ec70c8cc7781f23190a23dcb4d0c1",
+      "manifest_sha256": "1fd13003bc3e2a5782effd050bcb1c5de3198a575b1dc845cc3ceeaf6eac6591",
+      "raw_sionna_sha256": "ed1a3e6e2e4a80d283d1f0b99e4befc0d6c6784ce767672d3f2de9bdaf121d90",
+      "runtime_s": 7.285862179000105,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 4349.931693883372,
+        "converged": 1,
+        "convergence_rate_among_eligible": 0.5,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 1,
+        "gateway_count": 4,
+        "median_error_m": 4349.931693883372,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 4349.931693883372,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 1,
+          "REJECTED": 1
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/595d686592b8401fbcc63c005beb7e73"
+    },
+    {
+      "run_id": "c2b6a148891345adb2f90f750ed2d595",
+      "campaign_id": "farm-rf-collision-v1",
+      "scenario_id": "synthetic-overlapping-lora-uplinks",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "9b14a6c203e073ce075845651e63cca750e045e73af88b49f70aebd819c05d99",
+      "result_sha256": "478bff2cd643199f1e7f764c327ea15c3b781f0f094ed94f1cdaa7d167107f7c",
+      "manifest_sha256": "9e504633e49dc1ec121a19c2d24769435bb5db739b724c25979f1c5da4bfc468",
+      "raw_sionna_sha256": "8d4a490b0612a174cb166e0a2eedd6871b740b150722e9cb17748c22ec845a88",
+      "runtime_s": 5.049428384000748,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 4,
+        "delivered_packets": 0,
+        "packet_delivery_ratio": 0.0,
+        "collisions": null,
+        "network_drop_events": 12,
+        "no_path_events": 4,
+        "not_transmitted_events": 8,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 0.0,
+        "requested_packets": 6,
+        "gateways": {
+          "GW-1": {
+            "attempted": 4,
+            "interference_drops": 4,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-2": {
+            "attempted": 4,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 4,
+            "interference_drops": 4,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-4": {
+            "attempted": 4,
+            "interference_drops": 4,
+            "pdr": 0.0,
+            "received": 0
+          }
+        },
+        "interference_events": 12,
+        "received_gateway_events": 0,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 4,
+        "conditional_rmse_m": null,
+        "converged": 0,
+        "convergence_rate_among_eligible": null,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 0,
+        "failed": 4,
+        "gateway_count": 4,
+        "median_error_m": null,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": null,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 4,
+          "REJECTED": 0
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/c2b6a148891345adb2f90f750ed2d595"
+    },
+    {
+      "run_id": "1d3100db361c4ba18d0da9403d7da20e",
+      "campaign_id": "farm-rf-localization-failure-v1",
+      "scenario_id": "synthetic-detector-threshold-no-timestamps",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "a9c98f634721674ec4eefef7764afcaf05162587a54f0f635a25844988e4e3f9",
+      "result_sha256": "83288f34df94c8cf6fe0ea986c77cdd9da0afa84d5dde68237a58268ccdd3434",
+      "manifest_sha256": "43aeb045c8a34552a21d5148b1c3b149e99b0cd14954ad0e09f24e761d067f80",
+      "raw_sionna_sha256": "a6e27d0f669956506d22216ceb40a91264fc240797b9f7767a990d95457e8afb",
+      "runtime_s": 5.46829032200003,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": null,
+        "converged": 0,
+        "convergence_rate_among_eligible": null,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 0,
+        "failed": 2,
+        "gateway_count": 4,
+        "median_error_m": null,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": null,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 2,
+          "REJECTED": 0
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/1d3100db361c4ba18d0da9403d7da20e"
+    },
+    {
+      "run_id": "15407aa1c53d41d2a5194eabb62f2325",
+      "campaign_id": "farm-gateway-outage-gw1",
+      "scenario_id": "single-gateway-unavailable",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "2d5d47e093ae0c127701887bccbf35faddca79b6ff0c875d0431b5a48327a70c",
+      "result_sha256": "7ecab58796835963ab2d0324a5cc2a3bb466d7d4e3d3fdd19ba5832968e339a8",
+      "manifest_sha256": "3a2c0b5c58b16a60fc38d9abbf0f5a06c319d27804825a5bf87c4131e6d88541",
+      "raw_sionna_sha256": "7041381a6a580349150cda786795a9db93419718c88c159d3425d8fdc825c613",
+      "runtime_s": 6.924357283000063,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 3,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 4,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": null,
+        "converged": 0,
+        "convergence_rate_among_eligible": null,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 0,
+        "failed": 2,
+        "gateway_count": 3,
+        "median_error_m": null,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": null,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 2,
+          "REJECTED": 0
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/15407aa1c53d41d2a5194eabb62f2325"
+    },
+    {
+      "run_id": "0875245da7b84e9fb7135f7f18aec082",
+      "campaign_id": "network-scale-20-tags",
+      "scenario_id": "synthetic-20-tag-one-epoch",
+      "seed": 20261120,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "bb4e5c9318ed33f359526c83440a9d6efe83a134f2e6e7801d27d3dad938f420",
+      "result_sha256": "1272a906882bf947ce559245934821072e67fa201cf318ec3428d1a72f58f432",
+      "manifest_sha256": "9b512bfcaec83d63150f57db8a61ec5f6807b8d8988e2eb0698cdf3d7fd76df9",
+      "raw_sionna_sha256": "dfaf324c62928adbb38b219ac3e32234e5356df0352a723f0e56eb529444de8f",
+      "runtime_s": 14.374080861000039,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 20,
+        "delivered_packets": 17,
+        "packet_delivery_ratio": 0.85,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 28,
+        "not_transmitted_events": 0,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 0.85,
+        "requested_packets": 20,
+        "gateways": {
+          "GW-1": {
+            "attempted": 20,
+            "interference_drops": 0,
+            "pdr": 0.4,
+            "received": 8
+          },
+          "GW-2": {
+            "attempted": 20,
+            "interference_drops": 0,
+            "pdr": 0.85,
+            "received": 17
+          },
+          "GW-3": {
+            "attempted": 20,
+            "interference_drops": 0,
+            "pdr": 0.85,
+            "received": 17
+          },
+          "GW-4": {
+            "attempted": 20,
+            "interference_drops": 0,
+            "pdr": 0.5,
+            "received": 10
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 52,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 20,
+        "conditional_rmse_m": 193.73812664063652,
+        "converged": 13,
+        "convergence_rate_among_eligible": 1.0,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 13,
+        "failed": 7,
+        "gateway_count": 4,
+        "median_error_m": 118.18960072841904,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 228.87127506743474,
+        "quality_counts": {
+          "ACCEPTED": 13,
+          "NOT_EVALUATED": 7,
+          "REJECTED": 0
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/0875245da7b84e9fb7135f7f18aec082"
+    },
+    {
+      "run_id": "7dcd272058f04537a42eb5a920a18e57",
+      "campaign_id": "monte-carlo-20261011",
+      "scenario_id": "fixed-smoke-multiseed",
+      "seed": 20261011,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "ca6dca5fc63d83e8ed8173f6c98884b0c8bcbc72949050b99bf573f48c0de5af",
+      "result_sha256": "a46f192f92c3941d26bb56e735c510e31be946bb237e32133ceafe02f9b1411f",
+      "manifest_sha256": "6e35df1a32341290f1d3e9982c263df9c58fc513002222f5d3636c966bfb0bb1",
+      "raw_sionna_sha256": "95a48dbc98eb96a66fd53e857076b3d262d8a528456dd8e8fd1e111a94e09659",
+      "runtime_s": 5.663485000999572,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 1319.4937496072882,
+        "converged": 2,
+        "convergence_rate_among_eligible": 1.0,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 0,
+        "gateway_count": 4,
+        "median_error_m": 1268.6418926588797,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 1631.4248903911282,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 0,
+          "REJECTED": 2
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/7dcd272058f04537a42eb5a920a18e57"
+    },
+    {
+      "run_id": "23bcdbee1705499ebaaf63f5df38846e",
+      "campaign_id": "monte-carlo-20261012",
+      "scenario_id": "fixed-smoke-multiseed",
+      "seed": 20261012,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "8e0afd3d8b885f6e74353af6bfee7c89c4f763a89289f9df8c5cf3cd9d75d7f1",
+      "result_sha256": "c2c87b00ee0cac325131d55b0c95dc2ce4aa116e27478d7d94ac20981080d266",
+      "manifest_sha256": "06c906f389008ea409571da635b8f11a8ffc1f7a36fa0dd4a13ebe7839ca0305",
+      "raw_sionna_sha256": "b9021c9f1eb31ac034aea3e6b6f709db6077814637d0035b0858c9e6fb4fe950",
+      "runtime_s": 6.30891721900025,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 74.91844208998613,
+        "converged": 2,
+        "convergence_rate_among_eligible": 1.0,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 0,
+        "gateway_count": 4,
+        "median_error_m": 65.76724696827245,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 101.64819165211354,
+        "quality_counts": {
+          "ACCEPTED": 2,
+          "NOT_EVALUATED": 0,
+          "REJECTED": 0
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e"
+    },
+    {
+      "run_id": "25b5867c04a24f0d9d3ea89c11b04609",
+      "campaign_id": "monte-carlo-20261013",
+      "scenario_id": "fixed-smoke-multiseed",
+      "seed": 20261013,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "b921114bf99a379e74c981203ad2aa6418abd3a7f4e574265b238f6618655830",
+      "result_sha256": "900a3f7f54ece3087e7326db4f800b2f398f5a81767072fc64bf1935a5d89df9",
+      "manifest_sha256": "ce1c7758e7685c09a2926806aec9c40dfe9e64be8484d4d1c71b6cb828922b9d",
+      "raw_sionna_sha256": "51bf1d353ca5621c1462699c7ba489d432c78572ed2481ec3b5d59b18dd9387d",
+      "runtime_s": 5.561858449000283,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 5776.887079805114,
+        "converged": 1,
+        "convergence_rate_among_eligible": 0.5,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 1,
+        "gateway_count": 4,
+        "median_error_m": 5776.887079805114,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 5776.887079805114,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 1,
+          "REJECTED": 1
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/25b5867c04a24f0d9d3ea89c11b04609"
+    },
+    {
+      "run_id": "f2b663702f154053aab132939065c218",
+      "campaign_id": "analytic-smoke",
+      "scenario_id": "fixed-analytic-smoke",
+      "seed": 20261003,
+      "backend_requested": "analytic",
+      "backend_used": "frequencia.analytic",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "72ac8a7ccd9e2ea90a4002632f2753d57b5f6f9e522410f646edce6a08b7edeb",
+      "result_sha256": "2c55bd5e31bb091a97c31f4872fd9ce6fc6b99b586a44cb6b47b81f82e4f8b81",
+      "manifest_sha256": "8b97dbbe659b0bd2e6fb0f025d1e950b359ae060482ac6f34beada6f45bc66f7",
+      "raw_sionna_sha256": null,
+      "runtime_s": 0.6892956930005312,
+      "network": {
+        "enabled": null,
+        "backend": null,
+        "transmitted_packets": null,
+        "delivered_packets": null,
+        "packet_delivery_ratio": null,
+        "collisions": null,
+        "network_drop_events": null,
+        "no_path_events": null,
+        "not_transmitted_events": null,
+        "time_resolution_ps": null,
+        "resolution_is_hardware_precision": null
+      },
+      "localization": null,
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/f2b663702f154053aab132939065c218"
+    },
+    {
+      "run_id": "fed551b21fd648c7b1c2a3420a9c6953",
+      "campaign_id": "rf-los-excluded-smoke",
+      "scenario_id": "same-farm-geometry-los-excluded",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "c54bd711a23ece2df9b16c662ae330cbe1f9108ed87897e6150e51711b9055ba",
+      "result_sha256": "2c1a257f993b70b9f111f4e132c0a9aab5fa289da16d9cee52e8b13513297d00",
+      "manifest_sha256": "32397114790c35ac37d2b969eedb19e248934c45d0db510b8b3150bccc34da86",
+      "raw_sionna_sha256": "25b70f2a456047bbfb8a23145ada7907cd726df6ec73d8a0b7e445ccb45025d4",
+      "runtime_s": 4.835077169000215,
+      "network": {
+        "enabled": false,
+        "backend": null,
+        "transmitted_packets": null,
+        "delivered_packets": null,
+        "packet_delivery_ratio": null,
+        "collisions": null,
+        "network_drop_events": null,
+        "no_path_events": null,
+        "not_transmitted_events": null,
+        "time_resolution_ps": null,
+        "resolution_is_hardware_precision": null
+      },
+      "localization": null,
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/fed551b21fd648c7b1c2a3420a9c6953"
+    },
+    {
+      "run_id": "81df947f61c24c178ab920599c8f9d6c",
+      "campaign_id": "farm-rf-smoke-v1",
+      "scenario_id": "brazil-rural-reference-smoke",
+      "seed": 20261003,
+      "backend_requested": "sionna-rt",
+      "backend_used": "frequencia.sionna-rt",
+      "classification": "SIMULATED",
+      "riose_sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "frequencia_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "request_sha256": "2de954646f483c0ae9f7d267ea64470905b84142238ed8f8a02cf39bb01c4548",
+      "result_sha256": "c9cb523e4b9b99eaeef5e46872a0232010b03cb80c5687958b9106cea7627d79",
+      "manifest_sha256": "897ac2c3bc6f37a1794eccb8a945ebd154b25373a96c79f675a665d7ac973703",
+      "raw_sionna_sha256": "edbcc49f68278c7f7cf7c40fb47d7fa0825403218ced3033dccbea2bcad4e903",
+      "runtime_s": 5.705999337000321,
+      "network": {
+        "enabled": true,
+        "backend": "ns-3.48/lorawan-v0.3.7",
+        "transmitted_packets": 2,
+        "delivered_packets": 2,
+        "packet_delivery_ratio": 1.0,
+        "collisions": null,
+        "network_drop_events": 0,
+        "no_path_events": 2,
+        "not_transmitted_events": 4,
+        "time_resolution_ps": 1,
+        "resolution_is_hardware_precision": false,
+        "pdr": 1.0,
+        "requested_packets": 3,
+        "gateways": {
+          "GW-1": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-2": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 0.0,
+            "received": 0
+          },
+          "GW-3": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          },
+          "GW-4": {
+            "attempted": 2,
+            "interference_drops": 0,
+            "pdr": 1.0,
+            "received": 2
+          }
+        },
+        "interference_events": 0,
+        "received_gateway_events": 6,
+        "network_backend": "ns-3.48/lorawan-v0.3.7",
+        "pdr_semantics": "unique transmitted packets received by >=1 gateway at PHY / transmitted packets; application delivery unavailable"
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 4349.931693883372,
+        "converged": 1,
+        "convergence_rate_among_eligible": 0.5,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 1,
+        "gateway_count": 4,
+        "median_error_m": 4349.931693883372,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 4349.931693883372,
+        "quality_counts": {
+          "ACCEPTED": 0,
+          "NOT_EVALUATED": 1,
+          "REJECTED": 1
+        }
+      },
+      "evidence_workspace": "results/mini-mvp-simulation-localization/runs/81df947f61c24c178ab920599c8f9d6c"
+    }
+  ]
+}
