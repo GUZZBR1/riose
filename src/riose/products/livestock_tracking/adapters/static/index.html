@@ -7,7 +7,7 @@
   <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-5">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-6">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -30,19 +30,19 @@
       <div class="animal-list" id="animal-list" role="listbox" aria-label="Animal records">
         <button class="animal-row is-selected" type="button" role="option" aria-selected="true" tabindex="0" data-animal-index="0">
           <img class="animal-portrait" src="/assets/demo/animal-0.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 0</span><span class="animal-tag">TAG-0000</span></span>
+          <span class="animal-copy"><span class="animal-name">Animal 0</span></span>
         </button>
         <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="1">
           <img class="animal-portrait" src="/assets/demo/animal-1.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 1</span><span class="animal-tag">TAG-0001</span></span>
+          <span class="animal-copy"><span class="animal-name">Animal 1</span></span>
         </button>
         <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="2">
           <img class="animal-portrait" src="/assets/demo/animal-2.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 2</span><span class="animal-tag">TAG-0002</span></span>
+          <span class="animal-copy"><span class="animal-name">Animal 2</span></span>
         </button>
         <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="3">
           <img class="animal-portrait" src="/assets/demo/animal-3.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 3</span><span class="animal-tag">TAG-0003</span></span>
+          <span class="animal-copy"><span class="animal-name">Animal 3</span></span>
         </button>
       </div>
     </section>
@@ -50,44 +50,16 @@
     <section class="demo-screen detail-screen" id="record-screen" aria-labelledby="record-title" hidden>
       <button class="back-button" id="back-to-herd" type="button">Back to records</button>
       <div class="detail-heading">
-        <div>
-          <p class="section-label" id="record-tag-id">TAG-0000</p>
-          <h1 id="record-title" tabindex="-1">Animal 0</h1>
-        </div>
+        <h1 id="record-title" tabindex="-1">Animal 0</h1>
       </div>
       <div class="record-layout">
         <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Portrait of Animal 0" width="380" height="380">
         <div class="record-content">
-          <section class="health-summary" aria-labelledby="health-title">
-            <div class="section-heading"><h2 id="health-title">Health record</h2><span>Latest entries</span></div>
-            <div class="health-cards">
-              <article class="health-card">
-                <span class="health-label">Weight</span>
-                <strong id="profile-weight">428 kg</strong>
-                <span id="profile-weight-date">24 Sep 2026</span>
-              </article>
-              <article class="health-card">
-                <span class="health-label">Vaccinations</span>
-                <strong id="profile-vaccinations">03 records</strong>
-                <span id="profile-vaccination-date">14 Aug 2026</span>
-              </article>
-              <article class="health-card">
-                <span class="health-label">Health events</span>
-                <strong id="profile-health-events">02 records</strong>
-                <span id="profile-health-date">10 Mar 2026</span>
-              </article>
-            </div>
+          <section class="animal-journey" aria-labelledby="journey-title">
+            <h2 id="journey-title">A day in the pasture</h2>
+            <ol class="journey-list" id="journey-list" aria-live="polite"></ol>
           </section>
-
-          <div class="event-history">
-            <h2>Record history</h2>
-            <div class="event-entry">
-              <span class="event-marker" aria-hidden="true"></span>
-              <div><strong id="event-name">Animal identity added</strong><p id="event-time">Waiting for the local record</p></div>
-            </div>
-          </div>
           <div class="record-verification is-pending" id="record-verification" role="status" aria-live="polite">Checking record</div>
-          <dl class="identity-fields"><div><dt>Animal ID</dt><dd id="record-animal-id">demo-animal-0</dd></div></dl>
           <p class="quiet-status api-state" id="api-state" role="status" aria-live="polite" hidden></p>
         </div>
       </div>
@@ -105,7 +77,7 @@
           <p class="solana-lede">Create a privacy-preserving animal asset on Devnet. A wallet is only needed if you choose to create one.</p>
         </div>
         <div class="asset-sheet">
-          <div class="asset-identity"><span>ANIMAL</span><strong id="asset-animal-name">Animal 0</strong><small id="asset-animal-id">—</small></div>
+          <div class="asset-identity"><span>ANIMAL</span><strong id="asset-animal-name">Animal 0</strong></div>
           <div class="asset-network"><span class="network-dot" aria-hidden="true"></span><span>Solana Devnet</span></div>
           <button class="primary-button" id="asset-action" type="button">Check asset status</button>
           <p class="quiet-status" id="asset-state" role="status" aria-live="polite">No asset created. Wallet connection is optional.</p>
@@ -119,6 +91,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-5"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-6"></script>
 </body>
 </html>

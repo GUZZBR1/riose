@@ -1,9 +1,37 @@
 const $ = (id) => document.getElementById(id);
 const animals = [
-  { index: 0, animal_id: 'demo-animal-0', hardware_id: 'demo-tag-0000', name: 'Animal 0', image: '/assets/demo/animal-0.webp', weight: '428 kg', weightDate: '24 Sep 2026', vaccinations: '03 records', vaccinationDate: '14 Aug 2026', healthEvents: '02 records', healthDate: '10 Mar 2026' },
-  { index: 1, animal_id: 'demo-animal-1', hardware_id: 'demo-tag-0001', name: 'Animal 1', image: '/assets/demo/animal-1.webp', weight: '391 kg', weightDate: '22 Sep 2026', vaccinations: '02 records', vaccinationDate: '02 Jul 2026', healthEvents: '01 record', healthDate: '18 Feb 2026' },
-  { index: 2, animal_id: 'demo-animal-2', hardware_id: 'demo-tag-0002', name: 'Animal 2', image: '/assets/demo/animal-2.webp', weight: '446 kg', weightDate: '20 Sep 2026', vaccinations: '03 records', vaccinationDate: '09 Jun 2026', healthEvents: '02 records', healthDate: '03 Jan 2026' },
-  { index: 3, animal_id: 'demo-animal-3', hardware_id: 'demo-tag-0003', name: 'Animal 3', image: '/assets/demo/animal-3.webp', weight: '407 kg', weightDate: '19 Sep 2026', vaccinations: '02 records', vaccinationDate: '21 May 2026', healthEvents: '01 record', healthDate: '12 Dec 2025' },
+  {
+    index: 0, animal_id: 'demo-animal-0', hardware_id: 'demo-tag-0000', name: 'Animal 0', image: '/assets/demo/animal-0.webp',
+    journey: [
+      { moment: 'Morning', story: 'Leaves the resting area and begins grazing in the north pasture.' },
+      { moment: 'Midday', story: 'Walks to the water point, pauses, then returns to the herd.' },
+      { moment: 'Evening', story: 'Moves with the group toward the sheltered resting area.' },
+    ],
+  },
+  {
+    index: 1, animal_id: 'demo-animal-1', hardware_id: 'demo-tag-0001', name: 'Animal 1', image: '/assets/demo/animal-1.webp',
+    journey: [
+      { moment: 'Morning', story: 'Starts along the eastern pasture, stopping to graze along the way.' },
+      { moment: 'Midday', story: 'Crosses toward the water point, then heads back to the center of the herd.' },
+      { moment: 'Evening', story: 'Stays close to the group as it returns to the resting area.' },
+    ],
+  },
+  {
+    index: 2, animal_id: 'demo-animal-2', hardware_id: 'demo-tag-0002', name: 'Animal 2', image: '/assets/demo/animal-2.webp',
+    journey: [
+      { moment: 'Morning', story: 'Moves from the shaded area into open pasture and joins a small group.' },
+      { moment: 'Midday', story: 'Visits the trough for water, then continues grazing nearby.' },
+      { moment: 'Evening', story: 'Rejoins the herd near the central shelter.' },
+    ],
+  },
+  {
+    index: 3, animal_id: 'demo-animal-3', hardware_id: 'demo-tag-0003', name: 'Animal 3', image: '/assets/demo/animal-3.webp',
+    journey: [
+      { moment: 'Morning', story: 'Starts near the shelter and heads toward the far side of the pasture.' },
+      { moment: 'Midday', story: 'Pauses to graze along the fence line, then follows the herd.' },
+      { moment: 'Evening', story: 'Returns with the group and settles near the overnight pen.' },
+    ],
+  },
 ];
 const state = { selected: animals[0], animal: null, asset: null, busy: false };
 const screens = ['herd-screen', 'record-screen', 'solana-screen'];
@@ -68,17 +96,20 @@ async function ensureAnimal(sample) {
   }
 }
 
-function eventDescription(eventType) {
-  const labels = {
-    ANIMAL_CREATED: 'Animal identity added',
-    SIMULATION_RUN_RECORDED: 'Simulation run recorded',
-    VACCINATION: 'Vaccination event recorded',
-    HEALTH_EVENT: 'Health event recorded',
-    WEIGHT_RECORDED: 'Weight event recorded',
-    TRANSFER: 'Transfer recorded',
-    OWNER_CHANGED: 'Ownership change recorded',
-  };
-  return labels[eventType] || `${String(eventType || 'EVENT').replaceAll('_', ' ').toLowerCase()} recorded`;
+function renderJourney(sample) {
+  const list = $('journey-list');
+  list.replaceChildren(...sample.journey.map(({ moment, story }) => {
+    const item = document.createElement('li');
+    item.className = 'journey-beat';
+    const label = document.createElement('span');
+    label.className = 'journey-moment';
+    label.textContent = moment;
+    const copy = document.createElement('p');
+    copy.className = 'journey-copy';
+    copy.textContent = story;
+    item.append(label, copy);
+    return item;
+  }));
 }
 
 function renderProfile(sample) {
@@ -86,18 +117,8 @@ function renderProfile(sample) {
   $('record-title').textContent = sample.name;
   $('record-portrait').src = sample.image;
   $('record-portrait').alt = `${sample.name} portrait`;
-  $('record-tag-id').textContent = sample.hardware_id;
-  $('profile-weight').textContent = sample.weight;
-  $('profile-weight-date').textContent = sample.weightDate;
-  $('profile-vaccinations').textContent = sample.vaccinations;
-  $('profile-vaccination-date').textContent = sample.vaccinationDate;
-  $('profile-health-events').textContent = sample.healthEvents;
-  $('profile-health-date').textContent = sample.healthDate;
-  $('record-animal-id').textContent = sample.animal_id;
+  renderJourney(sample);
   $('asset-animal-name').textContent = sample.name;
-  $('asset-animal-id').textContent = sample.animal_id;
-  $('event-name').textContent = 'Animal identity added';
-  $('event-time').textContent = 'Waiting for the local record';
   $('record-verification').textContent = 'Checking record…';
   $('record-verification').classList.remove('is-verified', 'is-error');
   $('record-verification').classList.add('is-pending');
@@ -107,16 +128,7 @@ function renderProfile(sample) {
 function renderAnimal(animal, sample) {
   state.animal = animal;
   $('continue-solana').disabled = false;
-  $('record-animal-id').textContent = animal.animal_id;
-  $('record-tag-id').textContent = animal.hardware_id;
-
-  const latestEvent = animal.events?.[0];
-  $('event-name').textContent = latestEvent ? eventDescription(latestEvent.event_type) : 'No events recorded';
-  $('event-time').textContent = latestEvent?.timestamp
-    ? new Date(latestEvent.timestamp).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-    : 'No local history is available for this record';
   $('asset-animal-name').textContent = sample.name;
-  $('asset-animal-id').textContent = animal.animal_id;
 }
 
 async function verifyRecord(animalId) {
@@ -129,7 +141,7 @@ async function verifyRecord(animalId) {
     if (verification.valid !== true || verification.evidence !== 'LOCAL_HASH_CHAIN') {
       throw new Error('The local event history did not verify.');
     }
-    status.textContent = 'History verified';
+    status.textContent = 'Record integrity verified';
     status.classList.remove('is-pending');
     status.classList.add('is-verified');
   } catch (error) {
