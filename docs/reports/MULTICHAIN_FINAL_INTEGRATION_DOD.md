@@ -71,7 +71,7 @@ only after final regressions demonstrate no incompatible changes.
 | F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Config tests and read-only checks if available | UNVERIFIED |
 | F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; npm findings classified below | PARTIAL: native Windows signer ACL policy is conditional; package-level advisory mapping not reproduced |
 | F12 | Historical Base/Arbitrum claims consistent; typo search reported without erasing history | Exact report-source inspection | PASS: suspected phrase not found in checked Arbitrum reports |
-| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 832 passed / 7 skipped excluding `test_evm_local.py`; 30 EVM registry/nonce tests passed | BLOCKED: Ganache not cached for local contract test; DNS unavailable |
+| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 832 passed / 7 skipped excluding `test_evm_local.py`; 30 EVM registry/nonce tests passed; detached clean checkout compiled successfully | PARTIAL: Ganache not cached for local contract test; DNS unavailable |
 | F14 | Independent red team and Factory Eval Harness after integration | Read-only independent review; explicit eval case/result below | PARTIAL: Factory case INCONCLUSIVE because required E2E/local contract evidence is missing |
 | F15 | Claims remain bounded; no public write without available safe signer/funding | Final report evidence ledger | UNVERIFIED |
 
@@ -84,7 +84,7 @@ only after final regressions demonstrate no incompatible changes.
 | C2 | Reconcile changes and integrate M4A/M4B commits | PASS; local recovery fix and Base fixture adaptation applied |
 | C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Mocked three-target E2E/failure matrix and exact-wire replay tests PASS; local-contract and finality-depth limits remain |
 | C4 | Toolchain advisory triage and independent red team | PARTIAL; red-team fixes landed; npm tree classified, exact advisory path map unavailable |
-| C5 | Full suite/build, clean checkout, Factory Eval Harness | PENDING; local EVM package unavailable and full candidate not independently clean-checked |
+| C5 | Full suite/build, clean checkout, Factory Eval Harness | PARTIAL; detached checkout and compileall passed; local EVM package unavailable; Factory case remains inconclusive |
 
 ## Factory Eval Harness case
 
