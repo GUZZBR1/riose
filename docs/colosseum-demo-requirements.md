@@ -19,11 +19,11 @@ inside Colosseum before submitting.
 
 ## RIOSE demo story
 
-The `/demo` path follows one animal through a short deterministic scenario:
+The `/demo` path opens on a client-side simulated farm. A short product walkthrough can:
 
-1. Start a reproducible simulation for the ear-tag identity.
-2. Inspect the 2D receiver layout and the receiver-derived position estimates.
-3. Record the run as a `SIMULATED` event and verify the local hash chain.
+1. See the paddocks, herd, paths and anchors immediately, with deterministic ambient movement.
+2. Switch between Overview, Signals, Coverage and Track, then select an animal for its compact status panel.
+3. Open its complete narrative and verify the local event history.
 4. Optionally connect a wallet and create the generic animal asset on Solana
    Devnet. Show a confirmed state only after reading and verifying the asset
    from Devnet.
@@ -34,10 +34,10 @@ identity or blockchain publication. Public asset metadata excludes animal,
 tag, owner, farm, location, health, telemetry, and event data.
 
 The product path should fit within three minutes. The `/` landing and
-`/manifesto` stay intact; the landing header links to `/demo`. The interface
-follows [`DESIGN.md`](../DESIGN.md): warm neutral background, Sora typography,
-restrained movement, and the existing RIOSE tag visualization. The demo uses a
-lightweight 2D view for the simulated receiver activity.
+`/manifesto` stay intact; the landing header links to `/demo`, and the interactive
+3D tag remains on the central landing page. The farm uses a deterministic local
+scene and clearly distinguishes estimated scene values from hash-verified local
+records. Simulated movement is not written into the API or database.
 
 ## Sources
 

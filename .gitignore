@@ -31,3 +31,4 @@ results/mvp3/profiling/*.summary.json
 *.sqlite3-shm
 
 *.tsbuildinfo
+farm-demo/.test-build/

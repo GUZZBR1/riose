@@ -19,12 +19,14 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     client = TestClient(app)
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="animal-list"' in page.text
+    assert 'id="farm-screen"' in page.text
+    assert 'id="farm-roster"' in page.text
+    assert 'id="record-title"' in page.text
     assert 'id="continue-solana"' in page.text
-    assert "Health record" in page.text
+    assert "A day in the pasture" in page.text
     assert "SAMPLE" not in page.text
-    assert "SIMULATED" not in page.text
-    assert "Herd</li>" not in page.text
+    assert "SIMULATED" in page.text
+    assert "ESTIMATED" in page.text
     assert "step-indicator" not in page.text
     assert "/assets/demo.js" in page.text
     anchors = [
@@ -247,8 +249,9 @@ def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions
     assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="animal-list"' in page.text
-    assert "Animal records" in page.text
+    assert 'id="farm-screen"' in page.text
+    assert 'id="farm-roster"' in page.text
+    assert "24" in page.text
     client.close()
 
 

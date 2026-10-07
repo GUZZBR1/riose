@@ -7,7 +7,7 @@
   <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-6">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-7">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -21,39 +21,59 @@
   </header>
 
   <main class="demo-page" id="demo-main">
-    <section class="demo-screen herd-screen is-entering" id="herd-screen" aria-labelledby="herd-title">
-      <div class="screen-heading">
-        <h1 id="herd-title">Animal records</h1>
-        <p>Choose a record to follow its journey.</p>
+    <section class="demo-screen farm-screen is-entering" id="farm-screen" aria-label="RIOSE farm monitoring demo">
+      <div class="farm-toolbar">
+        <div class="farm-overview">
+          <p class="farm-live-label"><span class="live-dot" aria-hidden="true"></span> Farm simulation</p>
+          <div class="farm-counts" aria-label="Farm scene counts">
+            <span><strong id="farm-animal-count">24</strong> animals</span>
+            <span><strong id="farm-anchor-count">4</strong> anchors</span>
+          </div>
+        </div>
+        <div class="farm-modes" role="group" aria-label="Farm visualization mode">
+          <button type="button" class="farm-mode is-active" data-farm-mode="overview" aria-pressed="true">Overview</button>
+          <button type="button" class="farm-mode" data-farm-mode="signals" aria-pressed="false">Signals</button>
+          <button type="button" class="farm-mode" data-farm-mode="coverage" aria-pressed="false">Coverage</button>
+          <button type="button" class="farm-mode" data-farm-mode="track" aria-pressed="false">Track</button>
+        </div>
       </div>
 
-      <div class="animal-list" id="animal-list" role="listbox" aria-label="Animal records">
-        <button class="animal-row is-selected" type="button" role="option" aria-selected="true" tabindex="0" data-animal-index="0">
-          <img class="animal-portrait" src="/assets/demo/animal-0.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 0</span></span>
-        </button>
-        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="1">
-          <img class="animal-portrait" src="/assets/demo/animal-1.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 1</span></span>
-        </button>
-        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="2">
-          <img class="animal-portrait" src="/assets/demo/animal-2.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 2</span></span>
-        </button>
-        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="3">
-          <img class="animal-portrait" src="/assets/demo/animal-3.webp" alt="" width="72" height="72">
-          <span class="animal-copy"><span class="animal-name">Animal 3</span></span>
-        </button>
+      <div class="farm-stage" id="farm-stage">
+        <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Top-down simulated farm. Select an animal from the herd list to inspect it." tabindex="0"></div>
+        <div class="farm-stage-meta"><span>SIMULATED</span><span id="farm-mode-caption">Herd overview</span></div>
+        <div class="farm-camera-controls" aria-label="Camera controls">
+          <button type="button" id="farm-zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" id="farm-zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" id="farm-reset-view" aria-label="Reset farm view">Reset</button>
+        </div>
+        <aside class="farm-animal-card" id="farm-animal-panel" aria-labelledby="selected-animal-name" hidden>
+          <button type="button" class="farm-card-close" id="close-animal-panel" aria-label="Close animal details">×</button>
+          <p class="farm-card-zone" id="selected-animal-zone">North pasture</p>
+          <h2 id="selected-animal-name">Animal 0</h2>
+          <div class="farm-animal-facts">
+            <div><span>Status</span><strong id="selected-animal-status">Grazing</strong></div>
+            <div><span>Estimated position</span><strong id="selected-animal-position">North pasture</strong></div>
+            <div><span>Signal</span><strong id="selected-animal-signal">Local estimate</strong></div>
+          </div>
+          <button type="button" class="farm-record-link" id="open-animal-record">Open animal record <span aria-hidden="true">↗</span></button>
+        </aside>
       </div>
+
+      <div class="farm-footer">
+        <button type="button" class="farm-roster-toggle" id="farm-roster-toggle" aria-expanded="false" aria-controls="farm-roster">Herd <span id="farm-roster-count">24</span></button>
+        <p class="farm-hint">Select an animal to inspect its estimated position</p>
+        <span class="farm-source-label">ESTIMATED · LOCAL SCENE</span>
+      </div>
+      <div class="farm-roster" id="farm-roster" role="listbox" aria-label="Select an animal" hidden></div>
     </section>
 
     <section class="demo-screen detail-screen" id="record-screen" aria-labelledby="record-title" hidden>
-      <button class="back-button" id="back-to-herd" type="button">Back to records</button>
+      <button class="back-button" id="back-to-herd" type="button">Back to farm</button>
       <div class="detail-heading">
         <h1 id="record-title" tabindex="-1">Animal 0</h1>
       </div>
       <div class="record-layout">
-        <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Portrait of Animal 0" width="380" height="380">
+        <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Animal 0, cattle portrait" width="380" height="380">
         <div class="record-content">
           <section class="animal-journey" aria-labelledby="journey-title">
             <h2 id="journey-title">A day in the pasture</h2>
@@ -91,6 +111,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-6"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-7"></script>
 </body>
 </html>

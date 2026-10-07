@@ -1,40 +1,68 @@
 const $ = (id) => document.getElementById(id);
-const animals = [
+const pastureStories = [
   {
-    index: 0, animal_id: 'demo-animal-0', hardware_id: 'demo-tag-0000', name: 'Animal 0', image: '/assets/demo/animal-0.webp',
-    journey: [
-      { moment: 'Morning', story: 'Leaves the resting area and begins grazing in the north pasture.' },
-      { moment: 'Midday', story: 'Walks to the water point, pauses, then returns to the herd.' },
-      { moment: 'Evening', story: 'Moves with the group toward the sheltered resting area.' },
-    ],
+    zone: 'West pasture',
+    edges: ['the orchard edge', 'the shaded fence', 'the open center', 'the western tree line', 'the lower gate', 'the grass clearing'],
+    middays: ['the west trough', 'the central water point', 'the shaded trough', 'the north water point', 'the pasture pond', 'the lower trough'],
+    evenings: ['the west shelter', 'the central barn', 'the shaded resting area', 'the western pen', 'the barn-side yard', 'the evening shelter'],
   },
   {
-    index: 1, animal_id: 'demo-animal-1', hardware_id: 'demo-tag-0001', name: 'Animal 1', image: '/assets/demo/animal-1.webp',
-    journey: [
-      { moment: 'Morning', story: 'Starts along the eastern pasture, stopping to graze along the way.' },
-      { moment: 'Midday', story: 'Crosses toward the water point, then heads back to the center of the herd.' },
-      { moment: 'Evening', story: 'Stays close to the group as it returns to the resting area.' },
-    ],
+    zone: 'East pasture',
+    edges: ['the eastern tree line', 'the sunlit fence', 'the open center', 'the north gate', 'the east clearing', 'the lower fence'],
+    middays: ['the east trough', 'the central water point', 'the shaded trough', 'the north water point', 'the pasture pond', 'the lower trough'],
+    evenings: ['the east shelter', 'the central barn', 'the shaded resting area', 'the eastern pen', 'the barn-side yard', 'the evening shelter'],
   },
   {
-    index: 2, animal_id: 'demo-animal-2', hardware_id: 'demo-tag-0002', name: 'Animal 2', image: '/assets/demo/animal-2.webp',
-    journey: [
-      { moment: 'Morning', story: 'Moves from the shaded area into open pasture and joins a small group.' },
-      { moment: 'Midday', story: 'Visits the trough for water, then continues grazing nearby.' },
-      { moment: 'Evening', story: 'Rejoins the herd near the central shelter.' },
-    ],
+    zone: 'South pasture',
+    edges: ['the southern tree line', 'the shaded fence', 'the open center', 'the west gate', 'the south clearing', 'the lower path'],
+    middays: ['the south trough', 'the central water point', 'the shaded trough', 'the west water point', 'the pasture pond', 'the lower trough'],
+    evenings: ['the south shelter', 'the central barn', 'the shaded resting area', 'the southern pen', 'the barn-side yard', 'the evening shelter'],
   },
   {
-    index: 3, animal_id: 'demo-animal-3', hardware_id: 'demo-tag-0003', name: 'Animal 3', image: '/assets/demo/animal-3.webp',
-    journey: [
-      { moment: 'Morning', story: 'Starts near the shelter and heads toward the far side of the pasture.' },
-      { moment: 'Midday', story: 'Pauses to graze along the fence line, then follows the herd.' },
-      { moment: 'Evening', story: 'Returns with the group and settles near the overnight pen.' },
-    ],
+    zone: 'Lower pasture',
+    edges: ['the lower tree line', 'the eastern fence', 'the open center', 'the south gate', 'the lower clearing', 'the central path'],
+    middays: ['the lower trough', 'the central water point', 'the shaded trough', 'the east water point', 'the pasture pond', 'the north trough'],
+    evenings: ['the lower shelter', 'the central barn', 'the shaded resting area', 'the eastern pen', 'the barn-side yard', 'the evening shelter'],
   },
 ];
-const state = { selected: animals[0], animal: null, asset: null, busy: false };
-const screens = ['herd-screen', 'record-screen', 'solana-screen'];
+
+function profileFor(index) {
+  const pasture = pastureStories[index % pastureStories.length];
+  const route = Math.floor(index / pastureStories.length) % pasture.edges.length;
+  const name = `Animal ${index}`;
+  return {
+    index,
+    animal_id: `demo-animal-${index}`,
+    hardware_id: `demo-tag-${String(index).padStart(4, '0')}`,
+    name,
+    image: `/assets/demo/animal-${index % 4}.webp`,
+    journey: [
+      { moment: 'Morning', story: `Starts near ${pasture.edges[route]}, then moves into the open pasture to graze.` },
+      { moment: 'Midday', story: `Walks to ${pasture.middays[route]}, pauses for water, then returns to the herd.` },
+      { moment: 'Evening', story: `Follows the group toward ${pasture.evenings[route]} as the day winds down.` },
+    ],
+  };
+}
+
+const state = {
+  selected: profileFor(0),
+  animal: null,
+  asset: null,
+  busy: false,
+  farm: null,
+  sceneAnimals: [],
+  selectedSceneAnimal: null,
+  rosterButtons: new Map(),
+};
+const screens = ['farm-screen', 'record-screen', 'solana-screen'];
+const modeCaptions = {
+  overview: 'Herd overview',
+  signals: 'Local signal estimate',
+  coverage: 'Estimated anchor coverage',
+  track: 'Select an animal to track',
+};
+const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point' };
+const signalLabels = { strong: 'Strong local estimate', moderate: 'Moderate local estimate', edge: 'Coverage edge' };
 
 async function requestJson(url, options) {
   const response = await fetch(url, { cache: 'no-store', ...options });
@@ -51,7 +79,7 @@ function setMessage(id, message, isError = false) {
   node.classList.toggle('is-error', isError);
 }
 
-function showScreen(screenId, { focusRecord = true } = {}) {
+function showScreen(screenId) {
   for (const id of screens) {
     const screen = $(id);
     screen.hidden = id !== screenId;
@@ -62,19 +90,120 @@ function showScreen(screenId, { focusRecord = true } = {}) {
     }
   }
   window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  const focusTarget = screenId === 'herd-screen'
-    ? document.querySelector(`[data-animal-index="${state.selected.index}"]`)
-    : $(`${screenId === 'record-screen' ? 'record-title' : 'solana-title'}`);
-  if (focusTarget && (screenId !== 'record-screen' || focusRecord)) requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
+  const focusTarget = screenId === 'farm-screen'
+    ? $('farm-roster-toggle')
+    : $(screenId === 'record-screen' ? 'record-title' : 'solana-title');
+  if (focusTarget) requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
 }
 
-function setSelectedRow(index) {
-  state.selected = animals[index];
-  for (const row of document.querySelectorAll('.animal-row')) {
-    const selected = Number(row.dataset.animalIndex) === index;
-    row.classList.toggle('is-selected', selected);
-    row.setAttribute('aria-selected', String(selected));
-    row.tabIndex = selected ? 0 : -1;
+function setMode(mode) {
+  state.farm?.setMode(mode);
+  document.querySelectorAll('[data-farm-mode]').forEach((button) => {
+    const active = button.dataset.farmMode === mode;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  $('farm-mode-caption').textContent = mode === 'track' && state.selectedSceneAnimal
+    ? `Tracking ${state.selectedSceneAnimal.label}`
+    : modeCaptions[mode];
+}
+
+function updateAnimalPanel(animal) {
+  state.selectedSceneAnimal = animal;
+  const panel = $('farm-animal-panel');
+  if (!animal) {
+    panel.hidden = true;
+    $('farm-mode-caption').textContent = modeCaptions.track;
+    return;
+  }
+  panel.hidden = false;
+  $('selected-animal-name').textContent = animal.label;
+  $('selected-animal-zone').textContent = 'RIOSE HERD';
+  $('selected-animal-status').textContent = statusLabels[animal.status] || 'Moving';
+  $('selected-animal-position').textContent = animal.zone;
+  $('selected-animal-signal').textContent = signalLabels[animal.signalLevel] || 'Local estimate';
+  if (document.querySelector('[data-farm-mode="track"]')?.getAttribute('aria-pressed') === 'true') {
+    $('farm-mode-caption').textContent = `Tracking ${animal.label}`;
+  }
+  for (const [id, button] of state.rosterButtons) {
+    button.setAttribute('aria-selected', String(id === animal.id));
+  }
+}
+
+function chooseAnimal(animal) {
+  if (!animal) return;
+  state.farm?.selectAnimal(animal.id);
+  updateAnimalPanel(animal);
+}
+
+function rosterKeydown(event, button) {
+  const buttons = [...$('farm-roster').querySelectorAll('button')];
+  const current = buttons.indexOf(button);
+  let next = current;
+  if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (current + 1) % buttons.length;
+  else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (current - 1 + buttons.length) % buttons.length;
+  else if (event.key === 'Home') next = 0;
+  else if (event.key === 'End') next = buttons.length - 1;
+  else if (event.key === 'Escape') {
+    $('farm-roster').hidden = true;
+    $('farm-roster-toggle').setAttribute('aria-expanded', 'false');
+    $('farm-roster-toggle').focus();
+    event.preventDefault();
+    return;
+  } else return;
+  event.preventDefault();
+  buttons[next]?.focus();
+}
+
+function renderRoster(animals) {
+  state.sceneAnimals = animals;
+  $('farm-animal-count').textContent = String(animals.length);
+  $('farm-roster-count').textContent = String(animals.length);
+  const roster = $('farm-roster');
+  for (const animal of animals) {
+    let button = state.rosterButtons.get(animal.id);
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.role = 'option';
+      button.setAttribute('aria-selected', 'false');
+      button.dataset.animalId = animal.id;
+      button.tabIndex = -1;
+      const name = document.createElement('span');
+      name.className = 'roster-animal-name';
+      name.textContent = animal.label;
+      const status = document.createElement('span');
+      status.className = 'roster-animal-status';
+      button.append(name, status);
+      button.addEventListener('click', () => chooseAnimal(state.sceneAnimals.find((item) => item.id === button.dataset.animalId)));
+      button.addEventListener('keydown', (event) => rosterKeydown(event, button));
+      roster.append(button);
+      state.rosterButtons.set(animal.id, button);
+    }
+    button.querySelector('.roster-animal-status').textContent = `${statusLabels[animal.status] || 'Moving'} · ${animal.zone}`;
+    button.setAttribute('aria-selected', String(state.selectedSceneAnimal?.id === animal.id));
+  }
+}
+
+async function initFarm() {
+  try {
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js');
+    const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
+    const animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100
+      ? requestedCount
+      : 24;
+    state.farm = mountFarmDemo($('farm-canvas'), {
+      animalCount,
+      onSelect: updateAnimalPanel,
+      onStates: renderRoster,
+    });
+    setMode('overview');
+  } catch (error) {
+    const fallback = document.createElement('p');
+    fallback.className = 'farm-load-error';
+    fallback.setAttribute('role', 'status');
+    fallback.textContent = 'The farm scene could not load. Refresh to try again.';
+    $('farm-stage').append(fallback);
   }
 }
 
@@ -116,7 +245,7 @@ function renderProfile(sample) {
   $('continue-solana').disabled = true;
   $('record-title').textContent = sample.name;
   $('record-portrait').src = sample.image;
-  $('record-portrait').alt = `${sample.name} portrait`;
+  $('record-portrait').alt = `${sample.name}, cattle portrait`;
   renderJourney(sample);
   $('asset-animal-name').textContent = sample.name;
   $('record-verification').textContent = 'Checking record…';
@@ -151,10 +280,13 @@ async function verifyRecord(animalId) {
   }
 }
 
-async function openAnimal(index) {
+async function openAnimalRecord() {
   if (state.busy) return;
-  setSelectedRow(index);
-  const sample = state.selected;
+  const sceneAnimal = state.selectedSceneAnimal;
+  if (!sceneAnimal) return;
+  const index = Number(sceneAnimal.id.slice('animal-'.length));
+  const sample = profileFor(index);
+  state.selected = sample;
   state.animal = null;
   state.asset = null;
   renderProfile(sample);
@@ -240,23 +372,25 @@ async function performAssetAction() {
   }
 }
 
-document.querySelectorAll('.animal-row').forEach((row) => {
-  row.addEventListener('click', () => void openAnimal(Number(row.dataset.animalIndex)));
-  row.addEventListener('keydown', (event) => {
-    const current = Number(row.dataset.animalIndex);
-    let next = current;
-    if (event.key === 'ArrowDown') next = (current + 1) % animals.length;
-    else if (event.key === 'ArrowUp') next = (current - 1 + animals.length) % animals.length;
-    else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = animals.length - 1;
-    else return;
-    event.preventDefault();
-    setSelectedRow(next);
-    document.querySelector(`[data-animal-index="${next}"]`).focus();
-  });
+document.querySelectorAll('[data-farm-mode]').forEach((button) => {
+  button.addEventListener('click', () => setMode(button.dataset.farmMode));
 });
-
-$('back-to-herd').addEventListener('click', () => showScreen('herd-screen'));
+$('farm-zoom-in').addEventListener('click', () => state.farm?.zoomBy(1.12));
+$('farm-zoom-out').addEventListener('click', () => state.farm?.zoomBy(0.89));
+$('farm-reset-view').addEventListener('click', () => {
+  state.farm?.resetView();
+  setMode('overview');
+});
+$('farm-roster-toggle').addEventListener('click', () => {
+  const roster = $('farm-roster');
+  const opening = roster.hidden;
+  roster.hidden = !opening;
+  $('farm-roster-toggle').setAttribute('aria-expanded', String(opening));
+  if (opening) roster.querySelector('button')?.focus();
+});
+$('close-animal-panel').addEventListener('click', () => state.farm?.selectAnimal(null));
+$('open-animal-record').addEventListener('click', () => void openAnimalRecord());
+$('back-to-herd').addEventListener('click', () => showScreen('farm-screen'));
 $('back-to-record').addEventListener('click', () => showScreen('record-screen'));
 $('continue-solana').addEventListener('click', () => {
   showScreen('solana-screen');
@@ -274,3 +408,5 @@ $('asset-action').addEventListener('click', () => {
 window.addEventListener('scroll', () => {
   $('demo-header').classList.toggle('is-scrolled', window.scrollY > 72);
 }, { passive: true });
+
+void initFarm();
