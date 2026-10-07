@@ -183,6 +183,64 @@ def test_evm_rpc_transport_unavailable_is_sanitized(monkeypatch):
     assert "private endpoint detail" not in str(error.value)
 
 
+@pytest.mark.parametrize("logs, malformed", [(None, True), ([{}], True), ([], False)])
+def test_reverted_receipt_requires_well_formed_empty_logs(prepared_target, logs, malformed):
+    _, _, request, adapter, _ = prepared_target
+    transaction_id = "0x" + "a" * 64
+    block_hash = "0x" + "b" * 64
+    data = "0x" + (keccak(text="register(bytes32)")[:4] + bytes.fromhex(request["commitment"])).hex()
+
+    class RevertReceiptRPC:
+        config = adapter.config
+
+        def ensure_expected_deployment(self):
+            return None
+
+        def rpc(self, method, _params):
+            if method == "eth_getTransactionReceipt":
+                return {
+                    "blockNumber": "0x1", "blockHash": block_hash, "status": "0x0",
+                    "transactionHash": transaction_id, "to": self.config.contract_address,
+                    "from": self.config.publisher_address, "logs": logs,
+                }
+            if method == "eth_blockNumber":
+                return "0x1"
+            if method == "eth_getBlockByNumber":
+                return {"hash": block_hash, "timestamp": "0x2"}
+            if method == "eth_getTransactionByHash":
+                return {
+                    "hash": transaction_id, "blockHash": block_hash, "blockNumber": "0x1",
+                    "to": self.config.contract_address, "from": self.config.publisher_address,
+                    "input": data,
+                }
+            raise AssertionError(method)
+
+    adapter.client = RevertReceiptRPC()
+    envelope = build_public_envelope(request["commitment"])
+    if malformed:
+        with pytest.raises(EVMRpcError, match="reverted EVM receipt logs"):
+            adapter.get_receipt(transaction_id, envelope)
+    else:
+        assert adapter.get_receipt(transaction_id, envelope).status == "REJECTED"
+
+
+def test_cli_reports_evm_rpc_errors_without_traceback(monkeypatch, capsys, tmp_path):
+    from riose.products.livestock_tracking import publication_cli
+
+    def fail(_args):
+        raise EVMRpcError("EVM RPC transport unavailable") from RuntimeError("private URL token")
+
+    monkeypatch.setattr(publication_cli, "run_publication_command", fail)
+    with pytest.raises(SystemExit) as error:
+        main(["publication", "status", "--db", str(tmp_path / "db.sqlite3"),
+              "--publication-id", "publication-1"])
+    assert error.value.code == 2
+    output = capsys.readouterr().err
+    assert "EVM RPC transport unavailable" in output
+    assert "private URL token" not in output
+    assert "Traceback" not in output
+
+
 def test_base_sepolia_identity_uses_the_shared_evm_adapter():
     """Exercise Base Sepolia identity with fake deployment-specific values."""
     config = EVMNetworkConfig(
@@ -204,6 +262,7 @@ def test_base_sepolia_identity_uses_the_shared_evm_adapter():
         "eth_chainId": "0x14a34",
         "eth_getBlockByNumber": {"hash": config.expected_genesis_hash},
         "eth_getCode": "0x" + runtime_code.hex(),
+        "eth_call": "0x" + ("0" * 24) + config.publisher_address[2:],
     }
     client.rpc = lambda method, _params: responses[method]
 

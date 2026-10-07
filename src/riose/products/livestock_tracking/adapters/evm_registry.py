@@ -331,6 +331,8 @@ class EVMRegistryAdapter:
             self._require_registration_log(
                 result.get("logs"), commitment, transaction_id, block_hash, block_number,
             )
+        elif type(result.get("logs")) is not list or result["logs"]:
+            raise EVMRpcError("reverted EVM receipt logs are malformed")
         return ChainReceipt(
             chain=self.chain, network=self.network, transaction_id=transaction_id,
             status="CONFIRMED" if status == 1 else "REJECTED",

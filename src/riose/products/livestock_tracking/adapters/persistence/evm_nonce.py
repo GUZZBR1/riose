@@ -214,7 +214,12 @@ class EVMNonceCoordinator:
                 raise
         try:
             observed_nonce = current_nonce()
-            if observed_nonce != nonce:
+            # A higher pending nonce can mean this exact signed attempt was
+            # already accepted before a crash. Allow its byte-identical replay;
+            # the RPC will reject a conflicting/already-consumed nonce, while
+            # the dispatcher can still reconcile the durable transaction hash.
+            # A lower nonce means an earlier reservation is still outstanding.
+            if observed_nonce < nonce:
                 raise RuntimeError("EVM nonce is not current; wait for the lower nonce")
             with self.store._lock:
                 con = self.store.connection

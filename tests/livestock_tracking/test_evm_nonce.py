@@ -156,6 +156,29 @@ def test_arbitrum_submission_waits_for_lower_reserved_nonce(tmp_path):
         store.close()
 
 
+def test_arbitrum_replays_signed_attempt_after_pending_nonce_advances(tmp_path):
+    path = tmp_path / "arbitrum-replay.sqlite3"
+    publication_id = _requests(path, count=1)[0]
+    store = Store(path)
+    outbox = SQLitePublicationOutbox(store)
+    coordinator = EVMNonceCoordinator(store)
+    try:
+        assert outbox.claim_processing(publication_id)
+        nonce, token = coordinator.reserve(
+            publication_id, NETWORK, SENDER, 4,
+            nonce_scope="evm-chain-421614-" + ("6" * 64),
+        )
+        sent = []
+        result = coordinator.submit_in_nonce_order(
+            publication_id, nonce, token, lambda: 5,
+            lambda: sent.append("same-signed-wire"),
+        )
+        assert result is None
+        assert sent == ["same-signed-wire"]
+    finally:
+        store.close()
+
+
 def test_arbitrum_submission_lease_serializes_store_connections(tmp_path):
     path = tmp_path / "arbitrum-lease.sqlite3"
     first_id, second_id = _requests(path, count=2)[:2]
