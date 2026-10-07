@@ -12,7 +12,6 @@ export class CowEntity {
   private readonly selection: Phaser.GameObjects.Ellipse;
   private readonly pasture: PastureZone;
   private snapshot: BehaviorSnapshot;
-  private motionTime = 0;
   private hovered = false;
 
   constructor(
@@ -42,15 +41,10 @@ export class CowEntity {
       .setVisible(false);
   }
 
-  update(snapshot: BehaviorSnapshot, deltaMs: number, reducedMotion: boolean): void {
+  update(snapshot: BehaviorSnapshot, _deltaMs: number, _reducedMotion: boolean): void {
     this.snapshot = snapshot;
-    if (!reducedMotion) this.motionTime += Math.min(deltaMs, 50);
-    const { x, y, status, heading } = this.snapshot;
-    const breathing = !reducedMotion && (status === 'IDLE' || status === 'REST') ? Math.sin(this.motionTime * 0.002 + this.index) * 0.8 : 0;
-    const grazing = !reducedMotion && status === 'GRAZE' ? Math.sin(this.motionTime * 0.004 + this.index) * 1.2 : 0;
-    const walking = !reducedMotion && status === 'WALK' ? Math.abs(Math.sin(this.motionTime * 0.016 + this.index)) * 1.8 : 0;
-    this.sprite.setPosition(x, y + breathing + grazing + walking).setDepth(y + 2);
-    if (!reducedMotion && status === 'WALK') this.sprite.setFlipX(Math.cos(heading) < 0);
+    const { x, y } = this.snapshot;
+    this.sprite.setPosition(x, y).setDepth(y + 2);
     this.selection.setPosition(x, y + 7).setDepth(y + 1);
   }
 

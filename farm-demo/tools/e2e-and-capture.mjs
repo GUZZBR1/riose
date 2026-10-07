@@ -61,10 +61,6 @@ try {
   assert.ok(await page.locator('#selected-animal-zone').textContent());
   await page.waitForTimeout(450);
   await page.screenshot({ path: resolve(output, 'farm-demo-selected-animal.png'), fullPage: true });
-  await page.keyboard.press('Escape');
-  await page.locator('#farm-animal-panel').waitFor({ state: 'hidden' });
-
-  await selectByKeyboard(0);
   await page.getByRole('button', { name: 'View animal record' }).click();
   await page.locator('#record-screen').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#record-title').textContent(), 'Animal 0');

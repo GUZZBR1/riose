@@ -68,7 +68,7 @@ test('reduced motion keeps animal positions fixed', () => {
   assert.deepEqual(herd.getStates(), before);
 });
 
-test('stationary demo animals stay planted while keeping idle and grazing poses', () => {
+test('stationary demo animals retain idle and grazing states without moving', () => {
   const navigation = new FarmNavigation();
   const herd = new HerdController(24, navigation, pastureForAnimal, true);
   const before = herd.getStates();
