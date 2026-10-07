@@ -39,8 +39,8 @@ assets for the same bovine. A confirmed wallet rejection releases only that
 unsigned reservation. The backend only resets a submitted asset after Devnet
 confirms that its transaction failed.
 The `/demo` interface offers asset creation as an explicit optional step after
-the simulation and local event-chain demonstration. No wallet connection is
-needed to complete the main product story.
+the animal profile and local event-history demonstration. No wallet connection
+is needed to complete the main product story.
 
 ## Product and architecture boundaries
 
@@ -74,9 +74,10 @@ needed to complete the main product story.
 [`DESIGN.md`](../DESIGN.md) defines RIOSE's visual system: a quiet hardware
 research project centered on the ear tag. It keeps the landing page minimal and
 explicitly says not to add promotional cards or sections there. The API serves
-`landing.html` at `/`, `manifesto.html` at `/manifesto`, and the product story
-at `index.html` on `/demo` (`adapters/api.py`). The demo reuses the existing tag
-viewer and uses an SVG schematic for simulated receiver activity.
+`landing.html` at `/`, `manifesto.html` at `/manifesto`, and the guided product
+story at `index.html` on `/demo` (`adapters/api.py`). The interactive product
+model stays on the landing page; the demo starts with animal records and does
+not include the separate `?view=tag` or embedded viewer modes.
 
 The existing API exposes local animals, events, behaviors, and tracking data.
 The tokenization flow adds a separate private animal-to-asset registry and does

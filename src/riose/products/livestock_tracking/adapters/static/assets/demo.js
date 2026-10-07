@@ -98,8 +98,9 @@ function renderProfile(sample) {
   $('asset-animal-id').textContent = sample.animal_id;
   $('event-name').textContent = 'Animal identity added';
   $('event-time').textContent = 'Waiting for the local record';
-  $('record-verification').textContent = 'Checking local record integrity…';
+  $('record-verification').textContent = 'Checking record…';
   $('record-verification').classList.remove('is-verified', 'is-error');
+  $('record-verification').classList.add('is-pending');
   $('api-state').hidden = true;
 }
 
@@ -120,20 +121,21 @@ function renderAnimal(animal, sample) {
 
 async function verifyRecord(animalId) {
   const status = $('record-verification');
-  status.textContent = 'Checking local record integrity…';
+  status.textContent = 'Checking record…';
   status.classList.remove('is-verified', 'is-error');
+  status.classList.add('is-pending');
   try {
     const verification = await requestJson(`/api/animals/${encodeURIComponent(animalId)}/events/verify`);
     if (verification.valid !== true || verification.evidence !== 'LOCAL_HASH_CHAIN') {
       throw new Error('The local event history did not verify.');
     }
-    status.textContent = 'Local history verified';
+    status.textContent = 'History verified';
+    status.classList.remove('is-pending');
     status.classList.add('is-verified');
   } catch (error) {
-    status.textContent = 'Local history could not be verified';
+    status.textContent = 'Couldn’t verify record';
+    status.classList.remove('is-pending');
     status.classList.add('is-error');
-    setMessage('api-state', `The profile is available, but its local record could not be checked. ${error.message}`, true);
-    $('api-state').hidden = false;
   }
 }
 
@@ -151,10 +153,11 @@ async function openAnimal(index) {
     renderAnimal(animal, sample);
     await verifyRecord(animal.animal_id);
   } catch (error) {
-    $('record-verification').textContent = 'Local history unavailable';
+    $('record-verification').textContent = 'Record unavailable';
+    $('record-verification').classList.remove('is-pending');
     $('record-verification').classList.add('is-error');
     $('continue-solana').disabled = true;
-    setMessage('api-state', `The profile is available, but the local record could not be opened. ${error.message}`, true);
+    setMessage('api-state', 'Couldn’t load this record. Try again.', true);
     $('api-state').hidden = false;
   } finally {
     state.busy = false;

@@ -7,7 +7,7 @@
   <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-4">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-5">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -80,18 +80,13 @@
           </section>
 
           <div class="event-history">
-            <h2>Verified record</h2>
+            <h2>Record history</h2>
             <div class="event-entry">
               <span class="event-marker" aria-hidden="true"></span>
               <div><strong id="event-name">Animal identity added</strong><p id="event-time">Waiting for the local record</p></div>
             </div>
           </div>
-          <div class="verification-line" id="record-verification" role="status" aria-live="polite">Checking local record integrity…</div>
-          <p class="record-disclosure">Hash verification confirms this local event history has not changed. It does not prove physical identity, health, or ownership.</p>
-          <details class="profile-origin">
-            <summary>About these records</summary>
-            <p>Curated demo profile data, separate from the verified event history. It is not live telemetry or a veterinary assessment.</p>
-          </details>
+          <div class="record-verification is-pending" id="record-verification" role="status" aria-live="polite">Checking record</div>
           <dl class="identity-fields"><div><dt>Animal ID</dt><dd id="record-animal-id">demo-animal-0</dd></div></dl>
           <p class="quiet-status api-state" id="api-state" role="status" aria-live="polite" hidden></p>
         </div>
@@ -124,6 +119,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-4"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-5"></script>
 </body>
 </html>

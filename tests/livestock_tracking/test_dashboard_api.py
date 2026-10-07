@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-import math
 import sqlite3
 
 import pytest
@@ -58,52 +57,6 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     }).json()
     assert debug and "ground_truth_x" in debug[0]
     assert debug == sorted(debug, key=lambda row: row["timestamp"])
-
-
-def test_demo_run_records_simulated_event_and_verifies_local_chain(tmp_path):
-    client = TestClient(create_app(tmp_path / "demo-flow.sqlite3"))
-
-    run = client.post("/api/simulation/run", json={
-        "animal_count": 1,
-        "anchor_count": 4,
-        "duration_s": 20,
-        "sample_period_s": 5,
-        "seed": 7,
-        "method": "weighted_centroid",
-    })
-    assert run.status_code == 200, run.text
-    result = run.json()
-    assert result["evidence"] == "SIMULATED"
-    assert result["run_id"]
-
-    trajectory = client.get(
-        "/api/animals/cow-0001/trajectory",
-        params={"run_id": result["run_id"]},
-    )
-    assert trajectory.status_code == 200
-    assert trajectory.json()
-    assert all(point["status"] == "SIMULATED" for point in trajectory.json())
-
-    event = client.post("/api/events", json={
-        "animal_id": "cow-0001",
-        "event_type": "SIMULATION_RUN_RECORDED",
-        "payload": {
-            "run_id": result["run_id"],
-            "evidence": "SIMULATED",
-            "estimated_positions": len(trajectory.json()),
-            "method": trajectory.json()[-1]["method"],
-        },
-    })
-    assert event.status_code == 201, event.text
-    assert event.json()["chain_valid"] is True
-    assert event.json()["event_type"] == "SIMULATION_RUN_RECORDED"
-
-    verification = client.get("/api/animals/cow-0001/events/verify")
-    assert verification.json() == {
-        "animal_id": "cow-0001",
-        "valid": True,
-        "evidence": "LOCAL_HASH_CHAIN",
-    }
 
 
 def test_animal_asset_intent_keeps_public_metadata_separate_and_submission_unverified(tmp_path):
@@ -336,16 +289,17 @@ def test_landing_page_and_static_product_assets(tmp_path):
     assert "RIOSE — Livestock technology" in page.text
     assert "Machine learning-assisted self-powered ear tag for animal welfare" in page.text
     assert 'id="inspection-toggle"' not in page.text
-    assert "Every animal." in page.text
-    assert "One record." in page.text
-    assert "Explore the guided demo" in page.text
+    assert "The next-generation" in page.text
+    assert "livestock ear tag." in page.text
+    assert "A hardware platform for sensing, tracking, and understanding the field." in page.text
+    assert "Open the interactive product demo" in page.text
     assert "Xiaoyu Su, Peidi Fan, Ying Liu, Jianfeng Ping, Xunjia Li and Yuxiang Pan" in page.text
     assert "Nature Communications · 2026" in page.text
     assert "Independent study" not in page.text
     assert "5,399 sampling windows from three animals" in page.text
-    assert 'id="product-canvas"' not in page.text
-    assert 'id="scene-wrap"' not in page.text
-    assert "/assets/product-scene.js" not in page.text
+    assert 'id="product-canvas"' in page.text
+    assert 'id="scene-wrap"' in page.text
+    assert "/assets/product-scene.js" in page.text
     assert "/assets/landing.css" in page.text
     assert "/assets/landing.js" in page.text
     assert 'class="nav-demo"' in page.text

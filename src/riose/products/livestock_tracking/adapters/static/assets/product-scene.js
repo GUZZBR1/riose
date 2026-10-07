@@ -319,25 +319,6 @@ function startScene(THREE) {
 
   let announcedView = 'surface';
 
-  window.addEventListener('riose:product-viewer-state', (event) => {
-    const view = event.detail?.view;
-    if (!['solid', 'transparent', 'exploded'].includes(view)) return;
-    motion.inspectionActive = view !== 'solid';
-    motion.engineeringFrom = motion.engineering;
-    motion.engineeringStartedAt = performance.now();
-    motion.engineeringDuration = 520;
-    motion.targetExploded = view === 'exploded' ? 1 : 0;
-    motion.explodedFrom = motion.exploded;
-    motion.explodedStartedAt = performance.now();
-    if (view !== 'solid' && !hasBuiltInterior) ensureInterior();
-    motion.structuralTarget = view === 'solid' ? 0 : 1;
-    scheduleFrame(true);
-  });
-
-  if (new URLSearchParams(window.location.search).get('initial') === 'exploded') {
-    window.dispatchEvent(new CustomEvent('riose:product-viewer-state', { detail: { view: 'exploded' } }));
-  }
-
   const zoomBy = (amount) => {
     motion.zoom = THREE.MathUtils.clamp(motion.zoom + amount, minZoom, maxZoom);
     scheduleFrame();
@@ -556,11 +537,8 @@ function startScene(THREE) {
     const frontNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(product.quaternion).normalize();
     const cameraDirection = new THREE.Vector3(0, 0, 1);
     const faceAlignment = frontNormal.dot(cameraDirection);
-    const fixedViewerView = new URLSearchParams(window.location.search).get('view') === 'tag';
-    const structuralTarget = fixedViewerView
-      ? motion.inspectionActive ? 1 : 0
-      : motion.inspectionActive
-        ? 1 - THREE.MathUtils.smoothstep(faceAlignment, 0.34, 0.96)
+    const structuralTarget = motion.inspectionActive
+      ? 1 - THREE.MathUtils.smoothstep(faceAlignment, 0.34, 0.96)
       : 0;
     if (structuralTarget > 0.025 && !hasBuiltInterior) ensureInterior();
     motion.structuralTarget = structuralTarget;

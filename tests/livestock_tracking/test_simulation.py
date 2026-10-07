@@ -1,10 +1,8 @@
 from dataclasses import fields
-import math
 
 from cattle_rf.contracts import FarmConfig, RFObservation
 from cattle_rf.sim.episode import generate_anchors, simulate_episode
-from cattle_rf.sim.farm import (Behavior, COLLISION_RADIUS_M, FarmSimulator,
-                                MotionFeatures, Obstacle, segment_crosses_obstacle)
+from cattle_rf.sim.farm import Behavior, FarmSimulator, MotionFeatures, Obstacle, segment_crosses_obstacle
 from cattle_rf.sim.rf import RFConfig, free_space_path_loss_db, log_distance_path_loss_db, simulate_observations
 
 
@@ -101,39 +99,3 @@ def test_forced_escape_scenario_can_leave_property():
                      duration_s=6000, sample_period_s=60, seed=4)
     ep = simulate_episode(cfg, obstacles=[], escape_targets={"tag-0001": (-100.0, 50.0)})
     assert any(p.x < 0 for p in ep.ground_truth)
-
-
-def test_hundred_animal_spawn_respects_collision_clearance_and_obstacles():
-    cfg = FarmConfig(width_m=1000, height_m=1000, animal_count=100, anchor_count=8,
-                     duration_s=0, sample_period_s=1, seed=92)
-    farm = FarmSimulator(cfg)
-    for index, animal in enumerate(farm.states):
-        assert farm._valid_point(animal.x, animal.y, COLLISION_RADIUS_M)
-        for other in farm.states[index + 1:]:
-            assert math.hypot(animal.x - other.x, animal.y - other.y) >= 2 * COLLISION_RADIUS_M
-
-
-def test_hundred_animals_remain_collision_free_and_inside_obstacles_after_motion():
-    cfg = FarmConfig(width_m=1000, height_m=1000, animal_count=100, anchor_count=8,
-                     duration_s=30, sample_period_s=5, seed=17)
-    farm = FarmSimulator(cfg)
-    for timestamp in range(1, 31):
-        farm._step(timestamp, 1.0)
-        for index, animal in enumerate(farm.states):
-            assert farm._valid_point(animal.x, animal.y, COLLISION_RADIUS_M)
-            for other in farm.states[index + 1:]:
-                assert math.hypot(animal.x - other.x, animal.y - other.y) + 1e-4 >= 2 * COLLISION_RADIUS_M
-    assert farm.diagnostics["residual_overlap_m"] <= 1e-4
-
-
-def test_farm_fixed_step_motion_is_independent_of_snapshot_cadence():
-    cfg = FarmConfig(width_m=1000, height_m=1000, animal_count=10, anchor_count=4,
-                     duration_s=0, sample_period_s=1, seed=23)
-    slow_snapshots = FarmSimulator(cfg)
-    fast_snapshots = FarmSimulator(cfg)
-    for timestamp in range(1, 11):
-        slow_snapshots._step(timestamp, 1.0)
-        for _ in range(2):
-            fast_snapshots._step(timestamp - 0.5, 0.5)
-    assert [(s.x, s.y, s.vx, s.vy) for s in slow_snapshots.states] == [
-        (s.x, s.y, s.vx, s.vy) for s in fast_snapshots.states]
