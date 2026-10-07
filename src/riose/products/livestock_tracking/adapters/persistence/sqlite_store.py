@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import re
 import sqlite3
 import threading
 import uuid
@@ -296,6 +297,19 @@ class Store:
             return self.connection.execute(
                 "SELECT 1 FROM animal_assets WHERE public_ref=?", (public_ref,)
             ).fetchone() is not None
+
+    def animal_asset_public_name(self, public_ref: str) -> str | None:
+        """Expose only the synthetic demo label; never the stored animal name or ID."""
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT animal_id FROM animal_assets WHERE public_ref=?", (public_ref,)
+            ).fetchone()
+            if row is None:
+                return None
+            match = re.fullmatch(r"demo-animal-(\d{1,2})", str(row["animal_id"]))
+            if match:
+                return f"Animal {int(match.group(1))}"
+            return "RIOSE · Ativo bovino"
 
     def get_animal_asset_attempt(self, animal_id: str) -> dict[str, Any] | None:
         with self._lock:

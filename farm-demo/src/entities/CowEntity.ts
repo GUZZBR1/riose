@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
-import { AnimalBehavior, type BehaviorSnapshot } from '../simulation/behavior';
-import { pastureOrdinal } from '../simulation/farm-layout';
+import type { BehaviorSnapshot } from '../simulation/behavior';
 import type { PastureZone } from '../simulation/farm-layout';
 import type { AnimalState } from '../types';
 import { FarmEnvironmentLayer } from '../environment/FarmEnvironmentLayer';
@@ -10,7 +9,6 @@ const COW_HEIGHT = 54;
 
 export class CowEntity {
   readonly sprite: Phaser.GameObjects.Image;
-  readonly behavior: AnimalBehavior;
   private readonly selection: Phaser.GameObjects.Ellipse;
   private readonly pasture: PastureZone;
   private snapshot: BehaviorSnapshot;
@@ -25,8 +23,7 @@ export class CowEntity {
     environment: FarmEnvironmentLayer,
   ) {
     this.pasture = pasture;
-    this.behavior = new AnimalBehavior(index, pasture, pastureOrdinal(index));
-    this.snapshot = this.behavior.current;
+    this.snapshot = { status: 'GRAZE', ...pasture.waypoints[0], heading: 0, target: null, path: [] };
     this.sprite = scene.add.image(this.snapshot.x, this.snapshot.y, environment.getCowTexture(index))
       .setDisplaySize(COW_WIDTH, COW_HEIGHT)
       .setOrigin(0.5, 0.82)
@@ -45,13 +42,13 @@ export class CowEntity {
       .setVisible(false);
   }
 
-  update(deltaMs: number, reducedMotion: boolean): void {
-    this.snapshot = this.behavior.update(deltaMs, reducedMotion);
+  update(snapshot: BehaviorSnapshot, deltaMs: number, reducedMotion: boolean): void {
+    this.snapshot = snapshot;
     if (!reducedMotion) this.motionTime += Math.min(deltaMs, 50);
     const { x, y, status, heading } = this.snapshot;
-    const breathing = !reducedMotion && status === 'IDLE' ? Math.sin(this.motionTime * 0.002 + this.index) * 1.2 : 0;
-    const grazing = !reducedMotion && status === 'GRAZE' ? Math.sin(this.motionTime * 0.006 + this.index) * 1.6 : 0;
-    const walking = !reducedMotion && status === 'WALK' ? Math.abs(Math.sin(this.motionTime * 0.012 + this.index)) * 2 : 0;
+    const breathing = !reducedMotion && (status === 'IDLE' || status === 'REST') ? Math.sin(this.motionTime * 0.002 + this.index) * 0.8 : 0;
+    const grazing = !reducedMotion && status === 'GRAZE' ? Math.sin(this.motionTime * 0.004 + this.index) * 1.2 : 0;
+    const walking = !reducedMotion && status === 'WALK' ? Math.abs(Math.sin(this.motionTime * 0.016 + this.index)) * 1.8 : 0;
     this.sprite.setPosition(x, y + breathing + grazing + walking).setDepth(y + 2);
     if (!reducedMotion && status === 'WALK') this.sprite.setFlipX(Math.cos(heading) < 0);
     this.selection.setPosition(x, y + 7).setDepth(y + 1);

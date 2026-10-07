@@ -10,34 +10,35 @@ export interface PastureZone {
   name: string;
   bounds: { left: number; top: number; right: number; bottom: number };
   waypoints: readonly WorldPoint[];
-  waterPoint?: WorldPoint;
+  /** Safe interaction point on grass beside a visible trough or pond edge. */
+  drinkPoint?: WorldPoint;
 }
 
 /** Waypoints follow the illustrated island's clearings, not a visible grid. */
 export const PASTURES: readonly PastureZone[] = [
   {
     name: 'Willow meadow',
-    bounds: { left: 6, top: 10, right: 19, bottom: 21 },
+    bounds: { left: 5, top: 9, right: 20, bottom: 22 },
     waypoints: [point(8, 13), point(10, 11), point(14, 12), point(17, 15), point(16, 18), point(12, 20), point(8, 18)],
-    waterPoint: point(11, 17),
+    drinkPoint: { x: 650, y: 465 },
   },
   {
     name: 'Long grass',
-    bounds: { left: 23, top: 7, right: 39, bottom: 17 },
+    bounds: { left: 20, top: 7, right: 39, bottom: 18 },
     waypoints: [point(25, 10), point(29, 8), point(34, 9), point(38, 11), point(36, 14), point(32, 16), point(27, 15)],
-    waterPoint: point(35, 13),
+    drinkPoint: { x: 720, y: 555 },
   },
   {
     name: 'South meadow',
-    bounds: { left: 13, top: 19, right: 28, bottom: 27 },
+    bounds: { left: 10, top: 18, right: 28, bottom: 28 },
     waypoints: [point(15, 22), point(18, 20), point(23, 21), point(27, 23), point(25, 26), point(21, 26), point(17, 25)],
-    waterPoint: point(25, 24),
+    drinkPoint: { x: 420, y: 680 },
   },
   {
     name: 'Creek paddock',
-    bounds: { left: 29, top: 18, right: 42, bottom: 26 },
+    bounds: { left: 28, top: 17, right: 42, bottom: 28 },
     waypoints: [point(31, 20), point(34, 19), point(39, 20), point(41, 23), point(38, 25), point(34, 25), point(30, 23)],
-    waterPoint: point(39, 22),
+    drinkPoint: { x: 1224, y: 690 },
   },
 ];
 

@@ -1,4 +1,4 @@
-export type AnimalStatus = 'IDLE' | 'GRAZE' | 'WALK' | 'DRINK';
+export type AnimalStatus = 'IDLE' | 'GRAZE' | 'WALK' | 'DRINK' | 'REST';
 
 export interface WorldPoint {
   x: number;
@@ -20,6 +20,7 @@ export interface FarmDemoCallbacks {
   onSelect?: (animal: AnimalState | null) => void;
   onStates?: (animals: readonly AnimalState[]) => void;
   animalCount?: number;
+  onReady?: () => void;
 }
 
 export interface FarmDemoHandle {

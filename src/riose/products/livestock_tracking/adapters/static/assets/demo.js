@@ -51,6 +51,8 @@ const state = {
   busy: false,
   farm: null,
   selectedSceneAnimal: null,
+  assetPreviewComplete: false,
+  assetPreviewRunning: false,
 };
 const screens = ['farm-screen', 'record-screen', 'solana-screen'];
 const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point' };
@@ -89,6 +91,7 @@ function showScreen(screenId) {
 
 function updateAnimalPanel(animal) {
   state.selectedSceneAnimal = animal;
+  if (animal) dismissFarmHint();
   const panel = $('farm-animal-panel');
   if (!animal) {
     panel.hidden = true;
@@ -106,6 +109,23 @@ function updateAnimalPanel(animal) {
   $('selected-animal-announcement').textContent = `${animal.label}, ${statusLabels[animal.status] || 'Moving'}, ${animal.zone}`;
 }
 
+function dismissFarmHint() {
+  const hint = $('farm-intro-hint');
+  hint.hidden = true;
+  hint.classList.remove('is-ready', 'is-typing');
+  try { sessionStorage.setItem('riose:farm-hint-dismissed', '1'); } catch {}
+}
+
+function revealFarmHint() {
+  let dismissed = false;
+  try { dismissed = sessionStorage.getItem('riose:farm-hint-dismissed') === '1'; } catch {}
+  if (dismissed) return;
+  const hint = $('farm-intro-hint');
+  hint.hidden = false;
+  hint.classList.add('is-ready', 'is-typing');
+  window.setTimeout(() => hint.classList.remove('is-typing'), 1400);
+}
+
 function chooseAnimal(animal) {
   if (!animal) return;
   state.farm?.selectAnimal(animal.id);
@@ -114,11 +134,12 @@ function chooseAnimal(animal) {
 
 function publishSceneState(animals) {
   $('farm-canvas').dataset.animalCount = String(animals.length);
+  $('farm-canvas').dataset.movingAnimals = String(animals.filter((animal) => animal.status === 'WALK').length);
 }
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-13');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     const animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100
       ? requestedCount
@@ -127,6 +148,7 @@ async function initFarm() {
       animalCount,
       onSelect: updateAnimalPanel,
       onStates: publishSceneState,
+      onReady: revealFarmHint,
     });
   } catch (error) {
     const fallback = document.createElement('p');
@@ -178,6 +200,19 @@ function renderProfile(sample) {
   $('record-portrait').alt = `${sample.name}, cattle portrait`;
   renderJourney(sample);
   $('asset-animal-name').textContent = sample.name;
+  $('asset-preview-public-name').textContent = sample.name;
+  $('asset-preview-portrait').src = sample.image;
+  $('asset-preview-portrait').alt = '';
+  $('asset-preview-card').hidden = true;
+  $('asset-preview-card').classList.remove('is-revealed');
+  $('asset-preview-status').hidden = true;
+  $('asset-preview-status').textContent = '';
+  $('asset-preview-action').hidden = false;
+  $('asset-preview-action').disabled = false;
+  $('asset-preview-action').textContent = 'Preview the flow';
+  $('asset-action').hidden = true;
+  state.assetPreviewComplete = false;
+  state.assetPreviewRunning = false;
   $('record-verification').textContent = 'Checking record…';
   $('record-verification').classList.remove('is-verified', 'is-error');
   $('record-verification').classList.add('is-pending');
@@ -239,13 +274,14 @@ async function openAnimalRecord() {
 }
 
 function tokenizationModule() {
-  return import('/assets/animal-tokenization.bundle.js');
+  return import('/assets/animal-tokenization.bundle.js?v=20261007-13');
 }
 
-function setAssetButton(label, disabled = false) {
+function setAssetButton(label, disabled = false, hidden = false) {
   const button = $('asset-action');
   button.textContent = label;
   button.disabled = disabled;
+  button.hidden = hidden;
 }
 
 async function refreshAsset() {
@@ -271,15 +307,55 @@ async function refreshAsset() {
     }
     const status = asset.evidence || asset.status || 'UNREGISTERED';
     if (status === 'UNREGISTERED' || status === 'PREPARED') {
-      setAssetButton('Create animal asset on Devnet');
-      setMessage('asset-state', 'Optional. Connect a wallet and approve a Devnet transaction to create the generic animal asset.');
+      setAssetButton('Create on Devnet', false, !state.assetPreviewComplete);
+      setMessage('asset-state', 'A wallet signature is required for real creation.');
     } else {
-      setAssetButton('Check asset status on Devnet');
+      setAssetButton('Check asset status on Devnet', false, false);
       setMessage('asset-state', `The asset is not verified yet (${status}). A submitted transaction is not shown as confirmed.`);
     }
   } catch (error) {
-    setAssetButton('Retry Devnet check');
+    setAssetButton('Retry Devnet check', false, false);
     setMessage('asset-state', `Devnet status could not be checked: ${error.message}`, true);
+  }
+}
+
+function waitForPreviewBeat(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function previewAssetFlow() {
+  if (state.assetPreviewRunning || !state.selected) return;
+  state.assetPreviewRunning = true;
+  state.assetPreviewComplete = false;
+  const button = $('asset-preview-action');
+  const card = $('asset-preview-card');
+  const status = $('asset-preview-status');
+  button.disabled = true;
+  button.textContent = 'Preparing preview…';
+  $('asset-action').hidden = true;
+  card.hidden = false;
+  card.classList.remove('is-revealed');
+  void card.offsetWidth;
+  card.classList.add('is-revealed');
+  status.hidden = false;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const beat = reducedMotion ? 0 : 520;
+  status.textContent = 'Showing the public asset name';
+  await waitForPreviewBeat(beat);
+  status.textContent = 'Reviewing minimal public metadata';
+  await waitForPreviewBeat(beat);
+  status.textContent = 'Preview complete · not created';
+  state.assetPreviewComplete = true;
+  state.assetPreviewRunning = false;
+  button.disabled = false;
+  button.textContent = 'Replay preview';
+  const assetStatus = state.asset?.evidence || state.asset?.status || 'UNREGISTERED';
+  if (state.asset?.valid) {
+    setAssetButton('Asset verified on Devnet', true, false);
+  } else if (assetStatus === 'UNREGISTERED' || assetStatus === 'PREPARED') {
+    setAssetButton('Create on Devnet', false, false);
+  } else {
+    setAssetButton('Check asset status on Devnet', false, false);
   }
 }
 
@@ -287,7 +363,8 @@ async function performAssetAction() {
   if (!state.animal) return;
   const button = $('asset-action');
   button.disabled = true;
-  setMessage('asset-state', 'Waiting for wallet approval and Devnet confirmation.');
+  setAssetButton('Waiting for wallet approval…', true, false);
+  setMessage('asset-state', 'The asset will appear as confirmed only after Devnet verification.');
   try {
     const module = await tokenizationModule();
     const result = await module.mintAnimalAsset(state.animal.animal_id);
@@ -297,8 +374,7 @@ async function performAssetAction() {
     await refreshAsset();
   } catch (error) {
     setMessage('asset-state', `No verified mint was recorded: ${error.message}`, true);
-    button.disabled = false;
-    button.textContent = 'Retry or check asset status';
+    setAssetButton('Retry or check asset status', false, false);
   }
 }
 
@@ -310,9 +386,12 @@ $('continue-solana').addEventListener('click', () => {
   showScreen('solana-screen');
   void refreshAsset();
 });
+$('asset-preview-action').addEventListener('click', () => void previewAssetFlow());
 $('asset-action').addEventListener('click', () => {
   if (state.asset?.valid) return;
-  if (state.asset?.status && state.asset.status !== 'UNREGISTERED' && state.asset.status !== 'PREPARED') {
+  const status = state.asset?.evidence || state.asset?.status || 'UNREGISTERED';
+  if (!state.assetPreviewComplete && ['UNREGISTERED', 'PREPARED'].includes(status)) return;
+  if (!state.asset || (state.asset.status && state.asset.status !== 'UNREGISTERED' && state.asset.status !== 'PREPARED')) {
     void refreshAsset();
     return;
   }

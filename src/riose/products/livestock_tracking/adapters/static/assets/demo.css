@@ -72,6 +72,10 @@ button { font: inherit; }
 .farm-canvas { position: absolute; inset: 0; touch-action: none; }
 .farm-canvas:focus, .farm-canvas:focus-visible { outline: none; }
 .farm-canvas canvas { image-rendering: pixelated; outline: none; }
+.farm-intro-hint { position: absolute; z-index: 5; right: 0; bottom: 10px; margin: 0; color: rgb(48 49 44 / 70%); font: 10px/1.4 var(--mono); letter-spacing: .035em; pointer-events: none; }
+.farm-intro-hint.is-ready { animation: hint-enter 360ms ease-out both; }
+.farm-intro-hint.is-typing { animation: hint-enter 360ms ease-out both, hint-type 1.05s steps(29, end) both; }
+.farm-intro-hint.is-typing::after { display: inline-block; width: 1px; height: 1em; margin-left: 3px; background: currentColor; content: ""; vertical-align: -2px; animation: hint-caret 720ms steps(2, end) infinite; }
 .farm-animal-card { position: absolute; z-index: 3; right: clamp(8px, 2vw, 28px); bottom: clamp(8px, 2vw, 28px); width: min(320px, calc(100% - 32px)); padding: 17px; border: 1px solid rgb(255 255 255 / 78%); border-radius: 22px; background: rgb(248 248 239 / 78%); box-shadow: 0 16px 44px rgb(25 38 24 / 13%), inset 0 1px 0 rgb(255 255 255 / 82%); -webkit-backdrop-filter: blur(18px) saturate(118%); backdrop-filter: blur(18px) saturate(118%); animation: card-enter 360ms cubic-bezier(.22, 1, .36, 1) both; }
 .farm-card-identity { display: flex; align-items: center; gap: 14px; padding-right: 24px; }
 .farm-card-identity img { width: 58px; height: 58px; flex: none; border-radius: 50%; background: #e7e6e1; object-fit: cover; }
@@ -145,13 +149,31 @@ button { font: inherit; }
 .asset-network { display: flex; align-items: center; gap: 8px; margin: 18px 0 22px; color: #555650; font-size: 10px; }
 .network-dot { width: 7px; height: 7px; border-radius: 50%; background: #8d79ba; box-shadow: 0 0 0 4px rgb(141 121 186 / 12%); }
 .asset-sheet .primary-button { width: 100%; }
-.asset-sheet .quiet-status { min-height: 28px; margin-top: 12px; text-align: left; }
+.asset-sheet .quiet-status { min-height: 28px; margin-top: 12px; color: #5e5f58; font: 11px/1.5 var(--sans); text-align: left; }
+.secondary-button { display: inline-flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; margin-top: 4px; padding: 0 20px; border: 1px solid rgb(32 33 31 / 16%); border-radius: 13px; background: rgb(255 255 255 / 54%); color: #282925; font-size: 12px; cursor: pointer; transition: transform 220ms ease, background-color 220ms ease, box-shadow 220ms ease; }
+.secondary-button:hover:not(:disabled) { transform: translateY(-1px); background: #fff; box-shadow: 0 8px 20px rgb(20 20 18 / 7%); }
+.secondary-button:focus-visible { outline: 2px solid rgb(32 33 31 / 52%); outline-offset: 4px; }
+.secondary-button:disabled { opacity: .58; cursor: wait; }
+.asset-separation-note { margin: 0 0 12px; color: #65665f; font: 11px/1.5 var(--sans); }
+.asset-preview-card { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr) 28px; align-items: center; gap: 13px; overflow: hidden; margin: 4px 0 14px; padding: 14px; border: 1px solid rgb(255 255 255 / 82%); border-radius: 17px; background: linear-gradient(135deg, rgb(255 255 255 / 84%), rgb(239 240 233 / 72%)); box-shadow: 0 14px 30px rgb(36 35 30 / 7%), inset 0 1px 0 #fff; opacity: 0; transform: translateY(8px) scale(.985); }
+.asset-preview-card.is-revealed { animation: asset-card-enter 520ms cubic-bezier(.22, 1, .36, 1) forwards; }
+.asset-preview-card img { width: 58px; height: 58px; border-radius: 12px; object-fit: cover; }
+.asset-preview-copy { display: grid; min-width: 0; gap: 5px; }
+.asset-preview-copy span { color: var(--quiet); font: 8px/1.3 var(--mono); letter-spacing: .065em; }
+.asset-preview-copy strong { overflow: hidden; color: #282925; font-size: 15px; font-weight: 500; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
+.asset-preview-copy small { color: #73746d; font: 10px/1.45 var(--sans); }
+.asset-preview-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 9px; background: #20211f; color: #f7f7f4; font-size: 14px; font-weight: 600; }
+.asset-preview-status { min-height: 18px; margin: 0 0 12px; color: #4d5b4c; font: 12px/1.5 var(--sans); }
 .asset-link { display: inline-block; margin-top: 8px; color: #51524d; font: 10px var(--mono); text-underline-offset: 3px; }
 .solana-disclosure { max-width: 450px; margin: 0; color: #81827b; font-size: 9px; line-height: 1.55; text-align: right; }
 
 @keyframes screen-enter { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 @keyframes verification-enter { from { opacity: 0; transform: translateY(5px) scale(.98); filter: blur(4px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
 @keyframes verification-spin { to { transform: rotate(1turn); } }
+@keyframes hint-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hint-caret { to { opacity: 0; } }
+@keyframes hint-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes asset-card-enter { from { opacity: 0; transform: translateY(8px) scale(.985); filter: blur(6px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
 @keyframes row-enter { from { opacity: 0; transform: translateY(9px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 @keyframes card-enter { from { opacity: 0; transform: translateY(9px); filter: blur(6px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 .animal-row { animation: row-enter 440ms cubic-bezier(.22, 1, .36, 1) both; }
@@ -212,6 +234,9 @@ button { font: inherit; }
   .journey-beat { grid-template-columns: 58px minmax(0, 1fr); gap: 8px; padding: 12px 11px; border-radius: 15px; }
   .journey-moment { font-size: 9px; }
   .asset-sheet { padding: 22px; }
+  .asset-preview-card { grid-template-columns: 50px minmax(0, 1fr) 24px; gap: 10px; padding: 12px; }
+  .asset-preview-card img { width: 50px; height: 50px; }
+  .asset-preview-mark { width: 24px; height: 24px; }
   .detail-footer { margin-top: auto; }
 }
 @media (prefers-reduced-motion: reduce) {

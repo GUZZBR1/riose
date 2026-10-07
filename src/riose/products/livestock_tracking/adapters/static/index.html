@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-12">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-13">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -24,6 +24,7 @@
     <section class="demo-screen farm-screen is-entering" id="farm-screen" aria-label="RIOSE interactive farm diorama">
       <div class="farm-stage" id="farm-stage">
         <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Use arrow keys to select an animal." tabindex="0"></div>
+        <p class="farm-intro-hint" id="farm-intro-hint" hidden>Select an animal to inspect</p>
         <span id="selected-animal-announcement" class="visually-hidden" aria-live="polite"></span>
         <aside class="farm-animal-card" id="farm-animal-panel" aria-labelledby="selected-animal-name" hidden>
           <button type="button" class="farm-card-close" id="close-animal-panel" aria-label="Close animal details">×</button>
@@ -66,23 +67,32 @@
         <div class="solana-copy">
           <p class="section-label">OPTIONAL</p>
           <h1 id="solana-title" tabindex="-1">An identity on Solana.</h1>
-          <p class="solana-lede">Create a privacy-preserving animal asset on Devnet. A wallet is only needed if you choose to create one.</p>
+          <p class="solana-lede">Preview the asset, then create it on Devnet.</p>
         </div>
         <div class="asset-sheet">
           <div class="asset-identity"><span>ANIMAL</span><strong id="asset-animal-name">Animal 0</strong></div>
           <div class="asset-network"><span class="network-dot" aria-hidden="true"></span><span>Solana Devnet</span></div>
-          <button class="primary-button" id="asset-action" type="button">Check asset status</button>
+          <div class="asset-preview-card" id="asset-preview-card" hidden aria-live="polite">
+            <img id="asset-preview-portrait" src="/assets/demo/animal-0.webp" alt="" width="58" height="58">
+            <div class="asset-preview-copy">
+              <span>PUBLIC ASSET NAME</span>
+              <strong id="asset-preview-public-name">Animal 0</strong>
+              <small>Identity only · no history included</small>
+            </div>
+            <span class="asset-preview-mark" aria-hidden="true">R</span>
+          </div>
+          <p class="asset-separation-note">The asset does not verify animal history or prove physical ownership.</p>
+          <button class="secondary-button" id="asset-preview-action" type="button">Preview the flow</button>
+          <p class="asset-preview-status" id="asset-preview-status" role="status" aria-live="polite" hidden></p>
+          <button class="primary-button" id="asset-action" type="button" hidden>Create on Devnet</button>
           <p class="quiet-status" id="asset-state" role="status" aria-live="polite">No asset created. Wallet connection is optional.</p>
           <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View verified asset ↗</a>
         </div>
-      </div>
-      <div class="step-footer detail-footer">
-        <p class="solana-disclosure">Devnet transaction · Wallet signature required · Public metadata excludes tag ID, farm, location, health data, and telemetry.</p>
       </div>
     </section>
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-12"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-13"></script>
 </body>
 </html>

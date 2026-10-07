@@ -16,6 +16,7 @@ await mkdir(recordingDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const errors = [];
+const assetMutations = [];
 const mainContext = await browser.newContext({
   viewport: { width: 1440, height: 960 },
   recordVideo: { dir: recordingDir, size: { width: 1440, height: 960 } },
@@ -24,6 +25,11 @@ const page = await mainContext.newPage();
 page.on('pageerror', (error) => errors.push(error.message));
 page.on('console', (message) => {
   if (message.type() === 'error') errors.push(`${message.text()} @ ${JSON.stringify(message.location())}`);
+});
+page.on('request', (request) => {
+  if (request.method() === 'POST' && /\/asset-(?:intent|reserve|submission)/.test(request.url())) {
+    assetMutations.push(request.url());
+  }
 });
 
 async function selectByKeyboard(target) {
@@ -38,6 +44,8 @@ try {
   await page.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
+  assert.equal(await page.locator('#farm-canvas').getAttribute('data-moving-animals'), '0');
+  await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
   await page.waitForTimeout(1200);
 
   const forbidden = await page.locator('body').innerText();
@@ -48,6 +56,7 @@ try {
   await page.screenshot({ path: resolve(output, 'farm-demo-desktop.png'), fullPage: true });
 
   await selectByKeyboard(0);
+  assert.equal(await page.locator('#farm-intro-hint').isVisible(), false, 'animal selection dismisses the hint');
   assert.match(await page.locator('#selected-animal-portrait').getAttribute('src'), /\/assets\/demo\/animal-0\.webp$/);
   assert.ok(await page.locator('#selected-animal-zone').textContent());
   await page.waitForTimeout(450);
@@ -67,7 +76,25 @@ try {
   await page.waitForTimeout(650);
   await page.screenshot({ path: resolve(output, 'farm-demo-animal-record.png'), fullPage: true });
 
+  await page.getByRole('button', { name: 'Explore digital identity' }).click();
+  await page.locator('#solana-screen').waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: 'Preview the flow' }).click();
+  await page.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  assert.equal(await page.locator('#asset-preview-public-name').textContent(), 'Animal 0');
+  assert.equal(await page.getByRole('button', { name: 'Create on Devnet' }).isVisible(), true);
+  assert.match(await page.locator('.asset-separation-note').textContent(), /does not verify animal history or prove physical ownership/i);
+  assert.deepEqual(assetMutations, [], 'preview must not start an asset transaction');
+  await page.waitForTimeout(650);
+  await page.screenshot({ path: resolve(output, 'farm-demo-solana-preview.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Create on Devnet' }).click();
+  await page.getByText(/No verified mint was recorded:/).waitFor({ state: 'visible', timeout: 15000 });
+  assert.equal(await page.locator('#asset-explorer').isVisible(), false, 'wallet failure must not show a verified asset');
+  assert.equal(assetMutations.length, 1, 'the attempted real flow may prepare an intent only');
+  assert.match(assetMutations[0], /\/asset-intent$/);
+
   const video = page.video();
+  await page.getByRole('button', { name: 'Back to record' }).click();
+  await page.locator('#record-screen').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Back to farm' }).click();
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible' });
   await selectByKeyboard(1);
@@ -143,7 +170,7 @@ try {
     `- Desktop view: 1440 × 960; mobile view: 390 × 844`,
     `- Herd stress run: 100 animals; browser animation-frame rate: ${performance.fps} fps; observed long tasks: ${performance.longTasks}`,
     `- Scene bundle: ${rawBytes.toLocaleString('en-US')} bytes; gzip: ${gzipBytes.toLocaleString('en-US')} bytes`,
-    '- Verified in-browser: transparent isometric scene, no dashboard controls, keyboard selection, photo-backed animal card, local record verification, mobile layout, API-independent scene startup, and 100-animal rendering.',
+    '- Verified in-browser: transparent isometric scene with stationary cows, keyboard selection and one-time hint dismissal, photo-backed animal card, local record verification, Solana preview with no mutation plus wallet-unavailable failure without false confirmation, mobile layout, API-independent scene startup, and 100-animal rendering.',
     '',
   ].join('\n');
   await writeFile(resolve(output, 'README.md'), report);

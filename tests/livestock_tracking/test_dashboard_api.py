@@ -146,6 +146,25 @@ def test_animal_asset_intent_keeps_public_metadata_separate_and_submission_unver
     assert conflicting_submission.status_code == 409
 
 
+def test_demo_animal_metadata_uses_only_its_public_label(tmp_path):
+    client = TestClient(create_app(tmp_path / "demo-animal-metadata.sqlite3"))
+    created = client.post("/api/animals", json={
+        "animal_id": "demo-animal-7",
+        "hardware_id": "demo-tag-0007",
+        "name": "Animal 7",
+    })
+    assert created.status_code == 201, created.text
+    intent = client.post("/api/animals/demo-animal-7/asset-intent")
+    assert intent.status_code == 200, intent.text
+
+    metadata = client.get(intent.json()["metadata_uri"])
+    assert metadata.status_code == 200, metadata.text
+    assert metadata.json()["name"] == "Animal 7"
+    assert metadata.json()["attributes"] == []
+    assert "demo-animal-7" not in metadata.text
+    assert "demo-tag-0007" not in metadata.text
+
+
 def test_asset_reconciliation_only_retries_after_confirmed_devnet_failure(tmp_path, monkeypatch):
     client = TestClient(create_app(tmp_path / "animal-asset-reconcile.sqlite3"))
     created = client.post("/api/animals", json={

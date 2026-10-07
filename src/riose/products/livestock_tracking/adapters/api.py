@@ -455,11 +455,12 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
 
     @app.get("/api/animal-assets/metadata/{public_ref}", name="animal_asset_metadata")
     def animal_asset_metadata(public_ref: str, request: Request) -> dict[str, Any]:
-        if not app.state.store.animal_asset_metadata_ref_exists(public_ref):
+        public_name = app.state.store.animal_asset_public_name(public_ref)
+        if public_name is None:
             raise HTTPException(status_code=404, detail="asset metadata not found")
         return {
-            "name": "RIOSE · Ativo bovino",
-            "description": "Ativo digital individual RIOSE. Este token não comprova identidade física nem propriedade legal do animal.",
+            "name": public_name,
+            "description": "Digital identity only. It does not verify animal records or prove physical identity or ownership.",
             "image": str(request.url_for("site-assets", path="riose-mark.png")),
             "external_url": str(request.base_url),
             "attributes": [],

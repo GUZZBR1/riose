@@ -106,9 +106,12 @@ export async function verifyAsset(record) {
 
   const umi = createUmi(DEVNET_RPC).use(mplCore());
   const asset = await fetchAssetV1(umi, publicKey(record.asset_address));
-  const valid = asset.owner === record.owner_address && asset.uri === record.metadata_uri;
+  const metadataResponse = await fetch(record.metadata_uri, { cache: 'no-store' });
+  if (!metadataResponse.ok) return { evidence: 'METADATA_NOT_FOUND', valid: false };
+  const metadata = await metadataResponse.json();
+  const valid = asset.owner === record.owner_address && asset.uri === record.metadata_uri && asset.name === metadata.name;
   return {
-    evidence: valid ? 'VALIDATED_ON_DEVNET' : 'ONCHAIN_MISMATCH',
+    evidence: valid ? 'VALIDATED_ON_DEVNET' : asset.name !== metadata.name ? 'ONCHAIN_NAME_MISMATCH' : 'ONCHAIN_MISMATCH',
     valid,
     asset_address: record.asset_address,
     owner_address: asset.owner,
@@ -183,6 +186,15 @@ async function performMintAnimalAsset(animalId) {
     if (existing.valid || existing.evidence !== 'ONCHAIN_FAILURE_CONFIRMED') return existing;
   }
 
+  const publicMetadataResponse = await fetch(intent.metadata_uri, { cache: 'no-store' });
+  if (!publicMetadataResponse.ok) throw new Error('Could not load the public asset metadata from RIOSE.');
+  const publicMetadata = await publicMetadataResponse.json();
+  const allowedPublicName = typeof publicMetadata.name === 'string'
+    && (/^Animal \d{1,2}$/.test(publicMetadata.name) || publicMetadata.name === 'RIOSE · Ativo bovino');
+  if (!allowedPublicName) {
+    throw new Error('The public asset name is not valid for this RIOSE demo.');
+  }
+
   const { wallet } = await connectWallet();
   const umi = makeUmi(wallet);
   const signer = generateSigner(umi);
@@ -210,7 +222,7 @@ async function performMintAnimalAsset(animalId) {
 
   const transaction = create(umi, {
     asset: signer,
-    name: 'RIOSE · Ativo bovino',
+    name: publicMetadata.name,
     uri: reservation.metadata_uri,
     owner: umi.identity.publicKey,
   });
