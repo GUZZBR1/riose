@@ -1,0 +1,11 @@
+# Base handoff from the shared EVM core
+
+Status: configuration/deployment handoff only. No Base transaction or public-chain validation was performed.
+
+Use `EVMRegistryAdapter(EVMNetworkConfig(...))` and the existing dispatcher/outbox. Deploy the unchanged `RioseCommitmentRegistry.sol` with the intended publisher address as its immutable constructor argument. The contract registers only the existing 32-byte SHA-256 canonical commitment; it rejects zero commitments, duplicates in that deployment, and other publishers. Reuse the same Event V1, commitment, Store, and signed-attempt recovery path.
+
+Before queueing an event, create a deployment JSON with explicit `chain` (for example `base`), numeric `chain_id`, `expected_genesis_hash`, HTTPS `rpc_url`, `contract_address`, `expected_code_hash` of the **deployed runtime bytecode**, `publisher_address`, `confirmations`, `gas_limit`, `max_fee_per_gas_wei`, `max_priority_fee_per_gas_wei`, and optionally `explorer_tx_url` with `{tx_hash}`. Obtain chain ID, genesis hash, deployed address/code hash, fee and finality policy from the chosen Base environment at deployment time; this handoff does not assert production values. The configured publisher must match the external key file, readable only by its owner (mode `0600`). Do not put that file in the repository.
+
+The CLI uses `cattle-rf publication queue --db <store> --event-id <id> --evm-config <json>` and `cattle-rf publication process --db <store> --publication-id <id> --evm-config <json> --evm-key-file <file>`. `reconcile` needs the config and persisted attempt, and resends only the same signed wire when evidence remains absent. A separate deployment yields a separate `network_id` target while the canonical commitment remains the same. Nonces are reserved per pinned chain ID/genesis and sender across contracts.
+
+Before any Base claim: independently confirm RPC chain/genesis, runtime code hash and constructor publisher, fund the signer, choose confirmation depth, run a small end-to-end transaction and verify the receipt/log with an independent endpoint. The current single-RPC `ASSUMED` evidence and terminal `VERIFIED` state cannot prove irreversible finality or detect a later deep reorganization. Base public on-chain status remains **UNVERIFIED**.
