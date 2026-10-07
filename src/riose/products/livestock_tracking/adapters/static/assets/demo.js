@@ -1,25 +1,22 @@
 const $ = (id) => document.getElementById(id);
+
 const pastureStories = [
   {
-    zone: 'Willow meadow',
     edges: ['the willow shade', 'the orchard edge', 'the pond-side grass', 'the old fence line', 'the meadow clearing', 'the lower gate'],
     middays: ['the pond edge', 'the shaded water point', 'the meadow trough', 'the willow trees', 'the barn-side path', 'the quiet clearing'],
     evenings: ['the barn-side yard', 'the orchard shade', 'the meadow shelter', 'the upper path', 'the willow edge', 'the pond-side grass'],
   },
   {
-    zone: 'Long grass',
     edges: ['the tall grass edge', 'the eastern tree line', 'the open meadow', 'the north gate', 'the long-grass clearing', 'the path to the shed'],
     middays: ['the eastern water point', 'the shaded trough', 'the old oak', 'the meadow path', 'the field shed', 'the open clearing'],
     evenings: ['the long-grass shelter', 'the eastern tree line', 'the barn-side yard', 'the north gate', 'the meadow path', 'the shaded edge'],
   },
   {
-    zone: 'South meadow',
     edges: ['the southern tree line', 'the open meadow', 'the south gate', 'the orchard edge', 'the long-grass patch', 'the lower path'],
     middays: ['the southern trough', 'the willow edge', 'the shaded water point', 'the meadow path', 'the lower gate', 'the quiet clearing'],
     evenings: ['the southern shelter', 'the barn-side path', 'the tree line', 'the south gate', 'the meadow clearing', 'the shaded edge'],
   },
   {
-    zone: 'Creek paddock',
     edges: ['the creek-side grass', 'the eastern fence', 'the willow bend', 'the south gate', 'the open paddock', 'the field shed'],
     middays: ['the creek water point', 'the shaded trough', 'the lower pasture path', 'the willow edge', 'the shed yard', 'the grass clearing'],
     evenings: ['the creek-side shelter', 'the barn-side path', 'the shaded bend', 'the eastern fence', 'the lower gate', 'the willow edge'],
@@ -34,28 +31,34 @@ function profileFor(index) {
     index,
     animal_id: `demo-animal-${index}`,
     hardware_id: `demo-tag-${String(index).padStart(4, '0')}`,
+    tagLabel: `Tag #${String(index).padStart(4, '0')}`,
     name,
     image: `/assets/demo/animal-${index % 4}.webp`,
+    journeySource: 'illustrative',
     journey: [
-      { moment: 'Morning', story: `Starts near ${pasture.edges[route]}, then moves into the open pasture to graze.` },
-      { moment: 'Midday', story: `Walks to ${pasture.middays[route]}, pauses for water, then returns to the herd.` },
-      { moment: 'Evening', story: `Follows the group toward ${pasture.evenings[route]} as the day winds down.` },
+      { moment: 'Morning', story: `Grazes near ${pasture.edges[route]}.` },
+      { moment: 'Midday', story: `Pauses for water at ${pasture.middays[route]}, then returns to the herd.` },
+      { moment: 'Evening', story: `Moves with the group toward ${pasture.evenings[route]}.` },
     ],
   };
 }
 
 const state = {
-  selected: profileFor(0),
+  farm: null,
+  animalCount: 24,
+  selectedSceneAnimal: null,
+  selectedProfile: null,
   animal: null,
   asset: null,
-  busy: false,
-  farm: null,
-  selectedSceneAnimal: null,
+  assetStatus: 'NO_ASSET',
+  assetStatusLoaded: false,
   assetPreviewComplete: false,
   assetPreviewRunning: false,
+  identityExpanded: false,
+  selectionGeneration: 0,
 };
-const screens = ['farm-screen', 'record-screen', 'solana-screen'];
-const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point' };
+
+const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point', REST: 'Resting' };
 
 async function requestJson(url, options) {
   const response = await fetch(url, { cache: 'no-store', ...options });
@@ -66,47 +69,16 @@ async function requestJson(url, options) {
   return response.json();
 }
 
-function setMessage(id, message, isError = false) {
+function setContextOpen(element, open) {
+  element.classList.toggle('is-open', open);
+  element.setAttribute('aria-hidden', String(!open));
+  element.inert = !open;
+}
+
+function setMessage(id, message, status) {
   const node = $(id);
   node.textContent = message;
-  node.classList.toggle('is-error', isError);
-}
-
-function showScreen(screenId) {
-  for (const id of screens) {
-    const screen = $(id);
-    screen.hidden = id !== screenId;
-    if (id === screenId) {
-      screen.classList.remove('is-entering');
-      void screen.offsetWidth;
-      screen.classList.add('is-entering');
-    }
-  }
-  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  const focusTarget = screenId === 'farm-screen'
-    ? $('farm-canvas')
-    : $(screenId === 'record-screen' ? 'record-title' : 'solana-title');
-  if (focusTarget) requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
-}
-
-function updateAnimalPanel(animal) {
-  state.selectedSceneAnimal = animal;
-  if (animal) dismissFarmHint();
-  const panel = $('farm-animal-panel');
-  if (!animal) {
-    panel.hidden = true;
-    $('selected-animal-announcement').textContent = '';
-    return;
-  }
-  panel.hidden = false;
-  $('selected-animal-name').textContent = animal.label;
-  $('selected-animal-zone').textContent = animal.zone;
-  $('selected-animal-status').textContent = statusLabels[animal.status] || 'Moving';
-  const index = Number(animal.id.replace('animal-', '')) || 0;
-  const portrait = $(`selected-animal-portrait`);
-  portrait.src = `/assets/demo/animal-${index % 4}.webp`;
-  portrait.alt = `${animal.label}, cattle portrait`;
-  $('selected-animal-announcement').textContent = `${animal.label}, ${statusLabels[animal.status] || 'Moving'}, ${animal.zone}`;
+  if (status) node.dataset.state = status;
 }
 
 function dismissFarmHint() {
@@ -126,60 +98,9 @@ function revealFarmHint() {
   window.setTimeout(() => hint.classList.remove('is-typing'), 1400);
 }
 
-function chooseAnimal(animal) {
-  if (!animal) return;
-  state.farm?.selectAnimal(animal.id);
-  updateAnimalPanel(animal);
-}
-
-function publishSceneState(animals) {
-  $('farm-canvas').dataset.animalCount = String(animals.length);
-  $('farm-canvas').dataset.movingAnimals = String(animals.filter((animal) => animal.status === 'WALK').length);
-}
-
-async function initFarm() {
-  try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-15');
-    const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
-    const animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100
-      ? requestedCount
-      : 24;
-    state.farm = mountFarmDemo($('farm-canvas'), {
-      animalCount,
-      onSelect: updateAnimalPanel,
-      onStates: publishSceneState,
-      onReady: revealFarmHint,
-    });
-  } catch (error) {
-    const fallback = document.createElement('p');
-    fallback.className = 'farm-load-error';
-    fallback.setAttribute('role', 'status');
-    fallback.textContent = 'The farm scene could not load. Refresh to try again.';
-    $('farm-stage').append(fallback);
-  }
-}
-
-async function ensureAnimal(sample) {
-  const stored = await requestJson('/api/animals');
-  const existing = stored.find((animal) => animal.animal_id === sample.animal_id || animal.hardware_id === sample.hardware_id);
-  if (existing) return requestJson(`/api/animals/${encodeURIComponent(existing.animal_id)}`);
-  try {
-    return await requestJson('/api/animals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ animal_id: sample.animal_id, hardware_id: sample.hardware_id, name: sample.name }),
-    });
-  } catch (error) {
-    const afterConflict = await requestJson('/api/animals');
-    const created = afterConflict.find((animal) => animal.animal_id === sample.animal_id || animal.hardware_id === sample.hardware_id);
-    if (!created) throw error;
-    return requestJson(`/api/animals/${encodeURIComponent(created.animal_id)}`);
-  }
-}
-
-function renderJourney(sample) {
+function renderJourney(profile) {
   const list = $('journey-list');
-  list.replaceChildren(...sample.journey.map(({ moment, story }) => {
+  list.replaceChildren(...profile.journey.map(({ moment, story }) => {
     const item = document.createElement('li');
     item.className = 'journey-beat';
     const label = document.createElement('span');
@@ -193,83 +114,191 @@ function renderJourney(sample) {
   }));
 }
 
-function renderProfile(sample) {
-  $('continue-solana').disabled = true;
-  $('record-title').textContent = sample.name;
-  $('record-portrait').src = sample.image;
-  $('record-portrait').alt = `${sample.name}, cattle portrait`;
-  renderJourney(sample);
-  $('asset-animal-name').textContent = sample.name;
-  $('asset-preview-public-name').textContent = sample.name;
-  $('asset-preview-portrait').src = sample.image;
-  $('asset-preview-portrait').alt = '';
+function renderAnimalChooser(count) {
+  const options = $('animal-access-options');
+  options.replaceChildren(...Array.from({ length: count }, (_, index) => {
+    const item = document.createElement('div');
+    item.setAttribute('role', 'listitem');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'animal-access-option';
+    button.textContent = `Animal ${index}`;
+    button.addEventListener('click', () => {
+      $('animal-access-list').open = false;
+      state.farm?.selectAnimal(`animal-${index}`);
+    });
+    item.append(button);
+    return item;
+  }));
+}
+
+function updateAnimalChooserSelection(id) {
+  for (const button of $('animal-access-options').querySelectorAll('button')) {
+    const selected = button.textContent === (id ? `Animal ${id.slice('animal-'.length)}` : '');
+    button.setAttribute('aria-pressed', String(selected));
+  }
+}
+
+function resetIdentityCard(profile) {
+  state.asset = null;
+  state.assetStatus = 'NO_ASSET';
+  state.assetStatusLoaded = false;
+  state.assetPreviewComplete = false;
+  state.assetPreviewRunning = false;
+  $('asset-preview-public-name').textContent = profile.name;
+  $('asset-preview-portrait').src = profile.image;
   $('asset-preview-card').hidden = true;
   $('asset-preview-card').classList.remove('is-revealed');
   $('asset-preview-status').hidden = true;
   $('asset-preview-status').textContent = '';
   $('asset-preview-action').hidden = false;
   $('asset-preview-action').disabled = false;
-  $('asset-preview-action').textContent = 'Preview the flow';
+  $('asset-preview-action').textContent = 'Preview asset';
   $('asset-action').hidden = true;
-  state.assetPreviewComplete = false;
-  state.assetPreviewRunning = false;
-  $('record-verification').textContent = 'Checking record…';
-  $('record-verification').classList.remove('is-verified', 'is-error');
-  $('record-verification').classList.add('is-pending');
+  $('asset-action').disabled = false;
+  $('asset-explorer').hidden = true;
+  setMessage('asset-state', 'Digital identity not created.', 'no-asset');
+  $('continue-solana').textContent = 'Create digital identity';
+  const arrow = document.createElement('span');
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.textContent = '↗';
+  $('continue-solana').append(arrow);
+}
+
+function resetRecordState(profile) {
+  $('record-title').textContent = profile.name;
+  $('selected-animal-tag').textContent = profile.tagLabel;
+  $('record-portrait').src = profile.image;
+  $('record-portrait').alt = `${profile.name}, cattle portrait`;
+  renderJourney(profile);
+  setMessage('record-verification', 'Checking record integrity…', 'pending');
   $('api-state').hidden = true;
 }
 
-function renderAnimal(animal, sample) {
-  state.animal = animal;
-  $('continue-solana').disabled = false;
-  $('asset-animal-name').textContent = sample.name;
+function clearAnimalSelection() {
+  state.selectionGeneration += 1;
+  state.selectedSceneAnimal = null;
+  state.selectedProfile = null;
+  state.animal = null;
+  state.asset = null;
+  state.identityExpanded = false;
+  updateAnimalChooserSelection(null);
+  setContextOpen($('record-screen'), false);
+  setContextOpen($('solana-screen'), false);
+  $('product-stage').classList.remove('has-selection');
+  $('context-rail').setAttribute('aria-hidden', 'true');
+  $('context-rail').inert = true;
+  $('selected-animal-announcement').textContent = '';
 }
 
-async function verifyRecord(animalId) {
-  const status = $('record-verification');
-  status.textContent = 'Checking record…';
-  status.classList.remove('is-verified', 'is-error');
-  status.classList.add('is-pending');
+function selectAnimal(animal) {
+  if (!animal) {
+    clearAnimalSelection();
+    return;
+  }
+
+  const index = Number(animal.id.replace('animal-', '')) || 0;
+  const profile = profileFor(index);
+  const requestId = ++state.selectionGeneration;
+  const keepIdentityOpen = state.identityExpanded;
+  state.selectedSceneAnimal = animal;
+  state.selectedProfile = profile;
+  state.animal = null;
+  state.identityExpanded = keepIdentityOpen;
+  dismissFarmHint();
+  updateAnimalChooserSelection(animal.id);
+  $('product-stage').classList.add('has-selection');
+  $('context-rail').setAttribute('aria-hidden', 'false');
+  $('context-rail').inert = false;
+  setContextOpen($('record-screen'), true);
+  setContextOpen($('solana-screen'), keepIdentityOpen);
+  $('selected-animal-status').textContent = statusLabels[animal.status] || 'Resting';
+  $('selected-animal-zone').textContent = animal.zone;
+  resetRecordState(profile);
+  resetIdentityCard(profile);
+  if (keepIdentityOpen) setContextOpen($('solana-screen'), true);
+  $('selected-animal-announcement').textContent = `${animal.label}, ${statusLabels[animal.status] || 'Resting'}, ${animal.zone}`;
+  void loadSelectedAnimal(animal, profile, requestId);
+}
+
+function publishSceneState(animals) {
+  $('farm-canvas').dataset.animalCount = String(animals.length);
+  $('farm-canvas').dataset.movingAnimals = String(animals.filter((animal) => animal.status === 'WALK').length);
+}
+
+async function initFarm() {
   try {
-    const verification = await requestJson(`/api/animals/${encodeURIComponent(animalId)}/events/verify`);
-    if (verification.valid !== true || verification.evidence !== 'LOCAL_HASH_CHAIN') {
-      throw new Error('The local event history did not verify.');
-    }
-    status.textContent = 'Record integrity verified';
-    status.classList.remove('is-pending');
-    status.classList.add('is-verified');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-16');
+    const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
+    state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
+    renderAnimalChooser(state.animalCount);
+    state.farm = mountFarmDemo($('farm-canvas'), {
+      animalCount: state.animalCount,
+      onSelect: selectAnimal,
+      onStates: publishSceneState,
+      onReady: revealFarmHint,
+    });
   } catch (error) {
-    status.textContent = 'Couldn’t verify record';
-    status.classList.remove('is-pending');
-    status.classList.add('is-error');
+    const fallback = document.createElement('p');
+    fallback.className = 'farm-load-error';
+    fallback.setAttribute('role', 'status');
+    fallback.textContent = 'The farm scene could not load. Refresh to try again.';
+    $('farm-stage').append(fallback);
   }
 }
 
-async function openAnimalRecord() {
-  if (state.busy) return;
-  const sceneAnimal = state.selectedSceneAnimal;
-  if (!sceneAnimal) return;
-  const index = Number(sceneAnimal.id.slice('animal-'.length));
-  const sample = profileFor(index);
-  state.selected = sample;
-  state.animal = null;
-  state.asset = null;
-  renderProfile(sample);
-  showScreen('record-screen');
-  state.busy = true;
+async function ensureAnimal(profile) {
+  const stored = await requestJson('/api/animals');
+  const existing = stored.find((animal) => animal.animal_id === profile.animal_id || animal.hardware_id === profile.hardware_id);
+  if (existing) return requestJson(`/api/animals/${encodeURIComponent(existing.animal_id)}`);
   try {
-    const animal = await ensureAnimal(sample);
-    renderAnimal(animal, sample);
-    await verifyRecord(animal.animal_id);
+    return await requestJson('/api/animals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ animal_id: profile.animal_id, hardware_id: profile.hardware_id, name: profile.name }),
+    });
   } catch (error) {
-    $('record-verification').textContent = 'Record unavailable';
-    $('record-verification').classList.remove('is-pending');
-    $('record-verification').classList.add('is-error');
-    $('continue-solana').disabled = true;
-    setMessage('api-state', 'Couldn’t load this record. Try again.', true);
+    const afterConflict = await requestJson('/api/animals');
+    const created = afterConflict.find((animal) => animal.animal_id === profile.animal_id || animal.hardware_id === profile.hardware_id);
+    if (!created) throw error;
+    return requestJson(`/api/animals/${encodeURIComponent(created.animal_id)}`);
+  }
+}
+
+async function verifyRecord(animalId, requestId) {
+  try {
+    const verification = await requestJson(`/api/animals/${encodeURIComponent(animalId)}/events/verify`);
+    if (requestId !== state.selectionGeneration) return;
+    if (verification.valid !== true || verification.evidence !== 'LOCAL_HASH_CHAIN') {
+      throw new Error('The local record did not verify.');
+    }
+    setMessage('record-verification', 'Record integrity verified', 'verified');
+  } catch (error) {
+    if (requestId !== state.selectionGeneration) return;
+    setMessage('record-verification', 'Record integrity unavailable', 'error');
+    $('api-state').textContent = 'The local animal record could not be verified.';
     $('api-state').hidden = false;
-  } finally {
-    state.busy = false;
+  }
+}
+
+async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
+  try {
+    const animal = await ensureAnimal(profile);
+    if (requestId !== state.selectionGeneration) return;
+    state.animal = animal;
+    await verifyRecord(animal.animal_id, requestId);
+    if (requestId !== state.selectionGeneration) return;
+    if (state.identityExpanded) await refreshAsset(requestId);
+  } catch (error) {
+    if (requestId !== state.selectionGeneration) return;
+    setMessage('record-verification', 'Record integrity unavailable', 'error');
+    $('api-state').textContent = 'Animal record unavailable. The farm remains available.';
+    $('api-state').hidden = false;
+    if (state.identityExpanded) {
+      state.assetStatus = 'ERROR';
+      state.assetStatusLoaded = true;
+      setMessage('asset-state', 'Connect to the local record before creating an asset.', 'error');
+    }
   }
 }
 
@@ -277,45 +306,69 @@ function tokenizationModule() {
   return import('/assets/animal-tokenization.bundle.js?v=20261007-13');
 }
 
-function setAssetButton(label, disabled = false, hidden = false) {
+function setAssetButton(label, { disabled = false, hidden = false } = {}) {
   const button = $('asset-action');
   button.textContent = label;
   button.disabled = disabled;
   button.hidden = hidden;
 }
 
-async function refreshAsset() {
-  const explorer = $('asset-explorer');
-  explorer.hidden = true;
+function updateIdentityToggle(confirmed = false) {
+  const button = $('continue-solana');
+  button.replaceChildren(document.createTextNode(confirmed ? 'View digital identity' : 'Create digital identity'));
+  const arrow = document.createElement('span');
+  arrow.setAttribute('aria-hidden', 'true');
+  arrow.textContent = '↗';
+  button.append(arrow);
+}
+
+async function refreshAsset(requestId = state.selectionGeneration) {
+  $('asset-explorer').hidden = true;
   if (!state.animal) {
-    setAssetButton('Asset creation unavailable', true);
-    setMessage('asset-state', 'The local RIOSE record is unavailable. Reconnect the API before creating an asset.', true);
+    state.assetStatus = 'ERROR';
+    state.assetStatusLoaded = true;
+    setMessage('asset-state', 'Animal record unavailable. Try again when connected.', 'error');
+    setAssetButton('Retry Devnet check', { hidden: !state.assetPreviewComplete });
     return;
   }
-  setAssetButton('Checking Devnet status…', true);
-  setMessage('asset-state', 'Checking the animal asset registry and Solana Devnet.');
+
+  state.assetStatusLoaded = false;
+  setMessage('asset-state', 'Checking Solana Devnet…', 'checking');
+  setAssetButton('Checking Devnet…', { disabled: true, hidden: !state.assetPreviewComplete });
   try {
     const module = await tokenizationModule();
     const asset = await module.getAnimalAsset(state.animal.animal_id);
+    if (requestId !== state.selectionGeneration) return;
     state.asset = asset;
+    state.assetStatusLoaded = true;
     if (asset.valid && asset.asset_address) {
-      setAssetButton('Asset verified on Devnet', true);
-      setMessage('asset-state', 'The asset address, owner, metadata URI, and transaction were verified against Devnet.');
+      state.assetStatus = 'CONFIRMED';
+      setMessage('asset-state', 'Verified on Solana Devnet.', 'confirmed');
+      setAssetButton('Asset verified', { disabled: true, hidden: true });
+      const explorer = $('asset-explorer');
       explorer.href = module.assetExplorerUrl(asset.asset_address);
       explorer.hidden = false;
+      updateIdentityToggle(true);
       return;
     }
+
     const status = asset.evidence || asset.status || 'UNREGISTERED';
     if (status === 'UNREGISTERED' || status === 'PREPARED') {
-      setAssetButton('Create on Devnet', false, !state.assetPreviewComplete);
-      setMessage('asset-state', 'A wallet signature is required for real creation.');
+      state.assetStatus = state.assetPreviewComplete ? 'SIGNATURE_REQUIRED' : 'NO_ASSET';
+      setMessage('asset-state', state.assetPreviewComplete ? 'A wallet signature is required to create this identity.' : 'Digital identity not created.', state.assetStatus === 'SIGNATURE_REQUIRED' ? 'signature-required' : 'no-asset');
+      setAssetButton('Create asset', { hidden: !state.assetPreviewComplete });
+      updateIdentityToggle(false);
     } else {
-      setAssetButton('Check asset status on Devnet', false, false);
-      setMessage('asset-state', `The asset is not verified yet (${status}). A submitted transaction is not shown as confirmed.`);
+      state.assetStatus = 'SUBMITTING';
+      setMessage('asset-state', 'A submitted transaction is still awaiting verification.', 'submitting');
+      setAssetButton('Check status again', { hidden: !state.assetPreviewComplete });
     }
   } catch (error) {
-    setAssetButton('Retry Devnet check', false, false);
-    setMessage('asset-state', `Devnet status could not be checked: ${error.message}`, true);
+    if (requestId !== state.selectionGeneration) return;
+    state.assetStatus = 'ERROR';
+    state.assetStatusLoaded = true;
+    setMessage('asset-state', `Devnet status unavailable: ${error.message}`, 'error');
+    setAssetButton('Retry Devnet check', { hidden: !state.assetPreviewComplete });
   }
 }
 
@@ -323,10 +376,12 @@ function waitForPreviewBeat(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function previewAssetFlow() {
-  if (state.assetPreviewRunning || !state.selected) return;
+async function previewAsset() {
+  if (state.assetPreviewRunning || !state.selectedProfile) return;
+  const requestId = state.selectionGeneration;
   state.assetPreviewRunning = true;
   state.assetPreviewComplete = false;
+  state.assetStatus = 'PREVIEW';
   const button = $('asset-preview-action');
   const card = $('asset-preview-card');
   const status = $('asset-preview-status');
@@ -338,64 +393,73 @@ async function previewAssetFlow() {
   void card.offsetWidth;
   card.classList.add('is-revealed');
   status.hidden = false;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const beat = reducedMotion ? 0 : 520;
-  status.textContent = 'Showing the public asset name';
+  const beat = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 480;
+  status.textContent = 'Showing the public identity';
   await waitForPreviewBeat(beat);
-  status.textContent = 'Reviewing minimal public metadata';
+  if (requestId !== state.selectionGeneration) return;
+  status.textContent = 'Keeping farm data private';
   await waitForPreviewBeat(beat);
+  if (requestId !== state.selectionGeneration) return;
   status.textContent = 'Preview complete · not created';
   state.assetPreviewComplete = true;
   state.assetPreviewRunning = false;
   button.disabled = false;
   button.textContent = 'Replay preview';
-  const assetStatus = state.asset?.evidence || state.asset?.status || 'UNREGISTERED';
-  if (state.asset?.valid) {
-    setAssetButton('Asset verified on Devnet', true, false);
-  } else if (assetStatus === 'UNREGISTERED' || assetStatus === 'PREPARED') {
-    setAssetButton('Create on Devnet', false, false);
-  } else {
-    setAssetButton('Check asset status on Devnet', false, false);
+  if (state.assetStatusLoaded && state.assetStatus !== 'ERROR' && state.assetStatus !== 'SUBMITTING') {
+    if (state.assetStatus !== 'CONFIRMED') {
+      state.assetStatus = 'SIGNATURE_REQUIRED';
+      setMessage('asset-state', 'A wallet signature is required to create this identity.', 'signature-required');
+      setAssetButton('Create asset');
+    }
+  } else if (!state.assetStatusLoaded) {
+    void refreshAsset(requestId);
   }
 }
 
 async function performAssetAction() {
-  if (!state.animal) return;
-  const button = $('asset-action');
-  button.disabled = true;
-  setAssetButton('Waiting for wallet approval…', true, false);
-  setMessage('asset-state', 'The asset will appear as confirmed only after Devnet verification.');
+  if (!state.animal || !state.assetPreviewComplete || state.assetStatus !== 'SIGNATURE_REQUIRED') return;
+  const requestId = state.selectionGeneration;
+  state.assetStatus = 'SUBMITTING';
+  setAssetButton('Waiting for wallet…', { disabled: true });
+  setMessage('asset-state', 'The identity is confirmed only after Devnet verification.', 'submitting');
   try {
     const module = await tokenizationModule();
     const result = await module.mintAnimalAsset(state.animal.animal_id);
+    if (requestId !== state.selectionGeneration) return;
     if (!result.valid || result.evidence !== 'VALIDATED_ON_DEVNET') {
       throw new Error(`The asset is not verified (${result.evidence || result.status || 'unknown state'}).`);
     }
-    await refreshAsset();
+    await refreshAsset(requestId);
   } catch (error) {
-    setMessage('asset-state', `No verified mint was recorded: ${error.message}`, true);
-    setAssetButton('Retry or check asset status', false, false);
+    if (requestId !== state.selectionGeneration) return;
+    state.assetStatus = 'ERROR';
+    state.assetStatusLoaded = true;
+    setMessage('asset-state', `Creation not confirmed: ${error.message}`, 'error');
+    setAssetButton('Retry Devnet check');
   }
 }
 
-$('close-animal-panel').addEventListener('click', () => state.farm?.selectAnimal(null));
-$('open-animal-record').addEventListener('click', () => void openAnimalRecord());
-$('back-to-herd').addEventListener('click', () => showScreen('farm-screen'));
-$('back-to-record').addEventListener('click', () => showScreen('record-screen'));
-$('continue-solana').addEventListener('click', () => {
-  showScreen('solana-screen');
+function toggleDigitalIdentity() {
+  state.identityExpanded = !state.identityExpanded;
+  $('continue-solana').setAttribute('aria-expanded', String(state.identityExpanded));
+  setContextOpen($('solana-screen'), state.identityExpanded);
+  if (!state.identityExpanded) return;
+  if (state.assetStatusLoaded) return;
   void refreshAsset();
-});
-$('asset-preview-action').addEventListener('click', () => void previewAssetFlow());
+}
+
+$('close-animal-panel').addEventListener('click', () => state.farm?.selectAnimal(null));
+$('continue-solana').addEventListener('click', toggleDigitalIdentity);
+$('asset-preview-action').addEventListener('click', () => void previewAsset());
 $('asset-action').addEventListener('click', () => {
-  if (state.asset?.valid) return;
-  const status = state.asset?.evidence || state.asset?.status || 'UNREGISTERED';
-  if (!state.assetPreviewComplete && ['UNREGISTERED', 'PREPARED'].includes(status)) return;
-  if (!state.asset || (state.asset.status && state.asset.status !== 'UNREGISTERED' && state.asset.status !== 'PREPARED')) {
-    void refreshAsset();
-    return;
-  }
-  void performAssetAction();
+  if (state.assetStatus === 'SIGNATURE_REQUIRED' && state.assetPreviewComplete) void performAssetAction();
+  else void refreshAsset();
+});
+
+document.addEventListener('pointerdown', (event) => {
+  if (!state.selectedSceneAnimal || !(event.target instanceof Element)) return;
+  if (event.target.closest('#farm-canvas, #context-rail, #animal-access-list, #demo-header')) return;
+  state.farm?.selectAnimal(null);
 });
 
 window.addEventListener('scroll', () => {
