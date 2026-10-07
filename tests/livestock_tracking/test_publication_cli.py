@@ -37,6 +37,44 @@ def test_publication_cli_does_not_select_or_use_a_network_by_default():
     assert exc.value.code == 0
 
 
+def test_process_command_uses_generic_dispatcher(tmp_path, monkeypatch, capsys):
+    db = tmp_path / "process.sqlite3"
+    store = Store(db)
+    store.create_animal("cow-process", "tag-process", "crypto-process")
+    event = store.append_animal_event("cow-process", "WEIGHT_RECORDED", {"weight": 400}, 3)
+    request = SQLitePublicationOutbox(store).enqueue_event(
+        event.event_id, destination="solana-memo",
+        network="solana-devnet-GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+    )
+    store.close()
+
+    from riose.products.livestock_tracking.adapters import solana_memo
+    from riose.products.livestock_tracking.application import publication_dispatcher
+
+    class FakeClient:
+        def __init__(self, config):
+            self.config = config
+
+    calls = []
+
+    def fake_process(self, publication_id):
+        calls.append(publication_id)
+        return self.outbox.get(publication_id)
+
+    monkeypatch.setattr(solana_memo, "SolanaMemoClient", FakeClient)
+    monkeypatch.setattr(solana_memo, "load_keypair", lambda _path: object())
+    monkeypatch.setattr(publication_dispatcher.PublicationDispatcher, "process", fake_process)
+    assert main([
+        "publication", "process", "--db", str(db),
+        "--publication-id", request["publication_id"],
+        "--rpc-url", "https://rpc.example",
+        "--expected-genesis-hash", "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+        "--keypair", str(tmp_path / "key.json"),
+    ]) == 3
+    assert calls == [request["publication_id"]]
+    assert json.loads(capsys.readouterr().out)["status"] == "QUEUED"
+
+
 def test_unknown_send_recovers_by_same_signature_without_duplicate_submission(tmp_path, monkeypatch, capsys):
     db = tmp_path / "recover.sqlite3"
     store = Store(db)
@@ -54,8 +92,13 @@ def test_unknown_send_recovers_by_same_signature_without_duplicate_submission(tm
         signatures = []
         observed = None
 
+        evidence_status = "ASSUMED"
+
         def __init__(self, config):
             self.config = config
+
+        def ensure_expected_cluster(self):
+            return None
 
         def prepare(self, envelope, keypair):
             return b"signed-wire", "1" * 64, 500
@@ -71,12 +114,13 @@ def test_unknown_send_recovers_by_same_signature_without_duplicate_submission(tm
     from riose.products.livestock_tracking.adapters import solana_memo
     monkeypatch.setattr(solana_memo, "SolanaMemoClient", FakeClient)
     monkeypatch.setattr(solana_memo, "load_keypair", lambda _path: object())
+    monkeypatch.setattr(solana_memo.SolanaMemoAdapter, "validate_prepared", lambda *_args: None)
     common = ["--db", str(db), "--publication-id", request["publication_id"],
               "--rpc-url", "https://rpc.example", "--expected-genesis-hash",
               "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC"]
     assert main(["publication", "send", *common, "--keypair", str(tmp_path / "key.json")]) == 3
     output = json.loads(capsys.readouterr().out)
-    assert output["status"] == "UNKNOWN"
+    assert output["status"] == "RPC_ACCEPTED"
     assert FakeClient.submits == 1
 
     FakeClient.observed = True
@@ -84,13 +128,13 @@ def test_unknown_send_recovers_by_same_signature_without_duplicate_submission(tm
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "VERIFIED"
     assert FakeClient.submits == 1
-    assert FakeClient.signatures == ["1" * 64, "1" * 64]
+    assert FakeClient.signatures == ["1" * 64, "1" * 64, "1" * 64]
 
     reopened = Store(db)
     outbox = SQLitePublicationOutbox(reopened)
     attempts = reopened.connection.execute("SELECT COUNT(*) FROM publication_attempts").fetchone()[0]
     assert attempts == 1
-    assert outbox.latest_attempt(request["publication_id"])["signature"] == "1" * 64
+    assert outbox.latest_attempt(request["publication_id"])["transaction_id"] == "1" * 64
     assert PublicationState(outbox.get(request["publication_id"])["status"]) is PublicationState.VERIFIED
     reopened.close()
 
@@ -107,8 +151,13 @@ def test_reconcile_completes_confirmed_request_after_crash_before_verified(tmp_p
     store.close()
 
     class FakeClient:
+        evidence_status = "ASSUMED"
+
         def __init__(self, config):
             self.config = config
+
+        def ensure_expected_cluster(self):
+            return None
 
         def prepare(self, envelope, keypair):
             return b"signed-wire", "1" * 64, 500
@@ -123,6 +172,7 @@ def test_reconcile_completes_confirmed_request_after_crash_before_verified(tmp_p
     from riose.products.livestock_tracking.adapters.persistence import publication_outbox
     monkeypatch.setattr(solana_memo, "SolanaMemoClient", FakeClient)
     monkeypatch.setattr(solana_memo, "load_keypair", lambda _path: object())
+    monkeypatch.setattr(solana_memo.SolanaMemoAdapter, "validate_prepared", lambda *_args: None)
     original_record = publication_outbox.SQLitePublicationOutbox.record_observation
     def crash_before_verified(self, publication_id, attempt_id, *, state, **kwargs):
         if state is PublicationState.VERIFIED:
@@ -163,7 +213,7 @@ def test_public_status_does_not_promote_assumed_or_unknown_receipts_to_validated
         def verify_local_binding(self, _publication_id):
             return True
 
-    request = {"publication_id":"pub-1", "event_id":1, "destination":"solana-memo",
+    request = {"publication_id":"pub-1", "event_id":1, "chain":"solana", "destination":"solana-memo",
                "network":"devnet", "commitment":"digest", "status":"VERIFIED"}
     assumed = _public_status(request, Receipts("ASSUMED"))["verification"]
     unknown = _public_status(request, Receipts("UNKNOWN"))["verification"]
