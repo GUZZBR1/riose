@@ -56,17 +56,17 @@ Statuses start as `UNVERIFIED`; evidence will be added below. Obligations are tr
 | DOD-07 | If external infrastructure prevents real deployment, classify `EXTERNAL_BLOCKER`; otherwise on-chain claim stays `UNVERIFIED` | Error evidence and explicit report disposition | EXTERNAL_BLOCKER — signer, publisher, and funded balance unavailable |
 | DOD-08 | Exercise timeout before/after submit, missing receipt, restart, duplicate dispatch, nonce concurrency, and reverted transaction under Base config | Shared EVM adapter fault tests plus Base identity/chain binding test | COVERED; Base adds no separate recovery path |
 | DOD-09 | Preserve M3 finality limitation; do not change dispatcher to claim `CONFIRMED -> VERIFIED` | Diff review and claim audit | COVERED |
-| DOD-10 | Run focused Base tests, EVM Core, contract/Solidity, Solana, persistence, full Python, clean detached checkout, build/package/dependency checks | Exact commands/results at final HEAD | UNVERIFIED |
+| DOD-10 | Run focused Base tests, EVM Core, contract/Solidity, Solana, persistence, full Python, clean detached checkout, build/package/dependency checks | Exact commands/results at candidate code HEAD `1fc1193861ee50d16fc9c4a4308b6be1c21bb25b` | COVERED |
 | DOD-11 | Independent red-team review attempts all mission-listed attacks; fix recoverable findings | Independent review and disposition evidence | COVERED — no bypass; finality, single-RPC, and shared-SQLite nonce scope documented |
-| DOD-12 | Compare final candidate with M3 and report all cross-branch findings and remaining gaps | Baseline comparison and final report | UNVERIFIED |
+| DOD-12 | Compare final candidate with M3 and report all cross-branch findings and remaining gaps | Baseline comparison and final report | COVERED — no shared-code changes or new cross-branch finding |
 
 ## Checkpoints
 
 - **C0 — baseline and DoD:** completed before implementation.
 - **C1 — implementation/configuration:** complete; verified Base Sepolia identity and a focused test through the shared config/adapter; no deployment config can be completed without deployment-bound values.
-- **C2 — local and regression validation:** pending.
-- **C3 — red-team and clean-checkout verification:** pending.
-- **C4 — final M3 comparison and report:** pending.
+- **C2 — local and regression validation:** complete; focused Base/EVM test 10 passed, local EVM/contract integration 1 passed, livestock tracking (excluding the separately run local EVM integration) 249 passed, full suite 815 passed / 7 skipped, `uv lock --check --offline`, `uv pip check`, offline sdist/wheel build, and contract dependency resolution passed.
+- **C3 — red-team and clean-checkout verification:** complete; independent read-only red team found no actionable bypass; detached checkout at `1fc1193861ee50d16fc9c4a4308b6be1c21bb25b` passed the full suite and was clean after test dependencies were removed.
+- **C4 — final M3 comparison and report:** complete; the candidate adds only this DoD/evidence report and Base Sepolia identity test. EVM Core, dispatcher, persistence, contract, and Solana production code remain unchanged from M3.
 
 ## Evidence ledger
 
@@ -76,6 +76,9 @@ Statuses start as `UNVERIFIED`; evidence will be added below. Obligations are tr
 | Base Sepolia genesis hash | Two independent RPC responses; official RPC prunes block 0 | CURRENT | OBSERVED | DOD-03, DOD-05 |
 | M3 software/handoff | Approved base source and M3 report | CURRENT at baseline SHA | VERIFIED | DOD-01, DOD-02, DOD-09 |
 | Signer and funded balance | No configured key file path/address; not checkable without a safe signer | CURRENT | UNKNOWN | DOD-05 through DOD-07 |
+| Focused Base identity/config test | `tests/livestock_tracking/test_evm_registry.py` | CURRENT at candidate code HEAD | VERIFIED | DOD-03, DOD-08 |
+| EVM Core, Solana, persistence, contract and full suite | Detached checkout at candidate code HEAD; `815 passed, 7 skipped` | CURRENT | VERIFIED | DOD-08, DOD-10 |
+| Package and dependencies | `uv lock --check --offline`, `uv pip check`, `uv build --offline`, locked npm tree | CURRENT | VERIFIED | DOD-10 |
 
 ## Independent red-team disposition
 
@@ -86,4 +89,50 @@ The independent read-only review found no new actionable bypass in the requested
 - Operation: first full Python suite on the candidate.
 - Failure: `tests/simulation_lab/test_runner.py::test_process_failure_output_timeout_and_malformed_response_are_structured` expected `output exceeded`; the child process instead hit the test's 0.2-second timeout while writing 3 MB.
 - Diagnosis: timing-sensitive test/environment behavior; unrelated code was unchanged. The entire parameterized test passed in isolation (5 passed), so no source or expectation was altered.
-- Resolution check: final full suite in the clean detached checkout is required before completion.
+- Resolution: isolated parameterized rerun passed (5 passed), and the full suite then passed in the clean detached checkout (815 passed, 7 skipped). No source or test expectation was changed.
+
+## Final report
+
+reported_status: `PASS_LOCAL_EVM_WITH_LIMITATION`
+governed_candidate_status: `EXTERNAL_BLOCKER` for real Base Sepolia validation; local software candidate passes the in-scope checks.
+
+base_sha: `60bbb7f29bc98cf5c69caf798276929c859c8d2f`
+final_head_at_evidence_run: `1fc1193861ee50d16fc9c4a4308b6be1c21bb25b`
+branch: `multichain/mvp4-base`
+commits_created: 2 local commits (candidate checkpoint and evidence report update); no push/PR/merge.
+
+base_network_config: verified network identity recorded above; no deployable JSON because address/code hash/publisher/fees/confirmation depth are deployment-bound.
+chain_id: `84532`
+evm_adapter_reused: YES
+contract_source_reused: YES, unchanged
+base_specific_code_created: NO; shared config/adapter is sufficient. Added a focused Base identity test.
+
+base_sepolia_attempted: NO; no signer file path is configured, so publisher and funded test balance cannot safely be established.
+contract_deployment: NOT ATTEMPTED
+contract_address: NONE
+publication_transaction: NONE
+receipt: NONE
+block: NONE
+event_log: NONE
+commitment_match: local canonical bytes32 path covered; no real on-chain match
+independent_verification: no transaction to verify
+
+focused_tests: Base config/adapter identity and wrong-chain/genesis/code checks: 10 passed; local registry deployment/dispatch/revert/recovery: 1 passed
+evm_regression: PASSED
+solana_regression: PASSED in full suite
+full_tests: 815 passed, 7 skipped, 1 pre-existing Starlette/httpx deprecation warning
+clean_checkout: PASSED at `1fc1193861ee50d16fc9c4a4308b6be1c21bb25b`; `git status --porcelain` empty after cleanup
+build_and_dependencies: uv lock check passed; 67 installed Python packages compatible; source distribution and wheel built offline; npm tree Ganache 7.9.2 / solc 0.8.37 resolved. npm reported 38 advisories in the existing local test-toolchain dependency tree (1 low, 8 moderate, 24 high, 5 critical); lockfile was not changed.
+red_team: no actionable bypass found; known finality limit and same-Store nonce coordination boundary retained
+
+cross_branch_findings: none requiring shared-code changes
+BASE_REAL_ON_CHAIN: UNVERIFIED
+external_blockers: protected signer/key file, matching publisher address, and sufficient Base Sepolia ETH are unavailable to verify
+remaining_in_scope_gaps: real deployment, publication, receipt/event reconciliation, independent explorer verification; cannot proceed without DOD-05 prerequisites
+dependency_risk: existing Ganache/solc test toolchain install reported 38 npm audit advisories; test-only tooling, not part of the Python runtime dependency set; no dependency update was attempted.
+
+push: NO
+pr: NO
+main_modified: NO
+
+FACTORY_REVIEW_READY: YES for local software candidate with external Base deployment explicitly unverified
