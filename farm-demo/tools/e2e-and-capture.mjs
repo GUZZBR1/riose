@@ -44,9 +44,12 @@ try {
   await page.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
-  assert.equal(await page.locator('#farm-canvas').getAttribute('data-moving-animals'), '0');
+  await page.waitForFunction(() => Number(document.querySelector('#farm-canvas')?.dataset.movingAnimals) > 0);
   await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
+  const initialCanvas = await page.locator('#farm-canvas canvas').evaluate((canvas) => canvas.toDataURL());
   await page.waitForTimeout(1200);
+  const movedCanvas = await page.locator('#farm-canvas canvas').evaluate((canvas) => canvas.toDataURL());
+  assert.notEqual(movedCanvas, initialCanvas, 'cattle visibly advance without pressing play');
 
   const forbidden = await page.locator('body').innerText();
   for (const label of ['Overview', 'Signals', 'Coverage', 'Track', 'SIMULATED', 'Herd overview', '24 animals']) {
@@ -166,7 +169,7 @@ try {
     `- Desktop view: 1440 × 960; mobile view: 390 × 844`,
     `- Herd stress run: 100 animals; browser animation-frame rate: ${performance.fps} fps; observed long tasks: ${performance.longTasks}`,
     `- Scene bundle: ${rawBytes.toLocaleString('en-US')} bytes; gzip: ${gzipBytes.toLocaleString('en-US')} bytes`,
-    '- Verified in-browser: transparent isometric scene with stationary cows, keyboard selection and one-time hint dismissal, photo-backed animal card, local record verification, Solana preview with no mutation plus wallet-unavailable failure without false confirmation, mobile layout, API-independent scene startup, and 100-animal rendering.',
+    '- Verified in-browser: transparent isometric scene with autonomous cattle movement, keyboard selection and one-time hint dismissal, photo-backed animal card, local record verification, Solana preview with no mutation plus wallet-unavailable failure without false confirmation, mobile layout, API-independent scene startup, and 100-animal rendering.',
     '',
   ].join('\n');
   await writeFile(resolve(output, 'README.md'), report);

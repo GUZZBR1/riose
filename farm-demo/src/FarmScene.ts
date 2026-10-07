@@ -9,7 +9,6 @@ import type { AnimalState, FarmDemoCallbacks } from './types';
 
 const MAX_ANIMALS = 100;
 const STARTING_ANIMALS = 24;
-const ANIMALS_STATIONARY = true;
 
 export class FarmScene extends Phaser.Scene {
   private readonly callbacks: FarmDemoCallbacks;
@@ -40,7 +39,7 @@ export class FarmScene extends Phaser.Scene {
     this.environment = new FarmEnvironmentLayer(this);
     this.environment.create();
     this.navigation = new FarmNavigation();
-    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, pastureForAnimal, ANIMALS_STATIONARY);
+    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, pastureForAnimal);
     this.cows = Array.from({ length: this.requestedAnimalCount }, (_, index) =>
       new CowEntity(this, index, pastureForAnimal(index), () => this.selectAnimal(`animal-${index}`), this.environment));
     this.navGraphics = this.add.graphics().setDepth(9000).setVisible(this.navigationDebug);
@@ -48,10 +47,10 @@ export class FarmScene extends Phaser.Scene {
     this.cameraController = new CameraController(this, this.reducedMotion);
     this.input.on('pointerdown', this.clearSelectionOnLandscape, this);
     this.input.keyboard?.on('keydown-ESC', () => this.selectAnimal(null));
-    this.input.keyboard?.on('keydown-LEFT', () => this.stepSelection(-1));
-    this.input.keyboard?.on('keydown-UP', () => this.stepSelection(-1));
-    this.input.keyboard?.on('keydown-RIGHT', () => this.stepSelection(1));
-    this.input.keyboard?.on('keydown-DOWN', () => this.stepSelection(1));
+    this.input.keyboard?.on('keydown-LEFT', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
+    this.input.keyboard?.on('keydown-UP', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
+    this.input.keyboard?.on('keydown-RIGHT', (event: KeyboardEvent) => this.stepSelectionFromKey(event, 1));
+    this.input.keyboard?.on('keydown-DOWN', (event: KeyboardEvent) => this.stepSelectionFromKey(event, 1));
     this.callbacks.onStates?.(this.getAnimals());
     this.ready = true;
     this.callbacks.onReady?.();
@@ -127,6 +126,12 @@ export class FarmScene extends Phaser.Scene {
     const current = this.selectedId ? Number(this.selectedId.slice('animal-'.length)) : (step > 0 ? -1 : 0);
     const next = (current + step + this.cows.length) % this.cows.length;
     this.selectAnimal(`animal-${next}`);
+  }
+
+  private stepSelectionFromKey(event: KeyboardEvent, step: number): void {
+    if (event.repeat) return;
+    event.preventDefault();
+    this.stepSelection(step);
   }
 
   private clearSelectionOnLandscape(pointer: Phaser.Input.Pointer): void {

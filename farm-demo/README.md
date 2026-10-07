@@ -31,11 +31,10 @@ npm run test:e2e
 - `src/environment/FarmEnvironmentLayer.ts`: individually positioned terrain,
   path, water, barn, fence, tree and prop sprites.
 - `src/entities/CowEntity.ts`: photo-independent pixel-art cow entities with
-  pointer selection and static, readable poses.
+  pointer selection, direction changes and a restrained walking gait.
 - `src/simulation/behavior.ts`: per-animal deterministic navigation and
-  grazing/walking/resting state machine. Locomotion is paused in the demo via
-  `ANIMALS_STATIONARY` in `FarmScene.ts`; pass `false` to the herd controller
-  to restore movement for future product work.
+  grazing/walking/resting state machine. Movement starts automatically and
+  reduced-motion preferences keep animal positions still.
 - `src/simulation/farm-layout.ts`: handcrafted meadow routes and clustered
   starting positions.
 - `src/camera/CameraController.ts`: quiet default framing, subtle focus and
@@ -58,7 +57,6 @@ To replace a sprite, preserve its output filename or update the asset manifest
 and corresponding placements in `FarmEnvironmentLayer.ts`. Update pasture
 waypoints in `farm-layout.ts` only if a new composition changes walkable space.
 
-The diorama cows stay completely still until selected; there is no idle bob or
-walking animation. The navigation system can be exercised in tests without
-moving the animals in the product view. The detail screen still uses the existing API for animal history and its integrity check;
+The diorama cows begin grazing, resting and walking asynchronously. The detail
+screen still uses the existing API for animal history and its integrity check;
 an optional asset creation requires wallet approval and Devnet verification.

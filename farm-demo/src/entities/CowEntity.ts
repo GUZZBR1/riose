@@ -13,6 +13,9 @@ export class CowEntity {
   private readonly pasture: PastureZone;
   private snapshot: BehaviorSnapshot;
   private hovered = false;
+  private walkPhase = 0;
+  private lastX: number;
+  private lastY: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -23,6 +26,8 @@ export class CowEntity {
   ) {
     this.pasture = pasture;
     this.snapshot = { status: 'GRAZE', ...pasture.waypoints[0], heading: 0, target: null, path: [] };
+    this.lastX = this.snapshot.x;
+    this.lastY = this.snapshot.y;
     this.sprite = scene.add.image(this.snapshot.x, this.snapshot.y, environment.getCowTexture(index))
       .setDisplaySize(COW_WIDTH, COW_HEIGHT)
       .setOrigin(0.5, 0.82)
@@ -41,10 +46,18 @@ export class CowEntity {
       .setVisible(false);
   }
 
-  update(snapshot: BehaviorSnapshot, _deltaMs: number, _reducedMotion: boolean): void {
+  update(snapshot: BehaviorSnapshot, _deltaMs: number, reducedMotion: boolean): void {
+    const distanceMoved = Math.hypot(snapshot.x - this.lastX, snapshot.y - this.lastY);
+    this.lastX = snapshot.x;
+    this.lastY = snapshot.y;
     this.snapshot = snapshot;
     const { x, y } = this.snapshot;
-    this.sprite.setPosition(x, y).setDepth(y + 2);
+    const walking = snapshot.status === 'WALK' && distanceMoved > 0.005 && !reducedMotion;
+    if (walking) this.walkPhase += distanceMoved * (Math.PI * 2 / 23);
+    const gaitLift = walking ? Math.abs(Math.sin(this.walkPhase)) * 1.15 : 0;
+    this.sprite.setPosition(x, y - gaitLift)
+      .setFlipX(Math.cos(snapshot.heading) < 0)
+      .setDepth(y + 2);
     this.selection.setPosition(x, y + 7).setDepth(y + 1);
   }
 

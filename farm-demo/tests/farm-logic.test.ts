@@ -68,16 +68,17 @@ test('reduced motion keeps animal positions fixed', () => {
   assert.deepEqual(herd.getStates(), before);
 });
 
-test('stationary demo animals retain idle and grazing states without moving', () => {
+test('the demo starts with a mixed herd and autonomous movement', () => {
   const navigation = new FarmNavigation();
-  const herd = new HerdController(24, navigation, pastureForAnimal, true);
+  const herd = new HerdController(24, navigation, pastureForAnimal);
   const before = herd.getStates();
-  assert.ok(before.every((animal) => animal.status !== 'WALK' && animal.status !== 'DRINK'));
-  for (let step = 0; step < 10 * 60 * 20; step += 1) herd.update(50, false);
+  assert.ok(before.some((animal) => animal.status === 'WALK'), 'some cows begin walking');
+  assert.ok(before.some((animal) => animal.status === 'GRAZE'), 'some cows begin grazing');
+  assert.ok(before.some((animal) => animal.status === 'REST' || animal.status === 'IDLE'), 'some cows begin resting');
+  for (let step = 0; step < 20 * 8; step += 1) herd.update(50, false);
   const after = herd.getStates();
-  assert.deepEqual(after.map(({ x, y }) => [x, y]), before.map(({ x, y }) => [x, y]));
-  assert.ok(after.some((animal) => animal.status === 'GRAZE'));
-  assert.ok(after.some((animal) => animal.status === 'REST' || animal.status === 'IDLE'));
+  assert.ok(after.some((animal, index) => Math.hypot(animal.x - before[index].x, animal.y - before[index].y) > 1),
+    'the world advances without user input');
 });
 
 for (const count of [1, 24, 100]) {
@@ -128,7 +129,7 @@ for (const count of [1, 24, 100]) {
           stillWalkFrames[index] = 0;
         }
       }
-      if (step % 20 === 0) assertMinimumSpacing(states, COW_SEPARATION_RADIUS - 1);
+      assertMinimumSpacing(states, COW_SEPARATION_RADIUS - 1);
     }
 
     assert.ok(sawWalk && sawGraze && sawRest, 'FSM exercised walk, graze and rest states');
