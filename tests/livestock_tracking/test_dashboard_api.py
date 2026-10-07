@@ -19,13 +19,15 @@ def test_dashboard_isometric_demo_and_debug_only_truth(tmp_path):
     client = TestClient(app)
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="farm-screen"' in page.text
     assert 'id="farm-canvas"' in page.text
-    assert 'id="farm-animal-panel"' in page.text
-    assert 'id="selected-animal-portrait"' in page.text
+    assert 'id="farm-canvas-02"' in page.text
+    assert 'id="context-rail"' in page.text
+    assert 'id="record-portrait"' in page.text
     assert 'id="record-title"' in page.text
     assert 'id="continue-solana"' in page.text
     assert "A day in the pasture" in page.text
+    assert "Different land. Same signal." in page.text
+    assert "Health" in page.text and "Reproductive status" in page.text
     assert "SAMPLE" not in page.text
     for removed in ("Overview", "Signals", "Coverage", "Track", "SIMULATED", "Herd overview",
                     "farm-animal-count", "farm-zoom-in", "farm-roster", "farm-camera-controls"):
@@ -165,6 +167,30 @@ def test_demo_animal_metadata_uses_only_its_public_label(tmp_path):
     assert "demo-tag-0007" not in metadata.text
 
 
+def test_cerrado_demo_asset_exposes_only_its_synthetic_public_label(tmp_path):
+    client = TestClient(create_app(tmp_path / "cerrado-demo-metadata.sqlite3"))
+    created = client.post("/api/animals", json={
+        "animal_id": "demo-cerrado-animal-18",
+        "hardware_id": "demo-cerrado-tag-0042",
+        "name": "Animal 42 · Nelore · Pregnant",
+        "breed": "Nelore",
+        "sex": "female",
+        "property_name": "Cerrado pasture · estimated zone South range",
+    })
+    assert created.status_code == 201, created.text
+    intent = client.post("/api/animals/demo-cerrado-animal-18/asset-intent")
+    assert intent.status_code == 200, intent.text
+    metadata = client.get(intent.json()["metadata_uri"])
+    assert metadata.status_code == 200, metadata.text
+    public_metadata = metadata.json()
+    assert public_metadata["name"] == "Animal 42"
+    assert public_metadata["attributes"] == []
+    for private_value in (
+        "demo-cerrado-animal-18", "demo-cerrado-tag-0042", "Nelore", "Pregnant", "Cerrado pasture",
+    ):
+        assert private_value not in metadata.text
+
+
 def test_asset_reconciliation_only_retries_after_confirmed_devnet_failure(tmp_path, monkeypatch):
     client = TestClient(create_app(tmp_path / "animal-asset-reconcile.sqlite3"))
     created = client.post("/api/animals", json={
@@ -274,9 +300,8 @@ def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions
     assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="farm-screen"' in page.text
     assert 'id="farm-canvas"' in page.text
-    assert 'id="farm-roster"' not in page.text
+    assert 'id="farm-canvas-02"' in page.text
     assert "24 animals" not in page.text
     client.close()
 

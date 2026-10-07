@@ -10,10 +10,36 @@ export const NAV_CELL_SIZE = TILE_SIZE / 2;
 export const NAV_WIDTH = (MAP_WIDTH * TILE_SIZE) / NAV_CELL_SIZE;
 export const NAV_HEIGHT = (MAP_HEIGHT * TILE_SIZE) / NAV_CELL_SIZE;
 export const COW_FOOTPRINT_RADIUS = 18;
-const CELL_CLEARANCE_RADIUS = COW_FOOTPRINT_RADIUS + NAV_CELL_SIZE * Math.SQRT1_2 + 1;
 const MIN_COW_REGION_CELLS = 30;
 
-const ISLAND_WALKABLE: readonly WorldPoint[] = [
+export type NavigationObstacle =
+  | { kind: 'ellipse'; x: number; y: number; rx: number; ry: number }
+  | { kind: 'rect'; x: number; y: number; width: number; height: number }
+  | { kind: 'segment'; from: WorldPoint; to: WorldPoint; radius: number };
+
+export interface NavigationInteractionPoint {
+  kind: 'drink' | 'shade' | 'rest' | 'graze';
+  point: WorldPoint;
+  label: string;
+}
+
+/** Art-independent geometry and authored points for one farm's navigation. */
+export interface FarmNavigationDefinition {
+  worldWidth: number;
+  worldHeight: number;
+  tileSize: number;
+  cellSize: number;
+  islandWalkable: readonly WorldPoint[];
+  blocked: readonly NavigationObstacle[];
+  cowFootprintRadius?: number;
+  minRegionCells?: number;
+  /** Centers of deliberate openings in otherwise blocked fence geometry. */
+  gates?: readonly WorldPoint[];
+  /** Safe interaction points, authored on walkable ground beside props. */
+  interactionPoints?: readonly NavigationInteractionPoint[];
+}
+
+const FARM01_ISLAND_WALKABLE: readonly WorldPoint[] = [
   { x: 110, y: 335 }, { x: 142, y: 251 }, { x: 230, y: 148 }, { x: 388, y: 126 },
   { x: 531, y: 221 }, { x: 677, y: 239 }, { x: 833, y: 268 }, { x: 928, y: 282 },
   { x: 1061, y: 316 }, { x: 1248, y: 288 }, { x: 1415, y: 326 }, { x: 1490, y: 386 },
@@ -25,13 +51,8 @@ const ISLAND_WALKABLE: readonly WorldPoint[] = [
   { x: 49, y: 375 },
 ];
 
-type Obstacle =
-  | { kind: 'ellipse'; x: number; y: number; rx: number; ry: number }
-  | { kind: 'rect'; x: number; y: number; width: number; height: number }
-  | { kind: 'segment'; from: WorldPoint; to: WorldPoint; radius: number };
-
 /** Collider placements align to the visible pond, buildings, trunks, props and fence art. */
-const BLOCKED: readonly Obstacle[] = [
+const FARM01_BLOCKED: readonly NavigationObstacle[] = [
   // The image includes a grass bank; the collision ellipse tracks the visible water inside it.
   { kind: 'ellipse', x: 395, y: 555, rx: 174, ry: 80 },
   { kind: 'rect', x: 682, y: 408, width: 278, height: 102 }, // barn footprint
@@ -64,20 +85,51 @@ const BLOCKED: readonly Obstacle[] = [
   { kind: 'segment', from: { x: 895, y: 455 }, to: { x: 940, y: 315 }, radius: 8 },
 ];
 
+/** Default definition preserves the original Farm 01 `new FarmNavigation()` API. */
+export const FARM01_NAVIGATION_DEFINITION: FarmNavigationDefinition = {
+  worldWidth: MAP_WIDTH * TILE_SIZE,
+  worldHeight: MAP_HEIGHT * TILE_SIZE,
+  tileSize: TILE_SIZE,
+  cellSize: NAV_CELL_SIZE,
+  islandWalkable: FARM01_ISLAND_WALKABLE,
+  blocked: FARM01_BLOCKED,
+  cowFootprintRadius: COW_FOOTPRINT_RADIUS,
+  minRegionCells: MIN_COW_REGION_CELLS,
+  gates: [{ x: 1080, y: 538 }],
+  interactionPoints: [
+    { kind: 'drink', point: { x: 650, y: 465 }, label: 'pond edge' },
+    { kind: 'drink', point: { x: 720, y: 555 }, label: 'meadow trough' },
+  ],
+};
+
 const NEIGHBORS = [
   [-1, 0, 10], [1, 0, 10], [0, -1, 10], [0, 1, 10],
   [-1, -1, 14], [1, -1, 14], [-1, 1, 14], [1, 1, 14],
 ] as const;
 
 export class FarmNavigation {
-  private readonly validCells = new Uint8Array(NAV_WIDTH * NAV_HEIGHT);
-  private readonly componentByCell = new Int32Array(NAV_WIDTH * NAV_HEIGHT).fill(-1);
+  private readonly columns: number;
+  private readonly rows: number;
+  private readonly clearanceRadius: number;
+  private readonly minRegionCells: number;
+  private readonly validCells: Uint8Array;
+  private readonly componentByCell: Int32Array;
   private readonly points: WorldPoint[] = [];
   private readonly pointsByComponent = new Map<number, WorldPoint[]>();
 
-  constructor() {
-    for (let row = 0; row < NAV_HEIGHT; row += 1) {
-      for (let col = 0; col < NAV_WIDTH; col += 1) {
+  constructor(readonly definition: FarmNavigationDefinition = FARM01_NAVIGATION_DEFINITION) {
+    if (!(definition.worldWidth > 0) || !(definition.worldHeight > 0) || !(definition.cellSize > 0) ||
+        definition.islandWalkable.length < 3) {
+      throw new Error('Farm navigation requires positive dimensions and an island polygon.');
+    }
+    this.columns = Math.ceil(definition.worldWidth / definition.cellSize);
+    this.rows = Math.ceil(definition.worldHeight / definition.cellSize);
+    this.clearanceRadius = (definition.cowFootprintRadius ?? COW_FOOTPRINT_RADIUS) + definition.cellSize * Math.SQRT1_2 + 1;
+    this.minRegionCells = definition.minRegionCells ?? MIN_COW_REGION_CELLS;
+    this.validCells = new Uint8Array(this.columns * this.rows);
+    this.componentByCell = new Int32Array(this.columns * this.rows).fill(-1);
+    for (let row = 0; row < this.rows; row += 1) {
+      for (let col = 0; col < this.columns; col += 1) {
         const point = this.cellCenter(col, row);
         if (!this.hasCellClearance(point.x, point.y)) continue;
         this.validCells[this.cellIndex(col, row)] = 1;
@@ -89,8 +141,8 @@ export class FarmNavigation {
 
   isWalkable(x: number, y: number): boolean {
     if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 ||
-        x >= MAP_WIDTH * TILE_SIZE || y >= MAP_HEIGHT * TILE_SIZE) return false;
-    return this.cellIsValid(Math.floor(x / NAV_CELL_SIZE), Math.floor(y / NAV_CELL_SIZE));
+        x >= this.definition.worldWidth || y >= this.definition.worldHeight) return false;
+    return this.cellIsValid(Math.floor(x / this.definition.cellSize), Math.floor(y / this.definition.cellSize));
   }
 
   isWalkableSegment(from: WorldPoint, to: WorldPoint): boolean {
@@ -111,8 +163,8 @@ export class FarmNavigation {
     const regionPoints = component >= 0 ? this.pointsByComponent.get(component) ?? [] : this.points;
     const farEnough = (point: WorldPoint) => !from || Math.hypot(point.x - from.x, point.y - from.y) >= 90;
     const candidates = regionPoints.filter((point) => farEnough(point) &&
-      point.x >= bounds.left * TILE_SIZE && point.x <= bounds.right * TILE_SIZE &&
-      point.y >= bounds.top * TILE_SIZE && point.y <= bounds.bottom * TILE_SIZE,
+      point.x >= bounds.left * this.definition.tileSize && point.x <= bounds.right * this.definition.tileSize &&
+      point.y >= bounds.top * this.definition.tileSize && point.y <= bounds.bottom * this.definition.tileSize,
     );
     // If the assigned paddock is disconnected by authored terrain, stay in the
     // cow's connected walkable region instead of retrying unreachable targets.
@@ -128,10 +180,10 @@ export class FarmNavigation {
   }
 
   findSpawn(bounds: PastureZone['bounds'], random: () => number, occupied: readonly WorldPoint[]): WorldPoint | null {
-    const eligible = this.points.filter((point) => this.getConnectedRegionSize(point) >= MIN_COW_REGION_CELLS);
+    const eligible = this.points.filter((point) => this.getConnectedRegionSize(point) >= this.minRegionCells);
     const candidates = eligible.filter((point) =>
-      point.x >= bounds.left * TILE_SIZE && point.x <= bounds.right * TILE_SIZE &&
-      point.y >= bounds.top * TILE_SIZE && point.y <= bounds.bottom * TILE_SIZE,
+      point.x >= bounds.left * this.definition.tileSize && point.x <= bounds.right * this.definition.tileSize &&
+      point.y >= bounds.top * this.definition.tileSize && point.y <= bounds.bottom * this.definition.tileSize,
     );
     const start = Math.floor(random() * Math.max(1, candidates.length));
     for (let offset = 0; offset < candidates.length; offset += 1) {
@@ -189,12 +241,15 @@ export class FarmNavigation {
 
   isCellWalkable(col: number, row: number): boolean { return this.cellIsValid(col, row); }
 
+  getCellSize(): number { return this.definition.cellSize; }
+  getGridSize(): { columns: number; rows: number } { return { columns: this.columns, rows: this.rows }; }
+
   getCellCenter(col: number, row: number): WorldPoint { return this.cellCenter(col, row); }
 
   private isBaseWalkable(x: number, y: number): boolean {
-    if (x < 0 || y < 0 || x >= MAP_WIDTH * TILE_SIZE || y >= MAP_HEIGHT * TILE_SIZE) return false;
-    if (!pointInPolygon({ x, y }, ISLAND_WALKABLE)) return false;
-    return !BLOCKED.some((obstacle) => collides(obstacle, x, y));
+    if (x < 0 || y < 0 || x >= this.definition.worldWidth || y >= this.definition.worldHeight) return false;
+    if (!pointInPolygon({ x, y }, this.definition.islandWalkable)) return false;
+    return !this.definition.blocked.some((obstacle) => collides(obstacle, x, y));
   }
 
   private hasCellClearance(x: number, y: number): boolean {
@@ -203,15 +258,15 @@ export class FarmNavigation {
     // Any position inside an accepted cell then retains full body clearance.
     for (let sample = 0; sample < 24; sample += 1) {
       const angle = (sample / 24) * Math.PI * 2;
-      if (!this.isBaseWalkable(x + Math.cos(angle) * CELL_CLEARANCE_RADIUS,
-        y + Math.sin(angle) * CELL_CLEARANCE_RADIUS)) return false;
+      if (!this.isBaseWalkable(x + Math.cos(angle) * this.clearanceRadius,
+        y + Math.sin(angle) * this.clearanceRadius)) return false;
     }
     return true;
   }
 
   private nearestCell(point: WorldPoint): number {
-    const col = Math.floor(point.x / NAV_CELL_SIZE);
-    const row = Math.floor(point.y / NAV_CELL_SIZE);
+    const col = Math.floor(point.x / this.definition.cellSize);
+    const row = Math.floor(point.y / this.definition.cellSize);
     if (this.cellIsValid(col, row)) return this.cellIndex(col, row);
     for (let radius = 1; radius < 12; radius += 1) {
       for (let dy = -radius; dy <= radius; dy += 1) {
@@ -261,14 +316,14 @@ export class FarmNavigation {
   }
 
   private cellIsValid(col: number, row: number): boolean {
-    if (col < 0 || row < 0 || col >= NAV_WIDTH || row >= NAV_HEIGHT) return false;
+    if (col < 0 || row < 0 || col >= this.columns || row >= this.rows) return false;
     return this.validCells[this.cellIndex(col, row)] === 1;
   }
 
-  private cellIndex(col: number, row: number): number { return row * NAV_WIDTH + col; }
-  private cellCoords(index: number): [number, number] { return [index % NAV_WIDTH, Math.floor(index / NAV_WIDTH)]; }
+  private cellIndex(col: number, row: number): number { return row * this.columns + col; }
+  private cellCoords(index: number): [number, number] { return [index % this.columns, Math.floor(index / this.columns)]; }
   private cellCenter(col: number, row: number): WorldPoint {
-    return { x: (col + 0.5) * NAV_CELL_SIZE, y: (row + 0.5) * NAV_CELL_SIZE };
+    return { x: (col + 0.5) * this.definition.cellSize, y: (row + 0.5) * this.definition.cellSize };
   }
 
   private heuristic(a: number, b: number): number {
@@ -317,7 +372,7 @@ function pointInPolygon(point: WorldPoint, polygon: readonly WorldPoint[]): bool
   return inside;
 }
 
-function collides(obstacle: Obstacle, x: number, y: number): boolean {
+function collides(obstacle: NavigationObstacle, x: number, y: number): boolean {
   if (obstacle.kind === 'ellipse') {
     const dx = (x - obstacle.x) / obstacle.rx;
     const dy = (y - obstacle.y) / obstacle.ry;

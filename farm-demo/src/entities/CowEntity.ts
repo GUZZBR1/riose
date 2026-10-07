@@ -3,9 +3,10 @@ import type { BehaviorSnapshot } from '../simulation/behavior';
 import type { PastureZone } from '../simulation/farm-layout';
 import type { AnimalState } from '../types';
 import { FarmEnvironmentLayer } from '../environment/FarmEnvironmentLayer';
+import type { FarmId } from '../simulation/farm-config';
 
-const COW_WIDTH = 58;
-const COW_HEIGHT = 54;
+const COW_WIDTH: Record<FarmId, number> = { farm01: 58, farm02: 68 };
+const COW_HEIGHT: Record<FarmId, number> = { farm01: 54, farm02: 66 };
 
 export class CowEntity {
   readonly sprite: Phaser.GameObjects.Image;
@@ -23,13 +24,14 @@ export class CowEntity {
     pasture: PastureZone,
     onSelect: () => void,
     environment: FarmEnvironmentLayer,
+    private readonly farmId: FarmId,
   ) {
     this.pasture = pasture;
     this.snapshot = { status: 'GRAZE', ...pasture.waypoints[0], heading: 0, target: null, path: [] };
     this.lastX = this.snapshot.x;
     this.lastY = this.snapshot.y;
     this.sprite = scene.add.image(this.snapshot.x, this.snapshot.y, environment.getCowTexture(index))
-      .setDisplaySize(COW_WIDTH, COW_HEIGHT)
+      .setDisplaySize(COW_WIDTH[farmId], COW_HEIGHT[farmId])
       .setOrigin(0.5, 0.82)
       .setDepth(this.snapshot.y + 2)
       .setData('farmCow', true)
@@ -69,8 +71,10 @@ export class CowEntity {
 
   getState(): AnimalState {
     return {
-      id: `animal-${this.index}`,
-      label: `Animal ${this.index}`,
+      id: `${this.farmId}-animal-${this.index}`,
+      farmId: this.farmId,
+      index: this.index,
+      label: `Animal ${this.index + (this.farmId === 'farm02' ? 24 : 0)}`,
       status: this.snapshot.status,
       zone: this.pasture.name,
       estimatedPosition: { x: Math.round(this.snapshot.x), y: Math.round(this.snapshot.y) },
@@ -87,10 +91,12 @@ export class CowEntity {
     this.hovered = hovered;
     this.sprite.setAlpha(hovered ? 1 : 0.96);
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      this.sprite.setDisplaySize(COW_WIDTH, COW_HEIGHT);
+      this.sprite.setDisplaySize(COW_WIDTH[this.farmId], COW_HEIGHT[this.farmId]);
       return;
     }
-    this.scene.tweens.add({ targets: this.sprite, displayWidth: hovered ? COW_WIDTH + 5 : COW_WIDTH,
-      displayHeight: hovered ? COW_HEIGHT + 4 : COW_HEIGHT, duration: 150, ease: 'Sine.easeOut' });
+    this.scene.tweens.add({ targets: this.sprite,
+      displayWidth: hovered ? COW_WIDTH[this.farmId] + 5 : COW_WIDTH[this.farmId],
+      displayHeight: hovered ? COW_HEIGHT[this.farmId] + 4 : COW_HEIGHT[this.farmId],
+      duration: 150, ease: 'Sine.easeOut' });
   }
 }

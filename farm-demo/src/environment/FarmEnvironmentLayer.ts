@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { WORLD_HEIGHT, WORLD_WIDTH } from '../simulation/farm-layout';
+import type { FarmId } from '../simulation/farm-config';
 
 const ASSET_ROOT = '/assets/farm-demo/isometric';
+const CERRADO_ROOT = '/assets/farm-demo/cerrado';
+const NELore_ROOT = '/assets/farm-demo/nelore';
 
 export const FARM_ASSETS = {
   island: `${ASSET_ROOT}/island-base.png`,
@@ -20,9 +23,17 @@ const spriteAssets = [...FARM_ASSETS.trees, ...FARM_ASSETS.props, ...FARM_ASSETS
 export class FarmEnvironmentLayer {
   private readonly objects: Phaser.GameObjects.Image[] = [];
 
-  constructor(private readonly scene: Phaser.Scene) {}
+  constructor(private readonly scene: Phaser.Scene, private readonly farmId: FarmId,
+    private readonly worldWidth: number, private readonly worldHeight: number) {}
 
-  static preload(scene: Phaser.Scene): void {
+  static preload(scene: Phaser.Scene, farmId: FarmId): void {
+    if (farmId === 'farm02') {
+      scene.load.image('cerrado-diorama', `${CERRADO_ROOT}/cerrado-diorama.png`);
+      for (let index = 0; index < 6; index += 1) {
+        scene.load.image(`nelore-${index}`, `${NELore_ROOT}/nelore-${index}.png`);
+      }
+      return;
+    }
     scene.load.image('farm-island', FARM_ASSETS.island);
     scene.load.image('farm-path', FARM_ASSETS.path);
     scene.load.image('farm-water', FARM_ASSETS.water);
@@ -31,6 +42,14 @@ export class FarmEnvironmentLayer {
   }
 
   create(): void {
+    if (this.farmId === 'farm02') {
+      const diorama = this.scene.add.image(this.worldWidth / 2, this.worldHeight / 2, 'cerrado-diorama')
+        .setDisplaySize(this.worldWidth, this.worldHeight)
+        .setOrigin(0.5)
+        .setDepth(-100);
+      this.objects.push(diorama);
+      return;
+    }
     const add = (key: string, x: number, y: number, width: number, height: number, depth: number, originY = 1) => {
       const image = this.scene.add.image(x, y, key)
         .setDisplaySize(width, height)
@@ -40,7 +59,7 @@ export class FarmEnvironmentLayer {
       return image;
     };
 
-    add('farm-island', WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT, -100, 0.5);
+    add('farm-island', this.worldWidth / 2, this.worldHeight / 2, this.worldWidth, this.worldHeight, -100, 0.5);
     add('farm-path', 790, 620, 1170, 390, -60, 0.5);
     add('farm-water', 395, 555, 410, 205, 550, 0.78);
 
@@ -79,7 +98,9 @@ export class FarmEnvironmentLayer {
     for (const [key, x, y, width, height] of props) add(key, x, y, width, height, y + 5, 0.9);
   }
 
-  getCowTexture(index: number): string { return cowAssets[index % cowAssets.length]; }
+  getCowTexture(index: number): string {
+    return this.farmId === 'farm02' ? `nelore-${index % 6}` : cowAssets[index % cowAssets.length];
+  }
 
   destroy(): void { this.objects.forEach((object) => object.destroy()); }
 }

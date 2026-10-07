@@ -306,9 +306,13 @@ class Store:
             ).fetchone()
             if row is None:
                 return None
-            match = re.fullmatch(r"demo-animal-(\d{1,2})", str(row["animal_id"]))
+            animal_id = str(row["animal_id"])
+            match = re.fullmatch(r"demo-animal-(\d{1,2})", animal_id)
             if match:
                 return f"Animal {int(match.group(1))}"
+            cerrado_match = re.fullmatch(r"demo-cerrado-animal-(\d{1,2})", animal_id)
+            if cerrado_match:
+                return f"Animal {int(cerrado_match.group(1)) + 24}"
             return "RIOSE · Ativo bovino"
 
     def get_animal_asset_attempt(self, animal_id: str) -> dict[str, Any] | None:

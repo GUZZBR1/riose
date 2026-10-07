@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-16">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-19">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -21,16 +21,18 @@
   </header>
 
   <main class="demo-page" id="demo-main">
-    <section class="demo-hero" aria-labelledby="demo-title">
+    <section class="farm-section" id="farm01-section">
+    <div class="demo-hero" aria-labelledby="demo-title">
       <h1 id="demo-title">Every animal leaves a signal.</h1>
       <p>A real farm. A verifiable digital layer.</p>
-    </section>
+    </div>
 
-    <section class="product-stage" id="product-stage" aria-label="RIOSE animal and digital identity experience">
+    <section class="product-stage" id="product-stage" data-farm-id="farm01" aria-label="RIOSE Farm 01 animal and digital identity experience">
       <div class="farm-column">
         <div class="farm-stage" id="farm-stage">
           <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Use arrow keys to select an animal." tabindex="0"></div>
           <p class="farm-intro-hint" id="farm-intro-hint" hidden>Select an animal to inspect</p>
+            <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
           <span id="selected-animal-announcement" class="visually-hidden" aria-live="polite"></span>
         </div>
         <details class="animal-access-list" id="animal-access-list">
@@ -52,12 +54,23 @@
             <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Animal 0, cattle portrait" width="380" height="380">
             <div class="animal-record-copy">
               <p class="animal-status-line"><span id="selected-animal-status">Grazing</span><span aria-hidden="true"> · </span><span id="selected-animal-zone">Willow meadow</span></p>
-              <section class="animal-journey" aria-labelledby="journey-title">
+              <section class="animal-journey" id="animal-journey" aria-labelledby="journey-title">
                 <div class="journey-heading">
                   <h3 id="journey-title">A day in the pasture</h3>
                   <span class="journey-source">Illustrative journey</span>
                 </div>
                 <ol class="journey-list" id="journey-list" aria-live="polite"></ol>
+              </section>
+              <section class="cerrado-profile" id="cerrado-profile" aria-label="Illustrative ranch profile" hidden>
+                <p class="profile-provenance">Illustrative profile</p>
+                <dl class="cerrado-profile-grid" id="cerrado-profile-grid">
+                  <div><dt>Health</dt><dd data-cerrado="health"></dd></div>
+                  <div><dt>Activity</dt><dd data-cerrado="activity"></dd></div>
+                  <div class="reproductive-field"><dt>Reproductive status</dt><dd data-cerrado="reproductive"></dd></div>
+                  <div><dt>Estimated location</dt><dd data-cerrado="location"></dd></div>
+                  <div><dt>Last signal</dt><dd data-cerrado="signal"></dd></div>
+                  <div><dt>Body condition</dt><dd data-cerrado="condition"></dd></div>
+                </dl>
               </section>
               <div class="record-integrity" id="record-verification" role="status" aria-live="polite" data-state="pending">
                 <span class="integrity-dot" aria-hidden="true"></span><span>Checking record integrity…</span>
@@ -101,9 +114,31 @@
         </section>
       </aside>
     </section>
+    </section>
+
+    <section class="farm-section farm-section-cerrado" id="farm02-section" aria-labelledby="farm02-title">
+      <div class="demo-hero">
+        <h1 id="farm02-title">Different land. Same signal.</h1>
+        <p>Built to follow the herd beyond a single field.</p>
+      </div>
+      <section class="product-stage" id="product-stage-02" data-farm-id="farm02" aria-label="RIOSE Farm 02 Cerrado animal experience">
+        <div class="farm-column">
+          <div class="farm-stage" id="farm-stage-02">
+            <div class="farm-canvas" id="farm-canvas-02" role="application" aria-label="Cerrado ranch scene. Use arrow keys to select an animal." tabindex="0"></div>
+            <p class="farm-intro-hint" id="farm-intro-hint-02" hidden>Select an animal to inspect</p>
+            <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
+            <span id="selected-animal-announcement-02" class="visually-hidden" aria-live="polite"></span>
+          </div>
+          <details class="animal-access-list" id="animal-access-list-02">
+            <summary>Choose an animal from a list</summary>
+            <div class="animal-access-options" id="animal-access-options-02" role="list"></div>
+          </details>
+        </div>
+      </section>
+    </section>
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-16"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-19"></script>
 </body>
 </html>

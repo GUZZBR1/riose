@@ -1,4 +1,14 @@
 const $ = (id) => document.getElementById(id);
+const farmStages = new Map();
+const contextRail = $('context-rail');
+const firstStage = $('product-stage');
+const secondStage = $('product-stage-02');
+const stageElements = new Map([
+  ['farm01', { id: 'farm01', stage: firstStage, canvas: $('farm-canvas'), hint: $('farm-intro-hint'),
+    announce: $('selected-animal-announcement'), access: $('animal-access-list'), options: $('animal-access-options') }],
+  ['farm02', { id: 'farm02', stage: secondStage, canvas: $('farm-canvas-02'), hint: $('farm-intro-hint-02'),
+    announce: $('selected-animal-announcement-02'), access: $('animal-access-list-02'), options: $('animal-access-options-02') }],
+]);
 
 const pastureStories = [
   {
@@ -23,29 +33,66 @@ const pastureStories = [
   },
 ];
 
-function profileFor(index) {
-  const pasture = pastureStories[index % pastureStories.length];
-  const route = Math.floor(index / pastureStories.length) % pasture.edges.length;
-  const name = `Animal ${index}`;
+function stableNumber(value) {
+  let hash = 2166136261;
+  for (const char of value) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  return hash >>> 0;
+}
+
+function profileFor(farmId, index, animal = null) {
+  const seed = stableNumber(`${farmId}:${index}`);
+  const choose = (items, offset = 0) => items[(seed + offset) % items.length];
+  const displayIndex = farmId === 'farm02' ? index + 24 : index;
+  const name = `Animal ${displayIndex}`;
+  const tagNumber = String(displayIndex).padStart(4, '0');
+  if (farmId === 'farm02') {
+    const sex = seed % 5 === 0 ? 'Male' : 'Female';
+    const reproductive = sex === 'Male' ? null : choose([
+      'Pregnant · 146 days', 'Open', 'Recently calved · 38 days', 'Pregnant · 82 days', 'Open',
+    ], 11);
+    return {
+      farmId, index, displayIndex, name,
+      animal_id: `demo-cerrado-animal-${index}`,
+      hardware_id: `demo-cerrado-tag-${tagNumber}`,
+      tagLabel: `Tag #${tagNumber}`,
+      image: `/assets/farm-demo/nelore/nelore-${index % 6}.png`,
+      journeySource: 'illustrative',
+      breed: 'Nelore', sex,
+      age: `${(1.8 + (seed % 56) / 10).toFixed(1)} years`,
+      health: choose(['No demo alert', 'Observation noted', 'Review planned', 'Within demo range'], 19),
+      reproductive,
+      condition: `${(3 + (seed % 12) / 10).toFixed(1)} / 5`,
+      signal: `14:${String(seed % 60).padStart(2, '0')}`,
+      location: animal?.zone || 'North range',
+      journey: [],
+    };
+  }
+
+  const pasture = pastureStories[(seed >>> 4) % pastureStories.length];
+  const morning = choose(pasture.edges, 3);
+  const midday = choose(pasture.middays, 17);
+  const evening = choose(pasture.evenings, 29);
   return {
-    index,
+    farmId, index, displayIndex,
     animal_id: `demo-animal-${index}`,
-    hardware_id: `demo-tag-${String(index).padStart(4, '0')}`,
-    tagLabel: `Tag #${String(index).padStart(4, '0')}`,
+    hardware_id: `demo-tag-${tagNumber}`,
+    tagLabel: `Tag #${tagNumber}`,
     name,
     image: `/assets/demo/animal-${index % 4}.webp`,
     journeySource: 'illustrative',
     journey: [
-      { moment: 'Morning', story: `Grazes near ${pasture.edges[route]}.` },
-      { moment: 'Midday', story: `Pauses for water at ${pasture.middays[route]}, then returns to the herd.` },
-      { moment: 'Evening', story: `Moves with the group toward ${pasture.evenings[route]}.` },
+      { moment: 'Morning', story: `Grazes near ${morning}.` },
+      { moment: 'Midday', story: `Pauses for water at ${midday}, then returns to the herd.` },
+      { moment: 'Evening', story: `Moves with the group toward ${evening}.` },
     ],
   };
 }
 
 const state = {
-  farm: null,
+  farms: new Map(),
   animalCount: 24,
+  activeFarmId: null,
+  activeStage: null,
   selectedSceneAnimal: null,
   selectedProfile: null,
   animal: null,
@@ -58,7 +105,70 @@ const state = {
   selectionGeneration: 0,
 };
 
-const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point', REST: 'Resting' };
+const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point', REST: 'Resting', SHADE: 'Resting in shade' };
+
+class FarmAudioManager {
+  constructor() {
+    this.audio = new Audio('/assets/farm-demo/audio/single-cow-moo.ogg');
+    this.audio.preload = 'none';
+    this.audio.volume = 0.055;
+    this.enabled = false;
+    this.unlocked = false;
+    this.anyFarmVisible = true;
+    this.timer = null;
+    try { this.enabled = localStorage.getItem('riose:farm-audio') === 'on'; } catch {}
+    this.renderButtons();
+    document.addEventListener('pointerdown', () => this.unlock(), { once: true, passive: true });
+    document.addEventListener('keydown', () => this.unlock(), { once: true });
+    document.addEventListener('visibilitychange', () => this.schedule());
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    try { localStorage.setItem('riose:farm-audio', this.enabled ? 'on' : 'off'); } catch {}
+    this.renderButtons();
+    if (this.enabled) this.unlock();
+    this.schedule();
+  }
+
+  setFarmVisibility(visible) {
+    this.anyFarmVisible = visible;
+    this.schedule();
+  }
+
+  unlock() {
+    this.unlocked = true;
+    this.schedule();
+  }
+
+  renderButtons() {
+    for (const button of document.querySelectorAll('[data-farm-sound]')) {
+      button.textContent = this.enabled ? 'Sound on' : 'Sound off';
+      button.setAttribute('aria-pressed', String(this.enabled));
+    }
+  }
+
+  schedule() {
+    window.clearTimeout(this.timer);
+    this.audio.pause();
+    if (!this.enabled || !this.unlocked || !this.anyFarmVisible || document.hidden) return;
+    const delay = 42000 + Math.floor(Math.random() * 36000);
+    this.timer = window.setTimeout(async () => {
+      if (!this.enabled || !this.anyFarmVisible || document.hidden) return;
+      this.audio.currentTime = 0;
+      try {
+        await this.audio.play();
+        this.audio.onended = () => this.schedule();
+      } catch {
+        this.enabled = false;
+        try { localStorage.setItem('riose:farm-audio', 'off'); } catch {}
+        this.renderButtons();
+      }
+    }, delay);
+  }
+}
+
+const farmAudio = new FarmAudioManager();
 
 async function requestJson(url, options) {
   const response = await fetch(url, { cache: 'no-store', ...options });
@@ -81,18 +191,20 @@ function setMessage(id, message, status) {
   if (status) node.dataset.state = status;
 }
 
-function dismissFarmHint() {
-  const hint = $('farm-intro-hint');
+function dismissFarmHint(stage = state.activeStage) {
+  const hint = stage?.hint;
+  if (!hint) return;
   hint.hidden = true;
   hint.classList.remove('is-ready', 'is-typing');
   try { sessionStorage.setItem('riose:farm-hint-dismissed', '1'); } catch {}
 }
 
-function revealFarmHint() {
+function revealFarmHint(stage) {
   let dismissed = false;
   try { dismissed = sessionStorage.getItem('riose:farm-hint-dismissed') === '1'; } catch {}
   if (dismissed) return;
-  const hint = $('farm-intro-hint');
+  const hint = stage?.hint;
+  if (!hint) return;
   hint.hidden = false;
   hint.classList.add('is-ready', 'is-typing');
   window.setTimeout(() => hint.classList.remove('is-typing'), 1400);
@@ -114,27 +226,29 @@ function renderJourney(profile) {
   }));
 }
 
-function renderAnimalChooser(count) {
-  const options = $('animal-access-options');
+function renderAnimalChooser(stage, count) {
+  const options = stage.options;
+  const offset = stage.id === 'farm02' ? 24 : 0;
   options.replaceChildren(...Array.from({ length: count }, (_, index) => {
     const item = document.createElement('div');
     item.setAttribute('role', 'listitem');
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'animal-access-option';
-    button.textContent = `Animal ${index}`;
+    button.textContent = `Animal ${index + offset}`;
+    button.dataset.animalId = `${stage.id}-animal-${index}`;
     button.addEventListener('click', () => {
-      $('animal-access-list').open = false;
-      state.farm?.selectAnimal(`animal-${index}`);
+      stage.access.open = false;
+      state.farms.get(stage.id)?.selectAnimal(button.dataset.animalId);
     });
     item.append(button);
     return item;
   }));
 }
 
-function updateAnimalChooserSelection(id) {
-  for (const button of $('animal-access-options').querySelectorAll('button')) {
-    const selected = button.textContent === (id ? `Animal ${id.slice('animal-'.length)}` : '');
+function updateAnimalChooserSelection(stage, id) {
+  for (const button of stage.options.querySelectorAll('button')) {
+    const selected = button.dataset.animalId === id;
     button.setAttribute('aria-pressed', String(selected));
   }
 }
@@ -170,25 +284,52 @@ function resetRecordState(profile) {
   $('selected-animal-tag').textContent = profile.tagLabel;
   $('record-portrait').src = profile.image;
   $('record-portrait').alt = `${profile.name}, cattle portrait`;
-  renderJourney(profile);
+  $('record-portrait').classList.toggle('is-nelore', profile.farmId === 'farm02');
+  $('selected-animal-status').parentElement.classList.toggle('is-cerrado', profile.farmId === 'farm02');
+  $('animal-journey').hidden = profile.farmId === 'farm02';
+  $('cerrado-profile').hidden = profile.farmId !== 'farm02';
+  if (profile.farmId === 'farm02') {
+    $('journey-title').textContent = 'Cerrado profile';
+    $('selected-animal-status').textContent = profile.breed + ' · ' + profile.sex + ' · ' + profile.age;
+    const field = (name) => $('cerrado-profile').querySelector(`[data-cerrado="${name}"]`);
+    field('health').textContent = profile.health;
+    field('activity').textContent = statusLabels[state.selectedSceneAnimal?.status] || 'Resting';
+    field('location').textContent = profile.location;
+    field('signal').textContent = profile.signal;
+    field('condition').textContent = profile.condition;
+    const reproductive = $('cerrado-profile').querySelector('.reproductive-field');
+    reproductive.hidden = !profile.reproductive;
+    if (profile.reproductive) field('reproductive').textContent = profile.reproductive;
+  } else {
+    $('journey-title').textContent = 'A day in the pasture';
+    $('selected-animal-status').textContent = statusLabels[state.selectedSceneAnimal?.status] || 'Resting';
+    renderJourney(profile);
+  }
+  $('selected-animal-zone').textContent = state.selectedSceneAnimal?.zone || 'Willow meadow';
   setMessage('record-verification', 'Checking record integrity…', 'pending');
   $('api-state').hidden = true;
 }
 
 function clearAnimalSelection() {
+  const previousStage = state.activeStage;
   state.selectionGeneration += 1;
   state.selectedSceneAnimal = null;
   state.selectedProfile = null;
   state.animal = null;
   state.asset = null;
   state.identityExpanded = false;
-  updateAnimalChooserSelection(null);
+  for (const stage of stageElements.values()) updateAnimalChooserSelection(stage, null);
   setContextOpen($('record-screen'), false);
   setContextOpen($('solana-screen'), false);
-  $('product-stage').classList.remove('has-selection');
+  previousStage?.stage.classList.remove('has-selection');
+  firstStage.classList.remove('has-selection');
+  secondStage.classList.remove('has-selection');
+  if (contextRail.parentElement !== firstStage) firstStage.append(contextRail);
   $('context-rail').setAttribute('aria-hidden', 'true');
   $('context-rail').inert = true;
-  $('selected-animal-announcement').textContent = '';
+  previousStage?.announce && (previousStage.announce.textContent = '');
+  state.activeFarmId = null;
+  state.activeStage = null;
 }
 
 function selectAnimal(animal) {
@@ -197,47 +338,95 @@ function selectAnimal(animal) {
     return;
   }
 
-  const index = Number(animal.id.replace('animal-', '')) || 0;
-  const profile = profileFor(index);
+  const farmId = animal.farmId || 'farm01';
+  const stage = stageElements.get(farmId);
+  const index = Number.isInteger(animal.index) ? animal.index : Number(animal.id.match(/-(\d+)$/)?.[1] || 0);
+  const profile = profileFor(farmId, index, animal);
+  if (state.selectedSceneAnimal && state.selectedSceneAnimal.farmId !== farmId) {
+    state.farms.get(state.selectedSceneAnimal.farmId)?.selectAnimal(null);
+  }
   const requestId = ++state.selectionGeneration;
   const keepIdentityOpen = state.identityExpanded;
   state.selectedSceneAnimal = animal;
+  state.activeFarmId = farmId;
+  state.activeStage = stage;
   state.selectedProfile = profile;
   state.animal = null;
   state.identityExpanded = keepIdentityOpen;
-  dismissFarmHint();
-  updateAnimalChooserSelection(animal.id);
-  $('product-stage').classList.add('has-selection');
+  dismissFarmHint(stage);
+  updateAnimalChooserSelection(stage, animal.id);
+  firstStage.classList.remove('has-selection');
+  secondStage.classList.remove('has-selection');
+  if (contextRail.parentElement !== stage.stage) stage.stage.append(contextRail);
+  stage.stage.classList.add('has-selection');
   $('context-rail').setAttribute('aria-hidden', 'false');
   $('context-rail').inert = false;
   setContextOpen($('record-screen'), true);
   setContextOpen($('solana-screen'), keepIdentityOpen);
   $('selected-animal-status').textContent = statusLabels[animal.status] || 'Resting';
-  $('selected-animal-zone').textContent = animal.zone;
   resetRecordState(profile);
   resetIdentityCard(profile);
   if (keepIdentityOpen) setContextOpen($('solana-screen'), true);
-  $('selected-animal-announcement').textContent = `${animal.label}, ${statusLabels[animal.status] || 'Resting'}, ${animal.zone}`;
+  stage.announce.textContent = `${profile.name}, ${statusLabels[animal.status] || 'Resting'}, ${animal.zone}`;
   void loadSelectedAnimal(animal, profile, requestId);
 }
 
 function publishSceneState(animals) {
-  $('farm-canvas').dataset.animalCount = String(animals.length);
-  $('farm-canvas').dataset.movingAnimals = String(animals.filter((animal) => animal.status === 'WALK').length);
+  if (!animals.length) return;
+  const farmId = animals[0].farmId;
+  const stage = stageElements.get(farmId);
+  if (!stage) return;
+  stage.canvas.dataset.animalCount = String(animals.length);
+  stage.canvas.dataset.movingAnimals = String(animals.filter((animal) => animal.status === 'WALK').length);
+  const active = animals.find((animal) => animal.id === state.selectedSceneAnimal?.id);
+  if (active && state.activeFarmId === farmId) {
+    $('selected-animal-status').textContent = farmId === 'farm02'
+      ? `${state.selectedProfile.breed} · ${state.selectedProfile.sex} · ${state.selectedProfile.age}`
+      : statusLabels[active.status] || 'Resting';
+    $('selected-animal-zone').textContent = active.zone;
+    if (farmId === 'farm02') {
+      $('cerrado-profile').querySelector('[data-cerrado="activity"]').textContent = statusLabels[active.status] || 'Resting';
+      $('cerrado-profile').querySelector('[data-cerrado="location"]').textContent = active.zone;
+    }
+  }
 }
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-16');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-19');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
-    renderAnimalChooser(state.animalCount);
-    state.farm = mountFarmDemo($('farm-canvas'), {
-      animalCount: state.animalCount,
-      onSelect: selectAnimal,
-      onStates: publishSceneState,
-      onReady: revealFarmHint,
-    });
+    for (const [farmId, stage] of stageElements) {
+      renderAnimalChooser(stage, state.animalCount);
+      const farm = mountFarmDemo(stage.canvas, {
+        farmId,
+        animalCount: state.animalCount,
+        onSelect: selectAnimal,
+        onStates: publishSceneState,
+        onReady: () => {
+          revealFarmHint(stage);
+          const mounted = farmStages.get(farmId);
+          if (mounted) {
+            mounted.ready = true;
+            if (!mounted.isVisible) mounted.farm.setActive(false);
+          }
+        },
+      });
+      farmStages.set(farmId, { ...stage, farm, isVisible: true });
+      state.farms.set(farmId, farm);
+    }
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const farmId = entry.target.dataset.farmId;
+        const mounted = farmStages.get(farmId);
+        if (!mounted) continue;
+        mounted.isVisible = entry.isIntersecting;
+        if (mounted.ready) mounted.farm.setActive(entry.isIntersecting);
+      }
+      farmAudio.setFarmVisibility([...farmStages.values()].some((mounted) => mounted.isVisible));
+    }, { rootMargin: '360px 0px 360px 0px' });
+    for (const stage of stageElements.values()) observer.observe(stage.stage);
+    window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
   } catch (error) {
     const fallback = document.createElement('p');
     fallback.className = 'farm-load-error';
@@ -448,8 +637,9 @@ function toggleDigitalIdentity() {
   void refreshAsset();
 }
 
-$('close-animal-panel').addEventListener('click', () => state.farm?.selectAnimal(null));
+$('close-animal-panel').addEventListener('click', () => state.farms.get(state.activeFarmId)?.selectAnimal(null));
 $('continue-solana').addEventListener('click', toggleDigitalIdentity);
+$('demo-main').querySelectorAll('[data-farm-sound]').forEach((button) => button.addEventListener('click', () => farmAudio.toggle()));
 $('asset-preview-action').addEventListener('click', () => void previewAsset());
 $('asset-action').addEventListener('click', () => {
   if (state.assetStatus === 'SIGNATURE_REQUIRED' && state.assetPreviewComplete) void performAssetAction();
@@ -458,8 +648,8 @@ $('asset-action').addEventListener('click', () => {
 
 document.addEventListener('pointerdown', (event) => {
   if (!state.selectedSceneAnimal || !(event.target instanceof Element)) return;
-  if (event.target.closest('#farm-canvas, #context-rail, #animal-access-list, #demo-header')) return;
-  state.farm?.selectAnimal(null);
+  if (event.target.closest('.farm-canvas, #context-rail, .animal-access-list, #demo-header')) return;
+  state.farms.get(state.activeFarmId)?.selectAnimal(null);
 });
 
 window.addEventListener('scroll', () => {

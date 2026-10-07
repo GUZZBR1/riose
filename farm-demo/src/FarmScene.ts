@@ -3,16 +3,15 @@ import { CameraController } from './camera/CameraController';
 import { CowEntity } from './entities/CowEntity';
 import { FarmEnvironmentLayer } from './environment/FarmEnvironmentLayer';
 import { HerdController } from './simulation/behavior';
-import { MAP_HEIGHT, MAP_WIDTH, PASTURES, TILE_SIZE, WORLD_HEIGHT, WORLD_WIDTH, pastureForAnimal } from './simulation/farm-layout';
-import { FarmNavigation, NAV_CELL_SIZE, NAV_HEIGHT, NAV_WIDTH } from './simulation/navigation';
+import { FarmNavigation } from './simulation/navigation';
+import type { FarmDefinition } from './simulation/farm-config';
 import type { AnimalState, FarmDemoCallbacks } from './types';
 
 const MAX_ANIMALS = 100;
 const STARTING_ANIMALS = 24;
-const ANIMALS_STATIONARY = true;
-
 export class FarmScene extends Phaser.Scene {
   private readonly callbacks: FarmDemoCallbacks;
+  private readonly definition: FarmDefinition;
   private readonly requestedAnimalCount: number;
   private cows: CowEntity[] = [];
   private environment!: FarmEnvironmentLayer;
@@ -26,26 +25,31 @@ export class FarmScene extends Phaser.Scene {
   private statePublishElapsed = 0;
   ready = false;
 
-  constructor(callbacks: FarmDemoCallbacks, animalCount = STARTING_ANIMALS) {
+  constructor(callbacks: FarmDemoCallbacks, definition: FarmDefinition, animalCount = STARTING_ANIMALS) {
     super('RioseFarmScene');
     this.callbacks = callbacks;
+    this.definition = definition;
     this.requestedAnimalCount = Phaser.Math.Clamp(Math.floor(animalCount), 1, MAX_ANIMALS);
   }
 
-  preload(): void { FarmEnvironmentLayer.preload(this); }
+  preload(): void { FarmEnvironmentLayer.preload(this, this.definition.id); }
 
   create(): void {
     this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
-    this.environment = new FarmEnvironmentLayer(this);
+    this.environment = new FarmEnvironmentLayer(this, this.definition.id,
+      this.definition.worldWidth, this.definition.worldHeight);
     this.environment.create();
-    this.navigation = new FarmNavigation();
-    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, pastureForAnimal, ANIMALS_STATIONARY);
+    this.navigation = new FarmNavigation(this.definition.navigation);
+    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, this.definition.pastureForAnimal,
+      false, { ...this.definition.behavior, seed: this.definition.seed });
     this.cows = Array.from({ length: this.requestedAnimalCount }, (_, index) =>
-      new CowEntity(this, index, pastureForAnimal(index), () => this.selectAnimal(`animal-${index}`), this.environment));
+      new CowEntity(this, index, this.definition.pastureForAnimal(index),
+        () => this.selectAnimal(`${this.definition.id}-animal-${index}`), this.environment, this.definition.id));
     this.navGraphics = this.add.graphics().setDepth(9000).setVisible(this.navigationDebug);
 
-    this.cameraController = new CameraController(this, this.reducedMotion);
+    this.cameraController = new CameraController(this, this.reducedMotion,
+      this.definition.worldWidth, this.definition.worldHeight);
     this.input.on('pointerdown', this.clearSelectionOnLandscape, this);
     this.input.keyboard?.on('keydown-ESC', () => this.selectAnimal(null));
     this.input.keyboard?.on('keydown-LEFT', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
@@ -94,18 +98,21 @@ export class FarmScene extends Phaser.Scene {
   private drawNavigationDebug(): void {
     const graphics = this.navGraphics;
     graphics.clear();
-    for (let row = 0; row < NAV_HEIGHT; row += 1) {
-      for (let col = 0; col < NAV_WIDTH; col += 1) {
+    const { columns, rows } = this.navigation.getGridSize();
+    const cellSize = this.definition.navigation.cellSize;
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < columns; col += 1) {
         const point = this.navigation.getCellCenter(col, row);
         graphics.fillStyle(this.navigation.isCellWalkable(col, row) ? 0x6aab6d : 0xd36b59, 0.16);
-        graphics.fillRect(point.x - NAV_CELL_SIZE / 2, point.y - NAV_CELL_SIZE / 2, NAV_CELL_SIZE, NAV_CELL_SIZE);
+        graphics.fillRect(point.x - cellSize / 2, point.y - cellSize / 2, cellSize, cellSize);
       }
     }
-    PASTURES.forEach((pasture, index) => {
+    Array.from({ length: 3 }, (_, index) => this.definition.pastureForAnimal(index)).forEach((pasture, index) => {
       const bounds = pasture.bounds;
-      graphics.lineStyle(2, [0x84b7a2, 0x88a7c2, 0xc6a66c, 0xb29bc8][index], 0.7);
-      graphics.strokeRect(bounds.left * TILE_SIZE, bounds.top * TILE_SIZE,
-        (bounds.right - bounds.left) * TILE_SIZE, (bounds.bottom - bounds.top) * TILE_SIZE);
+      const tile = this.definition.tileSize;
+      graphics.lineStyle(2, [0x84b7a2, 0x88a7c2, 0xc6a66c, 0xb29bc8][index % 4], 0.7);
+      graphics.strokeRect(bounds.left * tile, bounds.top * tile,
+        (bounds.right - bounds.left) * tile, (bounds.bottom - bounds.top) * tile);
     });
     for (const state of this.herd.getDebugStates()) {
       graphics.lineStyle(2, 0xeee9bd, 0.8);
@@ -124,9 +131,9 @@ export class FarmScene extends Phaser.Scene {
 
   private stepSelection(step: number): void {
     if (!this.cows.length) return;
-    const current = this.selectedId ? Number(this.selectedId.slice('animal-'.length)) : (step > 0 ? -1 : 0);
+    const current = this.selectedId ? this.cowById(this.selectedId)?.index ?? -1 : (step > 0 ? -1 : 0);
     const next = (current + step + this.cows.length) % this.cows.length;
-    this.selectAnimal(`animal-${next}`);
+    this.selectAnimal(`${this.definition.id}-animal-${next}`);
   }
 
   private stepSelectionFromKey(event: KeyboardEvent, step: number): void {
@@ -141,7 +148,9 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private cowById(id: string): CowEntity | undefined {
-    const index = Number(id.slice('animal-'.length));
+    const prefix = `${this.definition.id}-animal-`;
+    if (!id.startsWith(prefix)) return undefined;
+    const index = Number(id.slice(prefix.length));
     return Number.isInteger(index) && index >= 0 && index < this.cows.length ? this.cows[index] : undefined;
   }
 

@@ -21,6 +21,14 @@ export interface NeighborPosition extends WorldPoint {
   id: number;
 }
 
+export interface AnimalBehaviorOptions {
+  seed?: number;
+  minimumTripDistance?: number;
+  walkSpeedMin?: number;
+  walkSpeedMax?: number;
+  interactionChance?: number;
+}
+
 /** Deterministic, bounded animal state machine driven by the authored nav grid. */
 export class AnimalBehavior {
   private dwellRemaining = 0;
@@ -39,7 +47,8 @@ export class AnimalBehavior {
   private previousY: number;
   private heading: number;
   private randomState: number;
-  private arrivedAtWater = false;
+  private arrivalState: 'DRINK' | 'SHADE' | null = null;
+  private readonly options: Required<AnimalBehaviorOptions>;
 
   constructor(
     readonly index: number,
@@ -47,17 +56,25 @@ export class AnimalBehavior {
     private readonly navigation: FarmNavigation,
     spawn: WorldPoint,
     private readonly stationary = false,
+    options: AnimalBehaviorOptions = {},
   ) {
-    this.randomState = (0x9e3779b9 ^ Math.imul(index + 1, 0x85ebca6b)) >>> 0;
+    this.options = {
+      seed: options.seed ?? 0,
+      minimumTripDistance: options.minimumTripDistance ?? 90,
+      walkSpeedMin: options.walkSpeedMin ?? WALK_SPEED_MIN,
+      walkSpeedMax: options.walkSpeedMax ?? WALK_SPEED_MAX,
+      interactionChance: options.interactionChance ?? 0.08,
+    };
+    this.randomState = (0x9e3779b9 ^ this.options.seed ^ Math.imul(index + 1, 0x85ebca6b)) >>> 0;
     this.x = spawn.x;
     this.y = spawn.y;
     this.previousX = spawn.x;
     this.previousY = spawn.y;
     this.heading = (this.random() * 2 - 1) * Math.PI;
-    const place = index % 20;
+    const place = this.random() * 100;
     this.status = stationary
-      ? (place < 14 ? 'GRAZE' : place < 19 ? 'REST' : 'IDLE')
-      : (place < 11 ? 'GRAZE' : place < 15 ? 'REST' : place < 19 ? 'WALK' : 'IDLE');
+      ? (place < 56 ? 'GRAZE' : place < 76 ? 'REST' : 'IDLE')
+      : (place < 56 ? 'GRAZE' : place < 76 ? 'REST' : place < 96 ? 'WALK' : 'IDLE');
     this.dwellRemaining = 4 + this.random() * 11;
     if (!stationary && this.status === 'WALK') this.chooseDestination();
   }
@@ -67,7 +84,7 @@ export class AnimalBehavior {
     this.previousX = this.x;
     this.previousY = this.y;
 
-    if (this.status === 'DRINK' && this.arrivedAtWater) {
+    if ((this.status === 'DRINK' || this.status === 'SHADE') && this.arrivalState) {
       this.dwellRemaining -= dt;
       if (this.dwellRemaining <= 0) this.finishStop();
       return;
@@ -154,9 +171,11 @@ export class AnimalBehavior {
 
   private beginNextJourney(): void {
     this.stuckFor = 0;
-    if (this.pasture.drinkPoint && this.random() < 0.08) {
-      const point = this.pasture.drinkPoint;
-      const route = this.navigation.findPath({ x: this.x, y: this.y }, point);
+    const interactionPoints = this.navigation.definition.interactionPoints ?? [];
+    const eligiblePoints = interactionPoints.filter((interaction) => interaction.kind === 'drink' || interaction.kind === 'shade');
+    if (eligiblePoints.length && this.random() < this.options.interactionChance) {
+      const interaction = eligiblePoints[Math.floor(this.random() * eligiblePoints.length)];
+      const route = this.navigation.findPath({ x: this.x, y: this.y }, interaction.point);
       if (route?.length) {
         const safeWaterPoint = route[route.length - 1];
         this.status = 'WALK';
@@ -164,8 +183,8 @@ export class AnimalBehavior {
         this.path = route;
         this.pathIndex = 0;
         this.targetDistance = Math.hypot(safeWaterPoint.x - this.x, safeWaterPoint.y - this.y);
-        this.arrivedAtWater = true;
-        this.speed = WALK_SPEED_MIN + this.random() * (WALK_SPEED_MAX - WALK_SPEED_MIN);
+        this.arrivalState = interaction.kind === 'shade' ? 'SHADE' : 'DRINK';
+        this.speed = this.options.walkSpeedMin + this.random() * (this.options.walkSpeedMax - this.options.walkSpeedMin);
         return;
       }
     }
@@ -177,10 +196,10 @@ export class AnimalBehavior {
     this.path = [];
     this.pathIndex = 0;
     this.stuckFor = 0;
-    this.arrivedAtWater = false;
+    this.arrivalState = null;
     for (let attempt = 0; attempt < 24; attempt += 1) {
       const candidate = this.navigation.randomTarget(this.pasture.bounds, () => this.random(), { x: this.x, y: this.y });
-      if (!candidate || Math.hypot(candidate.x - this.x, candidate.y - this.y) < 90) continue;
+      if (!candidate || Math.hypot(candidate.x - this.x, candidate.y - this.y) < this.options.minimumTripDistance) continue;
       const route = this.navigation.findPath({ x: this.x, y: this.y }, candidate);
       if (!route?.length) continue;
       this.status = 'WALK';
@@ -188,7 +207,7 @@ export class AnimalBehavior {
       this.path = route;
       this.pathIndex = 0;
       this.targetDistance = Math.hypot(candidate.x - this.x, candidate.y - this.y);
-      this.speed = WALK_SPEED_MIN + this.random() * (WALK_SPEED_MAX - WALK_SPEED_MIN);
+      this.speed = this.options.walkSpeedMin + this.random() * (this.options.walkSpeedMax - this.options.walkSpeedMin);
       return;
     }
     // No teleport fallback: stay safely in place and try again after a short rest.
@@ -201,8 +220,8 @@ export class AnimalBehavior {
     this.velocityY = 0;
     this.path = [];
     this.pathIndex = 0;
-    if (this.arrivedAtWater) {
-      this.status = 'DRINK';
+    if (this.arrivalState) {
+      this.status = this.arrivalState;
       this.dwellRemaining = 4 + this.random() * 4;
       return;
     }
@@ -219,7 +238,7 @@ export class AnimalBehavior {
     this.pathIndex = 0;
     this.velocityX = 0;
     this.velocityY = 0;
-    this.arrivedAtWater = false;
+    this.arrivalState = null;
   }
 
   private restAfterBlockedRoute(): void {
@@ -232,7 +251,7 @@ export class AnimalBehavior {
     this.targetDistance = Number.POSITIVE_INFINITY;
     this.velocityX = 0;
     this.velocityY = 0;
-    this.arrivedAtWater = false;
+    this.arrivalState = null;
   }
 
   private separation(neighbors: readonly NeighborPosition[]): WorldPoint {
@@ -290,12 +309,13 @@ export class HerdController {
     private readonly navigation: FarmNavigation,
     pastureFor: (index: number) => PastureZone,
     private readonly stationary = false,
+    private readonly options: AnimalBehaviorOptions = {},
   ) {
     for (let index = 0; index < count; index += 1) {
       const pasture = pastureFor(index);
-      const spawn = navigation.findSpawn(pasture.bounds, () => this.seeded(index + 1), this.animals.map((animal) => animal.current));
+      const spawn = navigation.findSpawn(pasture.bounds, () => this.seeded(index + 1, options.seed ?? 0), this.animals.map((animal) => animal.current));
       if (!spawn) throw new Error(`No safe farm spawn available for animal ${index}.`);
-      this.animals.push(new AnimalBehavior(index, pasture, navigation, spawn, stationary));
+      this.animals.push(new AnimalBehavior(index, pasture, navigation, spawn, stationary, options));
     }
   }
 
@@ -364,8 +384,8 @@ export class HerdController {
     return [Math.floor(x / this.cellSize), Math.floor(y / this.cellSize)];
   }
 
-  private seeded(value: number): number {
-    let seed = value >>> 0;
+  private seeded(value: number, farmSeed: number): number {
+    let seed = (value ^ farmSeed) >>> 0;
     seed = (Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) ^ 0x9e3779b9) >>> 0;
     seed = (Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) ^ 0x9e3779b9) >>> 0;
     return ((seed ^ (seed >>> 16)) >>> 0) / 0x100000000;

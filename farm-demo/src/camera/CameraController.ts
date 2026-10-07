@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { WORLD_HEIGHT, WORLD_WIDTH } from '../simulation/farm-layout';
 
 export class CameraController {
   private dragging = false;
@@ -8,7 +7,12 @@ export class CameraController {
   private target: { x: number; y: number } | null = null;
   private readonly reducedMotion: boolean;
 
-  constructor(private readonly scene: Phaser.Scene, reducedMotion: boolean) {
+  constructor(
+    private readonly scene: Phaser.Scene,
+    reducedMotion: boolean,
+    private readonly worldWidth: number,
+    private readonly worldHeight: number,
+  ) {
     this.reducedMotion = reducedMotion;
     scene.input.on('pointerdown', this.pointerDown, this);
     scene.input.on('pointermove', this.pointerMove, this);
@@ -46,17 +50,17 @@ export class CameraController {
 
   private resize(): void {
     const camera = this.scene.cameras.main;
-    const zoom = Math.min(camera.width / WORLD_WIDTH, camera.height / WORLD_HEIGHT) * 0.96;
+    const zoom = Math.min(camera.width / this.worldWidth, camera.height / this.worldHeight) * 0.96;
     camera.setZoom(Phaser.Math.Clamp(zoom, 0.2, 1.2));
     this.clampToIllustration();
-    camera.centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+    camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
   }
 
   private clampToIllustration(): void {
     const camera = this.scene.cameras.main;
-    const extraX = Math.max(0, (camera.width / camera.zoom - WORLD_WIDTH) / 2);
-    const extraY = Math.max(0, (camera.height / camera.zoom - WORLD_HEIGHT) / 2);
-    camera.setBounds(-extraX, -extraY, WORLD_WIDTH + extraX * 2, WORLD_HEIGHT + extraY * 2);
+    const extraX = Math.max(0, (camera.width / camera.zoom - this.worldWidth) / 2);
+    const extraY = Math.max(0, (camera.height / camera.zoom - this.worldHeight) / 2);
+    camera.setBounds(-extraX, -extraY, this.worldWidth + extraX * 2, this.worldHeight + extraY * 2);
   }
 
   private pointerDown(pointer: Phaser.Input.Pointer): void {

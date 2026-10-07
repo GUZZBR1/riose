@@ -3,6 +3,7 @@ import test from 'node:test';
 import { COW_SEPARATION_RADIUS, HerdController } from '../src/simulation/behavior';
 import { MAP_HEIGHT, MAP_WIDTH, PASTURES, WORLD_HEIGHT, WORLD_WIDTH, pastureForAnimal } from '../src/simulation/farm-layout';
 import { FarmNavigation } from '../src/simulation/navigation';
+import { FARM02_NAVIGATION, farm02PastureForAnimal } from '../src/simulation/farm02-navigation';
 
 test('the authored walkability layer excludes the island edge, pond, barn and closed fences', () => {
   const navigation = new FarmNavigation();
@@ -68,7 +69,7 @@ test('reduced motion keeps animal positions fixed', () => {
   assert.deepEqual(herd.getStates(), before);
 });
 
-test('the product demo uses fixed safe positions with no walking states', () => {
+test('the explicit stationary simulation override keeps positions fixed for reduced-motion/debug use', () => {
   const navigation = new FarmNavigation();
   const herd = new HerdController(24, navigation, pastureForAnimal, true);
   const before = herd.getStates();
@@ -81,6 +82,40 @@ test('the product demo uses fixed safe positions with no walking states', () => 
   assert.ok(after.some((animal) => animal.status === 'GRAZE'));
   assert.ok(after.some((animal) => animal.status === 'REST' || animal.status === 'IDLE'));
 });
+
+for (const count of [1, 10, 24, 100]) {
+  test(`Cerrado herd (${count}) stays safe and moves independently for ten simulated minutes`, () => {
+    const navigation = new FarmNavigation(FARM02_NAVIGATION);
+    const herd = new HerdController(count, navigation, farm02PastureForAnimal, false, {
+      seed: 0x024c3a, minimumTripDistance: 170, walkSpeedMin: 17, walkSpeedMax: 22, interactionChance: 0.15,
+    });
+    const initial = herd.getStates();
+    const moved = new Set<number>();
+    let sawDrink = false;
+    let sawShade = false;
+    for (let step = 0; step < 10 * 60 * 20; step += 1) {
+      const before = herd.getStates();
+      herd.update(50, false);
+      const states = herd.getStates();
+      for (let index = 0; index < states.length; index += 1) {
+        const current = states[index];
+        assert.ok(Number.isFinite(current.x) && Number.isFinite(current.y));
+        assert.ok(navigation.isWalkable(current.x, current.y), `Cerrado animal ${index} left its island`);
+        assert.ok(navigation.isWalkableSegment(before[index], current), `Cerrado animal ${index} crossed blocked ground`);
+        sawDrink ||= current.status === 'DRINK';
+        sawShade ||= current.status === 'SHADE';
+        if (Math.hypot(current.x - initial[index].x, current.y - initial[index].y) > 1) moved.add(index);
+        if (current.status === 'WALK') {
+          assert.ok(current.target && navigation.isWalkable(current.target.x, current.target.y));
+          assert.ok(navigation.findPath(current, current.target));
+        }
+      }
+      assertMinimumSpacing(states, COW_SEPARATION_RADIUS - 1);
+    }
+    assert.equal(moved.size, count, 'all animals eventually relocate');
+    assert.ok(sawDrink || sawShade, 'the Cerrado herd visits at least one authored water or shade point');
+  });
+}
 
 test('the demo starts with a mixed herd and autonomous movement', () => {
   const navigation = new FarmNavigation();
@@ -95,7 +130,7 @@ test('the demo starts with a mixed herd and autonomous movement', () => {
     'the world advances without user input');
 });
 
-for (const count of [1, 24, 100]) {
+for (const count of [1, 10, 24, 100]) {
   test(`${count} animals remain navigable through ten simulated minutes`, () => {
     const navigation = new FarmNavigation();
     const herd = new HerdController(count, navigation, pastureForAnimal);

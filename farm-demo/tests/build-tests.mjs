@@ -7,10 +7,14 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const output = resolve(root, '.test-build');
 await mkdir(output, { recursive: true });
 await build({
-  entryPoints: [resolve(root, 'tests/farm-logic.test.ts')],
+  entryPoints: {
+    'farm-logic.test': resolve(root, 'tests/farm-logic.test.ts'),
+    'farm02-navigation.test': resolve(root, 'tests/farm02-navigation.test.ts'),
+  },
   bundle: true,
   platform: 'node',
   format: 'esm',
   target: 'node20',
-  outfile: resolve(output, 'farm-logic.test.mjs'),
+  outdir: output,
+  outExtension: { '.js': '.mjs' },
 });

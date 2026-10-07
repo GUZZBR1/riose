@@ -34,7 +34,6 @@ page.on('request', (request) => {
 
 async function selectByKeyboard(target) {
   await page.locator('#farm-canvas').focus();
-  await page.keyboard.press('Escape');
   for (let index = 0; index < target + 1; index += 1) await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'false');
   assert.equal(await page.locator('#record-title').textContent(), `Animal ${target}`);
@@ -45,7 +44,8 @@ try {
   await page.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
-  await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.movingAnimals === '0');
+  await page.waitForFunction(() => Number(document.querySelector('#farm-canvas')?.dataset.movingAnimals) > 0);
+  await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
   await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
   assert.equal(new URL(page.url()).pathname, '/demo');
   const forbidden = await page.locator('body').innerText();
@@ -83,7 +83,7 @@ try {
   assert.equal(assetMutations.filter((url) => /\/asset-intent$/.test(url)).length, 1, 'real creation may prepare an intent before the wallet check');
 
   // Switching the selected animal updates both contextual modules in place.
-  await page.getByText('Choose an animal from a list').click();
+  await page.getByText('Choose an animal from a list').first().click();
   await page.getByRole('button', { name: 'Animal 1', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 1');
   await page.waitForFunction(() => document.querySelector('#asset-preview-public-name')?.textContent === 'Animal 1');
@@ -93,7 +93,7 @@ try {
   const video = page.video();
 
   // The accessible chooser selects without requiring canvas hit testing.
-  await page.getByText('Choose an animal from a list').click();
+  await page.getByText('Choose an animal from a list').first().click();
   await page.getByRole('button', { name: 'Animal 2', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 2');
 
@@ -101,6 +101,32 @@ try {
   await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
   assert.equal(await page.locator('#farm-canvas canvas').isVisible(), true);
+
+  // Farm 02 is a distinct second scene, with its own entity keys and profile schema.
+  await page.locator('#farm-stage-02').scrollIntoViewIfNeeded();
+  await page.locator('#farm-canvas-02 canvas').waitFor({ state: 'visible', timeout: 10000 });
+  await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.movingAnimals !== undefined);
+  await page.getByText('Choose an animal from a list').last().click();
+  await page.getByRole('button', { name: 'Animal 42', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 42');
+  await page.locator('#cerrado-profile').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#animal-journey').isVisible(), false, 'Cerrado has its own profile schema');
+  assert.match(await page.locator('#record-portrait').getAttribute('src'), /\/assets\/farm-demo\/nelore\/nelore-\d\.png$/);
+  const cerrradoFields = await page.locator('#cerrado-profile-grid').innerText();
+  assert.match(cerrradoFields, /Health/i);
+  assert.match(cerrradoFields, /Reproductive status/i);
+  assert.match(cerrradoFields, /Estimated location/i);
+  assert.match(await page.locator('#selected-animal-tag').textContent(), /Tag #0042/);
+  await page.waitForFunction(() => document.querySelector('#record-verification')?.textContent.includes('Record integrity'));
+  await page.getByRole('button', { name: 'Create digital identity' }).click();
+  await page.getByRole('button', { name: 'Preview asset' }).click();
+  await page.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  assert.equal(await page.locator('#asset-preview-public-name').textContent(), 'Animal 42');
+  assert.equal(await page.locator('#farm-canvas-02 canvas').isVisible(), true, 'Cerrado scene remains mounted beside identity');
+  await page.screenshot({ path: resolve(output, 'cerrado-demo-selected-animal.png') });
+  assert.deepEqual(assetMutations.filter((url) => /demo-cerrado/.test(url)), [], 'Cerrado preview must not call asset mutations');
+  await page.locator('#farm02-title').click({ position: { x: 5, y: 5 } });
+  await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
   await mainContext.close();
   await copyFile(await video.path(), resolve(output, 'farm-demo-walkthrough.webm'));
   await rm(recordingDir, { recursive: true, force: true });
@@ -111,6 +137,7 @@ try {
   await mobilePage.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
   await mobilePage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
+  await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
   const mobileWidth = await mobilePage.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
   assert.ok(mobileWidth.scroll <= mobileWidth.client + 1, `mobile horizontal overflow: ${JSON.stringify(mobileWidth)}`);
   await mobilePage.locator('#farm-canvas').focus();
@@ -121,6 +148,15 @@ try {
   await mobilePage.waitForFunction(() => document.querySelector('#solana-screen')?.getAttribute('aria-hidden') === 'false');
   await mobilePage.evaluate(() => window.scrollTo(0, 0));
   await mobilePage.screenshot({ path: resolve(output, 'farm-demo-mobile.png'), fullPage: true });
+  await mobilePage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
+  await mobilePage.getByText('Choose an animal from a list').last().click();
+  await mobilePage.getByRole('button', { name: 'Animal 24', exact: true }).click();
+  await mobilePage.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 24');
+  await mobilePage.getByRole('button', { name: 'Create digital identity' }).click();
+  await mobilePage.getByRole('button', { name: 'Preview asset' }).click();
+  await mobilePage.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  await mobilePage.evaluate(() => window.scrollTo(0, 0));
+  await mobilePage.screenshot({ path: resolve(output, 'farm-demo-cerrado-mobile.png'), fullPage: true });
   await mobileContext.close();
 
   const offlineContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -144,7 +180,8 @@ try {
   await stressPage.goto(`${baseUrl}/demo?herd=100`, { waitUntil: 'domcontentloaded' });
   await stressPage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await stressPage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '100');
-  const performance = await stressPage.evaluate(() => new Promise((resolveResult) => {
+  await stressPage.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '100');
+  const measureFrames = () => stressPage.evaluate(() => new Promise((resolveResult) => {
     let frames = 0;
     let longTasks = 0;
     const start = performance.now();
@@ -159,6 +196,10 @@ try {
     };
     requestAnimationFrame(tick);
   }));
+  const farm01Performance = await measureFrames();
+  await stressPage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
+  await stressPage.waitForFunction(() => Number(document.querySelector('#farm-canvas-02')?.dataset.movingAnimals) > 0);
+  const farm02Performance = await measureFrames();
   await stressContext.close();
 
   const bundlePath = resolve(repository, 'src/riose/products/livestock_tracking/adapters/static/assets/farm-demo/farm-demo.js');
@@ -171,9 +212,11 @@ try {
     `- Date: ${new Date().toISOString()}`,
     `- Browser: Chromium ${browser.version()}`,
     '- Desktop view: 1672 × 941 (matched to supplied reference); mobile view: 390 × 844',
-    `- Herd stress run: 100 animals; browser animation-frame rate: ${performance.fps} fps; observed long tasks: ${performance.longTasks}`,
+    `- Farm 01 stress run: 100 animals; browser animation-frame rate: ${farm01Performance.fps} fps; observed long tasks: ${farm01Performance.longTasks}`,
+    `- Farm 02 stress run: 100 animals; browser animation-frame rate: ${farm02Performance.fps} fps; observed long tasks: ${farm02Performance.longTasks}`,
     `- Scene bundle: ${rawBytes.toLocaleString('en-US')} bytes; gzip: ${gzipBytes.toLocaleString('en-US')} bytes`,
-    '- Verified in-browser: one continuous farm page; in-place animal and Solana panels; selection changes update both panels; outside click clears selection; keyboard and accessible-list selection; local preview without transaction; missing-wallet failure does not confirm an asset; API failure leaves farm and preview available; mobile layout; 100-animal rendering.',
+    '- Verified in-browser: one continuous page with distinct lush dairy and Cerrado beef farms; in-place animal and Solana panels; selection changes update both panels; outside click clears selection; keyboard and accessible-list selection; local preview without transaction; missing-wallet failure does not confirm an asset; API failure leaves both scenes and preview available; mobile layout; 100-animal rendering on each farm.',
+    '- Simulation tests cover safe spawning, walkable boundaries, water and fences, route reachability, deterministic movement and 10 accelerated minutes for herds of 1, 10, 24 and 100 on each farm.',
     '',
   ].join('\n');
   await writeFile(resolve(output, 'README.md'), report);
