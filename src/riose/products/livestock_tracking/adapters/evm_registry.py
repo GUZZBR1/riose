@@ -358,7 +358,7 @@ class EVMRegistryAdapter:
                 and str(item.get("address", "")).lower() == self.config.contract_address.lower()
                 and str(item.get("transactionHash", "")).lower() == transaction_id.lower()
                 and str(item.get("blockHash", "")).lower() == block_hash.lower()
-                and item.get("removed") is not True
+                and ("removed" not in item or item["removed"] is False)
                 and _quantity(item.get("blockNumber"), "log block") == block_number
                 and type(item.get("topics")) is list
                 and [str(topic).lower() for topic in item["topics"]] == [topic0, topic1, topic2]

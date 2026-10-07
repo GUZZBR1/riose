@@ -69,9 +69,9 @@ only after final regressions demonstrate no incompatible changes.
 | F8 | Reorg/finality finding assessed without unsupported certainty | Test preserves CONFIRMED if receipt disappears before VERIFIED; dispatcher/code and M4 reports audited | PASS_WITH_LIMITATION: post-VERIFIED deep reorg is not detected |
 | F9 | Nonce safety across shared DB processes, contracts/targets, and network IDs; separate DB limit explicit | Two-process shared-DB reservation, same-chain multi-contract scope, Base/Arbitrum same-signer fanout, restart and ordering tests | PASS_WITH_LIMITATION: separate SQLite files do not coordinate |
 | F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Identity/config tests plus recorded read-only chain/genesis evidence in M4A/M4B reports | PASS: identity is chain ID + genesis + contract/code/publisher; no current public write |
-| F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; exact npm audit package list and path classes below | PASS_WITH_LIMITATION: native Windows signer ACL policy is not independently enforced |
+| F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted/success logs and CLI exception leaks fixed with tests; exact npm audit package list and path classes below | PASS_WITH_LIMITATION: native Windows signer ACL policy is not independently enforced; reuse of one EVM adapter across successive publications is unsupported |
 | F12 | Historical Base/Arbitrum claims consistent; typo search reported without erasing history | Exact report-source inspection | PASS: suspected phrase not found in checked Arbitrum reports |
-| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 839 passed / 7 skipped on candidate and detached HEAD; Ganache contract and three-chain local/mock E2E; compileall/solc compile; locked npm install/audit | PASS |
+| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 843 passed / 7 skipped on the integrated candidate after red-team fixes; prior detached HEAD baseline was 839 passed / 7 skipped; Ganache contract and three-chain local/mock E2E; compileall/solc compile; locked npm install/audit | PASS |
 | F14 | Independent red team and Factory Eval Harness after integration | Independent review findings dispositioned; explicit Factory eval case passed after detached verification | PASS |
 | F15 | Claims remain bounded; no public write without available safe signer/funding | No public writes, pushes or PRs; all simulated evidence labeled | PASS |
 
@@ -83,8 +83,8 @@ only after final regressions demonstrate no incompatible changes.
 | C1 | Compile this DoD, anti-duplication, branch graph and trust boundaries | PASS |
 | C2 | Reconcile changes and integrate M4A/M4B commits | PASS; local recovery fix and Base fixture adaptation applied |
 | C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Three-target local/mock success E2E, eight-case failure matrix, Solana/EVM restart tests, two-process nonce test and finality limitation test pass |
-| C4 | Toolchain advisory triage and independent red team | PASS_WITH_LIMITATION; exact 38-package audit classified; red-team fixes landed; conditional Windows ACL limitation retained |
-| C5 | Full suite/build, clean checkout, Factory Eval Harness | PASS; detached suite and compile passed; Factory evaluation PASS |
+| C4 | Toolchain advisory triage and independent red team | PASS_WITH_LIMITATION; exact 38-package audit classified; red-team fixes landed; conditional Windows ACL and per-publication adapter-binding limitations retained |
+| C5 | Full suite/build, clean checkout, Factory Eval Harness | PASS; final integrated candidate suite and prior detached baseline passed; compile passed; Factory evaluation PASS |
 
 ## Factory Eval Harness case
 
@@ -111,7 +111,8 @@ commitment and independent target states through one/two/all-chain failures;
 the local three-chain success E2E verifies separate receipts; Solana PREPARED
 and EVM signed-wire recovery tests pass; the finality boundary remains explicit;
 the complete suite, contract compile/deploy and independent red-team fixes pass
-on the final detached candidate.
+on the integrated candidate. The final Linux/WSL suite passed 843 tests with 7
+skipped after the last receipt-validation regression tests were added.
 
 ## Red-team dispositions
 
@@ -120,6 +121,15 @@ on the final detached candidate.
   rejected. Added parameterized coverage.
 - **Fixed:** CLI catches sanitized `EVMRpcError`; a regression test confirms
   chained endpoint details and tracebacks do not reach stderr.
+- **Fixed:** successful receipt logs now reject malformed `removed` flags
+  (including strings, integers, and null); literal `false` and an omitted
+  field are accepted. The EVM registry suite passes 31 tests and the full
+  Linux/WSL suite passes 843 tests with 7 skipped.
+- **Accepted adapter lifecycle limitation:** an `EVMRegistryAdapter` is bound
+  to one publication ID at construction. The CLI creates one adapter per
+  publication, as does the local three-chain E2E. Reusing one dispatcher and
+  adapter instance for successive publication IDs on the same deployment is
+  unsupported and must use a fresh publication-bound adapter.
 - **Accepted conditional limitation:** signer-file permission checks use
   POSIX mode bits and `O_NOFOLLOW`; production signer loading is documented
   for Linux/WSL. Native Windows ACL/reparse-point enforcement is not claimed.
@@ -143,10 +153,11 @@ on the final detached candidate.
 
 Baseline evidence in the branch reports: M3 `814 passed / 7 skipped`, M4A
 `815 passed / 7 skipped`, M4B `822 passed / 7 skipped`. These are historical
-reports, not final-candidate evidence. On the final candidate, `839 passed / 7
-skipped` across the complete Python suite in both the branch checkout and a
-fresh detached worktree. Contract compilation passed in that detached
-worktree. `test_evm_local.py` compiled and deployed the registry into Ganache,
+reports, not final-candidate evidence. Before the final receipt hardening, the
+candidate and a fresh detached worktree each passed `839 passed / 7 skipped`.
+After the hardening, the integrated Linux/WSL candidate passed `843 passed / 7
+skipped`, including 31 EVM registry tests. Contract compilation passed in the
+prior detached worktree. `test_evm_local.py` compiled and deployed the registry into Ganache,
 dispatched a commitment, exercised duplicate/revert and exact-wire recovery,
 and verified receipts. The three-chain E2E deployed the registry to two
 isolated local EVMs configured with chain IDs 84532 and 421614 plus a mocked

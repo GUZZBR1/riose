@@ -372,6 +372,51 @@ def test_reverted_receipt_requires_well_formed_empty_logs(prepared_target, logs,
         assert adapter.get_receipt(transaction_id, envelope).status == "REJECTED"
 
 
+@pytest.mark.parametrize("removed", ["true", 1, None])
+def test_successful_receipt_rejects_malformed_removed_flag(prepared_target, removed):
+    _, outbox, request, adapter, client = prepared_target
+    dispatcher = PublicationDispatcher(outbox, [adapter])
+    dispatcher.process(request["publication_id"])
+    attempt = outbox.latest_attempt(request["publication_id"])
+    client.confirm_sends = True
+    original_rpc = client.rpc
+
+    def malformed_removed_flag(method, params):
+        receipt = original_rpc(method, params)
+        if method == "eth_getTransactionReceipt" and receipt is not None:
+            receipt["logs"][0]["removed"] = removed
+        return receipt
+
+    client.rpc = malformed_removed_flag
+    with pytest.raises(EVMRpcError, match="did not prove the registry commitment"):
+        adapter.get_receipt(attempt["transaction_id"], build_public_envelope(request["commitment"]))
+
+
+def test_successful_receipt_allows_explicit_false_or_omitted_removed_flag(prepared_target):
+    _, outbox, request, adapter, client = prepared_target
+    dispatcher = PublicationDispatcher(outbox, [adapter])
+    dispatcher.process(request["publication_id"])
+    attempt = outbox.latest_attempt(request["publication_id"])
+    client.confirm_sends = True
+    original_rpc = client.rpc
+    removed_value = False
+
+    def supported_removed_flag(method, params):
+        receipt = original_rpc(method, params)
+        if method == "eth_getTransactionReceipt" and receipt is not None:
+            if removed_value is None:
+                receipt["logs"][0].pop("removed")
+            else:
+                receipt["logs"][0]["removed"] = removed_value
+        return receipt
+
+    client.rpc = supported_removed_flag
+    envelope = build_public_envelope(request["commitment"])
+    assert adapter.get_receipt(attempt["transaction_id"], envelope).status == "CONFIRMED"
+    removed_value = None
+    assert adapter.get_receipt(attempt["transaction_id"], envelope).status == "CONFIRMED"
+
+
 def test_cli_reports_evm_rpc_errors_without_traceback(monkeypatch, capsys, tmp_path):
     from riose.products.livestock_tracking import publication_cli
 
