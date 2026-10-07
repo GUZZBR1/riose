@@ -1,160 +1,119 @@
-# Cattle RF MVP
+# RIOSE
 
-Local-first prototype for evaluating whether shared sub-GHz anchors can track
-cattle without GPS on each animal. The core is a reproducible CPU simulation;
-all outputs are labeled by evidence status. Simulated results are not field
-validation.
+**Livestock identity and provenance, built for offline-first operation.**
 
-The product boundaries, proposed package layout, migration sequence, and
-current memory policy are documented in [`docs/architecture.md`](docs/architecture.md).
+RIOSE is a research-stage livestock platform that connects animal and tag identity, sub-GHz positioning experiments, and local event records. An optional multichain publisher can anchor a privacy-preserving commitment for external verification; core records remain local and usable without a blockchain connection.
 
-## Status
+> **Current evidence:** `MULTICHAIN_SOFTWARE = COMPLETE` · `FIELD_VALIDATION = NOT_PERFORMED` · `FREQUENCIA = EXTERNAL`
 
-The CPU-first MVP is implemented and runs locally. It includes a seeded farm
-and RF simulator, virtual tag energy/FSM model, six estimators, SQLite animal
-identity/event history, editable local dashboard, dataset export, and a
-multi-scenario benchmark. All measured errors in this repository are software
-simulation results, not farm trials.
+## The product
 
-## Start
+Livestock activity and identity records need to remain useful when connectivity is unreliable, while still being traceable and shareable when needed. RIOSE explores that workflow with local animal records, RF simulation, ear-tag firmware and digital-twin models, and an append-only event history.
+
+The software links an animal identity to local Event V1 records and their provenance. RF and tag outputs are simulations or modeled software evidence unless explicitly identified otherwise. RIOSE has not been validated on a farm.
+
+## How it fits together
+
+```mermaid
+flowchart LR
+  TAG[Animal and ear-tag models (simulated)] --> RF[Sub-GHz RF simulation]
+  RF --> APP[Livestock application]
+  APP --> DB[(Local SQLite records)]
+  DB --> EVENT[Event V1 and local history]
+  EVENT --> COMMIT[Canonical SHA-256 commitment]
+  COMMIT --> PUB[Optional publication outbox]
+  PUB --> SOL[Solana Memo]
+  PUB --> EVM[Shared EVM registry]
+  EVM --> BASE[Base]
+  EVM --> ARB[Arbitrum]
+```
+
+The local event and its canonical commitment are chain-neutral. Each publication target has its own state and receipt; a chain outage does not prevent local event capture. The public envelope contains a commitment, not animal or event details.
+
+### Animal and tag identity
+
+RIOSE keeps animal identity and event history in the local product domain. The software models an ear-tag identity and its sensor/firmware behavior; it does not claim a physically validated tag or deployment. The Event V1 record is the local source of truth. Its deterministic commitment can be reused across publication targets without re-hashing for each chain.
+
+### RF and offline-first infrastructure
+
+The livestock product includes a CPU-first farm/RF simulator, positioning estimators, seeded datasets, and a local dashboard. The embedded workspace models firmware, radio and sensor interactions, and power behavior. Local SQLite records and the publication outbox support offline operation; publication is opt-in.
+
+`FREQUENCIA = EXTERNAL`: FREQUENCIA is a separate research simulator integration, not a vendored RIOSE dependency. Research runs that use it require a separately configured checkout.
+
+## Why Web3?
+
+An external party may need to check that a published record matches a digest RIOSE created at a particular time. The blockchain path provides an optional public commitment and separate per-network receipts. It does **not** prove that an animal event is true, identify the animal from the digest, validate ownership, or replace the local record.
+
+### Multichain status
+
+`MULTICHAIN_SOFTWARE = COMPLETE`: the shared publication flow and chain-specific software paths are implemented and tested with local or mocked backends. Those tests are not public-chain validation.
+
+| Network | Software path | Public-chain status |
+| --- | --- | --- |
+| Solana | Solana Memo adapter; mocked software tests | `SOLANA_REAL_ON_CHAIN = UNVERIFIED` |
+| Base | Shared EVM adapter and registry; local Ganache tests use chain ID 84532 | `BASE_REAL_ON_CHAIN = UNVERIFIED` |
+| Arbitrum | Same EVM adapter and registry; local Ganache tests use chain ID 421614 | `ARBITRUM_REAL_ON_CHAIN = UNVERIFIED` |
+
+Local Ganache instances configured with Base or Arbitrum testnet chain IDs remain local simulations. No public transaction, contract deployment, or public receipt is claimed. See the [final multichain integration evidence](docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md) and the [Base](docs/reports/MULTICHAIN_MVP4A_BASE_DOD.md) and [Arbitrum](docs/reports/MULTICHAIN_MVP4_ARBITRUM_DOD.md) evidence reports.
+
+### Commitments and verification
+
+The canonical SHA-256 commitment is calculated from the public envelope and stays the same across chains. Event history and identifying details remain local. Software tests cover deterministic commitments, privacy boundaries, independent target state, retries, and local EVM execution. On-chain verification still requires a real transaction and independently checked receipt evidence.
+
+## Digital twin and simulation
+
+The ear-tag digital twin checks a provenance-controlled specification and orchestrates available engineering tools. MVP 3 adds Gazebo animal/tag scenarios and can bridge simulated sensor data into firmware models. These outputs are `ASSUMED` or `SIMULATED`, not physical measurements or field evidence. Review the [MVP 2 report](docs/mvp2-digital-twin-report.md) and [MVP 3 report](docs/mvp3-animal-digital-twin-report.md) for gates and limits.
+
+![Simulated localization error CDF; simulation output, not field validation](results/plots/localization_error_cdf.png)
+
+## Run locally
+
+Requirements: Python 3.12 or newer and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 ./setup.sh
-./run_demo.sh
+uv run cattle-rf demo --host 127.0.0.1 --port 8000
 ```
 
-The dashboard is served locally at `http://127.0.0.1:8000`. It starts with 100
-animals and eight anchors; controls change herd size, anchor count/placement,
-estimator, and packet loss, then rerun the simulation. Run tests with
-`uv run pytest`; run the benchmark with `make benchmark`. `cattle-rf dataset`
-creates train/validation/holdout files with ground truth separated from RF
-features.
+Open <http://127.0.0.1:8000>. The demo starts with a seeded farm and exposes local animal, anchor, telemetry, position, event, simulation, experiment, and metrics views. Position responses keep ground truth separate; debug truth fields require explicit opt-in.
 
-## Local API
-
-The API is served from the same local process. Main routes include
-`/api/animals`, `/api/animals/{id}`, `/api/anchors`, `/api/telemetry`,
-`/api/positions`, `/api/positions/history`, `/api/events`,
-`/api/simulation/run`, `/api/experiments`, and `/api/metrics`. Normal position
-responses exclude truth fields; `debug=true` is required to request them.
-Animal event hashes are locally verifiable for event-history integrity.
-
-## Results
-
-The checked-in `results/` directory contains the generated full benchmark
-tables, error CDF, cost placeholders, report, and a separate holdout dataset.
-The detailed run summary and interpretation are in
-[`docs/results-2026-10-01.md`](docs/results-2026-10-01.md). A price is left blank
-and marked `PRICE_RESEARCH_REQUIRED` until a dated supplier source is entered.
-
-## Evidence labels
-
-- `SIMULATED`: produced by the software model, not measured on a farm.
-- `ASSUMED`: configured parameter without verified component measurement.
-- `EXPERIMENTAL`: exploratory model (for example simulated Wi-Fi CSI).
-- `VALIDATED`: reserved for evidence verified against physical measurements.
-- `FUTURE`: interface or capability not implemented in this MVP.
-
-Ground truth is maintained separately from receiver-visible observations and
-is available only to evaluation and the explicitly enabled dashboard debug
-view. Hardware cost fields remain `PRICE_RESEARCH_REQUIRED` until supported by
-dated sources.
-
-## Virtual hardware tag
-
-The new C hardware MVP is documented in [`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md)
-and does not replace the RF localization simulator above. It contains a
-portable firmware FSM, SX1262 SPI command model, LIS2DW12 register/IRQ model,
-24-byte telemetry with CRC-16, an integration harness, and a configurable
-energy profile. Run `make hardware-test` for the CTest suite or
-`make hardware-demo` for the accelerated tag scenarios.
-
-The normal firmware beacon interval is 15 minutes (96 transmissions/day);
-ACTIVE and ALERT cadence increases are bounded to two-minute bursts. The energy
-budget is below the 0.5 mAh/day target under its configured assumptions. A
-Tadiran TLL-5902 (1/2 AA, 1.1 Ah) and TI TPS62840 buck are engineering
-candidates, not finalized physical parts. The firmware also builds and runs
-with Zephyr `native_sim/native/64` against the same C peripheral models
-(`make hardware-native-sim` from a configured Zephyr workspace). ngspice 42
-ran 150 voltage/ESR/capacitor sensitivity scenarios; this averaged circuit
-model is not a vendor regulator model or physical brownout validation. The
-nominal-cell rail minimum was 3.2909 V under the +14 dBm TX stress current; low
-voltage points crossed an assumed 2.7 V design threshold. Autonomy is only an
-unmeasured quantity; no runtime is calculated and no battery-life claim is made. The physical test protocol
-and capture analyzer are in [`hardware/physical/`](hardware/physical/README.md).
-Full details,
-test counts, energy scenarios, and blockers are in
-[`hardware/reports/mvp-hardware-report.md`](hardware/reports/mvp-hardware-report.md).
-
-Wokwi and KiCad remain unverified: their executables are unavailable here, so
-the virtual peripherals use local C models and the circuit topology is
-documented rather than claiming a compiled KiCad schematic or PCB. No radio
-propagation, 134.2 kHz RFID reader, physical battery/brownout, or field animal
-behavior is claimed as validated.
-
-## MVP 2 digital twin (ear tag only)
-
-The MVP 2 work adds a provenance-controlled hardware specification and a
-headless analysis entry point. It preserves this MVP 1 simulator and its C
-firmware models. The commercial Allflex dimensions are only an `ASSUMED` scale
-reference, not approved RIOSE geometry. Run:
+To run tests and the benchmark:
 
 ```sh
-uv run python -m riose.products.ear_tag.digital_twin validate-spec
-uv run python -m riose.products.ear_tag.digital_twin preflight
-uv run python -m riose.products.ear_tag.digital_twin run
+uv run pytest -q
+make benchmark
 ```
 
-The previous `python -m riose.digital_twin` command remains available as a
-compatibility entry point.
+The C firmware-model suite can be run with `make hardware-test`. See
+[architecture](docs/architecture.md) for product boundaries and the
+[hardware report](hardware/reports/mvp-hardware-report.md) for model evidence
+and engineering limits.
 
-The run writes machine-readable outputs under `results/mvp2/` and
-`docs/mvp2-digital-twin-report.md`. Missing Renode, ngspice, CadQuery, openEMS,
-or a configured openEMS solver adapter is reported as unavailable; missing
-solvers never produce invented electrical or RF metrics. GPU/Sionna is only an
-`OPTIONAL_GPU_EXPERIMENT`. The current assumed mechanical candidate passes its
-bounding-box fit checks with separate PCB and battery bays, 0.5 mm clearance,
-and an 18.5 mm enclosure depth. This is only a simulated layout estimate; it
-does not validate terminals, tolerances, retention, or physical assembly. No parameter may be marked
-`MEASURED`; dimensions, antenna and fit still require review before a READY
-gate can be reached. See [`hardware/spec.yaml`](hardware/spec.yaml) for the
-candidate architecture and provenance.
+## Technical stack
 
-## MVP 3 digital animal / ear-tag twin
+- **Livestock product:** Python 3.12+, FastAPI, NumPy/SciPy, scikit-learn, and SQLite.
+- **Tag engineering:** C firmware models, Zephyr `native_sim`, and Renode platform models.
+- **Digital twin:** Gazebo Harmonic scenarios and provenance-aware specification checks.
+- **Publication:** Solana Memo support, a shared EVM adapter, and a Solidity commitment registry exercised with local Ganache tests.
 
-MVP 3 adds a procedural, physically simulated bovine scene in Gazebo Harmonic
-around the existing MVP 2 ear-tag design. The model is an `ASSUMED` mechanical
-placeholder; Gazebo output is `SIMULATED`, and no physical animal, attachment,
-RF, or battery validation is claimed. Read the current gate and experiment
-results in [`docs/mvp3-animal-digital-twin-report.md`](docs/mvp3-animal-digital-twin-report.md).
+## Evidence and limitations
 
-```sh
-./scripts/setup_mvp3.sh
-./scripts/run_mvp3.sh walking --visual
-./scripts/run_mvp3_headless.sh head-shake
-uv run riose mvp3 run mass-sweep --fast-headless
-uv run riose mvp3 run long-simulation --headless --live-lockstep --duration-s 60
-RIOSE_ZEPHYR_ELF=/tmp/riose-mvp3-renode-build/zephyr/zephyr.elf \
-  uv run riose mvp3 run walking --visual --live-lockstep
-uv run riose mvp3 replay results/mvp3/EXPERIMENT_DIR
-uv run riose mvp3 report results/mvp3/EXPERIMENT_DIR
-uv run riose mvp3 visualize results/mvp3/EXPERIMENT_DIR
-./scripts/test_mvp3.sh --quick
-```
+- `MULTICHAIN_SOFTWARE = COMPLETE`
+- `SOLANA_REAL_ON_CHAIN = UNVERIFIED`
+- `BASE_REAL_ON_CHAIN = UNVERIFIED`
+- `ARBITRUM_REAL_ON_CHAIN = UNVERIFIED`
+- `FIELD_VALIDATION = NOT_PERFORMED`
+- `FREQUENCIA = EXTERNAL`
 
-`standing`, `walking`, `running`, `head-shake`, `mixed`, `heavy-tag`,
-`attachment-variation`, `radio-event`, `long-simulation` (one virtual hour),
-and `mass-sweep` are deterministic scenario entry points. Mass, attachment
-position, stiffness, damping, and angular limits can be set from the CLI. The
-animal behavior labels drive only the Gazebo-side trajectory; only acceleration
-samples enter the LIS2DW12 bridge. Offline replay uses Gazebo simulation time
-against the captured trace; `--live-lockstep` instead pauses/steps Gazebo as the
-clock master while the existing Zephyr firmware runs in Renode and receives
-each timestamped IMU sample. Set `RIOSE_ZEPHYR_ELF` to the Renode-profile ELF
-for that mode. It prints a loopback-only live companion-panel URL while the run
-is active; the panel labels logical anchor events and provisional power as
-simulated/assumed. `--duration-s` truncates a longer scenario for staged
-runtime and resource checks. The wake comparator is an explicitly experimental
-approximation, not a silicon-accurate LIS2DW12 model. See the report for gates
-and limits.
+RF localization, hardware behavior, and digital-twin results are software simulations or models. Physical hardware, animal behavior, battery life, and field performance have not been validated. Local blockchain E2E tests do not establish public-chain transactions, confirmation, or finality. The current blockchain evidence and limitations are recorded in the [multichain integration report](docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md).
 
+## Roadmap
+
+1. Validate tag mechanics, radio, sensors, and power on physical hardware.
+2. Run field studies and compare measured results with the simulation evidence.
+3. Perform independently verifiable public testnet publications for Solana, Base, and Arbitrum.
+4. Extend operational and finality evidence before making production claims.
+
+## Team
+
+Current GitHub contributors by commit history: [santleme](https://github.com/santleme) and [GUZZBR1](https://github.com/GUZZBR1). Roles and competition-team details are not specified in this repository.
