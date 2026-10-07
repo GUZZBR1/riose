@@ -224,6 +224,74 @@ def test_failure_of_one_target_does_not_change_sibling_target(publication):
     assert store.verify_animal_chain("cow-1")
 
 
+def test_three_target_partial_failure_recovers_only_the_unavailable_target(publication):
+    _store, outbox, event, _request = publication
+    targets = {
+        "solana": ("solana-memo", "solana", "solana-local-mock", "solana-tx"),
+        "base": ("evm-registry", "base-sepolia", "base-local-84532", "base-tx"),
+        "arbitrum": ("evm-registry", "arbitrum-sepolia", "arbitrum-local-421614", "arbitrum-tx"),
+    }
+    requests = {
+        name: outbox.enqueue_event(
+            event.event_id, destination=adapter_id, chain=chain, network=network,
+        )
+        for name, (adapter_id, chain, network, _transaction_id) in targets.items()
+    }
+    assert len({request["commitment"] for request in requests.values()}) == 1
+
+    class UnavailableAdapter(FakeAdapter):
+        def healthcheck(self) -> bool:
+            self.calls.append(("healthcheck",))
+            return False
+
+    adapters = {}
+    for name, (adapter_id, chain, network, transaction_id) in targets.items():
+        adapter_type = UnavailableAdapter if name == "base" else FakeAdapter
+        adapter = adapter_type(
+            adapter_id=adapter_id, chain=chain, network=network,
+            transaction_id=transaction_id,
+        )
+        adapter.receipt = _receipt(adapter)
+        adapters[name] = adapter
+
+    for name in ("solana", "arbitrum"):
+        result = _dispatcher(outbox, adapters[name], requests[name]["publication_id"]).process(
+            requests[name]["publication_id"],
+        )
+        assert result["status"] == "VERIFIED"
+    with pytest.raises(ValueError, match="adapter is unavailable"):
+        _dispatcher(outbox, adapters["base"], requests["base"]["publication_id"]).process(
+            requests["base"]["publication_id"],
+        )
+
+    for name in ("solana", "arbitrum"):
+        assert outbox.get(requests[name]["publication_id"])["status"] == "VERIFIED"
+        assert outbox.latest_attempt(requests[name]["publication_id"])["attempt_number"] == 1
+        assert len(outbox.receipts(requests[name]["publication_id"])) == 3
+    assert outbox.get(requests["base"]["publication_id"])["status"] == "QUEUED"
+    assert outbox.latest_attempt(requests["base"]["publication_id"]) is None
+    assert outbox.receipts(requests["base"]["publication_id"]) == []
+
+    restored_base = FakeAdapter(
+        adapter_id="evm-registry", chain="base-sepolia", network="base-local-84532",
+        transaction_id="base-tx",
+    )
+    restored_base.receipt = _receipt(restored_base)
+    assert _dispatcher(
+        outbox, restored_base, requests["base"]["publication_id"],
+    ).process(requests["base"]["publication_id"])["status"] == "VERIFIED"
+
+    assert [call[0] for call in adapters["solana"].calls].count("submit") == 1
+    assert [call[0] for call in adapters["arbitrum"].calls].count("submit") == 1
+    assert [call[0] for call in restored_base.calls].count("submit") == 1
+    for name, request in requests.items():
+        assert request["commitment"] == outbox.get(request["publication_id"])["commitment"]
+        assert all(receipt["publication_id"] == request["publication_id"]
+                   and receipt["chain"] == request["chain"]
+                   and receipt["network"] == request["network"]
+                   for receipt in outbox.receipts(request["publication_id"]))
+
+
 def test_submit_timeout_is_recoverable_with_exact_persisted_transaction(publication):
     _store, outbox, _event, request = publication
     adapter = FakeAdapter(submit_error=TimeoutError("timed out"))

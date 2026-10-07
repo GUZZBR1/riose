@@ -172,7 +172,7 @@ def _write_mvp4_evidence(
         {"scenario": "NORMAL_ONLINE", "status": "PASS_LOCAL_SIMULATED", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"]},
         {"scenario": "OFFLINE_CREATE", "status": "PASS_LOCAL", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"]},
         {"scenario": "OFFLINE_RESTART", "status": "PASS_LOCAL", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts", "test_queue_is_atomic_minimal_and_idempotent_across_restart"]},
-        {"scenario": "PARTIAL_TARGET_FAILURE", "status": "PASS_MOCKED", "tests": ["test_failure_of_one_target_does_not_change_sibling_target", "test_target_failure_does_not_invalidate_event_or_other_target"]},
+        {"scenario": "PARTIAL_TARGET_FAILURE", "status": "PASS_MOCKED", "tests": ["test_three_target_partial_failure_recovers_only_the_unavailable_target", "test_failure_of_one_target_does_not_change_sibling_target", "test_target_failure_does_not_invalidate_event_or_other_target"]},
         {"scenario": "TARGET_RECOVERY", "status": "PASS_LOCAL_AND_MOCKED", "tests": ["test_submit_timeout_is_recoverable_with_exact_persisted_transaction", "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"]},
         {"scenario": "CRASH_BEFORE_SEND", "status": "PASS_MOCKED", "tests": ["test_reconcile_prepared_after_restart_never_prepares_new_payload", "test_missing_adapter_leaves_request_queued_without_attempt"]},
         {"scenario": "CRASH_AFTER_SEND", "status": "PASS_LOCAL_AND_MOCKED", "tests": ["test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert", "test_submit_timeout_is_recoverable_with_exact_persisted_transaction"]},
