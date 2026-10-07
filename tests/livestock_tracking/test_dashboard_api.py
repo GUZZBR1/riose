@@ -14,21 +14,23 @@ from cattle_rf.api import (
 )
 
 
-def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
+def test_dashboard_isometric_demo_and_debug_only_truth(tmp_path):
     app = create_app(tmp_path / "dashboard.sqlite3")
     client = TestClient(app)
     page = client.get("/demo")
     assert page.status_code == 200
     assert 'id="farm-screen"' in page.text
-    assert 'id="farm-roster"' in page.text
+    assert 'id="farm-canvas"' in page.text
+    assert 'id="farm-animal-panel"' in page.text
+    assert 'id="selected-animal-portrait"' in page.text
     assert 'id="record-title"' in page.text
     assert 'id="continue-solana"' in page.text
     assert "A day in the pasture" in page.text
     assert "SAMPLE" not in page.text
-    assert 'data-farm-mode="overview"' in page.text
-    assert 'data-farm-mode="signals"' in page.text
-    assert 'data-farm-mode="coverage"' in page.text
-    assert 'data-farm-mode="track"' in page.text
+    for removed in ("Overview", "Signals", "Coverage", "Track", "SIMULATED", "Herd overview",
+                    "farm-animal-count", "farm-zoom-in", "farm-roster", "farm-camera-controls"):
+        assert removed not in page.text
+    assert 'id="farm-stage"' in page.text
     assert "Farm simulation" not in page.text
     assert "SIMULATED" not in page.text
     assert "step-indicator" not in page.text
@@ -254,8 +256,9 @@ def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions
     page = client.get("/demo")
     assert page.status_code == 200
     assert 'id="farm-screen"' in page.text
-    assert 'id="farm-roster"' in page.text
-    assert "24" in page.text
+    assert 'id="farm-canvas"' in page.text
+    assert 'id="farm-roster"' not in page.text
+    assert "24 animals" not in page.text
     client.close()
 
 

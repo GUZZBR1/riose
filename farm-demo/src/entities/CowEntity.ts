@@ -1,68 +1,66 @@
 import Phaser from 'phaser';
 import { AnimalBehavior, type BehaviorSnapshot } from '../simulation/behavior';
+import { pastureOrdinal } from '../simulation/farm-layout';
 import type { PastureZone } from '../simulation/farm-layout';
 import type { AnimalState } from '../types';
-import { classifySignal, pastureOrdinal } from '../simulation/farm-layout';
+import { FarmEnvironmentLayer } from '../environment/FarmEnvironmentLayer';
 
-const SPRITE_KEY = 'cattle-atlas';
+const COW_WIDTH = 58;
+const COW_HEIGHT = 54;
 
 export class CowEntity {
-  readonly sprite: Phaser.GameObjects.Sprite;
+  readonly sprite: Phaser.GameObjects.Image;
   readonly behavior: AnimalBehavior;
-  private readonly selection: Phaser.GameObjects.Arc;
+  private readonly selection: Phaser.GameObjects.Ellipse;
   private readonly pasture: PastureZone;
-  private lastFrame = -1;
   private snapshot: BehaviorSnapshot;
   private motionTime = 0;
+  private hovered = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
     readonly index: number,
     pasture: PastureZone,
     onSelect: () => void,
+    environment: FarmEnvironmentLayer,
   ) {
     this.pasture = pasture;
     this.behavior = new AnimalBehavior(index, pasture, pastureOrdinal(index));
     this.snapshot = this.behavior.current;
-    this.sprite = scene.add.sprite(this.snapshot.x, this.snapshot.y, SPRITE_KEY, this.frameFor(this.snapshot.status, index % 4, index % 4))
-      .setScale(1.5)
-      .setOrigin(0.5, 0.72)
-      .setDepth(this.snapshot.y)
+    this.sprite = scene.add.image(this.snapshot.x, this.snapshot.y, environment.getCowTexture(index))
+      .setDisplaySize(COW_WIDTH, COW_HEIGHT)
+      .setOrigin(0.5, 0.82)
+      .setDepth(this.snapshot.y + 2)
+      .setData('farmCow', true)
       .setInteractive({ useHandCursor: true });
     this.sprite.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       pointer.event.stopPropagation();
       onSelect();
     });
-    this.selection = scene.add.circle(this.snapshot.x, this.snapshot.y + 5, 20, 0x20312b, 0.13)
-      .setStrokeStyle(2, 0x344b3e, 0.75)
-      .setDepth(this.snapshot.y - 1)
+    this.sprite.on('pointerover', () => this.setHovered(true));
+    this.sprite.on('pointerout', () => this.setHovered(false));
+    this.selection = scene.add.ellipse(this.snapshot.x, this.snapshot.y + 5, 54, 24, 0x334f36, 0.18)
+      .setStrokeStyle(2, 0xe9ebc9, 0.86)
+      .setDepth(this.snapshot.y + 1)
       .setVisible(false);
-    this.applyStatus(this.snapshot.status);
   }
 
   update(deltaMs: number, reducedMotion: boolean): void {
     this.snapshot = this.behavior.update(deltaMs, reducedMotion);
     if (!reducedMotion) this.motionTime += Math.min(deltaMs, 50);
     const { x, y, status, heading } = this.snapshot;
-    this.sprite.setPosition(x, y).setDepth(y + 1);
-    this.selection.setPosition(x, y + 5).setDepth(y);
-    if (reducedMotion) {
-      this.sprite.setRotation(0).setScale(1.5, 1.5);
-    } else if (status === 'WALK') {
-      this.sprite.setRotation(Math.sin(heading) * 0.07)
-        .setScale(1.5, 1.44 + Math.abs(Math.sin(this.motionTime * 0.012 + this.index)) * 0.1);
-      this.sprite.setFlipX(Math.cos(heading) < 0);
-    } else if (status === 'GRAZE') {
-      this.sprite.setRotation(Math.sin(this.motionTime * 0.002 + this.index) * 0.035).setScale(1.5, 1.5);
-    } else {
-      this.sprite.setRotation(0).setScale(1.5, 1.5);
-    }
-    this.applyStatus(status);
+    const breathing = !reducedMotion && status === 'IDLE' ? Math.sin(this.motionTime * 0.002 + this.index) * 1.2 : 0;
+    const grazing = !reducedMotion && status === 'GRAZE' ? Math.sin(this.motionTime * 0.006 + this.index) * 1.6 : 0;
+    const walking = !reducedMotion && status === 'WALK' ? Math.abs(Math.sin(this.motionTime * 0.012 + this.index)) * 2 : 0;
+    this.sprite.setPosition(x, y + breathing + grazing + walking).setDepth(y + 2);
+    if (!reducedMotion && status === 'WALK') this.sprite.setFlipX(Math.cos(heading) < 0);
+    this.selection.setPosition(x, y + 7).setDepth(y + 1);
   }
 
   setSelected(selected: boolean): void {
     this.selection.setVisible(selected);
-    this.sprite.setAlpha(selected ? 1 : 0.94);
+    this.sprite.setAlpha(selected || this.hovered ? 1 : 0.96);
+    this.sprite.setDepth(this.snapshot.y + (selected ? 5 : 2));
   }
 
   getState(): AnimalState {
@@ -70,9 +68,8 @@ export class CowEntity {
       id: `animal-${this.index}`,
       label: `Animal ${this.index}`,
       status: this.snapshot.status,
-      zone: this.pastureName,
+      zone: this.pasture.name,
       estimatedPosition: { x: Math.round(this.snapshot.x), y: Math.round(this.snapshot.y) },
-      signalLevel: classifySignal(this.snapshot.x, this.snapshot.y),
     };
   }
 
@@ -81,25 +78,15 @@ export class CowEntity {
     this.selection.destroy();
   }
 
-  private get pastureName(): string { return this.pasture.name; }
-
-  private applyStatus(status: BehaviorSnapshot['status']): void {
-    const nextFrame = this.frameFor(status, this.index % 4, this.directionFor(this.snapshot.heading));
-    if (this.lastFrame !== nextFrame) {
-      this.sprite.setFrame(nextFrame);
-      this.lastFrame = nextFrame;
+  private setHovered(hovered: boolean): void {
+    if (this.hovered === hovered) return;
+    this.hovered = hovered;
+    this.sprite.setAlpha(hovered ? 1 : 0.96);
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      this.sprite.setDisplaySize(COW_WIDTH, COW_HEIGHT);
+      return;
     }
-  }
-
-  private frameFor(status: BehaviorSnapshot['status'], coat: number, direction: number): number {
-    // Atlas generated by tools/generate_assets.py: 4 coats x 4 directions x
-    // 5 actions x 2 frames, packed in row-major 16-column 32px cells.
-    const action = status === 'GRAZE' ? 1 : status === 'WALK' ? 2 : status === 'DRINK' ? 3 : 0;
-    const frame = Math.floor(this.motionTime / (status === 'WALK' ? 220 : 620)) % 2;
-    return (((coat * 4 + direction) * 5 + action) * 2) + frame;
-  }
-
-  private directionFor(heading: number): number {
-    return (Math.round(heading / (Math.PI / 2)) + 1 + 4) % 4;
+    this.scene.tweens.add({ targets: this.sprite, displayWidth: hovered ? COW_WIDTH + 5 : COW_WIDTH,
+      displayHeight: hovered ? COW_HEIGHT + 4 : COW_HEIGHT, duration: 150, ease: 'Sine.easeOut' });
   }
 }

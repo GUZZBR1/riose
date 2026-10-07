@@ -1,6 +1,4 @@
-export type FarmMode = 'overview' | 'signals' | 'coverage' | 'track';
 export type AnimalStatus = 'IDLE' | 'GRAZE' | 'WALK' | 'DRINK';
-export type SignalLevel = 'strong' | 'moderate' | 'edge';
 
 export interface WorldPoint {
   x: number;
@@ -14,10 +12,8 @@ export interface AnimalState {
   label: string;
   status: AnimalStatus;
   zone: string;
-  /** Estimated map coordinate in world pixels, not a physical measurement. */
+  /** Position in the illustrated demo world. */
   estimatedPosition: WorldPoint;
-  /** Deterministic visual estimate relative to the demo's anchor layout. */
-  signalLevel: SignalLevel;
 }
 
 export interface FarmDemoCallbacks {
@@ -27,17 +23,8 @@ export interface FarmDemoCallbacks {
 }
 
 export interface FarmDemoHandle {
-  setMode(mode: FarmMode): void;
   focusAnimal(id: string): void;
   selectAnimal(id: string | null): void;
-  resetView(): void;
-  zoomBy(factor: number): void;
   getAnimals(): readonly AnimalState[];
   destroy(): void;
-}
-
-export interface Anchor {
-  id: string;
-  x: number;
-  y: number;
 }

@@ -2,7 +2,7 @@
 
 ## Direction
 
-RIOSE should feel like a small hardware research project: quiet, precise, and grounded in animal identity and verifiable records. The landing page introduces the product and links to the guided demo; `/demo` opens on a living top-down pixel-art farm, then follows a selected animal into its local history and optional Solana Devnet asset. The manifesto has its own route so it can be read without adding another section to the product hero.
+RIOSE should feel like a small hardware research project: quiet, precise, and grounded in animal identity and verifiable records. The landing page introduces the product and links to the guided demo; `/demo` opens on a living isometric pixel-art farm, then follows a selected animal into its local history and optional Solana Devnet asset. The manifesto has its own route so it can be read without adding another section to the product hero.
 
 ## Palette and surfaces
 
@@ -24,7 +24,7 @@ RIOSE should feel like a small hardware research project: quiet, precise, and gr
 - Keep the product dominant and the page naturally scrollable.
 - Lower the hero model by roughly 60–112px to create room above the ear attachment without changing the model or camera.
 - Keep the interactive 3D ear-tag model on the central landing page. It should respond to intentional hover, drag, touch, and keyboard input; it must not move randomly or run a continuous scene.
-- Keep the farm demo in 2D. Use authored tilemap art and deterministic ambient movement; do not add random drift or camera motion.
+- Keep the farm demo in 2D. Compose the diorama from replaceable isometric art layers and deterministic ambient movement; keep interaction quiet and the page free of dashboard controls.
 - Use small, intentional hover and selection transitions on records and controls. Respect reduced-motion preferences and keep all interactions usable with touch and keyboard.
 - The header contracts to a centered wordmark while scrolling. A small dictionary-style definition may appear on wordmark hover, focus, or tap.
 - Header navigation and the São Paulo location link use a restrained lift and animated underline on hover/focus; the location opens its map destination.
@@ -40,7 +40,7 @@ RIOSE should feel like a small hardware research project: quiet, precise, and gr
 ## Layout
 
 - The root landing page preserves the product headline “The next-generation livestock ear tag.” and its supporting line, with a direct link to the guided demo. Keep the interactive 3D model as the hero; the independent paper entry follows below.
-- `/demo` opens directly on a living, illustrated pixel-art farm with 24 visible animals, meadows, winding paths, a barn, pond, trees and receiver anchors. Keep the environment composition organic and detailed rather than repeating a grid of equally sized paddocks. Signals, coverage and movement are local simulation/estimates, not physical RF telemetry. Selecting an animal opens a compact panel; the full narrative and optional Solana asset remain secondary. The demo does not alter the landing-page 3D tag hero.
+- `/demo` opens directly on a living, free-standing isometric pixel-art farm with independent cows, a winding path, barn, water, foliage and small farm props. Do not show mode tabs, counters, zoom buttons or a framed map viewport. Selecting a cow opens a compact photo-backed card; the full narrative and optional Solana asset remain secondary. The demo does not alter the landing-page 3D tag hero.
 - `/manifesto` uses the same floating glass header and centered live-text Riose wordmark as the product page. Center the headline and reading column on the viewport; keep paragraph lines left-aligned for comfortable reading and preserve generous spacing.
 - Build the manifesto's monumental communications structure from browser text characters. Keep it monochrome, legible but restrained, cropped beyond the viewport, and free of gradients or illustrated assets; use only low-amplitude pointer and scroll movement.
 - Keep the manifesto link secondary in the expanded header. Do not add a card grid or promotional section to the landing page.

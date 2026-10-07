@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f2f2f0">
-  <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
+  <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-8">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-12">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -21,42 +21,22 @@
   </header>
 
   <main class="demo-page" id="demo-main">
-    <section class="demo-screen farm-screen is-entering" id="farm-screen" aria-label="RIOSE farm monitoring demo">
-      <div class="farm-toolbar">
-        <p class="farm-counts"><strong id="farm-animal-count">24</strong> animals</p>
-        <div class="farm-modes" role="group" aria-label="Farm visualization mode">
-          <button type="button" class="farm-mode is-active" data-farm-mode="overview" aria-pressed="true">Overview</button>
-          <button type="button" class="farm-mode" data-farm-mode="signals" aria-pressed="false">Signals</button>
-          <button type="button" class="farm-mode" data-farm-mode="coverage" aria-pressed="false">Coverage</button>
-          <button type="button" class="farm-mode" data-farm-mode="track" aria-pressed="false">Track</button>
-        </div>
-      </div>
-
+    <section class="demo-screen farm-screen is-entering" id="farm-screen" aria-label="RIOSE interactive farm diorama">
       <div class="farm-stage" id="farm-stage">
-        <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Top-down simulated farm. Select an animal from the herd list to inspect it." tabindex="0"></div>
-        <span id="farm-mode-caption" class="visually-hidden" aria-live="polite">Herd overview</span>
-        <div class="farm-camera-controls" aria-label="Camera controls">
-          <button type="button" id="farm-zoom-in" aria-label="Zoom in">+</button>
-          <button type="button" id="farm-zoom-out" aria-label="Zoom out">−</button>
-          <button type="button" id="farm-reset-view" aria-label="Reset farm view">Reset</button>
-        </div>
+        <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Use arrow keys to select an animal." tabindex="0"></div>
+        <span id="selected-animal-announcement" class="visually-hidden" aria-live="polite"></span>
         <aside class="farm-animal-card" id="farm-animal-panel" aria-labelledby="selected-animal-name" hidden>
           <button type="button" class="farm-card-close" id="close-animal-panel" aria-label="Close animal details">×</button>
-          <p class="farm-card-zone" id="selected-animal-zone">Willow meadow</p>
-          <h2 id="selected-animal-name">Animal 0</h2>
-          <div class="farm-animal-facts">
-            <div><span>Status</span><strong id="selected-animal-status">Grazing</strong></div>
-            <div><span>Estimated position</span><strong id="selected-animal-position">North pasture</strong></div>
-            <div><span>Signal</span><strong id="selected-animal-signal">Local estimate</strong></div>
+          <div class="farm-card-identity">
+            <img id="selected-animal-portrait" src="/assets/demo/animal-0.webp" alt="Animal 0" width="62" height="62">
+            <div>
+              <h2 id="selected-animal-name">Animal 0</h2>
+              <p class="farm-card-meta"><span id="selected-animal-status">Grazing</span><span aria-hidden="true"> · </span><span id="selected-animal-zone">Willow meadow</span></p>
+            </div>
           </div>
-          <button type="button" class="farm-record-link" id="open-animal-record">Open animal record <span aria-hidden="true">↗</span></button>
+          <button type="button" class="farm-record-link" id="open-animal-record">View animal record <span aria-hidden="true">↗</span></button>
         </aside>
       </div>
-
-      <div class="farm-footer">
-        <button type="button" class="farm-roster-toggle" id="farm-roster-toggle" aria-expanded="false" aria-controls="farm-roster">Herd <span id="farm-roster-count">24</span></button>
-      </div>
-      <div class="farm-roster" id="farm-roster" role="listbox" aria-label="Select an animal" hidden></div>
     </section>
 
     <section class="demo-screen detail-screen" id="record-screen" aria-labelledby="record-title" hidden>
@@ -103,6 +83,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-8"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-12"></script>
 </body>
 </html>

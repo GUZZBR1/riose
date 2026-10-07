@@ -1,18 +1,10 @@
-import type { Anchor, WorldPoint } from '../types';
+import type { WorldPoint } from '../types';
 
 export const TILE_SIZE = 32;
-export const MAP_WIDTH = 64;
-export const MAP_HEIGHT = 44;
+export const MAP_WIDTH = 48;
+export const MAP_HEIGHT = 32;
 export const WORLD_WIDTH = MAP_WIDTH * TILE_SIZE;
 export const WORLD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
-
-/** Layout aligns to the supplied 48 x 32 tile authored map. */
-export const ANCHORS: readonly Anchor[] = [
-  { id: 'anchor-willow', x: 17.5 * TILE_SIZE, y: 8.5 * TILE_SIZE },
-  { id: 'anchor-east-field', x: 51.5 * TILE_SIZE, y: 10.5 * TILE_SIZE },
-  { id: 'anchor-south-meadow', x: 15.5 * TILE_SIZE, y: 36.5 * TILE_SIZE },
-  { id: 'anchor-creek', x: 49.5 * TILE_SIZE, y: 36.5 * TILE_SIZE },
-];
 
 export interface PastureZone {
   name: string;
@@ -21,31 +13,31 @@ export interface PastureZone {
   waterPoint?: WorldPoint;
 }
 
-// Uneven paddock sizes and waypoint rhythms make the herd feel gathered in places.
+/** Waypoints follow the illustrated island's clearings, not a visible grid. */
 export const PASTURES: readonly PastureZone[] = [
   {
     name: 'Willow meadow',
-    bounds: { left: 4, top: 11, right: 21, bottom: 29 },
-    waypoints: [point(7, 17), point(9, 14), point(14, 14), point(18, 18), point(18, 22), point(15, 26), point(10, 26), point(7, 22)],
-    waterPoint: point(18, 22),
+    bounds: { left: 6, top: 10, right: 19, bottom: 21 },
+    waypoints: [point(8, 13), point(10, 11), point(14, 12), point(17, 15), point(16, 18), point(12, 20), point(8, 18)],
+    waterPoint: point(11, 17),
   },
   {
     name: 'Long grass',
-    bounds: { left: 29, top: 7, right: 57, bottom: 25 },
-    waypoints: [point(33, 12), point(38, 10), point(44, 11), point(51, 13), point(53, 17), point(48, 22), point(41, 21), point(34, 18)],
-    waterPoint: point(52, 19),
+    bounds: { left: 23, top: 7, right: 39, bottom: 17 },
+    waypoints: [point(25, 10), point(29, 8), point(34, 9), point(38, 11), point(36, 14), point(32, 16), point(27, 15)],
+    waterPoint: point(35, 13),
   },
   {
     name: 'South meadow',
-    bounds: { left: 18, top: 28, right: 37, bottom: 41 },
-    waypoints: [point(22, 32), point(26, 30), point(31, 31), point(34, 35), point(32, 38), point(27, 38), point(22, 35)],
-    waterPoint: point(33, 36),
+    bounds: { left: 13, top: 19, right: 28, bottom: 27 },
+    waypoints: [point(15, 22), point(18, 20), point(23, 21), point(27, 23), point(25, 26), point(21, 26), point(17, 25)],
+    waterPoint: point(25, 24),
   },
   {
     name: 'Creek paddock',
-    bounds: { left: 40, top: 26, right: 57, bottom: 39 },
-    waypoints: [point(44, 29), point(48, 28), point(53, 31), point(53, 35), point(50, 37), point(45, 35), point(42, 32)],
-    waterPoint: point(54, 34),
+    bounds: { left: 29, top: 18, right: 42, bottom: 26 },
+    waypoints: [point(31, 20), point(34, 19), point(39, 20), point(41, 23), point(38, 25), point(34, 25), point(30, 23)],
+    waterPoint: point(39, 22),
   },
 ];
 
@@ -67,13 +59,4 @@ export function pastureOrdinal(index: number): number {
     if (pastureForAnimal(previous) === zone) ordinal += 1;
   }
   return ordinal;
-}
-
-export function classifySignal(x: number, y: number): 'strong' | 'moderate' | 'edge' {
-  let nearest = Number.POSITIVE_INFINITY;
-  for (const anchor of ANCHORS) nearest = Math.min(nearest, Math.hypot(x - anchor.x, y - anchor.y));
-  // Broad, qualitative bands are illustrative only; no RF values are generated.
-  if (nearest < 420) return 'strong';
-  if (nearest < 760) return 'moderate';
-  return 'edge';
 }

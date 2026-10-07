@@ -50,19 +50,10 @@ const state = {
   asset: null,
   busy: false,
   farm: null,
-  sceneAnimals: [],
   selectedSceneAnimal: null,
-  rosterButtons: new Map(),
 };
 const screens = ['farm-screen', 'record-screen', 'solana-screen'];
-const modeCaptions = {
-  overview: 'Herd overview',
-  signals: 'Local signal estimate',
-  coverage: 'Estimated anchor coverage',
-  track: 'Select an animal to track',
-};
 const statusLabels = { IDLE: 'Resting', GRAZE: 'Grazing', WALK: 'Walking', DRINK: 'At the water point' };
-const signalLabels = { strong: 'Strong local estimate', moderate: 'Moderate local estimate', edge: 'Coverage edge' };
 
 async function requestJson(url, options) {
   const response = await fetch(url, { cache: 'no-store', ...options });
@@ -91,21 +82,9 @@ function showScreen(screenId) {
   }
   window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   const focusTarget = screenId === 'farm-screen'
-    ? $('farm-roster-toggle')
+    ? $('farm-canvas')
     : $(screenId === 'record-screen' ? 'record-title' : 'solana-title');
   if (focusTarget) requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
-}
-
-function setMode(mode) {
-  state.farm?.setMode(mode);
-  document.querySelectorAll('[data-farm-mode]').forEach((button) => {
-    const active = button.dataset.farmMode === mode;
-    button.classList.toggle('is-active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-  $('farm-mode-caption').textContent = mode === 'track' && state.selectedSceneAnimal
-    ? `Tracking ${state.selectedSceneAnimal.label}`
-    : modeCaptions[mode];
 }
 
 function updateAnimalPanel(animal) {
@@ -113,21 +92,18 @@ function updateAnimalPanel(animal) {
   const panel = $('farm-animal-panel');
   if (!animal) {
     panel.hidden = true;
-    $('farm-mode-caption').textContent = modeCaptions.track;
+    $('selected-animal-announcement').textContent = '';
     return;
   }
   panel.hidden = false;
   $('selected-animal-name').textContent = animal.label;
   $('selected-animal-zone').textContent = animal.zone;
   $('selected-animal-status').textContent = statusLabels[animal.status] || 'Moving';
-  $('selected-animal-position').textContent = animal.zone;
-  $('selected-animal-signal').textContent = signalLabels[animal.signalLevel] || 'Local estimate';
-  if (document.querySelector('[data-farm-mode="track"]')?.getAttribute('aria-pressed') === 'true') {
-    $('farm-mode-caption').textContent = `Tracking ${animal.label}`;
-  }
-  for (const [id, button] of state.rosterButtons) {
-    button.setAttribute('aria-selected', String(id === animal.id));
-  }
+  const index = Number(animal.id.replace('animal-', '')) || 0;
+  const portrait = $(`selected-animal-portrait`);
+  portrait.src = `/assets/demo/animal-${index % 4}.webp`;
+  portrait.alt = `${animal.label}, cattle portrait`;
+  $('selected-animal-announcement').textContent = `${animal.label}, ${statusLabels[animal.status] || 'Moving'}, ${animal.zone}`;
 }
 
 function chooseAnimal(animal) {
@@ -136,53 +112,8 @@ function chooseAnimal(animal) {
   updateAnimalPanel(animal);
 }
 
-function rosterKeydown(event, button) {
-  const buttons = [...$('farm-roster').querySelectorAll('button')];
-  const current = buttons.indexOf(button);
-  let next = current;
-  if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (current + 1) % buttons.length;
-  else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (current - 1 + buttons.length) % buttons.length;
-  else if (event.key === 'Home') next = 0;
-  else if (event.key === 'End') next = buttons.length - 1;
-  else if (event.key === 'Escape') {
-    $('farm-roster').hidden = true;
-    $('farm-roster-toggle').setAttribute('aria-expanded', 'false');
-    $('farm-roster-toggle').focus();
-    event.preventDefault();
-    return;
-  } else return;
-  event.preventDefault();
-  buttons[next]?.focus();
-}
-
-function renderRoster(animals) {
-  state.sceneAnimals = animals;
-  $('farm-animal-count').textContent = String(animals.length);
-  $('farm-roster-count').textContent = String(animals.length);
-  const roster = $('farm-roster');
-  for (const animal of animals) {
-    let button = state.rosterButtons.get(animal.id);
-    if (!button) {
-      button = document.createElement('button');
-      button.type = 'button';
-      button.role = 'option';
-      button.setAttribute('aria-selected', 'false');
-      button.dataset.animalId = animal.id;
-      button.tabIndex = -1;
-      const name = document.createElement('span');
-      name.className = 'roster-animal-name';
-      name.textContent = animal.label;
-      const status = document.createElement('span');
-      status.className = 'roster-animal-status';
-      button.append(name, status);
-      button.addEventListener('click', () => chooseAnimal(state.sceneAnimals.find((item) => item.id === button.dataset.animalId)));
-      button.addEventListener('keydown', (event) => rosterKeydown(event, button));
-      roster.append(button);
-      state.rosterButtons.set(animal.id, button);
-    }
-    button.querySelector('.roster-animal-status').textContent = `${statusLabels[animal.status] || 'Moving'} · ${animal.zone}`;
-    button.setAttribute('aria-selected', String(state.selectedSceneAnimal?.id === animal.id));
-  }
+function publishSceneState(animals) {
+  $('farm-canvas').dataset.animalCount = String(animals.length);
 }
 
 async function initFarm() {
@@ -195,9 +126,8 @@ async function initFarm() {
     state.farm = mountFarmDemo($('farm-canvas'), {
       animalCount,
       onSelect: updateAnimalPanel,
-      onStates: renderRoster,
+      onStates: publishSceneState,
     });
-    setMode('overview');
   } catch (error) {
     const fallback = document.createElement('p');
     fallback.className = 'farm-load-error';
@@ -372,22 +302,6 @@ async function performAssetAction() {
   }
 }
 
-document.querySelectorAll('[data-farm-mode]').forEach((button) => {
-  button.addEventListener('click', () => setMode(button.dataset.farmMode));
-});
-$('farm-zoom-in').addEventListener('click', () => state.farm?.zoomBy(1.12));
-$('farm-zoom-out').addEventListener('click', () => state.farm?.zoomBy(0.89));
-$('farm-reset-view').addEventListener('click', () => {
-  state.farm?.resetView();
-  setMode('overview');
-});
-$('farm-roster-toggle').addEventListener('click', () => {
-  const roster = $('farm-roster');
-  const opening = roster.hidden;
-  roster.hidden = !opening;
-  $('farm-roster-toggle').setAttribute('aria-expanded', String(opening));
-  if (opening) roster.querySelector('button')?.focus();
-});
 $('close-animal-panel').addEventListener('click', () => state.farm?.selectAnimal(null));
 $('open-animal-record').addEventListener('click', () => void openAnimalRecord());
 $('back-to-herd').addEventListener('click', () => showScreen('farm-screen'));

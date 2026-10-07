@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { FarmScene } from './FarmScene';
-import type { AnimalState, FarmDemoCallbacks, FarmDemoHandle, FarmMode } from './types';
+import type { AnimalState, FarmDemoCallbacks, FarmDemoHandle } from './types';
 
-export type { AnimalState, AnimalStatus, FarmDemoCallbacks, FarmDemoHandle, FarmMode, SignalLevel, WorldPoint } from './types';
+export type { AnimalState, AnimalStatus, FarmDemoCallbacks, FarmDemoHandle, WorldPoint } from './types';
 
 /** Mount the self-contained, client-only farm scene into an existing page region. */
 export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks = {}): FarmDemoHandle {
@@ -13,7 +13,7 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
     width: '100%',
     height: '100%',
     minHeight: '420px',
-    overflow: 'hidden',
+    overflow: 'visible',
     touchAction: 'none',
   });
   parent.appendChild(host);
@@ -22,14 +22,13 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
   const initialWidth = Math.max(1, host.clientWidth);
   const initialHeight = Math.max(1, host.clientHeight);
   const game = new Phaser.Game({
-    // The tilemap is strictly 2D pixel art. Canvas avoids headless/mobile
-    // WebGL framebuffer failures while Phaser's nearest-neighbour renderer
-    // keeps these small atlases crisp.
+    // Canvas keeps the transparent layered sprites crisp and stable on mobile.
     type: Phaser.CANVAS,
     parent: host,
     width: initialWidth,
     height: initialHeight,
-    backgroundColor: '#dce7ce',
+    backgroundColor: 'rgba(0,0,0,0)',
+    transparent: true,
     pixelArt: true,
     roundPixels: true,
     antialias: false,
@@ -52,11 +51,8 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
   };
 
   return {
-    setMode(mode: FarmMode): void { invokeWhenReady(() => scene.setMode(mode)); },
     focusAnimal(id: string): void { invokeWhenReady(() => scene.focusAnimal(id)); },
     selectAnimal(id: string | null): void { invokeWhenReady(() => scene.selectAnimal(id)); },
-    resetView(): void { invokeWhenReady(() => scene.resetView()); },
-    zoomBy(factor: number): void { invokeWhenReady(() => scene.zoomBy(factor)); },
     getAnimals(): readonly AnimalState[] { return scene.ready ? scene.getAnimals() : []; },
     destroy(): void {
       if (destroyed) return;
