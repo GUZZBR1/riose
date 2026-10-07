@@ -71,8 +71,8 @@ only after final regressions demonstrate no incompatible changes.
 | F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Identity/config tests plus recorded read-only chain/genesis evidence in M4A/M4B reports | PASS: identity is chain ID + genesis + contract/code/publisher; no current public write |
 | F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; exact npm audit package list and path classes below | PASS_WITH_LIMITATION: native Windows signer ACL policy is not independently enforced |
 | F12 | Historical Base/Arbitrum claims consistent; typo search reported without erasing history | Exact report-source inspection | PASS: suspected phrase not found in checked Arbitrum reports |
-| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 839 passed / 7 skipped, including Ganache local EVM contract and three-chain local/mock E2E; locked npm install/audit succeeded | PENDING detached full-suite rerun |
-| F14 | Independent red team and Factory Eval Harness after integration | Read-only independent review; explicit eval case/result below | PENDING detached full-suite rerun before PASS |
+| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 839 passed / 7 skipped on candidate and detached HEAD; Ganache contract and three-chain local/mock E2E; compileall/solc compile; locked npm install/audit | PASS |
+| F14 | Independent red team and Factory Eval Harness after integration | Independent review findings dispositioned; explicit Factory eval case passed after detached verification | PASS |
 | F15 | Claims remain bounded; no public write without available safe signer/funding | No public writes, pushes or PRs; all simulated evidence labeled | PASS |
 
 ## Change-impact map and checkpoints
@@ -84,7 +84,7 @@ only after final regressions demonstrate no incompatible changes.
 | C2 | Reconcile changes and integrate M4A/M4B commits | PASS; local recovery fix and Base fixture adaptation applied |
 | C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Three-target success/failure matrix, Solana/EVM restart tests, two-process nonce test and finality limitation test pass; local-contract remains |
 | C4 | Toolchain advisory triage and independent red team | PASS_WITH_LIMITATION; exact 38-package audit classified; red-team fixes landed; conditional Windows ACL limitation retained |
-| C5 | Full suite/build, clean checkout, Factory Eval Harness | Pending detached full-suite and harness rerun |
+| C5 | Full suite/build, clean checkout, Factory Eval Harness | PASS; detached suite and compile passed; Factory evaluation PASS |
 
 ## Factory Eval Harness case
 
@@ -106,9 +106,12 @@ trace_requirements: Event ID, commitment, three target IDs, adapter calls, attem
 evidence_requirements: Combined E2E, partial-failure matrix, nonce/replay tests, full suite, local contract evidence, independent red-team report.
 ```
 
-Eval result: **PENDING final detached checkout**. Current-candidate full suite,
-local EVM contract and three-target failure matrix have passed; repeat them on
-the final detached HEAD before evaluating completion.
+Eval result: **PASS**. The eight-case target matrix preserves the canonical
+commitment and independent target states through one/two/all-chain failures;
+the local three-chain success E2E verifies separate receipts; Solana PREPARED
+and EVM signed-wire recovery tests pass; the finality boundary remains explicit;
+the complete suite, contract compile/deploy and independent red-team fixes pass
+on the final detached candidate.
 
 ## Red-team dispositions
 
@@ -140,12 +143,13 @@ the final detached HEAD before evaluating completion.
 
 Baseline evidence in the branch reports: M3 `814 passed / 7 skipped`, M4A
 `815 passed / 7 skipped`, M4B `822 passed / 7 skipped`. These are historical
-reports, not final-candidate evidence. On this candidate, `839 passed / 7
-skipped` across the complete Python suite. `test_evm_local.py` compiled and
-deployed the registry into Ganache, dispatched a commitment, exercised
-duplicate/revert and exact-wire recovery, and verified receipts. The new
-three-chain E2E deployed the same registry to two isolated local EVMs configured
-with chain IDs 84532 and 421614, plus a mocked Solana adapter, and verified
-three independent receipts against one commitment. The locked npm install
-succeeded on the Windows host after WSL DNS could not resolve the registry. A
-final detached-worktree rerun remains.
+reports, not final-candidate evidence. On the final candidate, `839 passed / 7
+skipped` across the complete Python suite in both the branch checkout and a
+fresh detached worktree. Contract compilation passed in that detached
+worktree. `test_evm_local.py` compiled and deployed the registry into Ganache,
+dispatched a commitment, exercised duplicate/revert and exact-wire recovery,
+and verified receipts. The three-chain E2E deployed the registry to two
+isolated local EVMs configured with chain IDs 84532 and 421614 plus a mocked
+Solana adapter, then verified three independent receipts against one
+commitment. The locked npm install succeeded on the Windows host after WSL DNS
+could not resolve the registry.
