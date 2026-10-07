@@ -67,29 +67,24 @@ button { font: inherit; }
 .demo-screen { display: flex; min-height: min(720px, calc(100svh - 184px)); flex: 1; flex-direction: column; }
 .demo-screen.is-entering { animation: screen-enter 560ms cubic-bezier(.22, 1, .36, 1) both; }
 .farm-screen { min-height: 0; gap: 14px; }
-.farm-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
-.farm-overview { display: grid; gap: 8px; }
-.farm-live-label { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: #4e5549; font: 10px/1.4 var(--mono); letter-spacing: .045em; text-transform: uppercase; }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #798f59; box-shadow: 0 0 0 4px rgb(121 143 89 / 13%); animation: live-pulse 2.8s ease-in-out infinite; }
-.farm-counts { display: flex; flex-wrap: wrap; gap: 15px; color: #6b6d65; font-size: 12px; }
-.farm-counts strong { color: var(--ink); font-size: 14px; font-weight: 500; }
-.farm-modes { display: inline-flex; gap: 3px; padding: 4px; border: 1px solid rgb(255 255 255 / 74%); border-radius: 999px; background: rgb(255 255 255 / 58%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 78%), 0 8px 24px rgb(36 35 30 / 4%); -webkit-backdrop-filter: blur(14px) saturate(110%); backdrop-filter: blur(14px) saturate(110%); }
-.farm-mode { min-height: 35px; padding: 0 13px; border: 0; border-radius: 999px; background: transparent; color: #686a63; font-size: 11px; cursor: pointer; transition: color 220ms ease, background-color 240ms ease, box-shadow 260ms ease, transform 240ms ease; }
+.farm-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.farm-counts { display: flex; align-items: baseline; gap: 6px; margin: 0; color: #676f61; font-size: 12px; }
+.farm-counts strong { color: #354432; font-size: 16px; font-weight: 500; }
+.farm-modes { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid rgb(255 255 255 / 62%); border-radius: 999px; background: rgb(248 248 242 / 43%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%); -webkit-backdrop-filter: blur(16px) saturate(115%); backdrop-filter: blur(16px) saturate(115%); }
+.farm-mode { min-height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #52604d; font-size: 11px; cursor: pointer; transition: color 220ms ease, background-color 240ms ease, box-shadow 260ms ease, transform 240ms ease; }
 .farm-mode:hover { transform: translateY(-1px); color: var(--ink); }
-.farm-mode.is-active { background: #262723; color: #f4f4ef; box-shadow: 0 3px 9px rgb(20 20 18 / 13%); }
+.farm-mode.is-active { background: rgb(255 255 250 / 88%); color: #29392d; box-shadow: 0 2px 8px rgb(37 54 39 / 11%), inset 0 1px 0 #fff; }
 .farm-mode:focus-visible, .farm-camera-controls button:focus-visible, .farm-roster-toggle:focus-visible, .farm-record-link:focus-visible, .farm-card-close:focus-visible, .farm-roster button:focus-visible { outline: 2px solid rgb(32 33 31 / 64%); outline-offset: 3px; }
-.farm-stage { position: relative; isolation: isolate; min-height: 390px; height: min(67svh, 700px); overflow: hidden; border: 1px solid rgb(255 255 255 / 82%); border-radius: 28px; background: #c8d1aa; box-shadow: 0 22px 60px rgb(36 35 30 / 9%), inset 0 1px 0 rgb(255 255 255 / 86%); }
+.farm-stage { position: relative; isolation: isolate; min-height: 390px; height: min(70svh, 740px); overflow: hidden; border: 1px solid rgb(255 255 255 / 76%); border-radius: 32px; background: #789465; box-shadow: 0 26px 72px rgb(36 47 34 / 13%), inset 0 1px 0 rgb(255 255 255 / 86%); }
 .farm-canvas, .farm-canvas canvas { display: block; width: 100%; height: 100%; }
 .farm-canvas { position: absolute; inset: 0; touch-action: none; }
 .farm-canvas canvas { image-rendering: pixelated; outline: none; }
-.farm-stage-meta { position: absolute; z-index: 2; top: 15px; left: 15px; display: flex; align-items: center; gap: 9px; padding: 9px 12px; border: 1px solid rgb(255 255 255 / 78%); border-radius: 999px; background: rgb(248 248 244 / 75%); color: #55584d; font: 9px/1 var(--mono); letter-spacing: .045em; box-shadow: 0 5px 18px rgb(24 30 18 / 8%); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-.farm-stage-meta span:first-child { color: #526b43; }
-.farm-stage-meta span + span::before { display: inline-block; width: 3px; height: 3px; margin: 0 9px 2px 0; border-radius: 50%; background: rgb(60 63 53 / 38%); content: ""; }
-.farm-camera-controls { position: absolute; z-index: 2; right: 15px; bottom: 15px; display: flex; align-items: center; gap: 5px; padding: 5px; border: 1px solid rgb(255 255 255 / 75%); border-radius: 999px; background: rgb(248 248 244 / 76%); box-shadow: 0 5px 18px rgb(24 30 18 / 8%); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.farm-camera-controls { position: absolute; z-index: 2; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid rgb(255 255 255 / 64%); border-radius: 999px; background: rgb(244 245 231 / 52%); box-shadow: 0 7px 24px rgb(37 47 35 / 10%); -webkit-backdrop-filter: blur(14px) saturate(112%); backdrop-filter: blur(14px) saturate(112%); opacity: .78; transition: opacity 220ms ease; }
+.farm-stage:hover .farm-camera-controls, .farm-camera-controls:focus-within { opacity: 1; }
 .farm-camera-controls button { display: grid; min-width: 32px; height: 30px; place-items: center; padding: 0 9px; border: 0; border-radius: 999px; background: transparent; color: #4c4e47; font: 13px/1 var(--mono); cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
 .farm-camera-controls button:hover { background: rgb(32 33 31 / 8%); color: var(--ink); }
 .farm-camera-controls #farm-reset-view { font-size: 9px; }
-.farm-animal-card { position: absolute; z-index: 3; top: 50%; right: 16px; width: min(286px, calc(100% - 32px)); padding: 21px; transform: translateY(-50%); border: 1px solid rgb(255 255 255 / 82%); border-radius: 23px; background: rgb(248 248 244 / 85%); box-shadow: 0 18px 44px rgb(25 30 22 / 16%), inset 0 1px 0 rgb(255 255 255 / 82%); -webkit-backdrop-filter: blur(20px) saturate(120%); backdrop-filter: blur(20px) saturate(120%); animation: card-enter 360ms cubic-bezier(.22, 1, .36, 1) both; }
+.farm-animal-card { position: absolute; z-index: 3; top: 50%; right: 16px; width: min(286px, calc(100% - 32px)); padding: 21px; transform: translateY(-50%); border: 1px solid rgb(255 255 255 / 82%); border-radius: 23px; background: rgb(248 248 239 / 84%); box-shadow: 0 18px 44px rgb(25 38 24 / 18%), inset 0 1px 0 rgb(255 255 255 / 82%); -webkit-backdrop-filter: blur(20px) saturate(120%); backdrop-filter: blur(20px) saturate(120%); animation: card-enter 360ms cubic-bezier(.22, 1, .36, 1) both; }
 .farm-card-close { position: absolute; top: 10px; right: 11px; display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 50%; background: rgb(32 33 31 / 5%); color: #5b5d55; font: 20px/1 var(--sans); cursor: pointer; transition: background-color 180ms ease, transform 180ms ease; }
 .farm-card-close:hover { transform: rotate(90deg); background: rgb(32 33 31 / 10%); }
 .farm-card-zone { margin: 0 34px 5px 0; color: #6e7464; font: 9px/1.4 var(--mono); letter-spacing: .065em; text-transform: uppercase; }
@@ -101,17 +96,16 @@ button { font: inherit; }
 .farm-record-link { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; padding: 0 13px; border: 1px solid rgb(32 33 31 / 8%); border-radius: 13px; background: rgb(255 255 255 / 71%); color: #292a25; font-size: 11px; cursor: pointer; transition: transform 220ms cubic-bezier(.22, 1, .36, 1), background-color 220ms ease, box-shadow 220ms ease; }
 .farm-record-link:hover { transform: translateY(-2px); background: white; box-shadow: 0 8px 18px rgb(30 33 25 / 8%); }
 .farm-record-link span { font-size: 15px; }
-.farm-footer { display: flex; min-height: 32px; align-items: center; justify-content: space-between; gap: 15px; }
-.farm-roster-toggle { display: inline-flex; min-height: 32px; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid rgb(255 255 255 / 76%); border-radius: 999px; background: rgb(255 255 255 / 54%); color: #40423b; font: 10px/1 var(--mono); cursor: pointer; transition: background-color 200ms ease, transform 200ms ease; }
+.farm-footer { display: flex; min-height: 30px; align-items: center; justify-content: flex-end; }
+.farm-roster-toggle { display: inline-flex; min-height: 31px; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid rgb(255 255 255 / 72%); border-radius: 999px; background: rgb(255 255 255 / 42%); color: #414b3b; font-size: 11px; cursor: pointer; transition: background-color 200ms ease, transform 200ms ease; }
 .farm-roster-toggle:hover, .farm-roster-toggle[aria-expanded="true"] { transform: translateY(-1px); background: rgb(255 255 255 / 82%); }
 .farm-roster-toggle span { color: #777970; }
-.farm-hint, .farm-source-label { margin: 0; color: #797b73; font: 9px/1.4 var(--mono); }
-.farm-source-label { white-space: nowrap; letter-spacing: .025em; }
 .farm-roster { position: absolute; z-index: 4; left: max(32px, calc((100% - 1200px) / 2)); bottom: 94px; display: grid; width: min(310px, calc(100vw - 40px)); max-height: min(360px, 48svh); grid-template-columns: 1fr 1fr; gap: 5px; overflow-y: auto; padding: 10px; border: 1px solid rgb(255 255 255 / 82%); border-radius: 20px; background: rgb(248 248 244 / 88%); box-shadow: 0 18px 44px rgb(25 30 22 / 13%); -webkit-backdrop-filter: blur(18px) saturate(115%); backdrop-filter: blur(18px) saturate(115%); }
 .farm-roster button { min-height: 36px; padding: 0 10px; border: 0; border-radius: 11px; background: transparent; color: #42443c; font-size: 11px; text-align: left; cursor: pointer; transition: background-color 180ms ease, transform 180ms ease; }
 .farm-roster button:hover, .farm-roster button[aria-selected="true"] { transform: translateY(-1px); background: rgb(124 145 92 / 13%); }
 .farm-roster button span { display: block; color: #808278; font: 8px/1.4 var(--mono); }
 .farm-screen .step-footer { margin-top: 0; }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; clip-path: inset(50%) !important; }
 .screen-heading { margin: 0 auto 30px; text-align: center; }
 .screen-heading h1, .detail-heading h1, .solana-copy h1 { margin: 0; color: rgb(20 20 20 / 82%); font-size: clamp(48px, 5.5vw, 72px); font-weight: 400; letter-spacing: -.06em; line-height: 1.04; text-wrap: balance; }
 .screen-heading p { margin: 13px 0 0; color: #5f605a; font-size: clamp(16px, 1.6vw, 20px); line-height: 1.5; }
@@ -180,7 +174,6 @@ button { font: inherit; }
 @keyframes screen-enter { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 @keyframes verification-enter { from { opacity: 0; transform: translateY(5px) scale(.98); filter: blur(4px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
 @keyframes verification-spin { to { transform: rotate(1turn); } }
-@keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgb(121 143 89 / 10%); } 50% { box-shadow: 0 0 0 6px rgb(121 143 89 / 17%); } }
 @keyframes row-enter { from { opacity: 0; transform: translateY(9px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 @keyframes card-enter { from { opacity: 0; transform: translateY(9px); filter: blur(6px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 .animal-row { animation: row-enter 440ms cubic-bezier(.22, 1, .36, 1) both; }
@@ -201,16 +194,12 @@ button { font: inherit; }
   .screen-heading h1 { font-size: clamp(44px, 11vw, 62px); }
   .screen-heading p { max-width: 320px; margin-right: auto; margin-left: auto; font-size: 15px; }
   .farm-screen { gap: 10px; }
-  .farm-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
-  .farm-overview { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .farm-live-label { font-size: 9px; }
-  .farm-counts { gap: 10px; font-size: 10px; }
-  .farm-counts strong { font-size: 12px; }
+  .farm-toolbar { align-items: center; gap: 8px; }
+  .farm-counts { gap: 4px; font-size: 10px; white-space: nowrap; }
+  .farm-counts strong { font-size: 13px; }
   .farm-modes { justify-content: space-between; }
-  .farm-mode { min-width: 0; min-height: 32px; flex: 1; padding: 0 6px; font-size: 9px; }
-  .farm-stage { min-height: 360px; height: min(61svh, 560px); border-radius: 21px; }
-  .farm-stage-meta { top: 10px; left: 10px; gap: 6px; padding: 8px 9px; font-size: 8px; }
-  .farm-stage-meta span + span::before { margin-right: 6px; }
+  .farm-mode { min-width: 0; min-height: 32px; padding: 0 8px; font-size: 9px; }
+  .farm-stage { min-height: 360px; height: min(62svh, 580px); border-radius: 23px; }
   .farm-camera-controls { top: 10px; right: 10px; bottom: auto; gap: 2px; padding: 4px; }
   .farm-camera-controls button { min-width: 28px; height: 27px; padding: 0 6px; font-size: 12px; }
   .farm-camera-controls #farm-reset-view { font-size: 8px; }
@@ -222,9 +211,7 @@ button { font: inherit; }
   .farm-animal-facts span { font-size: 8px; }
   .farm-animal-facts strong { font-size: 9px; text-align: left; }
   .farm-record-link { min-height: 36px; font-size: 10px; }
-  .farm-footer { min-height: 29px; gap: 8px; }
-  .farm-hint { display: none; }
-  .farm-source-label { font-size: 8px; }
+  .farm-footer { min-height: 29px; }
   .farm-roster { left: 18px; bottom: 74px; }
   .animal-list { margin-top: 8px; }
   .animal-row { min-height: 88px; gap: 16px; padding: 9px 12px; }

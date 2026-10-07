@@ -7,7 +7,7 @@
   <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-7">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-8">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -23,13 +23,7 @@
   <main class="demo-page" id="demo-main">
     <section class="demo-screen farm-screen is-entering" id="farm-screen" aria-label="RIOSE farm monitoring demo">
       <div class="farm-toolbar">
-        <div class="farm-overview">
-          <p class="farm-live-label"><span class="live-dot" aria-hidden="true"></span> Farm simulation</p>
-          <div class="farm-counts" aria-label="Farm scene counts">
-            <span><strong id="farm-animal-count">24</strong> animals</span>
-            <span><strong id="farm-anchor-count">4</strong> anchors</span>
-          </div>
-        </div>
+        <p class="farm-counts"><strong id="farm-animal-count">24</strong> animals</p>
         <div class="farm-modes" role="group" aria-label="Farm visualization mode">
           <button type="button" class="farm-mode is-active" data-farm-mode="overview" aria-pressed="true">Overview</button>
           <button type="button" class="farm-mode" data-farm-mode="signals" aria-pressed="false">Signals</button>
@@ -40,7 +34,7 @@
 
       <div class="farm-stage" id="farm-stage">
         <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Top-down simulated farm. Select an animal from the herd list to inspect it." tabindex="0"></div>
-        <div class="farm-stage-meta"><span>SIMULATED</span><span id="farm-mode-caption">Herd overview</span></div>
+        <span id="farm-mode-caption" class="visually-hidden" aria-live="polite">Herd overview</span>
         <div class="farm-camera-controls" aria-label="Camera controls">
           <button type="button" id="farm-zoom-in" aria-label="Zoom in">+</button>
           <button type="button" id="farm-zoom-out" aria-label="Zoom out">−</button>
@@ -48,7 +42,7 @@
         </div>
         <aside class="farm-animal-card" id="farm-animal-panel" aria-labelledby="selected-animal-name" hidden>
           <button type="button" class="farm-card-close" id="close-animal-panel" aria-label="Close animal details">×</button>
-          <p class="farm-card-zone" id="selected-animal-zone">North pasture</p>
+          <p class="farm-card-zone" id="selected-animal-zone">Willow meadow</p>
           <h2 id="selected-animal-name">Animal 0</h2>
           <div class="farm-animal-facts">
             <div><span>Status</span><strong id="selected-animal-status">Grazing</strong></div>
@@ -61,8 +55,6 @@
 
       <div class="farm-footer">
         <button type="button" class="farm-roster-toggle" id="farm-roster-toggle" aria-expanded="false" aria-controls="farm-roster">Herd <span id="farm-roster-count">24</span></button>
-        <p class="farm-hint">Select an animal to inspect its estimated position</p>
-        <span class="farm-source-label">ESTIMATED · LOCAL SCENE</span>
       </div>
       <div class="farm-roster" id="farm-roster" role="listbox" aria-label="Select an animal" hidden></div>
     </section>
@@ -111,6 +103,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-7"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-8"></script>
 </body>
 </html>

@@ -55,7 +55,11 @@ export class CameraController {
   zoomBy(factor: number): void {
     if (!Number.isFinite(factor) || factor <= 0) return;
     const camera = this.scene.cameras.main;
-    camera.setZoom(Phaser.Math.Clamp(camera.zoom * factor, 0.38, 1.8));
+    const zoom = Phaser.Math.Clamp(camera.zoom * factor, 0.38, 1.8);
+    this.target = null;
+    this.scene.tweens.killTweensOf(camera);
+    if (this.reducedMotion) camera.setZoom(zoom);
+    else this.scene.tweens.add({ targets: camera, zoom, duration: 220, ease: 'Sine.easeOut' });
   }
 
   destroy(): void {
@@ -87,17 +91,16 @@ export class CameraController {
   private pointerUp(): void { this.dragging = false; }
 
   private wheel(_pointer: Phaser.Input.Pointer, _objects: Phaser.GameObjects.GameObject[], _dx: number, dy: number): void {
-    const camera = this.scene.cameras.main;
-    camera.setZoom(Phaser.Math.Clamp(camera.zoom * (dy > 0 ? 0.92 : 1.08), 0.55, 1.8));
+    this.zoomBy(dy > 0 ? 0.92 : 1.08);
   }
 
   private overviewZoom(): number {
     const { width, height } = this.scene.scale;
-    // Fill the stage's short axis: width on desktop, height on phones. This
-    // crops the map gently instead of leaving an empty band beside/below it.
+    // The map is wider after the diorama redesign. Keep its whole composition
+    // comfortably in frame and use the available viewport without cropping it.
     const scale = width / height >= WORLD_WIDTH / WORLD_HEIGHT
-      ? width / WORLD_WIDTH * 0.98
-      : height / WORLD_HEIGHT * 0.94;
-    return Phaser.Math.Clamp(scale, 0.38, 0.86);
+      ? width / WORLD_WIDTH
+      : height / WORLD_HEIGHT * 0.92;
+    return Phaser.Math.Clamp(scale, 0.34, 0.88);
   }
 }

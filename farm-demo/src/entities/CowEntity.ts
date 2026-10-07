@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { AnimalBehavior, type BehaviorSnapshot } from '../simulation/behavior';
 import type { PastureZone } from '../simulation/farm-layout';
 import type { AnimalState } from '../types';
-import { classifySignal } from '../simulation/farm-layout';
+import { classifySignal, pastureOrdinal } from '../simulation/farm-layout';
 
 const SPRITE_KEY = 'cattle-atlas';
 
@@ -22,9 +22,10 @@ export class CowEntity {
     onSelect: () => void,
   ) {
     this.pasture = pasture;
-    this.behavior = new AnimalBehavior(index, pasture);
+    this.behavior = new AnimalBehavior(index, pasture, pastureOrdinal(index));
     this.snapshot = this.behavior.current;
     this.sprite = scene.add.sprite(this.snapshot.x, this.snapshot.y, SPRITE_KEY, this.frameFor(this.snapshot.status, index % 4, index % 4))
+      .setScale(1.5)
       .setOrigin(0.5, 0.72)
       .setDepth(this.snapshot.y)
       .setInteractive({ useHandCursor: true });
@@ -32,7 +33,7 @@ export class CowEntity {
       pointer.event.stopPropagation();
       onSelect();
     });
-    this.selection = scene.add.circle(this.snapshot.x, this.snapshot.y + 5, 13, 0x20312b, 0.13)
+    this.selection = scene.add.circle(this.snapshot.x, this.snapshot.y + 5, 20, 0x20312b, 0.13)
       .setStrokeStyle(2, 0x344b3e, 0.75)
       .setDepth(this.snapshot.y - 1)
       .setVisible(false);
@@ -46,15 +47,15 @@ export class CowEntity {
     this.sprite.setPosition(x, y).setDepth(y + 1);
     this.selection.setPosition(x, y + 5).setDepth(y);
     if (reducedMotion) {
-      this.sprite.setRotation(0).setScale(1, 1);
+      this.sprite.setRotation(0).setScale(1.5, 1.5);
     } else if (status === 'WALK') {
       this.sprite.setRotation(Math.sin(heading) * 0.07)
-        .setScale(1, 0.97 + Math.abs(Math.sin(this.motionTime * 0.012 + this.index)) * 0.06);
+        .setScale(1.5, 1.44 + Math.abs(Math.sin(this.motionTime * 0.012 + this.index)) * 0.1);
       this.sprite.setFlipX(Math.cos(heading) < 0);
     } else if (status === 'GRAZE') {
-      this.sprite.setRotation(Math.sin(this.motionTime * 0.002 + this.index) * 0.035).setScale(1, 1);
+      this.sprite.setRotation(Math.sin(this.motionTime * 0.002 + this.index) * 0.035).setScale(1.5, 1.5);
     } else {
-      this.sprite.setRotation(0).setScale(1, 1);
+      this.sprite.setRotation(0).setScale(1.5, 1.5);
     }
     this.applyStatus(status);
   }

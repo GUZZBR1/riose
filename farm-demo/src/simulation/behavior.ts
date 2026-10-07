@@ -18,13 +18,13 @@ export class AnimalBehavior {
   private heading: number;
   private readonly phase: number;
 
-  constructor(private readonly index: number, private readonly pasture: PastureZone) {
+  constructor(private readonly index: number, private readonly pasture: PastureZone, ordinal = index) {
     this.phase = (index * 1.731) % 9;
     this.heading = [-Math.PI / 2, 0, Math.PI / 2, Math.PI][index % 4];
-    this.waypointIndex = index % pasture.waypoints.length;
+    this.waypointIndex = ordinal % pasture.waypoints.length;
     const start = pasture.waypoints[this.waypointIndex];
-    this.x = start.x + ((index % 3) - 1) * 9;
-    this.y = start.y + ((Math.floor(index / 3) % 3) - 1) * 8;
+    this.x = start.x + ((ordinal % 3) - 1) * 13 + (Math.floor(ordinal / 3) % 2) * 7;
+    this.y = start.y + ((Math.floor(ordinal / 3) % 3) - 1) * 11;
     this.status = this.statusAt(this.phase);
   }
 

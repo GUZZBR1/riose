@@ -1,28 +1,28 @@
 const $ = (id) => document.getElementById(id);
 const pastureStories = [
   {
-    zone: 'West pasture',
-    edges: ['the orchard edge', 'the shaded fence', 'the open center', 'the western tree line', 'the lower gate', 'the grass clearing'],
-    middays: ['the west trough', 'the central water point', 'the shaded trough', 'the north water point', 'the pasture pond', 'the lower trough'],
-    evenings: ['the west shelter', 'the central barn', 'the shaded resting area', 'the western pen', 'the barn-side yard', 'the evening shelter'],
+    zone: 'Willow meadow',
+    edges: ['the willow shade', 'the orchard edge', 'the pond-side grass', 'the old fence line', 'the meadow clearing', 'the lower gate'],
+    middays: ['the pond edge', 'the shaded water point', 'the meadow trough', 'the willow trees', 'the barn-side path', 'the quiet clearing'],
+    evenings: ['the barn-side yard', 'the orchard shade', 'the meadow shelter', 'the upper path', 'the willow edge', 'the pond-side grass'],
   },
   {
-    zone: 'East pasture',
-    edges: ['the eastern tree line', 'the sunlit fence', 'the open center', 'the north gate', 'the east clearing', 'the lower fence'],
-    middays: ['the east trough', 'the central water point', 'the shaded trough', 'the north water point', 'the pasture pond', 'the lower trough'],
-    evenings: ['the east shelter', 'the central barn', 'the shaded resting area', 'the eastern pen', 'the barn-side yard', 'the evening shelter'],
+    zone: 'Long grass',
+    edges: ['the tall grass edge', 'the eastern tree line', 'the open meadow', 'the north gate', 'the long-grass clearing', 'the path to the shed'],
+    middays: ['the eastern water point', 'the shaded trough', 'the old oak', 'the meadow path', 'the field shed', 'the open clearing'],
+    evenings: ['the long-grass shelter', 'the eastern tree line', 'the barn-side yard', 'the north gate', 'the meadow path', 'the shaded edge'],
   },
   {
-    zone: 'South pasture',
-    edges: ['the southern tree line', 'the shaded fence', 'the open center', 'the west gate', 'the south clearing', 'the lower path'],
-    middays: ['the south trough', 'the central water point', 'the shaded trough', 'the west water point', 'the pasture pond', 'the lower trough'],
-    evenings: ['the south shelter', 'the central barn', 'the shaded resting area', 'the southern pen', 'the barn-side yard', 'the evening shelter'],
+    zone: 'South meadow',
+    edges: ['the southern tree line', 'the open meadow', 'the south gate', 'the orchard edge', 'the long-grass patch', 'the lower path'],
+    middays: ['the southern trough', 'the willow edge', 'the shaded water point', 'the meadow path', 'the lower gate', 'the quiet clearing'],
+    evenings: ['the southern shelter', 'the barn-side path', 'the tree line', 'the south gate', 'the meadow clearing', 'the shaded edge'],
   },
   {
-    zone: 'Lower pasture',
-    edges: ['the lower tree line', 'the eastern fence', 'the open center', 'the south gate', 'the lower clearing', 'the central path'],
-    middays: ['the lower trough', 'the central water point', 'the shaded trough', 'the east water point', 'the pasture pond', 'the north trough'],
-    evenings: ['the lower shelter', 'the central barn', 'the shaded resting area', 'the eastern pen', 'the barn-side yard', 'the evening shelter'],
+    zone: 'Creek paddock',
+    edges: ['the creek-side grass', 'the eastern fence', 'the willow bend', 'the south gate', 'the open paddock', 'the field shed'],
+    middays: ['the creek water point', 'the shaded trough', 'the lower pasture path', 'the willow edge', 'the shed yard', 'the grass clearing'],
+    evenings: ['the creek-side shelter', 'the barn-side path', 'the shaded bend', 'the eastern fence', 'the lower gate', 'the willow edge'],
   },
 ];
 
@@ -118,7 +118,7 @@ function updateAnimalPanel(animal) {
   }
   panel.hidden = false;
   $('selected-animal-name').textContent = animal.label;
-  $('selected-animal-zone').textContent = 'RIOSE HERD';
+  $('selected-animal-zone').textContent = animal.zone;
   $('selected-animal-status').textContent = statusLabels[animal.status] || 'Moving';
   $('selected-animal-position').textContent = animal.zone;
   $('selected-animal-signal').textContent = signalLabels[animal.signalLevel] || 'Local estimate';

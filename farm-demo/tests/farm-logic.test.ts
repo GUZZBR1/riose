@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { AnimalBehavior } from '../src/simulation/behavior';
-import { ANCHORS, PASTURES, classifySignal, pastureForAnimal } from '../src/simulation/farm-layout';
+import { ANCHORS, MAP_HEIGHT, MAP_WIDTH, PASTURES, classifySignal, pastureForAnimal, pastureOrdinal } from '../src/simulation/farm-layout';
 
 function traceAnimal(index: number, reducedMotion = false): Array<{ status: string; x: number; y: number }> {
   const behavior = new AnimalBehavior(index, pastureForAnimal(index));
@@ -34,6 +34,7 @@ test('reduced motion freezes each animal at its deterministic starting position'
 test('the scene exposes four pasture zones and four fixed anchors', () => {
   assert.equal(PASTURES.length, 4);
   assert.equal(ANCHORS.length, 4);
+  assert.deepEqual([MAP_WIDTH, MAP_HEIGHT], [64, 44]);
   for (let index = 0; index < 100; index += 1) {
     assert.ok(PASTURES.includes(pastureForAnimal(index)));
   }
@@ -41,6 +42,15 @@ test('the scene exposes four pasture zones and four fixed anchors', () => {
 
 test('signal strength is a qualitative estimate derived from scene anchor distance', () => {
   assert.equal(classifySignal(ANCHORS[0].x, ANCHORS[0].y), 'strong');
-  assert.equal(classifySignal(768, 512), 'moderate');
-  assert.equal(classifySignal(768, -150), 'edge');
+  assert.equal(classifySignal(1024, 704), 'moderate');
+  assert.equal(classifySignal(-2000, -2000), 'edge');
+});
+
+test('herd members start in intentional, staggered clusters within the composed map', () => {
+  const positions = Array.from({ length: 100 }, (_, index) => {
+    const behavior = new AnimalBehavior(index, pastureForAnimal(index), pastureOrdinal(index));
+    return behavior.current;
+  });
+  assert.ok(positions.every(({ x, y }) => x >= 0 && y >= 0 && x <= MAP_WIDTH * 32 && y <= MAP_HEIGHT * 32));
+  assert.ok(new Set(positions.slice(0, 24).map(({ x, y }) => `${Math.round(x)},${Math.round(y)}`)).size > 18);
 });

@@ -25,8 +25,12 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     assert 'id="continue-solana"' in page.text
     assert "A day in the pasture" in page.text
     assert "SAMPLE" not in page.text
-    assert "SIMULATED" in page.text
-    assert "ESTIMATED" in page.text
+    assert 'data-farm-mode="overview"' in page.text
+    assert 'data-farm-mode="signals"' in page.text
+    assert 'data-farm-mode="coverage"' in page.text
+    assert 'data-farm-mode="track"' in page.text
+    assert "Farm simulation" not in page.text
+    assert "SIMULATED" not in page.text
     assert "step-indicator" not in page.text
     assert "/assets/demo.js" in page.text
     anchors = [
