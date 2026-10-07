@@ -4,21 +4,18 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from contextlib import asynccontextmanager
-import asyncio
 from datetime import date
 import json
 import math
 import os
 from pathlib import Path
-import threading
-import time
 from typing import Any, Literal
 import uuid
 import sqlite3
 from urllib.error import URLError
 from urllib.request import Request as UrlRequest, urlopen
 
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -27,7 +24,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..domain.behavior import BehaviorObservation
 from ..domain.contracts import Anchor, EvidenceStatus, FarmConfig
-from ..simulation.episode import generate_anchors
 from .persistence import Store
 from ..domain.identity import make_cryptographic_id
 
@@ -181,83 +177,6 @@ class SimulationRequest(BaseModel):
     anchors: list[AnchorInput] | None = Field(default=None, min_length=1, max_length=40)
 
 
-class SimulationControl(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    action: Literal["start", "pause", "reset", "speed"]
-    speed: float | None = Field(default=None, ge=0.1, le=50, allow_inf_nan=False)
-
-
-class SimulationPlayback:
-    """Thread-safe wall-clock playback over persisted simulator output."""
-
-    def __init__(self, run_id: str | None = None) -> None:
-        self._lock = threading.RLock()
-        self.run_id = run_id
-        self.start_s = 0.0
-        self.end_s = 0.0
-        self.time_s = 0.0
-        self.speed = 1.0
-        self.status = "empty"
-        self._last_tick = time.monotonic()
-
-    def configure(self, run_id: str | None, bounds: tuple[float, float] | None) -> None:
-        with self._lock:
-            self.run_id = run_id
-            if bounds is None:
-                self.start_s = self.end_s = self.time_s = 0.0
-                self.status = "empty"
-            else:
-                self.start_s, self.end_s = bounds
-                self.time_s = self.start_s
-                self.status = "paused"
-            self._last_tick = time.monotonic()
-
-    def _advance(self, now: float) -> None:
-        if self.status == "playing":
-            self.time_s = min(self.end_s, self.time_s + (now - self._last_tick) * self.speed)
-            if self.time_s >= self.end_s:
-                self.status = "ended"
-        self._last_tick = now
-
-    def command(self, action: str, speed: float | None = None) -> dict[str, Any]:
-        with self._lock:
-            now = time.monotonic()
-            self._advance(now)
-            if self.status == "empty":
-                raise ValueError("run a simulation before controlling playback")
-            if action == "start":
-                if self.time_s >= self.end_s:
-                    self.time_s = self.start_s
-                self.status = "playing"
-            elif action == "pause":
-                self.status = "paused"
-            elif action == "reset":
-                self.time_s = self.start_s
-                self.status = "paused"
-            elif action == "speed":
-                if speed is None:
-                    raise ValueError("speed is required for the speed action")
-                self.speed = speed
-            self._last_tick = time.monotonic()
-            return self._snapshot_locked()
-
-    def snapshot(self) -> dict[str, Any]:
-        with self._lock:
-            self._advance(time.monotonic())
-            return self._snapshot_locked()
-
-    def _snapshot_locked(self) -> dict[str, Any]:
-        return {
-            "status": self.status,
-            "time_s": self.time_s,
-            "start_s": self.start_s,
-            "end_s": self.end_s,
-            "speed": self.speed,
-            "run_id": self.run_id,
-            "evidence": "SIMULATED",
-        }
-
-
 class CSIRequest(BaseModel):
     timestamp_s: float = Field(default=0.0, allow_inf_nan=False)
     tag_id: str = "tag-0001"
@@ -266,30 +185,11 @@ class CSIRequest(BaseModel):
     seed: int = 7
 
 
-class FenceZoneInput(BaseModel):
-    zone_id: str
-    kind: str
-    polygon: list[tuple[float, float]] = Field(min_length=3)
-
-    @field_validator("polygon")
-    @classmethod
-    def validate_polygon_coordinates(cls, value: list[tuple[float, float]]) -> list[tuple[float, float]]:
-        if any(not math.isfinite(coordinate) for point in value for coordinate in point):
-            raise ValueError("polygon coordinates must be finite")
-        return value
-
-
-class FenceRequest(BaseModel):
-    zones: list[FenceZoneInput] = Field(min_length=1)
-    warning_distance_m: float = Field(default=20.0, ge=0, allow_inf_nan=False)
-
-
 # Bound the in-memory API pipeline before constructing episode/training tuples.
 # The budget accounts for episodes, grouped estimator input, truth, and results;
 # supervised methods include three additional training episodes.
 MAX_SIMULATION_OBSERVATIONS = 500_000
 MAX_SIMULATION_MEMORY_UNITS = 1_000_000
-FARM_SNAPSHOT_CACHE_TTL_S = 1.0
 
 
 def estimate_simulation_observations(body: SimulationRequest, enabled_anchors: int) -> int:
@@ -323,16 +223,6 @@ def estimate_simulation_memory_units(body: SimulationRequest, enabled_anchors: i
     return units
 
 
-def farm_stream_interval_seconds(sample_period_s: float, playback_speed: float) -> float:
-    """Publish once per simulator sample without polling needlessly."""
-    safe_period = sample_period_s if math.isfinite(sample_period_s) and sample_period_s > 0 else 30.0
-    safe_speed = playback_speed if math.isfinite(playback_speed) and playback_speed > 0 else 1.0
-    # Publish at least every other simulator sample. Dense herds carry large
-    # position, telemetry and event snapshots, so sub-second polling multiplies
-    # work across every open demo tab without improving visual interpolation.
-    return min(1.0, max(0.05, 2.0 * safe_period / safe_speed))
-
-
 def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -363,25 +253,6 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return JSONResponse(status_code=422, content={"detail": json_safe(exc.errors())})
 
     app.state.store = Store(db_path)
-    app.state.anchors = app.state.store.list_anchors()
-    app.state.last_config = None
-    app.state.last_ground_truth = None
-    # Persisted legacy runs do not carry the original FarmConfig. Treat those as
-    # the historical 30 s cadence so the product demo can prepare a live-rate run.
-    app.state.sample_periods = {}
-    initial_run_id = app.state.store.latest_run_id()
-    initial_bounds = app.state.store.simulation_time_range(initial_run_id)
-    if initial_bounds is None:
-        initial_bounds = app.state.store.simulation_time_range()
-        initial_run_id = None
-    app.state.playback = SimulationPlayback(initial_run_id)
-    app.state.playback.configure(initial_run_id, initial_bounds)
-    app.state.farm_bootstrap_lock = threading.Lock()
-    app.state.farm_snapshot_cache_lock = threading.Lock()
-    app.state.farm_snapshot_cache: dict[str, Any] | None = None
-    app.state.farm_snapshot_cache_json: str | None = None
-    app.state.farm_snapshot_cache_time = 0.0
-
     static_dir = Path(__file__).parent / "static"
     app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="site-assets")
 
@@ -658,111 +529,6 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         # Ground truth is joined only after an explicit debug request.
         return app.state.store.positions(limit, debug=debug, at_s=at_s)
 
-    @app.get("/api/simulation/state")
-    def simulation_state() -> dict[str, Any]:
-        return app.state.playback.snapshot()
-
-    @app.post("/api/simulation/control")
-    def control_simulation(body: SimulationControl) -> dict[str, Any]:
-        try:
-            state = app.state.playback.command(body.action, body.speed)
-            invalidate_farm_snapshot()
-            return state
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-    def build_farm_snapshot() -> dict[str, Any]:
-        # Seed identity and the canonical 8-anchor layout before the first run.
-        # The frontend needs these records to request its configured demo run;
-        # filtering animals to active pose tags here would create a cold-start
-        # cycle (no run -> no scene poses -> no animals -> no run request).
-        with app.state.farm_bootstrap_lock:
-            playback = app.state.playback.snapshot()
-            if not playback["run_id"]:
-                config = FarmConfig(animal_count=100, anchor_count=8)
-                ensure_animals(app.state.store, config.animal_count)
-                if not app.state.store.list_anchors():
-                    app.state.store.replace_anchors(generate_anchors(config))
-
-        playback = app.state.playback.snapshot()
-        run_id = playback["run_id"]
-        positions = (app.state.store.positions(
-            limit=10000, at_s=playback["time_s"], run_id=run_id,
-        ) if run_id else [])
-        scene_positions = (app.state.store.scene_positions(
-            at_s=playback["time_s"], run_id=run_id, limit=10000,
-        ) if run_id else [])
-        # Render entities from simulator truth independently from RF estimates.
-        # An animal remains in the field view when localization is unavailable.
-        # Keep entity records available when a legacy/corrupt run has no valid
-        # scene poses. The frontend can then identify the missing pose channel
-        # and start a fresh SIMULATED demo run instead of reducing the herd to 0.
-        active_tags = ({position["tag_id"] for position in scene_positions}
-                       | {position["tag_id"] for position in positions})
-        all_animals = app.state.store.list_animals()
-        return {
-            "type": "snapshot",
-            "simulation": playback,
-            "sample_period_s": app.state.sample_periods.get(run_id, 30.0),
-            "animals": ([animal for animal in all_animals if animal["hardware_id"] in active_tags]
-                        if run_id and active_tags else all_animals),
-            "positions": positions,
-            # Presentation pose from the simulator. This is not an RF estimate.
-            "scene_positions": scene_positions,
-            "anchors": app.state.store.list_anchors(),
-            "telemetry": [{**reading, "packet_received": bool(reading["packet_received"])}
-                          for reading in app.state.store.telemetry_at(
-                              playback["time_s"], run_id=run_id, limit=10000,
-                          )],
-            "events": app.state.store.events(limit=200),
-            "metrics": app.state.store.get_metrics(),
-            "evidence": "SIMULATED",
-        }
-
-    def invalidate_farm_snapshot() -> None:
-        with app.state.farm_snapshot_cache_lock:
-            app.state.farm_snapshot_cache = None
-            app.state.farm_snapshot_cache_json = None
-            app.state.farm_snapshot_cache_time = 0.0
-
-    def farm_snapshot_payload() -> tuple[dict[str, Any], str]:
-        # Share snapshots between simultaneous HTTP and WebSocket clients so
-        # every open demo tab does not issue another full SQLite query or JSON
-        # serialization per tick. WebSockets share the encoded payload as text.
-        with app.state.farm_snapshot_cache_lock:
-            now = time.monotonic()
-            cached = app.state.farm_snapshot_cache
-            if cached is not None and now - app.state.farm_snapshot_cache_time < FARM_SNAPSHOT_CACHE_TTL_S:
-                encoded = app.state.farm_snapshot_cache_json
-                if encoded is not None:
-                    return cached, encoded
-            snapshot = build_farm_snapshot()
-            encoded = json.dumps(snapshot, separators=(",", ":"), allow_nan=False)
-            app.state.farm_snapshot_cache = snapshot
-            app.state.farm_snapshot_cache_json = encoded
-            app.state.farm_snapshot_cache_time = time.monotonic()
-            return snapshot, encoded
-
-    def farm_snapshot() -> dict[str, Any]:
-        return farm_snapshot_payload()[0]
-
-    @app.get("/api/farm/snapshot")
-    def get_farm_snapshot() -> dict[str, Any]:
-        return farm_snapshot()
-
-    @app.websocket("/ws/farm")
-    async def farm_stream(websocket: WebSocket) -> None:
-        await websocket.accept()
-        try:
-            while True:
-                snapshot, encoded = farm_snapshot_payload()
-                await websocket.send_text(encoded)
-                await asyncio.sleep(farm_stream_interval_seconds(
-                    snapshot["sample_period_s"], snapshot["simulation"]["speed"],
-                ))
-        except WebSocketDisconnect:
-            return
-
     @app.get("/api/positions/history")
     def position_history(tag_id: str = Query(min_length=1, max_length=64),
                          limit: int = Query(1000, ge=1, le=10000),
@@ -848,16 +614,8 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         app.state.store.save_episode(
             episode.observations, estimates, episode.ground_truth, run_id=run_id,
         )
-        app.state.anchors = list(episode.anchors)
-        app.state.last_config = config
-        app.state.sample_periods[run_id] = body.sample_period_s
-        # The virtual fence only needs truth. Do not retain all observations and
-        # estimates for the lifetime of the dashboard process.
-        app.state.last_ground_truth = episode.ground_truth
         app.state.store.set_metrics(metrics)
         ensure_animals(app.state.store, body.animal_count)
-        app.state.playback.configure(run_id, app.state.store.simulation_time_range(run_id))
-        invalidate_farm_snapshot()
         return {"status": "completed", "evidence": "SIMULATED", "observations": len(episode.observations),
                 "estimates": len(estimates), "run_id": run_id, "metrics": metrics}
 
@@ -872,29 +630,6 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         from ..simulation.experimental import simulate_wifi_csi
         return asdict(simulate_wifi_csi(body.timestamp_s, body.tag_id, body.anchor_id,
                                         body.movement_intensity, body.seed))
-
-    @app.post("/api/experiments/virtual-fence")
-    def run_virtual_fence(body: FenceRequest) -> dict[str, Any]:
-        from dataclasses import asdict
-        from ..domain.virtual_fence import FenceZone, simulate_fence
-        ground_truth = app.state.last_ground_truth
-        if ground_truth is None:
-            raise HTTPException(status_code=409, detail="run a farm simulation first")
-        zones = [FenceZone(zone.zone_id, zone.kind, tuple(zone.polygon)) for zone in body.zones]
-        events = simulate_fence(ground_truth, zones, body.warning_distance_m)
-        records = []
-        for event in events:
-            animal_id = app.state.store.animal_id_for_hardware_id(event.tag_id)
-            if animal_id is None:
-                continue
-            stored = app.state.store.append_animal_event(
-                animal_id, "VIRTUAL_FENCE_SIMULATED",
-                {"zone_id": event.zone_id, "state": event.state.value,
-                 "response": event.simulated_response, "evidence": "SIMULATED"},
-                event.timestamp_s,
-            )
-            records.append(asdict(event) | {"event_hash": stored.hash})
-        return {"status": "SIMULATED", "electric_stimulus": False, "events": records}
 
     @app.get("/api/capabilities")
     def capabilities() -> dict[str, Any]:

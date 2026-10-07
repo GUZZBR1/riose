@@ -26,7 +26,7 @@ telemetry, sensor outputs, or arbitrary animal records.
 
 The accepted tree did not mint animal tokens or show a tokenization flow. Its
 product report excludes general blockchain publication, which remains out of
-scope. The narrow per-animal flow now has a private SQLite intent/submission
+scope. The narrow per-animal flow has a private SQLite intent/submission
 registry, a generic public metadata endpoint, and a browser module using the
 Metaplex Core SDK and a Phantom wallet adapter. The status remains
 `SUBMITTED_UNVERIFIED` on the server; the browser verifies the Solana Devnet
@@ -38,10 +38,9 @@ before the wallet transaction, preventing concurrent clients from creating two
 assets for the same bovine. A confirmed wallet rejection releases only that
 unsigned reservation. The backend only resets a submitted asset after Devnet
 confirms that its transaction failed.
-The browser flow has not yet been connected to the `/demo` interface because
-the user asked to provide visual references before any further screen design.
-Do not restore generic publication interfaces as a shortcut to per-animal
-asset creation.
+The `/demo` interface offers asset creation as an explicit optional step after
+the simulation and local event-chain demonstration. No wallet connection is
+needed to complete the main product story.
 
 ## Product and architecture boundaries
 
@@ -73,14 +72,11 @@ asset creation.
 ## Design boundary
 
 [`DESIGN.md`](../DESIGN.md) defines RIOSE's visual system: a quiet hardware
-research project centered on the ear tag and an independent research article.
-It keeps the landing page minimal and explicitly says not to add promotional
-cards or sections there. In the current API, `/` serves `landing.html`,
-`/manifesto` serves `manifesto.html`, and `/demo` serves the existing
-`index.html` dashboard (`adapters/api.py`). Put the product-demo work on the
-existing `/demo` surface and keep `/` and `/manifesto` intact. The user has said
-they will provide additional visual references; this document does not specify
-the `/demo` screen's design or copy.
+research project centered on the ear tag. It keeps the landing page minimal and
+explicitly says not to add promotional cards or sections there. The API serves
+`landing.html` at `/`, `manifesto.html` at `/manifesto`, and the product story
+at `index.html` on `/demo` (`adapters/api.py`). The demo reuses the existing tag
+viewer and uses an SVG schematic for simulated receiver activity.
 
 The existing API exposes local animals, events, behaviors, and tracking data.
 The tokenization flow adds a separate private animal-to-asset registry and does

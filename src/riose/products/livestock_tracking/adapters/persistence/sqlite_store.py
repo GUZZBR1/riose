@@ -57,13 +57,6 @@ CREATE TABLE IF NOT EXISTS debug_truth (
   timestamp REAL NOT NULL, tag_id TEXT NOT NULL, x REAL NOT NULL, y REAL NOT NULL,
   PRIMARY KEY(timestamp, tag_id)
 );
-CREATE TABLE IF NOT EXISTS scene_truth (
-  run_id TEXT NOT NULL, timestamp REAL NOT NULL, tag_id TEXT NOT NULL,
-  x REAL NOT NULL, y REAL NOT NULL,
-  PRIMARY KEY(run_id,timestamp,tag_id)
-);
-CREATE INDEX IF NOT EXISTS idx_scene_truth_run_time
-  ON scene_truth(run_id,timestamp,tag_id);
 CREATE TABLE IF NOT EXISTS run_metrics (
   key TEXT PRIMARY KEY, value TEXT NOT NULL
 );
@@ -492,61 +485,10 @@ class Store:
                         "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
                         ((t.timestamp_s, t.tag_id, t.x, t.y) for t in truth_rows),
                     )
-                    if run_id is not None:
-                        self.connection.executemany(
-                            "INSERT OR REPLACE INTO scene_truth(run_id,timestamp,tag_id,x,y) VALUES(?,?,?,?,?)",
-                            ((run_id, t.timestamp_s, t.tag_id, t.x, t.y) for t in truth_rows),
-                        )
                 self.connection.commit()
             except Exception:
                 self.connection.rollback()
                 raise
-
-    def latest_run_id(self) -> str | None:
-        with self._lock:
-            row = self.connection.execute(
-                "SELECT run_id FROM positions WHERE run_id IS NOT NULL ORDER BY id DESC LIMIT 1"
-            ).fetchone()
-            return None if row is None else str(row["run_id"])
-
-    def simulation_time_range(self, run_id: str | None = None) -> tuple[float, float] | None:
-        with self._lock:
-            if run_id is None:
-                row = self.connection.execute(
-                    "SELECT MIN(timestamp) AS start_s,MAX(timestamp) AS end_s FROM positions"
-                ).fetchone()
-            else:
-                row = self.connection.execute(
-                    "SELECT MIN(timestamp) AS start_s,MAX(timestamp) AS end_s "
-                    "FROM positions WHERE run_id=?", (run_id,)
-                ).fetchone()
-            if row is None or row["start_s"] is None or row["end_s"] is None:
-                return None
-            return float(row["start_s"]), float(row["end_s"])
-
-    def telemetry_at(self, at_s: float, run_id: str | None = None,
-                     limit: int = 10000) -> list[dict[str, Any]]:
-        # A simulator frame writes every tag/anchor observation at the same timestamp.
-        # Select that frame via the run/timestamp index instead of ranking the whole
-        # playback history on each WebSocket tick.
-        if run_id is None:
-            query = """SELECT timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,
-                       imu_accel_norm_g,behavior_state,status
-              FROM telemetry WHERE run_id IS NULL AND timestamp=(
-                SELECT MAX(timestamp) FROM telemetry
-                WHERE run_id IS NULL AND timestamp<=?
-              ) ORDER BY tag_id,anchor_id LIMIT ?"""
-            args: tuple[Any, ...] = (at_s, limit)
-        else:
-            query = """SELECT timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,
-                       imu_accel_norm_g,behavior_state,status
-              FROM telemetry WHERE run_id=? AND timestamp=(
-                SELECT MAX(timestamp) FROM telemetry
-                WHERE run_id=? AND timestamp<=?
-              ) ORDER BY tag_id,anchor_id LIMIT ?"""
-            args = (run_id, run_id, at_s, limit)
-        with self._lock:
-            return [dict(row) for row in self.connection.execute(query, args)]
 
     def telemetry(self, limit: int = 1000, tag_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
@@ -595,80 +537,6 @@ class Store:
           WHERE p.rn=1 ORDER BY p.tag_id LIMIT ?"""
         with self._lock:
             return [dict(r) for r in self.connection.execute(query, (*args, limit))]
-
-    def scene_positions(self, at_s: float, run_id: str | None = None,
-                        limit: int = 10000) -> list[dict[str, Any]]:
-        """Simulation poses for the 3D scene, kept separate from RF estimates."""
-        if run_id is not None:
-            query = """WITH ranked AS (
-                SELECT timestamp,tag_id,x,y,
-                       ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC) AS rn
-                FROM scene_truth WHERE run_id=? AND timestamp<=?
-              ) SELECT tag_id,timestamp,x,y FROM ranked
-                WHERE rn=1 ORDER BY tag_id LIMIT ?"""
-            with self._lock:
-                rows = self.connection.execute(query, (run_id, at_s, limit)).fetchall()
-            if rows:
-                valid: list[dict[str, Any]] = []
-                rejected: list[str] = []
-                for row in rows:
-                    try:
-                        x, y = float(row["x"]), float(row["y"])
-                    except (TypeError, ValueError, OverflowError):
-                        rejected.append(f"{row['tag_id']}: coordinates are missing or non-numeric")
-                        continue
-                    if not math.isfinite(x) or not math.isfinite(y):
-                        rejected.append(f"{row['tag_id']}: coordinates are not finite")
-                        continue
-                    valid.append({**dict(row), "x": x, "y": y})
-                if rejected:
-                    logger.warning(
-                        "Rejected invalid scene poses for run %s at %.3f: %s",
-                        run_id, at_s, "; ".join(rejected[:20]),
-                    )
-                if valid:
-                    return valid
-
-        # Compatibility for runs written before scene_truth was introduced and
-        # for legacy callers without a run id. New runs never depend on RF rows.
-        filters = ["timestamp <= ?"]
-        args: tuple[Any, ...] = (at_s,)
-        if run_id is not None:
-            filters.append("run_id = ?")
-            args += (run_id,)
-        query = f"""WITH ranked AS (
-            SELECT *, ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC,id DESC) AS rn
-            FROM positions WHERE {' AND '.join(filters)}
-          ), poses AS (
-            SELECT p.tag_id, p.timestamp AS estimate_timestamp, d.timestamp AS scene_timestamp,
-                   d.x, d.y,
-                   ROW_NUMBER() OVER(PARTITION BY p.tag_id
-                     ORDER BY ABS(d.timestamp-p.timestamp),d.timestamp DESC) AS truth_rank
-            FROM ranked p JOIN debug_truth d
-              ON d.tag_id=p.tag_id AND ABS(d.timestamp-p.timestamp)<=1.0
-            WHERE p.rn=1
-          ) SELECT tag_id,scene_timestamp AS timestamp,x,y FROM poses
-            WHERE truth_rank=1 ORDER BY tag_id LIMIT ?"""
-        with self._lock:
-            rows = self.connection.execute(query, (*args, limit)).fetchall()
-        valid: list[dict[str, Any]] = []
-        rejected: list[str] = []
-        for row in rows:
-            try:
-                x, y = float(row["x"]), float(row["y"])
-            except (TypeError, ValueError, OverflowError):
-                rejected.append(f"{row['tag_id']}: legacy scene coordinates are missing or non-numeric")
-                continue
-            if not math.isfinite(x) or not math.isfinite(y):
-                rejected.append(f"{row['tag_id']}: legacy scene coordinates are not finite")
-                continue
-            valid.append({"tag_id": row["tag_id"], "timestamp": row["timestamp"], "x": x, "y": y})
-        if rejected:
-            logger.warning(
-                "Rejected invalid legacy scene poses for run %s at %.3f: %s",
-                run_id, at_s, "; ".join(rejected[:20]),
-            )
-        return valid
 
     def positions_history(self, tag_id: str, limit: int = 1000,
                           debug: bool = False) -> list[dict[str, Any]]:

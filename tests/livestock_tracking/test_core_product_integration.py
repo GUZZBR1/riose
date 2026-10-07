@@ -1,5 +1,4 @@
 import hashlib
-import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -78,10 +77,10 @@ def test_upstream_site_and_mvp3_dashboard_routes_remain_available(tmp_path):
         manifesto = client.get("/manifesto")
         dashboard = client.get("/demo")
         asset = client.get("/assets/landing.css")
-        farm_bundle = client.get("/assets/digital-twin/farm.js")
-        farm_styles = client.get("/assets/digital-twin/farm.css")
-        chunk_names = re.findall(r'from"(\./chunk-[^"]+\.js)"', farm_bundle.text)
-        chunks = [client.get(f"/assets/digital-twin/{name[2:]}") for name in chunk_names]
+        demo_styles = client.get("/assets/demo.css")
+        demo_script = client.get("/assets/demo.js")
+        farm_snapshot = client.get("/api/farm/snapshot")
+        virtual_fence = client.post("/api/experiments/virtual-fence", json={"zones": []})
 
     assert landing.status_code == 200
     assert "RIOSE — Livestock technology" in landing.text
@@ -89,13 +88,12 @@ def test_upstream_site_and_mvp3_dashboard_routes_remain_available(tmp_path):
     assert manifesto.status_code == 200
     assert "RIOSE" in manifesto.text
     assert dashboard.status_code == 200
-    assert 'id="root"' in dashboard.text
-    assert "/assets/digital-twin/farm.js" in dashboard.text
-    assert "farm-map.webp" not in dashboard.text
-    assert farm_bundle.status_code == 200
-    assert "/ws/farm" in farm_bundle.text
-    assert chunk_names
-    assert all(chunk.status_code == 200 for chunk in chunks)
-    assert farm_styles.status_code == 200
+    assert 'id="run-scenario"' in dashboard.text
+    assert "/assets/demo.js" in dashboard.text
+    assert "/assets/digital-twin/farm.js" not in dashboard.text
+    assert demo_styles.status_code == 200
+    assert demo_script.status_code == 200
+    assert farm_snapshot.status_code == 404
+    assert virtual_fence.status_code == 404
     assert asset.status_code == 200
     assert "--" in asset.text

@@ -126,18 +126,18 @@
     .brand-meaning.is-fading .brand-definition-content p { opacity: 0; transform: translateY(4px); transition-delay: 0s, 0s; }
     .brand-meaning.is-closing .brand-definition { width: 22px; height: 22px; border-radius: 50%; opacity: .7; }
 
-    .nav-manifesto {
+    .header-links { grid-column: 1; justify-self: start; display: flex; align-items: center; gap: 18px; }
+    .nav-manifesto,
+    .nav-demo {
       position: relative;
-      grid-column: 1;
-      justify-self: start;
       color: #555650;
       font: 11px/1.2 var(--mono);
       text-decoration: none;
       transition: color 220ms ease, opacity 250ms ease, transform 350ms ease, visibility 250ms;
     }
-    .nav-manifesto:hover { color: var(--ink); }
-    .floating-header.is-scrolled .nav-manifesto { opacity: 0; transform: translateX(-5px); visibility: hidden; }
-    .floating-header.is-scrolled .nav-manifesto { width: 0; min-width: 0; overflow: hidden; }
+    .nav-manifesto:hover,
+    .nav-demo:hover { color: var(--ink); }
+    .floating-header.is-scrolled .header-links { width: 0; min-width: 0; overflow: hidden; opacity: 0; transform: translateX(-5px); visibility: hidden; }
 
     .location {
       position: relative;
@@ -152,6 +152,7 @@
     }
 
     .nav-manifesto::after,
+    .nav-demo::after,
     .location::after {
       position: absolute;
       right: 0;
@@ -165,14 +166,19 @@
       transition: transform 260ms cubic-bezier(.22, 1, .36, 1);
     }
     .nav-manifesto:hover,
+    .nav-demo:hover,
     .location:hover { color: var(--ink); transform: translateY(-1px); }
     .nav-manifesto:hover::after,
+    .nav-demo:hover::after,
     .location:hover::after,
     .nav-manifesto:focus-visible::after,
+    .nav-demo:focus-visible::after,
     .location:focus-visible::after { transform: scaleX(1); }
     .nav-manifesto:active,
+    .nav-demo:active,
     .location:active { transform: translateY(0) scale(.98); transition-duration: 90ms; }
     .nav-manifesto:focus-visible,
+    .nav-demo:focus-visible,
     .location:focus-visible { outline: 1px solid rgb(32 33 31 / 32%); outline-offset: 5px; }
 
     .floating-header.is-scrolled .location { width: 0; min-width: 0; overflow: hidden; opacity: 0; transform: translateX(5px); visibility: hidden; }

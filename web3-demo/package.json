@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/animal-tokenization.js --bundle --format=esm --target=es2022 --outfile=../src/riose/products/livestock_tracking/adapters/static/assets/animal-tokenization.bundle.js"
+    "build": "node build.mjs"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-core": "^1.10.0",

@@ -77,7 +77,7 @@ def test_demo_run_records_simulated_event_and_verifies_local_chain(tmp_path):
     )
     assert trajectory.status_code == 200
     assert trajectory.json()
-    assert all(point["status"] == "ACCEPTED" for point in trajectory.json())
+    assert all(point["status"] == "SIMULATED" for point in trajectory.json())
 
     event = client.post("/api/events", json={
         "animal_id": "cow-0001",
@@ -320,28 +320,6 @@ def test_dashboard_rerun_replaces_duplicate_visible_samples_and_keeps_latest_pag
     }).json()
     assert len(latest_telemetry) == 4
     assert {row["timestamp"] for row in latest_telemetry} == {60.0}
-
-
-def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
-    client = TestClient(create_app(tmp_path / "virtual-fence-ui.sqlite3"))
-    page = client.get("/demo")
-
-    assert page.status_code == 200
-    assert 'id="run-scenario"' in page.text
-    assert 'id="runFence"' not in page.text
-    assert "api/experiments/virtual-fence" not in page.text
-    simulation = client.post("/api/simulation/run", json={
-        "animal_count": 1, "anchor_count": 4, "duration_s": 30,
-        "sample_period_s": 30, "seed": 12,
-    })
-    assert simulation.status_code == 200
-    response = client.post("/api/experiments/virtual-fence", json={
-        "zones": [{"zone_id": "zone-central-demo", "kind": "WARNING_ZONE",
-                   "polygon": [[0, 0], [1000, 0], [1000, 1000], [0, 1000]]}],
-    })
-    assert response.status_code == 200
-    assert response.json()["status"] == "SIMULATED"
-    assert response.json()["electric_stimulus"] is False
 
 
 def test_landing_page_and_static_product_assets(tmp_path):
