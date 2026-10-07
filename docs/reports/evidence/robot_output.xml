@@ -1,0 +1,3090 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Rebot 6.1 (Python 3.12.3 on linux)" generated="20261006 14:33:20.482" rpa="false" schemaversion="4">
+<suite id="s1" name="Test Suite" source="/tmp/riose-mini-mvp-clean-final/hardware/renode/tests/gazebo-bridge.robot">
+<kw name="Setup" library="renode-keywords" type="SETUP">
+<msg timestamp="20261006 14:33:14.437" level="TRACE">Arguments: [  ]</msg>
+<kw name="Evaluate" library="BuiltIn">
+<var>${SYSTEM}</var>
+<arg>platform.system()</arg>
+<arg>modules=platform</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:14.437" level="TRACE">Arguments: [ 'platform.system()' | modules='platform' ]</msg>
+<msg timestamp="20261006 14:33:14.437" level="TRACE">Return: 'Linux'</msg>
+<msg timestamp="20261006 14:33:14.437" level="INFO">${SYSTEM} = Linux</msg>
+<status status="PASS" starttime="20261006 14:33:14.437" endtime="20261006 14:33:14.437"/>
+</kw>
+<kw name="Set Variable If" library="BuiltIn">
+<var>${CONFIGURATION}</var>
+<arg>not ${SKIP_RUNNING_SERVER} and ${SERVER_REMOTE_DEBUG}</arg>
+<arg>Debug</arg>
+<arg>${CONFIGURATION}</arg>
+<doc>Sets variable based on the given condition.</doc>
+<msg timestamp="20261006 14:33:14.438" level="TRACE">Arguments: [ 'not True and False' | 'Debug' | '${CONFIGURATION}' ]</msg>
+<msg timestamp="20261006 14:33:14.438" level="TRACE">Return: 'Release'</msg>
+<msg timestamp="20261006 14:33:14.438" level="INFO">${CONFIGURATION} = Release</msg>
+<status status="PASS" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.438"/>
+</kw>
+<kw name="Create List" library="BuiltIn">
+<var>@{PARAMS}</var>
+<arg>--robot-server-port</arg>
+<arg>${PORT_NUMBER}</arg>
+<arg>--hide-log</arg>
+<doc>Returns a list containing given items.</doc>
+<msg timestamp="20261006 14:33:14.438" level="TRACE">Arguments: [ '--robot-server-port' | '49152' | '--hide-log' ]</msg>
+<msg timestamp="20261006 14:33:14.438" level="TRACE">Return: ['--robot-server-port', '49152', '--hide-log']</msg>
+<msg timestamp="20261006 14:33:14.438" level="INFO">@{PARAMS} = [ --robot-server-port | 49152 | --hide-log ]</msg>
+<status status="PASS" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.438"/>
+</kw>
+<if>
+<branch type="IF" condition="${DISABLE_GUI}">
+<kw name="Insert Into List" library="Collections">
+<arg>${PARAMS}</arg>
+<arg>0</arg>
+<arg>--disable-gui</arg>
+<doc>Inserts ``value`` into ``list`` to the position specified with ``index``.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.438"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.438"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.438"/>
+</if>
+<if>
+<branch type="IF" condition="not ${SKIP_RUNNING_SERVER}">
+<kw name="File Should Exist" library="OperatingSystem">
+<arg>${DIRECTORY}/${BINARY_NAME}</arg>
+<arg>msg=Robot Framework remote server binary not found (${DIRECTORY}/${BINARY_NAME}). Did you forget to build it in ${CONFIGURATION} configuration?</arg>
+<doc>Fails unless the given ``path`` points to an existing file.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.439"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.439"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.438" endtime="20261006 14:33:14.439"/>
+</if>
+<if>
+<branch type="IF" condition="not ${SKIP_RUNNING_SERVER} and ${SERVER_REMOTE_DEBUG} and '${SYSTEM}' == 'Windows'">
+<kw name="Fatal Error" library="BuiltIn">
+<arg>Windows doesn't support server remote debug option.</arg>
+<doc>Stops the whole test execution.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.439"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.439"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.439"/>
+</if>
+<if>
+<branch type="IF" condition="not '${SYSTEM}' == 'Windows'">
+<kw name="Wait Until Keyword Succeeds" library="BuiltIn">
+<arg>60s</arg>
+<arg>1s</arg>
+<arg>Import Library</arg>
+<arg>Remote</arg>
+<arg>http://127.0.0.1:${PORT_NUMBER}/</arg>
+<arg>AS</arg>
+<arg>Renode</arg>
+<doc>Runs the specified keyword and retries if it fails.</doc>
+<msg timestamp="20261006 14:33:14.439" level="TRACE">Arguments: [ '60s' | '1s' | 'Import Library' | 'Remote' | 'http://127.0.0.1:${PORT_NUMBER}/' | 'AS' | 'Renode' ]</msg>
+<kw name="Import Library" library="BuiltIn">
+<arg>Remote</arg>
+<arg>http://127.0.0.1:${PORT_NUMBER}/</arg>
+<arg>AS</arg>
+<arg>Renode</arg>
+<doc>Imports a library with the given name and optional arguments.</doc>
+<msg timestamp="20261006 14:33:14.439" level="TRACE">Arguments: [ 'Remote' | 'http://127.0.0.1:${PORT_NUMBER}/' | 'AS' | 'Renode' ]</msg>
+<msg timestamp="20261006 14:33:14.772" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.772"/>
+</kw>
+<msg timestamp="20261006 14:33:14.772" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.772"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.772"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.439" endtime="20261006 14:33:14.772"/>
+</if>
+<if>
+<branch type="IF" condition="'${SYSTEM}' == 'Windows'">
+<kw name="Wait Until Keyword Succeeds" library="BuiltIn">
+<arg>60s</arg>
+<arg>1s</arg>
+<arg>Import Library</arg>
+<arg>Remote</arg>
+<arg>http://localhost:${PORT_NUMBER}/</arg>
+<arg>AS</arg>
+<arg>Renode</arg>
+<doc>Runs the specified keyword and retries if it fails.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:14.772" endtime="20261006 14:33:14.772"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:14.772" endtime="20261006 14:33:14.772"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.772" endtime="20261006 14:33:14.772"/>
+</if>
+<kw name="Setup Renode" library="renode-keywords">
+<msg timestamp="20261006 14:33:14.772" level="TRACE">Arguments: [  ]</msg>
+<kw name="Set Default Uart Timeout" library="Renode">
+<arg>${DEFAULT_UART_TIMEOUT}</arg>
+<msg timestamp="20261006 14:33:14.772" level="TRACE">Arguments: [ '8' ]</msg>
+<msg timestamp="20261006 14:33:14.792" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:14.772" endtime="20261006 14:33:14.792"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${allowed_chars}</var>
+<arg>abcdefghijklmnopqrstuvwxyz01234567890_-</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:14.792" level="TRACE">Arguments: [ 'abcdefghijklmnopqrstuvwxyz01234567890_-' ]</msg>
+<msg timestamp="20261006 14:33:14.792" level="TRACE">Return: 'abcdefghijklmnopqrstuvwxyz01234567890_-'</msg>
+<msg timestamp="20261006 14:33:14.792" level="INFO">${allowed_chars} = abcdefghijklmnopqrstuvwxyz01234567890_-</msg>
+<status status="PASS" starttime="20261006 14:33:14.792" endtime="20261006 14:33:14.792"/>
+</kw>
+<kw name="Convert To Lower Case" library="String">
+<var>${metrics_fname}</var>
+<arg>${SUITE_NAME}</arg>
+<doc>Converts string to lower case.</doc>
+<msg timestamp="20261006 14:33:14.793" level="TRACE">Arguments: [ 'gazebo-bridge' ]</msg>
+<msg timestamp="20261006 14:33:14.793" level="TRACE">Return: 'gazebo-bridge'</msg>
+<msg timestamp="20261006 14:33:14.793" level="INFO">${metrics_fname} = gazebo-bridge</msg>
+<status status="PASS" starttime="20261006 14:33:14.793" endtime="20261006 14:33:14.793"/>
+</kw>
+<kw name="Replace String" library="String">
+<var>${metrics_fname}</var>
+<arg>${metrics_fname}</arg>
+<arg>${SPACE}</arg>
+<arg>_</arg>
+<doc>Replaces ``search_for`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:14.793" level="TRACE">Arguments: [ 'gazebo-bridge' | ' ' | '_' ]</msg>
+<msg timestamp="20261006 14:33:14.793" level="TRACE">Return: 'gazebo-bridge'</msg>
+<msg timestamp="20261006 14:33:14.793" level="INFO">${metrics_fname} = gazebo-bridge</msg>
+<status status="PASS" starttime="20261006 14:33:14.793" endtime="20261006 14:33:14.793"/>
+</kw>
+<kw name="Replace String Using Regexp" library="String">
+<var>${metrics_fname}</var>
+<arg>${metrics_fname}</arg>
+<arg>[^${allowed_chars}]+</arg>
+<arg>${EMPTY}</arg>
+<doc>Replaces ``pattern`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:14.794" level="TRACE">Arguments: [ 'gazebo-bridge' | '[^abcdefghijklmnopqrstuvwxyz01234567890_-]+' | '' ]</msg>
+<msg timestamp="20261006 14:33:14.794" level="TRACE">Return: 'gazebo-bridge'</msg>
+<msg timestamp="20261006 14:33:14.794" level="INFO">${metrics_fname} = gazebo-bridge</msg>
+<status status="PASS" starttime="20261006 14:33:14.793" endtime="20261006 14:33:14.794"/>
+</kw>
+<kw name="Join Path" library="OperatingSystem">
+<var>${metrics_path}</var>
+<arg>${RESULTS_DIRECTORY}</arg>
+<arg>profiler-${metrics_fname}</arg>
+<doc>Joins the given path part(s) to the given base path.</doc>
+<msg timestamp="20261006 14:33:14.794" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot/' | 'profiler-gazebo-bridge' ]</msg>
+<msg timestamp="20261006 14:33:14.794" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot/profiler-gazebo-bridge'</msg>
+<msg timestamp="20261006 14:33:14.794" level="INFO">${metrics_path} = /tmp/riose-mini-mvp-clean-robot/profiler-gazebo-bridge</msg>
+<status status="PASS" starttime="20261006 14:33:14.794" endtime="20261006 14:33:14.794"/>
+</kw>
+<if>
+<branch type="IF" condition="${CREATE_EXECUTION_METRICS}">
+<kw name="Execute Command" library="Renode">
+<arg>EnableProfilerGlobally "${metrics_path}"</arg>
+<status status="NOT RUN" starttime="20261006 14:33:14.794" endtime="20261006 14:33:14.794"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:14.794" endtime="20261006 14:33:14.794"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:14.794" endtime="20261006 14:33:14.794"/>
+</if>
+<kw name="Reset Emulation" library="Renode">
+<msg timestamp="20261006 14:33:14.795" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:14.808" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:14.794" endtime="20261006 14:33:14.808"/>
+</kw>
+<msg timestamp="20261006 14:33:14.808" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:14.772" endtime="20261006 14:33:14.808"/>
+</kw>
+<msg timestamp="20261006 14:33:14.808" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:14.437" endtime="20261006 14:33:14.808"/>
+</kw>
+<test id="s1-t1" name="Firmware Reads Gazebo RESD Samples" line="12">
+<kw name="Create RIOSE Platform" type="SETUP">
+<msg timestamp="20261006 14:33:14.809" level="TRACE">Arguments: [  ]</msg>
+<kw name="Execute Command" library="Renode">
+<arg>mach create</arg>
+<msg timestamp="20261006 14:33:14.809" level="TRACE">Arguments: [ 'mach create' ]</msg>
+<msg timestamp="20261006 14:33:14.851" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:14.809" endtime="20261006 14:33:14.851"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>machine LoadPlatformDescription @${PLATFORM}</arg>
+<msg timestamp="20261006 14:33:14.852" level="TRACE">Arguments: [ 'machine LoadPlatformDescription @/tmp/riose-mini-mvp-clean-final/hardware/renode/tests/../riose_stm32l0.repl' ]</msg>
+<msg timestamp="20261006 14:33:17.994" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:14.851" endtime="20261006 14:33:17.994"/>
+</kw>
+<msg timestamp="20261006 14:33:17.994" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:14.809" endtime="20261006 14:33:17.994"/>
+</kw>
+<kw name="Skip If" library="BuiltIn">
+<arg>'${ELF}' == ''</arg>
+<arg>Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.</arg>
+<doc>Skips the rest of the current test if the ``condition`` is True.</doc>
+<msg timestamp="20261006 14:33:17.995" level="TRACE">Arguments: [ "'/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' == ''" | 'Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.' ]</msg>
+<msg timestamp="20261006 14:33:17.995" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:17.994" endtime="20261006 14:33:17.995"/>
+</kw>
+<kw name="Skip If" library="BuiltIn">
+<arg>'${GAZEBO_RESD}' == ''</arg>
+<arg>Set RIOSE_LIS2DW12_GAZEBO_RESD to the bridge-generated GAZEBO RESD file.</arg>
+<doc>Skips the rest of the current test if the ``condition`` is True.</doc>
+<msg timestamp="20261006 14:33:17.995" level="TRACE">Arguments: [ "'/tmp/riose-mini-mvp-walk-baseline.resd' == ''" | 'Set RIOSE_LIS2DW12_GAZEBO_RESD to the bridge-generated GAZEBO RESD file.' ]</msg>
+<msg timestamp="20261006 14:33:17.995" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:17.995" endtime="20261006 14:33:17.995"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x20, 0x24]</arg>
+<msg timestamp="20261006 14:33:17.995" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x20, 0x24]' ]</msg>
+<msg timestamp="20261006 14:33:18.068" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:17.995" endtime="20261006 14:33:18.068"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:18.068" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:18.072" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.068" endtime="20261006 14:33:18.072"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${GAZEBO_RESD}</arg>
+<msg timestamp="20261006 14:33:18.073" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @/tmp/riose-mini-mvp-walk-baseline.resd' ]</msg>
+<msg timestamp="20261006 14:33:18.093" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.073" endtime="20261006 14:33:18.093"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus LoadELF @${ELF}</arg>
+<msg timestamp="20261006 14:33:18.093" level="TRACE">Arguments: [ 'sysbus LoadELF @/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' ]</msg>
+<msg timestamp="20261006 14:33:18.147" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.093" endtime="20261006 14:33:18.147"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>emulation RunFor "0.25"</arg>
+<msg timestamp="20261006 14:33:18.147" level="TRACE">Arguments: [ 'emulation RunFor "0.25"' ]</msg>
+<msg timestamp="20261006 14:33:18.580" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.147" endtime="20261006 14:33:18.580"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${reads}</var>
+<arg>sysbus.i2c1.imu OutputSampleReadCount</arg>
+<msg timestamp="20261006 14:33:18.581" level="TRACE">Arguments: [ 'sysbus.i2c1.imu OutputSampleReadCount' ]</msg>
+<msg timestamp="20261006 14:33:18.590" level="TRACE">Return: '0x00000002\n\n'</msg>
+<msg timestamp="20261006 14:33:18.590" level="INFO">${reads} = 0x00000002
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:18.581" endtime="20261006 14:33:18.590"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>int($reads.strip(), 0) &gt; 0</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:18.590" level="TRACE">Arguments: [ 'int($reads.strip(), 0) &gt; 0' ]</msg>
+<msg timestamp="20261006 14:33:18.590" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.590" endtime="20261006 14:33:18.590"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${payload}</var>
+<arg>pathlib.Path($gazebo_resd).read_bytes()</arg>
+<arg>modules=pathlib</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.590" level="TRACE">Arguments: [ 'pathlib.Path($gazebo_resd).read_bytes()' | modules='pathlib' ]</msg>
+<msg timestamp="20261006 14:33:18.590" level="TRACE">Return: b"RESD\x01\x00\x00\x00\x02\x02\x00\x00\x00\x18\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xb4\xc4\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x000\xf8\xff\xff\xa8\xde\x00\x00@\xb3\x11\x000\xe6\x02\x00\xc0W\x01\x00\xf8\xc4\x10\x00X\x86\x03\x00\x08\xcf\x00\x00\xb8\xb1\x0e\x00\x88\x8a\x01\x00@\xa2\xff\xff\xd8\x0b\r\x00hN\xfe\xff\x98\xc3\xfe\xff`\x1f\r\x008b\xfc\xffP\xcf\xfe\xff\xe0\xd4\x0e\x00\xe0@\xfd\xff \xd1\xff\xffh\xdc\x10\x00\x10'\x00\x000\xf2\x00\x00\x10\xbb\x11\x00\x88\x01\x03\x00xc\x01\x00\xa0\xa9\x10\x00\xa0z\x03\x00\x98\xb7\x00\x00`\x96\x0e\x00\xd8S\x01\x00\xb8\x8e\xff\xff \x00\r\x00\x88\x1f\xfe\xff(\xac\xfe\xff0'\r\x00hZ\xfc\xff\xf0\xde\xfe\xff\x80\xe4\x0e\x00PX\xfd\xff\xd8\xdc\xff\xff\xd8\xf3\x10\x00\xc0]\x00\x00\xe8\xfd\x00\x00@\xb3\x11\x00\xf8\x18\x03\x00\xd8S\x01\x00`\x8a\x10\x00\xd0r\x03\x00\xb0\xb3\x00\x008s\x0e\x00\x984\x01\x00\x18\x7f\xff\xff\xb0\xe8\x0c\x00\x18\x08\xfe\xff(\xac\xfe\xff\x00/\r\x008b\xfc\xff\xc0\xe6\xfe\xffx\x0f\x0f\x00\x90w\xfd\xff`\xf0\xff\xff0\x0f\x11\x00\xa0\x8c\x00\x00p\x11\x01\x00X\xaf\x11\x00\x80,\x03\x00\xf0O\x01\x00\x08o\x10\x00\x00k\x03\x00\xe0\xab\x00\x00\xf8S\x0e\x00\xa0\t\x01\x00`s\xff\xff\xb0\xe8\x0c\x008\xd9\xfd\xff@\xa8\xfe\xffXJ\r\x00\xb0N\xfc\xff\xa8\xea\xfe\xff\xb8.\x0f\x00p\xa6\xfd\xff\x18\xfc\xff\xff\x00\x17\x11\x00h\xbf\x00\x00@\x19\x01\x00\xb8\x9f\x11\x00\xd8G\x03\x00\xf0O\x01\x00h_\x10\x00\xa8O\x03\x00@\x9c\x00\x00\xd00\x0e\x00\xd8\xd6\x00\x00\x08X\xff\xff\xb0\xe8\x0c\x00X\xaa\xfd\xff\x10\xb0\xfe\xff\xe0]\r\x00\x80V\xfc\xffH\xfa\xfe\xff(F\x0f\x00\xc8\xc1\xfd\xff\xb8\x0b\x00\x00\x88*\x11\x00\x90\xe2\x00\x00\xf8$\x01\x00\xe8\x97\x11\x00`[\x03\x00\x08L\x01\x00p4\x10\x00\x08@\x03\x00\x18y\x00\x00`\x19\x0e\x00(\xa0\x00\x00PL\xff\xff(\xd5\x0c\x000\x87\xfd\xffp\xa0\xfe\xff8y\r\x00\xb0N\xfc\xff\x18\x02\xff\xff\x80a\x0f\x00\xc0\xec\xfd\xffX\x1b\x00\x00\xc8I\x11\x00@\x19\x01\x00\xf8$\x01\x00\x18\x90\x11\x00\xe8n\x03\x008D\x01\x00\x00\x1d\x10\x00\xb0$\x03\x00xi\x00\x00\xc0\t\x0e\x00`m\x00\x00\x80D\xff\xff@\xd1\x0c\x00\x08d\xfd\xff\xa0\x98\xfe\xff\xf0\x84\r\x00P^\xfc\xff\xa0\x15\xff\xff\xa8\x84\x0f\x00\xb8\x17\xfe\xff\xf8*\x00\x00\x80U\x11\x00\x08L\x01\x00\xc8,\x01\x000\x8c\x11\x00\x88~\x03\x008D\x01\x00\xc0\xfd\x0f\x00\x88\x01\x03\x00\x90e\x00\x00\xb0\xe2\r\x00 N\x00\x00\xf80\xff\xff(\xd5\x0c\x00\xc8D\xfd\xff@\xa8\xfe\xffH\xa0\r\x00P^\xfc\xffX!\xff\xff\x00\xa0\x0f\x00\xb0B\xfe\xff8J\x00\x00P]\x11\x00\x00w\x01\x00\x808\x01\x00\x90|\x11\x00p\x82\x03\x00 H\x01\x00\x80\xde\x0f\x00\x18\xea\x02\x00 N\x00\x00(\xcf\r\x00X\x1b\x00\x00X!\xff\xff@\xd1\x0c\x00(5\xfd\xff\x88\x9c\xfe\xff\x00\xac\r\x00 f\xfc\xff\xf80\xff\xff\x10\xc7\x0f\x00\xf0a\xfe\xff\xd8Y\x00\x00\xa8x\x11\x00(\x9a\x01\x00 H\x01\x00\x90|\x11\x00\xc8\x9d\x03\x00\x984\x01\x00\x10\xc7\x0f\x00\xd8\xca\x02\x00hB\x00\x00\xe8\xaf\r\x00\xc0\xe0\xff\xff\xa0\x15\xff\xff@\xd1\x0c\x000\n\xfd\xff\xa0\x98\xfe\xffX\xc7\r\x00\xa8y\xfc\xff\x98@\xff\xffh\xe2\x0f\x00\xd0\x90\xfe\xff\xc0]\x00\x00H\x88\x11\x00P\xbd\x01\x00\xf0O\x01\x00P]\x11\x00\xc8\x9d\x03\x00\xf8$\x01\x00\x00\xa0\x0f\x008\xbb\x02\x00\xb06\x00\x00x\x98\r\x00\x98\xbd\xff\xff\x00\x06\xff\xff(\xd5\x0c\x00x\xfe\xfc\xff(\xac\xfe\xff\x98\xe6\r\x000\x8d\xfc\xffhH\xff\xff\x90\x05\x10\x00\x98\xc3\xfe\xff\x00}\x00\x000\x8c\x11\x00\x18\xf0\x01\x00\x08L\x01\x00\x80U\x11\x00\xb0\xa1\x03\x00\x10!\x01\x00`\x90\x0f\x00(\x94\x02\x00p\x17\x00\x00\xd8\x88\r\x00\xa0\x92\xff\xffH\xfa\xfe\xff\xf8\xdc\x0c\x00P\xdb\xfc\xff(\xac\xfe\xff\xf0\x01\x0e\x00\xe8\x98\xfc\xff\xf0[\xff\xff\x00\x1d\x10\x00\x90\xee\xfe\xff\x88\x90\x00\x00\xd0\x9b\x11\x00X\x0f\x02\x00\xd8S\x01\x00\xc8I\x11\x00\xb0\xa1\x03\x00X\x15\x01\x008m\x0f\x00\xd0x\x02\x00\xb8\x0b\x00\x008y\r\x00 T\xff\xff\xa8\xea\xfe\xff@\xd1\x0c\x00\xb0\xcb\xfc\xff(\xac\xfe\xff0!\x0e\x00\xa0\xa4\xfc\xff\xf0[\xff\xffX8\x10\x00\xa0\x15\xff\xffX\x98\x00\x00\xd0\x9b\x11\x00\x802\x02\x00\xa8[\x01\x00\x88*\x11\x00P\xb1\x03\x00\x88\r\x01\x00\xf8M\x0f\x00\xf0I\x02\x00H\xf4\xff\xff\xf8Y\r\x00@%\xff\xff\xf0\xde\xfe\xff\xc8\xe4\x0c\x00p\xac\xfc\xff(\xac\xfe\xffp@\x0e\x00(\xb8\xfc\xffHw\xff\xff\x80[\x10\x00hH\xff\xff\xf8\xa7\x00\x00X\xaf\x11\x00\xa8U\x02\x00xc\x01\x00\xe8\x1a\x11\x00P\xb1\x03\x00\xb8\x05\x01\x00\xb8.\x0f\x00\xc8&amp;\x02\x00\x90\xe8\xff\xff(R\r\x000\xfe\xfe\xff\xd8\xe2\xfe\xff\xb0\xe8\x0c\x00\x00\x95\xfc\xff\xf8\xb3\xfe\xff\xf8S\x0e\x00h\xd7\xfc\xff\x00\x83\xff\xff\x08o\x10\x00`s\xff\xffh\xbf\x00\x00\xa0\xa3\x11\x00p\x88\x02\x00\xa8[\x01\x00H\x0b\x11\x00\xb0\xa1\x03\x00\x00\xfa\x00\x00\xa8\x07\x0f\x00\xe8\xf7\x01\x008\xcd\xff\xff\xe82\r\x008\xd3\xfe\xffP\xcf\xfe\xff\x98\xec\x0c\x00\x00\x95\xfc\xff\xb0\xbf\xfe\xff w\x0e\x00\x08\xe7\xfc\xff\xa0\x92\xff\xff\x18\x96\x10\x00\x10\xaa\xff\xff\x08\xcf\x00\x00@\xb3\x11\x00\x98\xab\x02\x00xc\x01\x00\xa8\xfb\x10\x00\xc8\x9d\x03\x00`\xea\x00\x00h\xe8\x0e\x00\xa8\xd8\x01\x008\xcd\xff\xff\x18+\r\x00@\xa8\xfe\xff8\xd3\xfe\xff8\xfc\x0c\x00`\x85\xfc\xff\xc8\xbb\xfe\xff\x90\x8e\x0e\x000\n\xfd\xffX\x9e\xff\xff\xa0\xa9\x10\x00 \xd1\xff\xff\xf0\xd2\x00\x00p\xab\x11\x008\xbb\x02\x00`g\x01\x00\x98\xd4\x10\x00\xc8\x9d\x03\x00\x90\xe2\x00\x00(\xc9\x0e\x00\x98\xb1\x01\x00\xe0\xb1\xff\xffx\x1b\r\x00xu\xfe\xff\x98\xc3\xfe\xff\xc0\x0f\r\x00\xd8q\xfc\xff\xc8\xbb\xfe\xff\xa0\xb5\x0e\x00\x88%\xfd\xff\xb0\xb9\xff\xff(\xbd\x10\x000\xf8\xff\xff\x90\xe2\x00\x00X\xaf\x11\x00x\xda\x02\x00\xc0W\x01\x00\xf8\xc4\x10\x00\xf8\x95\x03\x008\xc7\x00\x00\xb8\xb1\x0e\x00"</msg>
+<msg timestamp="20261006 14:33:18.591" level="INFO">${payload} = RESD\xb4\xc40\xf8\xff\xff\xa8\xde@\xb30\xe6\xc0W\xf8\xc4X\x86\xcf\xb8\xb1\x88\x8a@\xa2\xff\xff\xd8
+hN\xfe\xff\x98\xc3\xfe\xff`
+8b\xfc\xffP...</msg>
+<status status="PASS" starttime="20261006 14:33:18.590" endtime="20261006 14:33:18.591"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${metadata_size}</var>
+<arg>struct.unpack_from('&lt;Q', $payload, 37)[0]</arg>
+<arg>modules=struct</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.591" level="TRACE">Arguments: [ "struct.unpack_from('&lt;Q', $payload, 37)[0]" | modules='struct' ]</msg>
+<msg timestamp="20261006 14:33:18.591" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:18.591" level="INFO">${metadata_size} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:18.591" endtime="20261006 14:33:18.591"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${ug}</var>
+<arg>struct.unpack_from('&lt;iii', $payload, 45 + $metadata_size)</arg>
+<arg>modules=struct</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.591" level="TRACE">Arguments: [ "struct.unpack_from('&lt;iii', $payload, 45 + $metadata_size)" | modules='struct' ]</msg>
+<msg timestamp="20261006 14:33:18.591" level="TRACE">Return: (-2000, 57000, 1160000)</msg>
+<msg timestamp="20261006 14:33:18.592" level="INFO">${ug} = (-2000, 57000, 1160000)</msg>
+<status status="PASS" starttime="20261006 14:33:18.591" endtime="20261006 14:33:18.592"/>
+</kw>
+<for flavor="IN">
+<var>${axis}</var>
+<var>${index}</var>
+<value>X</value>
+<value>0</value>
+<value>Y</value>
+<value>1</value>
+<value>Z</value>
+<value>2</value>
+<iter>
+<var name="${axis}">X</var>
+<var name="${index}">0</var>
+<kw name="Execute Command" library="Renode">
+<var>${actual}</var>
+<arg>sysbus.i2c1.imu LastOutput${axis}Raw</arg>
+<msg timestamp="20261006 14:33:18.592" level="TRACE">Arguments: [ 'sysbus.i2c1.imu LastOutputXRaw' ]</msg>
+<msg timestamp="20261006 14:33:18.595" level="TRACE">Return: '0xFFFFFFE0\n\n'</msg>
+<msg timestamp="20261006 14:33:18.595" level="INFO">${actual} = 0xFFFFFFE0
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:18.592" endtime="20261006 14:33:18.595"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${actual}</var>
+<arg>(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.595" level="TRACE">Arguments: [ '(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31' ]</msg>
+<msg timestamp="20261006 14:33:18.595" level="TRACE">Return: -32</msg>
+<msg timestamp="20261006 14:33:18.596" level="INFO">${actual} = -32</msg>
+<status status="PASS" starttime="20261006 14:33:18.595" endtime="20261006 14:33:18.596"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${expected}</var>
+<arg>int($ug[int($index)] / 244) * 4</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.596" level="TRACE">Arguments: [ 'int($ug[int($index)] / 244) * 4' ]</msg>
+<msg timestamp="20261006 14:33:18.596" level="TRACE">Return: -32</msg>
+<msg timestamp="20261006 14:33:18.596" level="INFO">${expected} = -32</msg>
+<status status="PASS" starttime="20261006 14:33:18.596" endtime="20261006 14:33:18.596"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${actual}</arg>
+<arg>${expected}</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:18.596" level="TRACE">Arguments: [ -32 | -32 ]</msg>
+<msg timestamp="20261006 14:33:18.596" level="DEBUG">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'int'&gt;</msg>
+<msg timestamp="20261006 14:33:18.596" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.596" endtime="20261006 14:33:18.596"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.592" endtime="20261006 14:33:18.596"/>
+</iter>
+<iter>
+<var name="${axis}">Y</var>
+<var name="${index}">1</var>
+<kw name="Execute Command" library="Renode">
+<var>${actual}</var>
+<arg>sysbus.i2c1.imu LastOutput${axis}Raw</arg>
+<msg timestamp="20261006 14:33:18.596" level="TRACE">Arguments: [ 'sysbus.i2c1.imu LastOutputYRaw' ]</msg>
+<msg timestamp="20261006 14:33:18.599" level="TRACE">Return: '0x000003A4\n\n'</msg>
+<msg timestamp="20261006 14:33:18.599" level="INFO">${actual} = 0x000003A4
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:18.596" endtime="20261006 14:33:18.599"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${actual}</var>
+<arg>(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Arguments: [ '(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31' ]</msg>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Return: 932</msg>
+<msg timestamp="20261006 14:33:18.600" level="INFO">${actual} = 932</msg>
+<status status="PASS" starttime="20261006 14:33:18.599" endtime="20261006 14:33:18.600"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${expected}</var>
+<arg>int($ug[int($index)] / 244) * 4</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Arguments: [ 'int($ug[int($index)] / 244) * 4' ]</msg>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Return: 932</msg>
+<msg timestamp="20261006 14:33:18.600" level="INFO">${expected} = 932</msg>
+<status status="PASS" starttime="20261006 14:33:18.600" endtime="20261006 14:33:18.600"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${actual}</arg>
+<arg>${expected}</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Arguments: [ 932 | 932 ]</msg>
+<msg timestamp="20261006 14:33:18.600" level="DEBUG">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'int'&gt;</msg>
+<msg timestamp="20261006 14:33:18.600" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.600" endtime="20261006 14:33:18.601"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.596" endtime="20261006 14:33:18.601"/>
+</iter>
+<iter>
+<var name="${axis}">Z</var>
+<var name="${index}">2</var>
+<kw name="Execute Command" library="Renode">
+<var>${actual}</var>
+<arg>sysbus.i2c1.imu LastOutput${axis}Raw</arg>
+<msg timestamp="20261006 14:33:18.601" level="TRACE">Arguments: [ 'sysbus.i2c1.imu LastOutputZRaw' ]</msg>
+<msg timestamp="20261006 14:33:18.603" level="TRACE">Return: '0x00004A48\n\n'</msg>
+<msg timestamp="20261006 14:33:18.603" level="INFO">${actual} = 0x00004A48
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:18.601" endtime="20261006 14:33:18.603"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${actual}</var>
+<arg>(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.603" level="TRACE">Arguments: [ '(int($actual.strip(), 0) + 2**31) % 2**32 - 2**31' ]</msg>
+<msg timestamp="20261006 14:33:18.603" level="TRACE">Return: 19016</msg>
+<msg timestamp="20261006 14:33:18.604" level="INFO">${actual} = 19016</msg>
+<status status="PASS" starttime="20261006 14:33:18.603" endtime="20261006 14:33:18.604"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${expected}</var>
+<arg>int($ug[int($index)] / 244) * 4</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:18.604" level="TRACE">Arguments: [ 'int($ug[int($index)] / 244) * 4' ]</msg>
+<msg timestamp="20261006 14:33:18.604" level="TRACE">Return: 19016</msg>
+<msg timestamp="20261006 14:33:18.604" level="INFO">${expected} = 19016</msg>
+<status status="PASS" starttime="20261006 14:33:18.604" endtime="20261006 14:33:18.604"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${actual}</arg>
+<arg>${expected}</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:18.604" level="TRACE">Arguments: [ 19016 | 19016 ]</msg>
+<msg timestamp="20261006 14:33:18.604" level="DEBUG">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'int'&gt;</msg>
+<msg timestamp="20261006 14:33:18.604" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.604" endtime="20261006 14:33:18.604"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.601" endtime="20261006 14:33:18.604"/>
+</iter>
+<status status="PASS" starttime="20261006 14:33:18.592" endtime="20261006 14:33:18.604"/>
+</for>
+<kw name="Test Teardown" library="renode-keywords" type="TEARDOWN">
+<msg timestamp="20261006 14:33:18.604" level="TRACE">Arguments: [  ]</msg>
+<kw name="Stop Profiler" library="renode-keywords">
+<msg timestamp="20261006 14:33:18.605" level="TRACE">Arguments: [  ]</msg>
+<if>
+<branch type="IF" condition="${PROFILER_PROCESS}">
+<kw name="Terminate Process" library="Process">
+<arg>${PROFILER_PROCESS}</arg>
+<doc>Stops the process gracefully or forcefully.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</kw>
+<kw name="Set Test Variable" library="BuiltIn">
+<arg>${PROFILER_PROCESS}</arg>
+<arg>None</arg>
+<doc>Makes a variable available everywhere within the scope of the current test.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</if>
+<msg timestamp="20261006 14:33:18.605" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${failed}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:18.605" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:18.605" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:18.605" level="INFO">${failed} = None</msg>
+<status status="PASS" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</kw>
+<if>
+<branch type="IF" condition="${failed}">
+<kw name="Strip String" library="String">
+<var>${message}</var>
+<arg>${TEST_MESSAGE}</arg>
+<arg>mode=right</arg>
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.605"/>
+</kw>
+<kw name="Set Test Message" library="BuiltIn">
+<arg>${message}</arg>
+<doc>Sets message for the current test case.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.606"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.606"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.605" endtime="20261006 14:33:18.606"/>
+</if>
+<kw name="Run Keyword If Timeout Occurred" library="BuiltIn">
+<var>${timed_out}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword if either a test or a keyword timeout has occurred.</doc>
+<msg timestamp="20261006 14:33:18.606" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:18.606" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:18.606" level="INFO">${timed_out} = None</msg>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</kw>
+<if>
+<branch type="IF" condition="${timed_out}">
+<return>
+<status status="NOT RUN" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</return>
+<status status="NOT RUN" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</if>
+<if>
+<branch type="IF" condition="${CREATE_SNAPSHOT_ON_FAIL}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Create Snapshot Of Failed Test</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:18.606" level="TRACE">Arguments: [ 'Create Snapshot Of Failed Test' ]</msg>
+<msg timestamp="20261006 14:33:18.606" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.606"/>
+</if>
+<kw name="Close Log File" library="Renode">
+<msg timestamp="20261006 14:33:18.606" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:18.608" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.606" endtime="20261006 14:33:18.608"/>
+</kw>
+<if>
+<branch type="IF" condition="&quot;${SAVE_LOGS_WHEN}&quot; == &quot;Always&quot; or ${failed}">
+<kw name="Print Log Saved Message" library="renode-keywords">
+<status status="NOT RUN" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.609"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.609"/>
+</branch>
+<branch type="ELSE">
+<kw name="Remove Log" library="renode-keywords">
+<msg timestamp="20261006 14:33:18.609" level="TRACE">Arguments: [  ]</msg>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>'skipped' in @{TEST TAGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:18.609" level="TRACE">Arguments: [ "'skipped' in []" ]</msg>
+<msg timestamp="20261006 14:33:18.609" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.609"/>
+</kw>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>not ${SAVE_LOGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:18.609" level="TRACE">Arguments: [ 'not True' ]</msg>
+<msg timestamp="20261006 14:33:18.609" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.609"/>
+</kw>
+<kw name="Get Test Log Path" library="renode-keywords">
+<var>${log_path}</var>
+<msg timestamp="20261006 14:33:18.610" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Sanitized Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<msg timestamp="20261006 14:33:18.610" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Variable Value" library="BuiltIn">
+<var>${retry_index}</var>
+<arg>\${RETRYFAILED_RETRY_INDEX}</arg>
+<arg>0</arg>
+<doc>Returns variable value or ``default`` if the variable does not exist.</doc>
+<msg timestamp="20261006 14:33:18.610" level="TRACE">Arguments: [ '\\${RETRYFAILED_RETRY_INDEX}' | '0' ]</msg>
+<msg timestamp="20261006 14:33:18.610" level="TRACE">Return: '0'</msg>
+<msg timestamp="20261006 14:33:18.611" level="INFO">${retry_index} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:18.610" endtime="20261006 14:33:18.611"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${test_name}</var>
+<arg>${SUITE NAME}.${TEST NAME}.fail${retry_index}</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Reads Gazebo RESD Samples.fail0' ]</msg>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Return: 'gazebo-bridge.Firmware Reads Gazebo RESD Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:18.611" level="INFO">${test_name} = gazebo-bridge.Firmware Reads Gazebo RESD Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:18.611" endtime="20261006 14:33:18.611"/>
+</kw>
+<kw name="Sanitize Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Arguments: [ ${test_name}='gazebo-bridge.Firmware Reads Gazebo RESD Samples.fail0' ]</msg>
+<kw name="Replace String" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>${SPACE}</arg>
+<arg>_</arg>
+<doc>Replaces ``search_for`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Reads Gazebo RESD Samples.fail0' | ' ' | '_' ]</msg>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Return: 'gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:18.611" level="INFO">${test_name} = gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:18.611" endtime="20261006 14:33:18.611"/>
+</kw>
+<kw name="Replace String Using Regexp" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>[/""]</arg>
+<arg>-</arg>
+<doc>Replaces ``pattern`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:18.611" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0' | '[/""]' | '-' ]</msg>
+<msg timestamp="20261006 14:33:18.612" level="TRACE">Return: 'gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:18.612" level="INFO">${test_name} = gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:18.611" endtime="20261006 14:33:18.612"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:18.612" endtime="20261006 14:33:18.612"/>
+</return>
+<msg timestamp="20261006 14:33:18.612" level="TRACE">Return: 'gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:18.612" level="INFO">${test_name} = gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:18.611" endtime="20261006 14:33:18.612"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:18.612" endtime="20261006 14:33:18.612"/>
+</return>
+<msg timestamp="20261006 14:33:18.612" level="TRACE">Return: 'gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:18.612" level="INFO">${test_name} = gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:18.610" endtime="20261006 14:33:18.612"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${logs_dir}</var>
+<arg>${RESULTS_DIRECTORY}/logs</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:18.612" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:18.612" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs'</msg>
+<msg timestamp="20261006 14:33:18.612" level="INFO">${logs_dir} = /tmp/riose-mini-mvp-clean-robot//logs</msg>
+<status status="PASS" starttime="20261006 14:33:18.612" endtime="20261006 14:33:18.612"/>
+</kw>
+<kw name="Create Directory" library="OperatingSystem">
+<arg>${logs_dir}</arg>
+<doc>Creates the specified directory.</doc>
+<msg timestamp="20261006 14:33:18.613" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:18.613" level="INFO" html="true">Created directory '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs"&gt;/tmp/riose-mini-mvp-clean-robot/logs&lt;/a&gt;'.</msg>
+<msg timestamp="20261006 14:33:18.613" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.612" endtime="20261006 14:33:18.613"/>
+</kw>
+<return>
+<value>${logs_dir}/${test_name}.log</value>
+<status status="PASS" starttime="20261006 14:33:18.613" endtime="20261006 14:33:18.613"/>
+</return>
+<msg timestamp="20261006 14:33:18.613" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0.log'</msg>
+<msg timestamp="20261006 14:33:18.613" level="INFO">${log_path} = /tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0.log</msg>
+<status status="PASS" starttime="20261006 14:33:18.610" endtime="20261006 14:33:18.613"/>
+</kw>
+<kw name="Remove File" library="OperatingSystem">
+<arg>${log_path}</arg>
+<doc>Removes a file with the given path.</doc>
+<msg timestamp="20261006 14:33:18.613" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0.log' ]</msg>
+<msg timestamp="20261006 14:33:18.613" level="INFO" html="true">File '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0.log"&gt;/tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Reads_Gazebo_RESD_Samples.fail0.log&lt;/a&gt;' does not exist.</msg>
+<msg timestamp="20261006 14:33:18.614" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.613" endtime="20261006 14:33:18.614"/>
+</kw>
+<msg timestamp="20261006 14:33:18.614" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.614"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.614"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.609" endtime="20261006 14:33:18.614"/>
+</if>
+<if>
+<branch type="IF" condition="${HOLD_ON_ERROR}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${res}</var>
+<arg>Run Keyword And Ignore Error</arg>
+<arg>Import Library</arg>
+<arg>Dialogs</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.614" endtime="20261006 14:33:18.614"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Run Keywords</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' == 'FAIL'</arg>
+<arg>Log</arg>
+<arg>Couldn't load the Dialogs library - interactive debugging is not possible</arg>
+<arg>console=True</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Open GUI</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Pause Execution</arg>
+<arg>Test failed. Press OK once done debugging.</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Close GUI</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:18.614" endtime="20261006 14:33:18.614"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:18.614" endtime="20261006 14:33:18.614"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:18.614" endtime="20261006 14:33:18.614"/>
+</if>
+<kw name="Reset Emulation" library="Renode">
+<msg timestamp="20261006 14:33:18.614" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:18.651" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.614" endtime="20261006 14:33:18.651"/>
+</kw>
+<msg timestamp="20261006 14:33:18.651" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.604" endtime="20261006 14:33:18.651"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:14.808" endtime="20261006 14:33:18.651"/>
+</test>
+<test id="s1-t2" name="Firmware Startup TX Payload Is Captured" line="33">
+<kw name="Create RIOSE Platform" type="SETUP">
+<msg timestamp="20261006 14:33:18.651" level="TRACE">Arguments: [  ]</msg>
+<kw name="Execute Command" library="Renode">
+<arg>mach create</arg>
+<msg timestamp="20261006 14:33:18.651" level="TRACE">Arguments: [ 'mach create' ]</msg>
+<msg timestamp="20261006 14:33:18.653" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.651" endtime="20261006 14:33:18.654"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>machine LoadPlatformDescription @${PLATFORM}</arg>
+<msg timestamp="20261006 14:33:18.654" level="TRACE">Arguments: [ 'machine LoadPlatformDescription @/tmp/riose-mini-mvp-clean-final/hardware/renode/tests/../riose_stm32l0.repl' ]</msg>
+<msg timestamp="20261006 14:33:18.826" level="TRACE">Return: 'Code from file/tmp/riose-mini-mvp-clean-final/hardware/renode/src/RiosePeripherals.cs has already been compiled. Ignoring...\n\n'</msg>
+<status status="PASS" starttime="20261006 14:33:18.654" endtime="20261006 14:33:18.826"/>
+</kw>
+<msg timestamp="20261006 14:33:18.826" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.651" endtime="20261006 14:33:18.826"/>
+</kw>
+<kw name="Skip If" library="BuiltIn">
+<arg>'${ELF}' == ''</arg>
+<arg>Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.</arg>
+<doc>Skips the rest of the current test if the ``condition`` is True.</doc>
+<msg timestamp="20261006 14:33:18.826" level="TRACE">Arguments: [ "'/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' == ''" | 'Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.' ]</msg>
+<msg timestamp="20261006 14:33:18.826" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:18.826" endtime="20261006 14:33:18.827"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu DefaultAccelerationZ 1</arg>
+<msg timestamp="20261006 14:33:18.827" level="TRACE">Arguments: [ 'sysbus.i2c1.imu DefaultAccelerationZ 1' ]</msg>
+<msg timestamp="20261006 14:33:18.839" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.827" endtime="20261006 14:33:18.839"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu AccelerationZ 1</arg>
+<msg timestamp="20261006 14:33:18.839" level="TRACE">Arguments: [ 'sysbus.i2c1.imu AccelerationZ 1' ]</msg>
+<msg timestamp="20261006 14:33:18.842" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.839" endtime="20261006 14:33:18.842"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus LoadELF @${ELF}</arg>
+<msg timestamp="20261006 14:33:18.842" level="TRACE">Arguments: [ 'sysbus LoadELF @/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' ]</msg>
+<msg timestamp="20261006 14:33:18.859" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.842" endtime="20261006 14:33:18.859"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>emulation RunFor "0.25"</arg>
+<msg timestamp="20261006 14:33:18.859" level="TRACE">Arguments: [ 'emulation RunFor "0.25"' ]</msg>
+<msg timestamp="20261006 14:33:19.117" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:18.859" endtime="20261006 14:33:19.117"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${tx_count}</var>
+<arg>sysbus.spi1.radio TxCount</arg>
+<msg timestamp="20261006 14:33:19.117" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxCount' ]</msg>
+<msg timestamp="20261006 14:33:19.135" level="TRACE">Return: '0x00000001\n\n'</msg>
+<msg timestamp="20261006 14:33:19.135" level="INFO">${tx_count} = 0x00000001
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.117" endtime="20261006 14:33:19.136"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${tx_count}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.136" level="TRACE">Arguments: [ '0x00000001\n\n' | '1' ]</msg>
+<msg timestamp="20261006 14:33:19.136" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.136" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.136" endtime="20261006 14:33:19.136"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${tx_done_count}</var>
+<arg>sysbus.spi1.radio TxDoneCount</arg>
+<msg timestamp="20261006 14:33:19.136" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxDoneCount' ]</msg>
+<msg timestamp="20261006 14:33:19.138" level="TRACE">Return: '0x00000001\n\n'</msg>
+<msg timestamp="20261006 14:33:19.138" level="INFO">${tx_done_count} = 0x00000001
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.136" endtime="20261006 14:33:19.138"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${tx_done_count}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.139" level="TRACE">Arguments: [ '0x00000001\n\n' | '1' ]</msg>
+<msg timestamp="20261006 14:33:19.139" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.139" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.138" endtime="20261006 14:33:19.139"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${payload_length}</var>
+<arg>sysbus.spi1.radio LastTxPayloadLength</arg>
+<msg timestamp="20261006 14:33:19.139" level="TRACE">Arguments: [ 'sysbus.spi1.radio LastTxPayloadLength' ]</msg>
+<msg timestamp="20261006 14:33:19.141" level="TRACE">Return: '0x00000018\n\n'</msg>
+<msg timestamp="20261006 14:33:19.141" level="INFO">${payload_length} = 0x00000018
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.139" endtime="20261006 14:33:19.141"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${payload_length}</arg>
+<arg>24</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.142" level="TRACE">Arguments: [ '0x00000018\n\n' | '24' ]</msg>
+<msg timestamp="20261006 14:33:19.142" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.142" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.141" endtime="20261006 14:33:19.142"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${payload_hex}</var>
+<arg>sysbus.spi1.radio LastTxPayloadHex</arg>
+<msg timestamp="20261006 14:33:19.142" level="TRACE">Arguments: [ 'sysbus.spi1.radio LastTxPayloadHex' ]</msg>
+<msg timestamp="20261006 14:33:19.144" level="TRACE">Return: '010001000000000000000700000000000000e703b80bcc65\n\n'</msg>
+<msg timestamp="20261006 14:33:19.144" level="INFO">${payload_hex} = 010001000000000000000700000000000000e703b80bcc65
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.142" endtime="20261006 14:33:19.144"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${payload}</var>
+<arg>bytes.fromhex($payload_hex.strip())</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.144" level="TRACE">Arguments: [ 'bytes.fromhex($payload_hex.strip())' ]</msg>
+<msg timestamp="20261006 14:33:19.144" level="TRACE">Return: b'\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\xe7\x03\xb8\x0b\xcce'</msg>
+<msg timestamp="20261006 14:33:19.144" level="INFO">${payload} = \xe7\xb8\xcce</msg>
+<status status="PASS" starttime="20261006 14:33:19.144" endtime="20261006 14:33:19.144"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${version}</var>
+<arg>$payload[0]</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.144" level="TRACE">Arguments: [ '$payload[0]' ]</msg>
+<msg timestamp="20261006 14:33:19.144" level="TRACE">Return: 1</msg>
+<msg timestamp="20261006 14:33:19.144" level="INFO">${version} = 1</msg>
+<status status="PASS" starttime="20261006 14:33:19.144" endtime="20261006 14:33:19.145"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${tag_id}</var>
+<arg>int.from_bytes($payload[2:6], 'little')</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Arguments: [ "int.from_bytes($payload[2:6], 'little')" ]</msg>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Return: 1</msg>
+<msg timestamp="20261006 14:33:19.145" level="INFO">${tag_id} = 1</msg>
+<status status="PASS" starttime="20261006 14:33:19.145" endtime="20261006 14:33:19.145"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${sequence}</var>
+<arg>int.from_bytes($payload[6:10], 'little')</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Arguments: [ "int.from_bytes($payload[6:10], 'little')" ]</msg>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:19.145" level="INFO">${sequence} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.145" endtime="20261006 14:33:19.145"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${behavior}</var>
+<arg>$payload[1]</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Arguments: [ '$payload[1]' ]</msg>
+<msg timestamp="20261006 14:33:19.145" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:19.145" level="INFO">${behavior} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.145" endtime="20261006 14:33:19.146"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${x_mg}</var>
+<arg>int.from_bytes($payload[14:16], 'little', signed=True)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.146" level="TRACE">Arguments: [ "int.from_bytes($payload[14:16], 'little', signed=True)" ]</msg>
+<msg timestamp="20261006 14:33:19.146" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:19.146" level="INFO">${x_mg} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.146" endtime="20261006 14:33:19.146"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${y_mg}</var>
+<arg>int.from_bytes($payload[16:18], 'little', signed=True)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.146" level="TRACE">Arguments: [ "int.from_bytes($payload[16:18], 'little', signed=True)" ]</msg>
+<msg timestamp="20261006 14:33:19.146" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:19.146" level="INFO">${y_mg} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.146" endtime="20261006 14:33:19.146"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${battery_mv}</var>
+<arg>int.from_bytes($payload[20:22], 'little')</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.146" level="TRACE">Arguments: [ "int.from_bytes($payload[20:22], 'little')" ]</msg>
+<msg timestamp="20261006 14:33:19.147" level="TRACE">Return: 3000</msg>
+<msg timestamp="20261006 14:33:19.147" level="INFO">${battery_mv} = 3000</msg>
+<status status="PASS" starttime="20261006 14:33:19.146" endtime="20261006 14:33:19.147"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${crc_valid}</var>
+<arg>binascii.crc_hqx($payload[:22], 0xFFFF) == int.from_bytes($payload[22:24], 'little')</arg>
+<arg>modules=binascii</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.147" level="TRACE">Arguments: [ "binascii.crc_hqx($payload[:22], 0xFFFF) == int.from_bytes($payload[22:24], 'little')" | modules='binascii' ]</msg>
+<msg timestamp="20261006 14:33:19.147" level="TRACE">Return: True</msg>
+<msg timestamp="20261006 14:33:19.147" level="INFO">${crc_valid} = True</msg>
+<status status="PASS" starttime="20261006 14:33:19.147" endtime="20261006 14:33:19.147"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${version}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.147" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:19.147" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.147" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.147" endtime="20261006 14:33:19.147"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${tag_id}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.148" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:19.148" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.148" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.148" endtime="20261006 14:33:19.148"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${sequence}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.148" level="TRACE">Arguments: [ 0 | '0' ]</msg>
+<msg timestamp="20261006 14:33:19.148" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.148" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.148" endtime="20261006 14:33:19.148"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>0 &lt;= ${behavior} &lt;= 3</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:19.148" level="TRACE">Arguments: [ '0 &lt;= 0 &lt;= 3' ]</msg>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.148" endtime="20261006 14:33:19.149"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${x_mg}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Arguments: [ 0 | '0' ]</msg>
+<msg timestamp="20261006 14:33:19.149" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.149" endtime="20261006 14:33:19.149"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${y_mg}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Arguments: [ 0 | '0' ]</msg>
+<msg timestamp="20261006 14:33:19.149" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.149" endtime="20261006 14:33:19.149"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${battery_mv}</arg>
+<arg>3000</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Arguments: [ 3000 | '3000' ]</msg>
+<msg timestamp="20261006 14:33:19.149" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.149" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.149" endtime="20261006 14:33:19.150"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${crc_valid}</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:19.150" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:19.150" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.150" endtime="20261006 14:33:19.150"/>
+</kw>
+<kw name="Test Teardown" library="renode-keywords" type="TEARDOWN">
+<msg timestamp="20261006 14:33:19.150" level="TRACE">Arguments: [  ]</msg>
+<kw name="Stop Profiler" library="renode-keywords">
+<msg timestamp="20261006 14:33:19.150" level="TRACE">Arguments: [  ]</msg>
+<if>
+<branch type="IF" condition="${PROFILER_PROCESS}">
+<kw name="Terminate Process" library="Process">
+<arg>${PROFILER_PROCESS}</arg>
+<doc>Stops the process gracefully or forcefully.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.151" endtime="20261006 14:33:19.151"/>
+</kw>
+<kw name="Set Test Variable" library="BuiltIn">
+<arg>${PROFILER_PROCESS}</arg>
+<arg>None</arg>
+<doc>Makes a variable available everywhere within the scope of the current test.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.151" endtime="20261006 14:33:19.151"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.151" endtime="20261006 14:33:19.151"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.151" endtime="20261006 14:33:19.151"/>
+</if>
+<msg timestamp="20261006 14:33:19.151" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.150" endtime="20261006 14:33:19.151"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${failed}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:19.151" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:19.151" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:19.151" level="INFO">${failed} = None</msg>
+<status status="PASS" starttime="20261006 14:33:19.151" endtime="20261006 14:33:19.152"/>
+</kw>
+<if>
+<branch type="IF" condition="${failed}">
+<kw name="Strip String" library="String">
+<var>${message}</var>
+<arg>${TEST_MESSAGE}</arg>
+<arg>mode=right</arg>
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.152"/>
+</kw>
+<kw name="Set Test Message" library="BuiltIn">
+<arg>${message}</arg>
+<doc>Sets message for the current test case.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.152"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.152"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.152"/>
+</if>
+<kw name="Run Keyword If Timeout Occurred" library="BuiltIn">
+<var>${timed_out}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword if either a test or a keyword timeout has occurred.</doc>
+<msg timestamp="20261006 14:33:19.152" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:19.152" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:19.152" level="INFO">${timed_out} = None</msg>
+<status status="PASS" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.152"/>
+</kw>
+<if>
+<branch type="IF" condition="${timed_out}">
+<return>
+<status status="NOT RUN" starttime="20261006 14:33:19.153" endtime="20261006 14:33:19.153"/>
+</return>
+<status status="NOT RUN" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.153"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.152" endtime="20261006 14:33:19.153"/>
+</if>
+<if>
+<branch type="IF" condition="${CREATE_SNAPSHOT_ON_FAIL}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Create Snapshot Of Failed Test</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:19.153" level="TRACE">Arguments: [ 'Create Snapshot Of Failed Test' ]</msg>
+<msg timestamp="20261006 14:33:19.153" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.153" endtime="20261006 14:33:19.153"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.153" endtime="20261006 14:33:19.153"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.153" endtime="20261006 14:33:19.153"/>
+</if>
+<kw name="Close Log File" library="Renode">
+<msg timestamp="20261006 14:33:19.153" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:19.155" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.153" endtime="20261006 14:33:19.155"/>
+</kw>
+<if>
+<branch type="IF" condition="&quot;${SAVE_LOGS_WHEN}&quot; == &quot;Always&quot; or ${failed}">
+<kw name="Print Log Saved Message" library="renode-keywords">
+<status status="NOT RUN" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.155"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.155"/>
+</branch>
+<branch type="ELSE">
+<kw name="Remove Log" library="renode-keywords">
+<msg timestamp="20261006 14:33:19.155" level="TRACE">Arguments: [  ]</msg>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>'skipped' in @{TEST TAGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Arguments: [ "'skipped' in []" ]</msg>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.156"/>
+</kw>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>not ${SAVE_LOGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Arguments: [ 'not True' ]</msg>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.156" endtime="20261006 14:33:19.156"/>
+</kw>
+<kw name="Get Test Log Path" library="renode-keywords">
+<var>${log_path}</var>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Sanitized Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<msg timestamp="20261006 14:33:19.156" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Variable Value" library="BuiltIn">
+<var>${retry_index}</var>
+<arg>\${RETRYFAILED_RETRY_INDEX}</arg>
+<arg>0</arg>
+<doc>Returns variable value or ``default`` if the variable does not exist.</doc>
+<msg timestamp="20261006 14:33:19.157" level="TRACE">Arguments: [ '\\${RETRYFAILED_RETRY_INDEX}' | '0' ]</msg>
+<msg timestamp="20261006 14:33:19.157" level="TRACE">Return: '0'</msg>
+<msg timestamp="20261006 14:33:19.157" level="INFO">${retry_index} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.156" endtime="20261006 14:33:19.157"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${test_name}</var>
+<arg>${SUITE NAME}.${TEST NAME}.fail${retry_index}</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:19.157" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Startup TX Payload Is Captured.fail0' ]</msg>
+<msg timestamp="20261006 14:33:19.157" level="TRACE">Return: 'gazebo-bridge.Firmware Startup TX Payload Is Captured.fail0'</msg>
+<msg timestamp="20261006 14:33:19.157" level="INFO">${test_name} = gazebo-bridge.Firmware Startup TX Payload Is Captured.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.157" endtime="20261006 14:33:19.157"/>
+</kw>
+<kw name="Sanitize Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Arguments: [ ${test_name}='gazebo-bridge.Firmware Startup TX Payload Is Captured.fail0' ]</msg>
+<kw name="Replace String" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>${SPACE}</arg>
+<arg>_</arg>
+<doc>Replaces ``search_for`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Startup TX Payload Is Captured.fail0' | ' ' | '_' ]</msg>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Return: 'gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0'</msg>
+<msg timestamp="20261006 14:33:19.158" level="INFO">${test_name} = gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.158" endtime="20261006 14:33:19.158"/>
+</kw>
+<kw name="Replace String Using Regexp" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>[/""]</arg>
+<arg>-</arg>
+<doc>Replaces ``pattern`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0' | '[/""]' | '-' ]</msg>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Return: 'gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0'</msg>
+<msg timestamp="20261006 14:33:19.158" level="INFO">${test_name} = gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.158" endtime="20261006 14:33:19.158"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:19.158" endtime="20261006 14:33:19.158"/>
+</return>
+<msg timestamp="20261006 14:33:19.158" level="TRACE">Return: 'gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0'</msg>
+<msg timestamp="20261006 14:33:19.159" level="INFO">${test_name} = gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.158" endtime="20261006 14:33:19.159"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:19.159" endtime="20261006 14:33:19.159"/>
+</return>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Return: 'gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0'</msg>
+<msg timestamp="20261006 14:33:19.159" level="INFO">${test_name} = gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.156" endtime="20261006 14:33:19.159"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${logs_dir}</var>
+<arg>${RESULTS_DIRECTORY}/logs</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs'</msg>
+<msg timestamp="20261006 14:33:19.159" level="INFO">${logs_dir} = /tmp/riose-mini-mvp-clean-robot//logs</msg>
+<status status="PASS" starttime="20261006 14:33:19.159" endtime="20261006 14:33:19.159"/>
+</kw>
+<kw name="Create Directory" library="OperatingSystem">
+<arg>${logs_dir}</arg>
+<doc>Creates the specified directory.</doc>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:19.159" level="INFO" html="true">Directory '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs"&gt;/tmp/riose-mini-mvp-clean-robot/logs&lt;/a&gt;' already exists.</msg>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.159" endtime="20261006 14:33:19.159"/>
+</kw>
+<return>
+<value>${logs_dir}/${test_name}.log</value>
+<status status="PASS" starttime="20261006 14:33:19.159" endtime="20261006 14:33:19.159"/>
+</return>
+<msg timestamp="20261006 14:33:19.159" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0.log'</msg>
+<msg timestamp="20261006 14:33:19.160" level="INFO">${log_path} = /tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0.log</msg>
+<status status="PASS" starttime="20261006 14:33:19.156" endtime="20261006 14:33:19.160"/>
+</kw>
+<kw name="Remove File" library="OperatingSystem">
+<arg>${log_path}</arg>
+<doc>Removes a file with the given path.</doc>
+<msg timestamp="20261006 14:33:19.160" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0.log' ]</msg>
+<msg timestamp="20261006 14:33:19.160" level="INFO" html="true">File '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0.log"&gt;/tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Startup_TX_Payload_Is_Captured.fail0.log&lt;/a&gt;' does not exist.</msg>
+<msg timestamp="20261006 14:33:19.160" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.160"/>
+</kw>
+<msg timestamp="20261006 14:33:19.160" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.160"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.160"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.155" endtime="20261006 14:33:19.160"/>
+</if>
+<if>
+<branch type="IF" condition="${HOLD_ON_ERROR}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${res}</var>
+<arg>Run Keyword And Ignore Error</arg>
+<arg>Import Library</arg>
+<arg>Dialogs</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.160"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Run Keywords</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' == 'FAIL'</arg>
+<arg>Log</arg>
+<arg>Couldn't load the Dialogs library - interactive debugging is not possible</arg>
+<arg>console=True</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Open GUI</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Pause Execution</arg>
+<arg>Test failed. Press OK once done debugging.</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Close GUI</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.160"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.160"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.160"/>
+</if>
+<kw name="Reset Emulation" library="Renode">
+<msg timestamp="20261006 14:33:19.160" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:19.180" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.160" endtime="20261006 14:33:19.180"/>
+</kw>
+<msg timestamp="20261006 14:33:19.180" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.150" endtime="20261006 14:33:19.180"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:18.651" endtime="20261006 14:33:19.180"/>
+</test>
+<test id="s1-t3" name="LIS2DW12 Accepts Individual Gazebo Acceleration Samples" line="67">
+<kw name="Create RIOSE Platform" type="SETUP">
+<msg timestamp="20261006 14:33:19.181" level="TRACE">Arguments: [  ]</msg>
+<kw name="Execute Command" library="Renode">
+<arg>mach create</arg>
+<msg timestamp="20261006 14:33:19.181" level="TRACE">Arguments: [ 'mach create' ]</msg>
+<msg timestamp="20261006 14:33:19.183" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.181" endtime="20261006 14:33:19.183"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>machine LoadPlatformDescription @${PLATFORM}</arg>
+<msg timestamp="20261006 14:33:19.184" level="TRACE">Arguments: [ 'machine LoadPlatformDescription @/tmp/riose-mini-mvp-clean-final/hardware/renode/tests/../riose_stm32l0.repl' ]</msg>
+<msg timestamp="20261006 14:33:19.323" level="TRACE">Return: 'Code from file/tmp/riose-mini-mvp-clean-final/hardware/renode/src/RiosePeripherals.cs has already been compiled. Ignoring...\n\n'</msg>
+<status status="PASS" starttime="20261006 14:33:19.184" endtime="20261006 14:33:19.323"/>
+</kw>
+<msg timestamp="20261006 14:33:19.323" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.181" endtime="20261006 14:33:19.323"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x20, 0x14]</arg>
+<msg timestamp="20261006 14:33:19.323" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x20, 0x14]' ]</msg>
+<msg timestamp="20261006 14:33:19.325" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.323" endtime="20261006 14:33:19.325"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.325" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.327" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.325" endtime="20261006 14:33:19.327"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x23, 0x20]</arg>
+<msg timestamp="20261006 14:33:19.327" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x23, 0x20]' ]</msg>
+<msg timestamp="20261006 14:33:19.329" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.327" endtime="20261006 14:33:19.329"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.329" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.331" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.329" endtime="20261006 14:33:19.331"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x34, 0x02]</arg>
+<msg timestamp="20261006 14:33:19.331" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x34, 0x02]' ]</msg>
+<msg timestamp="20261006 14:33:19.333" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.331" endtime="20261006 14:33:19.333"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.333" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.335" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.333" endtime="20261006 14:33:19.335"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x35, 0x00]</arg>
+<msg timestamp="20261006 14:33:19.335" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x35, 0x00]' ]</msg>
+<msg timestamp="20261006 14:33:19.337" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.335" endtime="20261006 14:33:19.337"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.338" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.339" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.337" endtime="20261006 14:33:19.339"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x3F, 0x20]</arg>
+<msg timestamp="20261006 14:33:19.339" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x3F, 0x20]' ]</msg>
+<msg timestamp="20261006 14:33:19.341" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.339" endtime="20261006 14:33:19.342"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.342" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.343" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.342" endtime="20261006 14:33:19.343"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu InjectAccelerationSampleFromGazebo 0 0 1</arg>
+<msg timestamp="20261006 14:33:19.343" level="TRACE">Arguments: [ 'sysbus.i2c1.imu InjectAccelerationSampleFromGazebo 0 0 1' ]</msg>
+<msg timestamp="20261006 14:33:19.348" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.343" endtime="20261006 14:33:19.348"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu InjectAccelerationSampleFromGazebo 0.575 0.793 0</arg>
+<msg timestamp="20261006 14:33:19.349" level="TRACE">Arguments: [ 'sysbus.i2c1.imu InjectAccelerationSampleFromGazebo 0.575 0.793 0' ]</msg>
+<msg timestamp="20261006 14:33:19.353" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.348" endtime="20261006 14:33:19.353"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${sample_count}</var>
+<arg>sysbus.i2c1.imu GazeboSampleInjectionCount</arg>
+<msg timestamp="20261006 14:33:19.353" level="TRACE">Arguments: [ 'sysbus.i2c1.imu GazeboSampleInjectionCount' ]</msg>
+<msg timestamp="20261006 14:33:19.355" level="TRACE">Return: '0x00000002\n\n'</msg>
+<msg timestamp="20261006 14:33:19.355" level="INFO">${sample_count} = 0x00000002
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.353" endtime="20261006 14:33:19.356"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${sample_count}</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.356" level="TRACE">Arguments: [ '0x00000002\n\n' | '2' ]</msg>
+<msg timestamp="20261006 14:33:19.356" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.356" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.356" endtime="20261006 14:33:19.356"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${irq}</var>
+<arg>sysbus.i2c1.imu WakeupIRQAsserted</arg>
+<msg timestamp="20261006 14:33:19.356" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupIRQAsserted' ]</msg>
+<msg timestamp="20261006 14:33:19.358" level="TRACE">Return: 'True\n\n'</msg>
+<msg timestamp="20261006 14:33:19.359" level="INFO">${irq} = True
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.356" endtime="20261006 14:33:19.359"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${irq.strip()}</arg>
+<arg>True</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:19.359" level="TRACE">Arguments: [ 'True' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:19.359" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.359" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.359" endtime="20261006 14:33:19.359"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu Write [0x38]</arg>
+<msg timestamp="20261006 14:33:19.359" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Write [0x38]' ]</msg>
+<msg timestamp="20261006 14:33:19.361" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.359" endtime="20261006 14:33:19.361"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${source}</var>
+<arg>sysbus.i2c1.imu Read 1</arg>
+<msg timestamp="20261006 14:33:19.361" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Read 1' ]</msg>
+<msg timestamp="20261006 14:33:19.370" level="TRACE">Return: '[\n\n0x0F, \n\n]\n\n'</msg>
+<msg timestamp="20261006 14:33:19.370" level="INFO">${source} = [
+
+0x0F,
+
+]
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.361" endtime="20261006 14:33:19.370"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${source}</arg>
+<arg>0F</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<msg timestamp="20261006 14:33:19.370" level="TRACE">Arguments: [ '[\n\n0x0F, \n\n]\n\n' | '0F' ]</msg>
+<msg timestamp="20261006 14:33:19.371" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.370" endtime="20261006 14:33:19.371"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FinishTransmission</arg>
+<msg timestamp="20261006 14:33:19.371" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FinishTransmission' ]</msg>
+<msg timestamp="20261006 14:33:19.372" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.371" endtime="20261006 14:33:19.372"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${irq_after_read}</var>
+<arg>sysbus.i2c1.imu WakeupIRQAsserted</arg>
+<msg timestamp="20261006 14:33:19.372" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupIRQAsserted' ]</msg>
+<msg timestamp="20261006 14:33:19.374" level="TRACE">Return: 'False\n\n'</msg>
+<msg timestamp="20261006 14:33:19.374" level="INFO">${irq_after_read} = False
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.372" endtime="20261006 14:33:19.374"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${irq_after_read.strip()}</arg>
+<arg>False</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:19.375" level="TRACE">Arguments: [ 'False' | 'False' ]</msg>
+<msg timestamp="20261006 14:33:19.375" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.375" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.374" endtime="20261006 14:33:19.375"/>
+</kw>
+<kw name="Test Teardown" library="renode-keywords" type="TEARDOWN">
+<msg timestamp="20261006 14:33:19.375" level="TRACE">Arguments: [  ]</msg>
+<kw name="Stop Profiler" library="renode-keywords">
+<msg timestamp="20261006 14:33:19.375" level="TRACE">Arguments: [  ]</msg>
+<if>
+<branch type="IF" condition="${PROFILER_PROCESS}">
+<kw name="Terminate Process" library="Process">
+<arg>${PROFILER_PROCESS}</arg>
+<doc>Stops the process gracefully or forcefully.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</kw>
+<kw name="Set Test Variable" library="BuiltIn">
+<arg>${PROFILER_PROCESS}</arg>
+<arg>None</arg>
+<doc>Makes a variable available everywhere within the scope of the current test.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.375" endtime="20261006 14:33:19.376"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.375" endtime="20261006 14:33:19.376"/>
+</if>
+<msg timestamp="20261006 14:33:19.376" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.375" endtime="20261006 14:33:19.376"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${failed}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:19.376" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:19.376" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:19.376" level="INFO">${failed} = None</msg>
+<status status="PASS" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</kw>
+<if>
+<branch type="IF" condition="${failed}">
+<kw name="Strip String" library="String">
+<var>${message}</var>
+<arg>${TEST_MESSAGE}</arg>
+<arg>mode=right</arg>
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</kw>
+<kw name="Set Test Message" library="BuiltIn">
+<arg>${message}</arg>
+<doc>Sets message for the current test case.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.376" endtime="20261006 14:33:19.376"/>
+</if>
+<kw name="Run Keyword If Timeout Occurred" library="BuiltIn">
+<var>${timed_out}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword if either a test or a keyword timeout has occurred.</doc>
+<msg timestamp="20261006 14:33:19.377" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:19.377" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:19.377" level="INFO">${timed_out} = None</msg>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</kw>
+<if>
+<branch type="IF" condition="${timed_out}">
+<return>
+<status status="NOT RUN" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</return>
+<status status="NOT RUN" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</if>
+<if>
+<branch type="IF" condition="${CREATE_SNAPSHOT_ON_FAIL}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Create Snapshot Of Failed Test</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:19.377" level="TRACE">Arguments: [ 'Create Snapshot Of Failed Test' ]</msg>
+<msg timestamp="20261006 14:33:19.377" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.377"/>
+</if>
+<kw name="Close Log File" library="Renode">
+<msg timestamp="20261006 14:33:19.377" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:19.379" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.377" endtime="20261006 14:33:19.379"/>
+</kw>
+<if>
+<branch type="IF" condition="&quot;${SAVE_LOGS_WHEN}&quot; == &quot;Always&quot; or ${failed}">
+<kw name="Print Log Saved Message" library="renode-keywords">
+<status status="NOT RUN" starttime="20261006 14:33:19.379" endtime="20261006 14:33:19.379"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.379" endtime="20261006 14:33:19.379"/>
+</branch>
+<branch type="ELSE">
+<kw name="Remove Log" library="renode-keywords">
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Arguments: [  ]</msg>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>'skipped' in @{TEST TAGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Arguments: [ "'skipped' in []" ]</msg>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.380" endtime="20261006 14:33:19.380"/>
+</kw>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>not ${SAVE_LOGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Arguments: [ 'not True' ]</msg>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.380" endtime="20261006 14:33:19.380"/>
+</kw>
+<kw name="Get Test Log Path" library="renode-keywords">
+<var>${log_path}</var>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Sanitized Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<msg timestamp="20261006 14:33:19.380" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Variable Value" library="BuiltIn">
+<var>${retry_index}</var>
+<arg>\${RETRYFAILED_RETRY_INDEX}</arg>
+<arg>0</arg>
+<doc>Returns variable value or ``default`` if the variable does not exist.</doc>
+<msg timestamp="20261006 14:33:19.381" level="TRACE">Arguments: [ '\\${RETRYFAILED_RETRY_INDEX}' | '0' ]</msg>
+<msg timestamp="20261006 14:33:19.381" level="TRACE">Return: '0'</msg>
+<msg timestamp="20261006 14:33:19.381" level="INFO">${retry_index} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:19.380" endtime="20261006 14:33:19.381"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${test_name}</var>
+<arg>${SUITE NAME}.${TEST NAME}.fail${retry_index}</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:19.381" level="TRACE">Arguments: [ 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples.fail0' ]</msg>
+<msg timestamp="20261006 14:33:19.381" level="TRACE">Return: 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:19.381" level="INFO">${test_name} = gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.381" endtime="20261006 14:33:19.381"/>
+</kw>
+<kw name="Sanitize Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<msg timestamp="20261006 14:33:19.382" level="TRACE">Arguments: [ ${test_name}='gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples.fail0' ]</msg>
+<kw name="Replace String" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>${SPACE}</arg>
+<arg>_</arg>
+<doc>Replaces ``search_for`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:19.382" level="TRACE">Arguments: [ 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples.fail0' | ' ' | '_' ]</msg>
+<msg timestamp="20261006 14:33:19.382" level="TRACE">Return: 'gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:19.382" level="INFO">${test_name} = gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.382" endtime="20261006 14:33:19.382"/>
+</kw>
+<kw name="Replace String Using Regexp" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>[/""]</arg>
+<arg>-</arg>
+<doc>Replaces ``pattern`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:19.382" level="TRACE">Arguments: [ 'gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0' | '[/""]' | '-' ]</msg>
+<msg timestamp="20261006 14:33:19.382" level="TRACE">Return: 'gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:19.382" level="INFO">${test_name} = gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.382" endtime="20261006 14:33:19.382"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:19.382" endtime="20261006 14:33:19.382"/>
+</return>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Return: 'gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:19.383" level="INFO">${test_name} = gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.381" endtime="20261006 14:33:19.383"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:19.383" endtime="20261006 14:33:19.383"/>
+</return>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Return: 'gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0'</msg>
+<msg timestamp="20261006 14:33:19.383" level="INFO">${test_name} = gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:19.380" endtime="20261006 14:33:19.383"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${logs_dir}</var>
+<arg>${RESULTS_DIRECTORY}/logs</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs'</msg>
+<msg timestamp="20261006 14:33:19.383" level="INFO">${logs_dir} = /tmp/riose-mini-mvp-clean-robot//logs</msg>
+<status status="PASS" starttime="20261006 14:33:19.383" endtime="20261006 14:33:19.383"/>
+</kw>
+<kw name="Create Directory" library="OperatingSystem">
+<arg>${logs_dir}</arg>
+<doc>Creates the specified directory.</doc>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:19.383" level="INFO" html="true">Directory '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs"&gt;/tmp/riose-mini-mvp-clean-robot/logs&lt;/a&gt;' already exists.</msg>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.383" endtime="20261006 14:33:19.383"/>
+</kw>
+<return>
+<value>${logs_dir}/${test_name}.log</value>
+<status status="PASS" starttime="20261006 14:33:19.383" endtime="20261006 14:33:19.383"/>
+</return>
+<msg timestamp="20261006 14:33:19.383" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0.log'</msg>
+<msg timestamp="20261006 14:33:19.383" level="INFO">${log_path} = /tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0.log</msg>
+<status status="PASS" starttime="20261006 14:33:19.380" endtime="20261006 14:33:19.384"/>
+</kw>
+<kw name="Remove File" library="OperatingSystem">
+<arg>${log_path}</arg>
+<doc>Removes a file with the given path.</doc>
+<msg timestamp="20261006 14:33:19.384" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0.log' ]</msg>
+<msg timestamp="20261006 14:33:19.384" level="INFO" html="true">File '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0.log"&gt;/tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.LIS2DW12_Accepts_Individual_Gazebo_Acceleration_Samples.fail0.log&lt;/a&gt;' does not exist.</msg>
+<msg timestamp="20261006 14:33:19.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.384"/>
+</kw>
+<msg timestamp="20261006 14:33:19.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.379" endtime="20261006 14:33:19.384"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.379" endtime="20261006 14:33:19.384"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.379" endtime="20261006 14:33:19.384"/>
+</if>
+<if>
+<branch type="IF" condition="${HOLD_ON_ERROR}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${res}</var>
+<arg>Run Keyword And Ignore Error</arg>
+<arg>Import Library</arg>
+<arg>Dialogs</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.384"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Run Keywords</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' == 'FAIL'</arg>
+<arg>Log</arg>
+<arg>Couldn't load the Dialogs library - interactive debugging is not possible</arg>
+<arg>console=True</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Open GUI</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Pause Execution</arg>
+<arg>Test failed. Press OK once done debugging.</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Close GUI</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.384"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.384"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.384"/>
+</if>
+<kw name="Reset Emulation" library="Renode">
+<msg timestamp="20261006 14:33:19.384" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:19.399" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.384" endtime="20261006 14:33:19.399"/>
+</kw>
+<msg timestamp="20261006 14:33:19.399" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.375" endtime="20261006 14:33:19.400"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.181" endtime="20261006 14:33:19.400"/>
+</test>
+<test id="s1-t4" name="Firmware Wakes From Simulated Motion Comparator And Transmits" line="92">
+<kw name="Create RIOSE Platform" type="SETUP">
+<msg timestamp="20261006 14:33:19.400" level="TRACE">Arguments: [  ]</msg>
+<kw name="Execute Command" library="Renode">
+<arg>mach create</arg>
+<msg timestamp="20261006 14:33:19.400" level="TRACE">Arguments: [ 'mach create' ]</msg>
+<msg timestamp="20261006 14:33:19.402" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.400" endtime="20261006 14:33:19.402"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>machine LoadPlatformDescription @${PLATFORM}</arg>
+<msg timestamp="20261006 14:33:19.402" level="TRACE">Arguments: [ 'machine LoadPlatformDescription @/tmp/riose-mini-mvp-clean-final/hardware/renode/tests/../riose_stm32l0.repl' ]</msg>
+<msg timestamp="20261006 14:33:19.533" level="TRACE">Return: 'Code from file/tmp/riose-mini-mvp-clean-final/hardware/renode/src/RiosePeripherals.cs has already been compiled. Ignoring...\n\n'</msg>
+<status status="PASS" starttime="20261006 14:33:19.402" endtime="20261006 14:33:19.533"/>
+</kw>
+<msg timestamp="20261006 14:33:19.533" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.400" endtime="20261006 14:33:19.533"/>
+</kw>
+<kw name="Skip If" library="BuiltIn">
+<arg>'${ELF}' == ''</arg>
+<arg>Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.</arg>
+<doc>Skips the rest of the current test if the ``condition`` is True.</doc>
+<msg timestamp="20261006 14:33:19.534" level="TRACE">Arguments: [ "'/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' == ''" | 'Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.' ]</msg>
+<msg timestamp="20261006 14:33:19.534" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.534" endtime="20261006 14:33:19.534"/>
+</kw>
+<kw name="Skip If" library="BuiltIn">
+<arg>'${WAKE_RESD}' == ''</arg>
+<arg>Set RIOSE_LIS2DW12_WAKE_RESD to the deterministic wake-step RESD fixture.</arg>
+<doc>Skips the rest of the current test if the ``condition`` is True.</doc>
+<msg timestamp="20261006 14:33:19.534" level="TRACE">Arguments: [ "'/tmp/riose-mini-mvp-clean-wake-step.resd' == ''" | 'Set RIOSE_LIS2DW12_WAKE_RESD to the deterministic wake-step RESD fixture.' ]</msg>
+<msg timestamp="20261006 14:33:19.534" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.534" endtime="20261006 14:33:19.534"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu DefaultAccelerationZ 1</arg>
+<msg timestamp="20261006 14:33:19.534" level="TRACE">Arguments: [ 'sysbus.i2c1.imu DefaultAccelerationZ 1' ]</msg>
+<msg timestamp="20261006 14:33:19.536" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.534" endtime="20261006 14:33:19.536"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu AccelerationZ 1</arg>
+<msg timestamp="20261006 14:33:19.536" level="TRACE">Arguments: [ 'sysbus.i2c1.imu AccelerationZ 1' ]</msg>
+<msg timestamp="20261006 14:33:19.538" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.536" endtime="20261006 14:33:19.538"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus LoadELF @${ELF}</arg>
+<msg timestamp="20261006 14:33:19.538" level="TRACE">Arguments: [ 'sysbus LoadELF @/tmp/riose-mini-mvp-clean-tmp/riose-mvp3-renode-build/zephyr/zephyr.elf' ]</msg>
+<msg timestamp="20261006 14:33:19.556" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.538" endtime="20261006 14:33:19.556"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>emulation RunFor "0.25"</arg>
+<msg timestamp="20261006 14:33:19.556" level="TRACE">Arguments: [ 'emulation RunFor "0.25"' ]</msg>
+<msg timestamp="20261006 14:33:19.811" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.556" endtime="20261006 14:33:19.811"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${initial_tx}</var>
+<arg>sysbus.spi1.radio TxCount</arg>
+<msg timestamp="20261006 14:33:19.811" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxCount' ]</msg>
+<msg timestamp="20261006 14:33:19.813" level="TRACE">Return: '0x00000001\n\n'</msg>
+<msg timestamp="20261006 14:33:19.813" level="INFO">${initial_tx} = 0x00000001
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.811" endtime="20261006 14:33:19.813"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${initial_tx}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.813" level="TRACE">Arguments: [ '0x00000001\n\n' | '1' ]</msg>
+<msg timestamp="20261006 14:33:19.813" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.813" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.813" endtime="20261006 14:33:19.813"/>
+</kw>
+<kw name="Firmware State Should Be">
+<arg>2</arg>
+<msg timestamp="20261006 14:33:19.813" level="TRACE">Arguments: [ ${expected}='2' ]</msg>
+<kw name="Execute Command" library="Renode">
+<var>${odr}</var>
+<arg>sysbus ReadDoubleWord 0x50000014</arg>
+<msg timestamp="20261006 14:33:19.814" level="TRACE">Arguments: [ 'sysbus ReadDoubleWord 0x50000014' ]</msg>
+<msg timestamp="20261006 14:33:19.820" level="TRACE">Return: '0x00001802\n\n'</msg>
+<msg timestamp="20261006 14:33:19.821" level="INFO">${odr} = 0x00001802
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.814" endtime="20261006 14:33:19.821"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${raw}</var>
+<arg>int($odr.strip(), 0)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.821" level="TRACE">Arguments: [ 'int($odr.strip(), 0)' ]</msg>
+<msg timestamp="20261006 14:33:19.821" level="TRACE">Return: 6146</msg>
+<msg timestamp="20261006 14:33:19.821" level="INFO">${raw} = 6146</msg>
+<status status="PASS" starttime="20261006 14:33:19.821" endtime="20261006 14:33:19.821"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${state}</var>
+<arg>($raw &amp; 0x03) | (($raw &amp; 0x08) &gt;&gt; 1)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:19.821" level="TRACE">Arguments: [ '($raw &amp; 0x03) | (($raw &amp; 0x08) &gt;&gt; 1)' ]</msg>
+<msg timestamp="20261006 14:33:19.821" level="TRACE">Return: 2</msg>
+<msg timestamp="20261006 14:33:19.821" level="INFO">${state} = 2</msg>
+<status status="PASS" starttime="20261006 14:33:19.821" endtime="20261006 14:33:19.821"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${state}</arg>
+<arg>${expected}</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.821" level="TRACE">Arguments: [ 2 | '2' ]</msg>
+<msg timestamp="20261006 14:33:19.822" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.822" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.821" endtime="20261006 14:33:19.822"/>
+</kw>
+<msg timestamp="20261006 14:33:19.822" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.813" endtime="20261006 14:33:19.822"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${ctrl1}</var>
+<arg>sysbus.i2c1.imu Control1Configuration</arg>
+<msg timestamp="20261006 14:33:19.822" level="TRACE">Arguments: [ 'sysbus.i2c1.imu Control1Configuration' ]</msg>
+<msg timestamp="20261006 14:33:19.824" level="TRACE">Return: '0x14\n\n'</msg>
+<msg timestamp="20261006 14:33:19.824" level="INFO">${ctrl1} = 0x14
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.822" endtime="20261006 14:33:19.824"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${ctrl1}</arg>
+<arg>0x14</arg>
+<arg>base=16</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.824" level="TRACE">Arguments: [ '0x14\n\n' | '0x14' | base='16' ]</msg>
+<msg timestamp="20261006 14:33:19.825" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.825" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.824" endtime="20261006 14:33:19.825"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${sample_rate}</var>
+<arg>sysbus.i2c1.imu SampleRate</arg>
+<msg timestamp="20261006 14:33:19.825" level="TRACE">Arguments: [ 'sysbus.i2c1.imu SampleRate' ]</msg>
+<msg timestamp="20261006 14:33:19.826" level="TRACE">Return: '0x0000000D\n\n'</msg>
+<msg timestamp="20261006 14:33:19.826" level="INFO">${sample_rate} = 0x0000000D
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:19.825" endtime="20261006 14:33:19.826"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${sample_rate}</arg>
+<arg>13</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:19.826" level="TRACE">Arguments: [ '0x0000000D\n\n' | '13' ]</msg>
+<msg timestamp="20261006 14:33:19.827" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:19.827" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:19.826" endtime="20261006 14:33:19.827"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WAKE_RESD} sampleOffsetTime=-250000000</arg>
+<msg timestamp="20261006 14:33:19.827" level="TRACE">Arguments: [ 'sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @/tmp/riose-mini-mvp-clean-wake-step.resd sampleOffsetTime=-250000000' ]</msg>
+<msg timestamp="20261006 14:33:19.833" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.827" endtime="20261006 14:33:19.833"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<arg>emulation RunFor "0.50"</arg>
+<msg timestamp="20261006 14:33:19.834" level="TRACE">Arguments: [ 'emulation RunFor "0.50"' ]</msg>
+<msg timestamp="20261006 14:33:20.336" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:19.834" endtime="20261006 14:33:20.336"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${tx_count}</var>
+<arg>sysbus.spi1.radio TxCount</arg>
+<msg timestamp="20261006 14:33:20.336" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxCount' ]</msg>
+<msg timestamp="20261006 14:33:20.338" level="TRACE">Return: '0x00000002\n\n'</msg>
+<msg timestamp="20261006 14:33:20.338" level="INFO">${tx_count} = 0x00000002
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.336" endtime="20261006 14:33:20.338"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${tx_count}</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.339" level="TRACE">Arguments: [ '0x00000002\n\n' | '2' ]</msg>
+<msg timestamp="20261006 14:33:20.339" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.339" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.339" endtime="20261006 14:33:20.339"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${tx_done}</var>
+<arg>sysbus.spi1.radio TxDoneCount</arg>
+<msg timestamp="20261006 14:33:20.339" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxDoneCount' ]</msg>
+<msg timestamp="20261006 14:33:20.341" level="TRACE">Return: '0x00000002\n\n'</msg>
+<msg timestamp="20261006 14:33:20.341" level="INFO">${tx_done} = 0x00000002
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.339" endtime="20261006 14:33:20.341"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${tx_done}</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.341" level="TRACE">Arguments: [ '0x00000002\n\n' | '2' ]</msg>
+<msg timestamp="20261006 14:33:20.341" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.341" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.341" endtime="20261006 14:33:20.341"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${sample_reads}</var>
+<arg>sysbus.i2c1.imu OutputSampleReadCount</arg>
+<msg timestamp="20261006 14:33:20.341" level="TRACE">Arguments: [ 'sysbus.i2c1.imu OutputSampleReadCount' ]</msg>
+<msg timestamp="20261006 14:33:20.343" level="TRACE">Return: '0x00000003\n\n'</msg>
+<msg timestamp="20261006 14:33:20.343" level="INFO">${sample_reads} = 0x00000003
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.341" endtime="20261006 14:33:20.343"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${sample_reads}</arg>
+<arg>3</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.343" level="TRACE">Arguments: [ '0x00000003\n\n' | '3' ]</msg>
+<msg timestamp="20261006 14:33:20.343" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.343" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.343" endtime="20261006 14:33:20.343"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${wu_source_reads}</var>
+<arg>sysbus.i2c1.imu WakeupSourceReadCount</arg>
+<msg timestamp="20261006 14:33:20.344" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupSourceReadCount' ]</msg>
+<msg timestamp="20261006 14:33:20.346" level="TRACE">Return: '0x00000004\n\n'</msg>
+<msg timestamp="20261006 14:33:20.346" level="INFO">${wu_source_reads} = 0x00000004
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.344" endtime="20261006 14:33:20.346"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>int($wu_source_reads.strip(), 0) &gt; 0</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.346" level="TRACE">Arguments: [ 'int($wu_source_reads.strip(), 0) &gt; 0' ]</msg>
+<msg timestamp="20261006 14:33:20.346" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.346" endtime="20261006 14:33:20.346"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${wu_events}</var>
+<arg>sysbus.i2c1.imu WakeupGeneratedEventCount</arg>
+<msg timestamp="20261006 14:33:20.346" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupGeneratedEventCount' ]</msg>
+<msg timestamp="20261006 14:33:20.348" level="TRACE">Return: '0x00000001\n\n'</msg>
+<msg timestamp="20261006 14:33:20.349" level="INFO">${wu_events} = 0x00000001
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.346" endtime="20261006 14:33:20.349"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${wu_events}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.349" level="TRACE">Arguments: [ '0x00000001\n\n' | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.349" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.349" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.349" endtime="20261006 14:33:20.349"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${wu_event_reads}</var>
+<arg>sysbus.i2c1.imu WakeupEventReadCount</arg>
+<msg timestamp="20261006 14:33:20.349" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupEventReadCount' ]</msg>
+<msg timestamp="20261006 14:33:20.351" level="TRACE">Return: '0x00000001\n\n'</msg>
+<msg timestamp="20261006 14:33:20.351" level="INFO">${wu_event_reads} = 0x00000001
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.349" endtime="20261006 14:33:20.351"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${wu_event_reads}</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.351" level="TRACE">Arguments: [ '0x00000001\n\n' | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.351" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.351" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.351" endtime="20261006 14:33:20.351"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${wu_source}</var>
+<arg>sysbus.i2c1.imu LastWakeupSourceValue</arg>
+<msg timestamp="20261006 14:33:20.351" level="TRACE">Arguments: [ 'sysbus.i2c1.imu LastWakeupSourceValue' ]</msg>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Return: '0x0F\n\n'</msg>
+<msg timestamp="20261006 14:33:20.354" level="INFO">${wu_source} = 0x0F
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.351" endtime="20261006 14:33:20.354"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${wu_source}</var>
+<arg>int($wu_source.strip(), 0)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Arguments: [ 'int($wu_source.strip(), 0)' ]</msg>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Return: 15</msg>
+<msg timestamp="20261006 14:33:20.354" level="INFO">${wu_source} = 15</msg>
+<status status="PASS" starttime="20261006 14:33:20.354" endtime="20261006 14:33:20.354"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>($wu_source &amp; 0x08) != 0</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Arguments: [ '($wu_source &amp; 0x08) != 0' ]</msg>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.354" endtime="20261006 14:33:20.354"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>($wu_source &amp; 0x07) != 0</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Arguments: [ '($wu_source &amp; 0x07) != 0' ]</msg>
+<msg timestamp="20261006 14:33:20.354" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.354" endtime="20261006 14:33:20.355"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${wu_irq}</var>
+<arg>sysbus.i2c1.imu WakeupIRQAsserted</arg>
+<msg timestamp="20261006 14:33:20.355" level="TRACE">Arguments: [ 'sysbus.i2c1.imu WakeupIRQAsserted' ]</msg>
+<msg timestamp="20261006 14:33:20.356" level="TRACE">Return: 'False\n\n'</msg>
+<msg timestamp="20261006 14:33:20.356" level="INFO">${wu_irq} = False
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.355" endtime="20261006 14:33:20.356"/>
+</kw>
+<kw name="Strip String" library="String">
+<var>${wu_irq}</var>
+<arg>${wu_irq}</arg>
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<msg timestamp="20261006 14:33:20.356" level="TRACE">Arguments: [ 'False\n\n' ]</msg>
+<msg timestamp="20261006 14:33:20.356" level="TRACE">Return: 'False'</msg>
+<msg timestamp="20261006 14:33:20.356" level="INFO">${wu_irq} = False</msg>
+<status status="PASS" starttime="20261006 14:33:20.356" endtime="20261006 14:33:20.356"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${wu_irq}</arg>
+<arg>False</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.357" level="TRACE">Arguments: [ 'False' | 'False' ]</msg>
+<msg timestamp="20261006 14:33:20.357" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.357" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.357" endtime="20261006 14:33:20.357"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${payload_length}</var>
+<arg>sysbus.spi1.radio LastTxPayloadLength</arg>
+<msg timestamp="20261006 14:33:20.357" level="TRACE">Arguments: [ 'sysbus.spi1.radio LastTxPayloadLength' ]</msg>
+<msg timestamp="20261006 14:33:20.358" level="TRACE">Return: '0x00000018\n\n'</msg>
+<msg timestamp="20261006 14:33:20.358" level="INFO">${payload_length} = 0x00000018
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.357" endtime="20261006 14:33:20.358"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${payload_length}</arg>
+<arg>24</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.359" level="TRACE">Arguments: [ '0x00000018\n\n' | '24' ]</msg>
+<msg timestamp="20261006 14:33:20.359" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.359" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.359" endtime="20261006 14:33:20.359"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${payload_hex}</var>
+<arg>sysbus.spi1.radio LastTxPayloadHex</arg>
+<msg timestamp="20261006 14:33:20.359" level="TRACE">Arguments: [ 'sysbus.spi1.radio LastTxPayloadHex' ]</msg>
+<msg timestamp="20261006 14:33:20.360" level="TRACE">Return: '01030100000001000000930100003f0219030000b80b6124\n\n'</msg>
+<msg timestamp="20261006 14:33:20.360" level="INFO">${payload_hex} = 01030100000001000000930100003f0219030000b80b6124
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.359" endtime="20261006 14:33:20.360"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${packet}</var>
+<arg>bytes.fromhex($payload_hex.strip())</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.360" level="TRACE">Arguments: [ 'bytes.fromhex($payload_hex.strip())' ]</msg>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Return: b'\x01\x03\x01\x00\x00\x00\x01\x00\x00\x00\x93\x01\x00\x00?\x02\x19\x03\x00\x00\xb8\x0ba$'</msg>
+<msg timestamp="20261006 14:33:20.361" level="INFO">${packet} = \x93?\xb8a$</msg>
+<status status="PASS" starttime="20261006 14:33:20.360" endtime="20261006 14:33:20.361"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${behavior}</var>
+<arg>$packet[1]</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Arguments: [ '$packet[1]' ]</msg>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Return: 3</msg>
+<msg timestamp="20261006 14:33:20.361" level="INFO">${behavior} = 3</msg>
+<status status="PASS" starttime="20261006 14:33:20.361" endtime="20261006 14:33:20.361"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${x_mg}</var>
+<arg>int.from_bytes($packet[14:16], 'little', signed=True)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Arguments: [ "int.from_bytes($packet[14:16], 'little', signed=True)" ]</msg>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Return: 575</msg>
+<msg timestamp="20261006 14:33:20.361" level="INFO">${x_mg} = 575</msg>
+<status status="PASS" starttime="20261006 14:33:20.361" endtime="20261006 14:33:20.361"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${y_mg}</var>
+<arg>int.from_bytes($packet[16:18], 'little', signed=True)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.361" level="TRACE">Arguments: [ "int.from_bytes($packet[16:18], 'little', signed=True)" ]</msg>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Return: 793</msg>
+<msg timestamp="20261006 14:33:20.362" level="INFO">${y_mg} = 793</msg>
+<status status="PASS" starttime="20261006 14:33:20.361" endtime="20261006 14:33:20.362"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${z_mg}</var>
+<arg>int.from_bytes($packet[18:20], 'little', signed=True)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Arguments: [ "int.from_bytes($packet[18:20], 'little', signed=True)" ]</msg>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Return: 0</msg>
+<msg timestamp="20261006 14:33:20.362" level="INFO">${z_mg} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:20.362" endtime="20261006 14:33:20.362"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${crc_valid}</var>
+<arg>binascii.crc_hqx($packet[:22], 0xFFFF) == int.from_bytes($packet[22:24], 'little')</arg>
+<arg>modules=binascii</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Arguments: [ "binascii.crc_hqx($packet[:22], 0xFFFF) == int.from_bytes($packet[22:24], 'little')" | modules='binascii' ]</msg>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Return: True</msg>
+<msg timestamp="20261006 14:33:20.362" level="INFO">${crc_valid} = True</msg>
+<status status="PASS" starttime="20261006 14:33:20.362" endtime="20261006 14:33:20.362"/>
+</kw>
+<kw name="Firmware State Should Be">
+<arg>2</arg>
+<msg timestamp="20261006 14:33:20.362" level="TRACE">Arguments: [ ${expected}='2' ]</msg>
+<kw name="Execute Command" library="Renode">
+<var>${odr}</var>
+<arg>sysbus ReadDoubleWord 0x50000014</arg>
+<msg timestamp="20261006 14:33:20.363" level="TRACE">Arguments: [ 'sysbus ReadDoubleWord 0x50000014' ]</msg>
+<msg timestamp="20261006 14:33:20.364" level="TRACE">Return: '0x00001802\n\n'</msg>
+<msg timestamp="20261006 14:33:20.364" level="INFO">${odr} = 0x00001802
+
+</msg>
+<status status="PASS" starttime="20261006 14:33:20.363" endtime="20261006 14:33:20.364"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${raw}</var>
+<arg>int($odr.strip(), 0)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.364" level="TRACE">Arguments: [ 'int($odr.strip(), 0)' ]</msg>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Return: 6146</msg>
+<msg timestamp="20261006 14:33:20.365" level="INFO">${raw} = 6146</msg>
+<status status="PASS" starttime="20261006 14:33:20.364" endtime="20261006 14:33:20.365"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${state}</var>
+<arg>($raw &amp; 0x03) | (($raw &amp; 0x08) &gt;&gt; 1)</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Arguments: [ '($raw &amp; 0x03) | (($raw &amp; 0x08) &gt;&gt; 1)' ]</msg>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Return: 2</msg>
+<msg timestamp="20261006 14:33:20.365" level="INFO">${state} = 2</msg>
+<status status="PASS" starttime="20261006 14:33:20.365" endtime="20261006 14:33:20.365"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${state}</arg>
+<arg>${expected}</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Arguments: [ 2 | '2' ]</msg>
+<msg timestamp="20261006 14:33:20.365" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.365" endtime="20261006 14:33:20.365"/>
+</kw>
+<msg timestamp="20261006 14:33:20.365" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.362" endtime="20261006 14:33:20.365"/>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<arg>movement WU evidence: tx=${tx_count.strip()} completed=${tx_done.strip()} wake_events=${wu_events.strip()} source_reads=${wu_event_reads.strip()} samples_read=${sample_reads.strip()} behavior=${behavior} imu_mg=(${x_mg},${y_mg},${z_mg}) WU_SRC=${wu_source} WU_IRQ=${wu_irq.strip()} CRC=${crc_valid} final_state=SLEEP</arg>
+<doc>Logs the given message to the console.</doc>
+<msg timestamp="20261006 14:33:20.369" level="TRACE">Arguments: [ 'movement WU evidence: tx=0x00000002 completed=0x00000002 wake_events=0x00000001 source_reads=0x00000001 samples_read=0x00000003 behavior=3 imu_mg=(575,793,0) WU_SRC=15 WU_IRQ=False CRC=True final_state=SLEEP' ]</msg>
+<msg timestamp="20261006 14:33:20.369" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.365" endtime="20261006 14:33:20.370"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${behavior}</arg>
+<arg>3</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.370" level="TRACE">Arguments: [ 3 | '3' ]</msg>
+<msg timestamp="20261006 14:33:20.370" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.370" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.370" endtime="20261006 14:33:20.370"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${x_mg}</arg>
+<arg>575</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.370" level="TRACE">Arguments: [ 575 | '575' ]</msg>
+<msg timestamp="20261006 14:33:20.370" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.370" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.370" endtime="20261006 14:33:20.370"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${y_mg}</arg>
+<arg>793</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.371" level="TRACE">Arguments: [ 793 | '793' ]</msg>
+<msg timestamp="20261006 14:33:20.371" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.371" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.370" endtime="20261006 14:33:20.371"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${z_mg}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.371" level="TRACE">Arguments: [ 0 | '0' ]</msg>
+<msg timestamp="20261006 14:33:20.371" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.371" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.371" endtime="20261006 14:33:20.371"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${crc_valid}</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.371" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:20.372" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.371" endtime="20261006 14:33:20.372"/>
+</kw>
+<kw name="Execute Command" library="Renode">
+<var>${trace_json}</var>
+<arg>sysbus.spi1.radio TxTraceJson</arg>
+<msg timestamp="20261006 14:33:20.372" level="TRACE">Arguments: [ 'sysbus.spi1.radio TxTraceJson' ]</msg>
+<msg timestamp="20261006 14:33:20.375" level="TRACE">Return: '{"schema_version":"riose.renode.sx1262_tx_trace/v1","clock":"Machine.ElapsedVirtualTime.TimeElapsed","time_unit":"ns","provenance":"SIMULATED","records":[{"tx_index":1,"tx_start_ns":8163100,"tx_done_ns":38163100,"payload_length":24,"payload_hex":"010001000000000000000700000000000000e703b80bcc65","payload_captured":true,"rf_frequency_word":959447040,"tx_power_dbm":14,"status":"completed"},{"tx_index":2,"tx_start_ns":404076340,"tx_done_ns":434076340,"payload_length":24,"payload_hex":"01030100000001000000930100003f0219030000b80b6124","payload_captured":true,"rf_frequency_word":959447040,"tx_power_dbm":14,"status":"completed"}]}\n\n'</msg>
+<msg timestamp="20261006 14:33:20.375" level="INFO">${trace_json} = {"schema_version":"riose.renode.sx1262_tx_trace/v1","clock":"Machine.ElapsedVirtualTime.TimeElapsed","time_unit":"ns","provenance":"SIMULATED","records":[{"tx_index":1,"tx_start_ns":8163100,"tx_done_n...</msg>
+<status status="PASS" starttime="20261006 14:33:20.372" endtime="20261006 14:33:20.375"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${trace}</var>
+<arg>json.loads($trace_json)</arg>
+<arg>modules=json</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.375" level="TRACE">Arguments: [ 'json.loads($trace_json)' | modules='json' ]</msg>
+<msg timestamp="20261006 14:33:20.376" level="TRACE">Return: {'clock': 'Machine.ElapsedVirtualTime.TimeElapsed',
+ 'provenance': 'SIMULATED',
+ 'records': [{'payload_captured': True,
+              'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+              'payload_length': 24,
+              'rf_frequency_word': 959447040,
+              'status': 'completed',
+              'tx_done_ns': 38163100,
+              'tx_index': 1,
+              'tx_power_dbm': 14,
+              'tx_start_ns': 8163100},
+             {'payload_captured': True,
+              'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+              'payload_length': 24,
+              'rf_frequency_word': 959447040,
+              'status': 'completed',
+              'tx_done_ns': 434076340,
+              'tx_index': 2,
+              'tx_power_dbm': 14,
+              'tx_start_ns': 404076340}],
+ 'schema_version': 'riose.renode.sx1262_tx_trace/v1',
+ 'time_unit': 'ns'}</msg>
+<msg timestamp="20261006 14:33:20.376" level="INFO">${trace} = {'schema_version': 'riose.renode.sx1262_tx_trace/v1', 'clock': 'Machine.ElapsedVirtualTime.TimeElapsed', 'time_unit': 'ns', 'provenance': 'SIMULATED', 'records': [{'tx_index': 1, 'tx_start_ns': 816310...</msg>
+<status status="PASS" starttime="20261006 14:33:20.375" endtime="20261006 14:33:20.376"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${trace}[schema_version]</arg>
+<arg>riose.renode.sx1262_tx_trace/v1</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.376" level="TRACE">Arguments: [ 'riose.renode.sx1262_tx_trace/v1' | 'riose.renode.sx1262_tx_trace/v1' ]</msg>
+<msg timestamp="20261006 14:33:20.376" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.376" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.376" endtime="20261006 14:33:20.376"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${trace}[clock]</arg>
+<arg>Machine.ElapsedVirtualTime.TimeElapsed</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.376" level="TRACE">Arguments: [ 'Machine.ElapsedVirtualTime.TimeElapsed' | 'Machine.ElapsedVirtualTime.TimeElapsed' ]</msg>
+<msg timestamp="20261006 14:33:20.376" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.377" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.376" endtime="20261006 14:33:20.377"/>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${trace}[time_unit]</arg>
+<arg>ns</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.377" level="TRACE">Arguments: [ 'ns' | 'ns' ]</msg>
+<msg timestamp="20261006 14:33:20.377" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.377" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.377" endtime="20261006 14:33:20.377"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${records}</var>
+<arg>${trace}[records]</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:20.377" level="TRACE">Arguments: [ [{'payload_captured': True,
+  'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 38163100,
+  'tx_index': 1,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 8163100},
+ {'payload_captured': True,
+  'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 434076340,
+  'tx_index': 2,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 404076340}] ]</msg>
+<msg timestamp="20261006 14:33:20.377" level="TRACE">Return: [{'payload_captured': True,
+  'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 38163100,
+  'tx_index': 1,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 8163100},
+ {'payload_captured': True,
+  'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 434076340,
+  'tx_index': 2,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 404076340}]</msg>
+<msg timestamp="20261006 14:33:20.377" level="INFO">${records} = [{'tx_index': 1, 'tx_start_ns': 8163100, 'tx_done_ns': 38163100, 'payload_length': 24, 'payload_hex': '010001000000000000000700000000000000e703b80bcc65', 'payload_captured': True, 'rf_frequency_word':...</msg>
+<status status="PASS" starttime="20261006 14:33:20.377" endtime="20261006 14:33:20.377"/>
+</kw>
+<kw name="Get Length" library="BuiltIn">
+<var>${record_count}</var>
+<arg>${records}</arg>
+<doc>Returns and logs the length of the given item as an integer.</doc>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Arguments: [ [{'payload_captured': True,
+  'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 38163100,
+  'tx_index': 1,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 8163100},
+ {'payload_captured': True,
+  'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+  'payload_length': 24,
+  'rf_frequency_word': 959447040,
+  'status': 'completed',
+  'tx_done_ns': 434076340,
+  'tx_index': 2,
+  'tx_power_dbm': 14,
+  'tx_start_ns': 404076340}] ]</msg>
+<msg timestamp="20261006 14:33:20.378" level="INFO">Length is 2</msg>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Return: 2</msg>
+<msg timestamp="20261006 14:33:20.378" level="INFO">${record_count} = 2</msg>
+<status status="PASS" starttime="20261006 14:33:20.378" endtime="20261006 14:33:20.378"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record_count}</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Arguments: [ 2 | '2' ]</msg>
+<msg timestamp="20261006 14:33:20.378" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.378" endtime="20261006 14:33:20.378"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${first_record}</var>
+<arg>${records}[0]</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Arguments: [ {'payload_captured': True,
+ 'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+ 'payload_length': 24,
+ 'rf_frequency_word': 959447040,
+ 'status': 'completed',
+ 'tx_done_ns': 38163100,
+ 'tx_index': 1,
+ 'tx_power_dbm': 14,
+ 'tx_start_ns': 8163100} ]</msg>
+<msg timestamp="20261006 14:33:20.378" level="TRACE">Return: {'payload_captured': True,
+ 'payload_hex': '010001000000000000000700000000000000e703b80bcc65',
+ 'payload_length': 24,
+ 'rf_frequency_word': 959447040,
+ 'status': 'completed',
+ 'tx_done_ns': 38163100,
+ 'tx_index': 1,
+ 'tx_power_dbm': 14,
+ 'tx_start_ns': 8163100}</msg>
+<msg timestamp="20261006 14:33:20.378" level="INFO">${first_record} = {'tx_index': 1, 'tx_start_ns': 8163100, 'tx_done_ns': 38163100, 'payload_length': 24, 'payload_hex': '010001000000000000000700000000000000e703b80bcc65', 'payload_captured': True, 'rf_frequency_word': ...</msg>
+<status status="PASS" starttime="20261006 14:33:20.378" endtime="20261006 14:33:20.378"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${second_record}</var>
+<arg>${records}[1]</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Arguments: [ {'payload_captured': True,
+ 'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+ 'payload_length': 24,
+ 'rf_frequency_word': 959447040,
+ 'status': 'completed',
+ 'tx_done_ns': 434076340,
+ 'tx_index': 2,
+ 'tx_power_dbm': 14,
+ 'tx_start_ns': 404076340} ]</msg>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Return: {'payload_captured': True,
+ 'payload_hex': '01030100000001000000930100003f0219030000b80b6124',
+ 'payload_length': 24,
+ 'rf_frequency_word': 959447040,
+ 'status': 'completed',
+ 'tx_done_ns': 434076340,
+ 'tx_index': 2,
+ 'tx_power_dbm': 14,
+ 'tx_start_ns': 404076340}</msg>
+<msg timestamp="20261006 14:33:20.379" level="INFO">${second_record} = {'tx_index': 2, 'tx_start_ns': 404076340, 'tx_done_ns': 434076340, 'payload_length': 24, 'payload_hex': '01030100000001000000930100003f0219030000b80b6124', 'payload_captured': True, 'rf_frequency_word...</msg>
+<status status="PASS" starttime="20261006 14:33:20.379" endtime="20261006 14:33:20.379"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${first_record}[tx_index]</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.379" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.379" endtime="20261006 14:33:20.379"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${second_record}[tx_index]</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Arguments: [ 2 | '2' ]</msg>
+<msg timestamp="20261006 14:33:20.379" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.379" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.379" endtime="20261006 14:33:20.379"/>
+</kw>
+<for flavor="IN">
+<var>${record}</var>
+<value>@{records}</value>
+<iter>
+<var name="${record}">{'tx_index': 1, 'tx_start_ns': 8163100, 'tx_done_ns': 38163100, 'payload_length': 24, 'payload_hex': '010001000000000000000700000000000000e703b80bcc65', 'payload_captured': True, 'rf_frequency_word': ...</var>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${record}[status]</arg>
+<arg>completed</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Arguments: [ 'completed' | 'completed' ]</msg>
+<msg timestamp="20261006 14:33:20.380" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.380" endtime="20261006 14:33:20.380"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${record}[payload_captured]</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.380" endtime="20261006 14:33:20.380"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[payload_length]</arg>
+<arg>24</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Arguments: [ 24 | '24' ]</msg>
+<msg timestamp="20261006 14:33:20.380" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.380" endtime="20261006 14:33:20.380"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[rf_frequency_word]</arg>
+<arg>959447040</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Arguments: [ 959447040 | '959447040' ]</msg>
+<msg timestamp="20261006 14:33:20.380" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.380" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.380" endtime="20261006 14:33:20.381"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[tx_power_dbm]</arg>
+<arg>14</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Arguments: [ 14 | '14' ]</msg>
+<msg timestamp="20261006 14:33:20.381" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.381" endtime="20261006 14:33:20.381"/>
+</kw>
+<kw name="Should Not Be Equal" library="BuiltIn">
+<arg>${record}[tx_done_ns]</arg>
+<arg>${None}</arg>
+<doc>Fails if the given objects are equal.</doc>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Arguments: [ 38163100 | None ]</msg>
+<msg timestamp="20261006 14:33:20.381" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'NoneType'&gt;</msg>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.381" endtime="20261006 14:33:20.381"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>int($record["tx_done_ns"]) &gt;= int($record["tx_start_ns"])</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Arguments: [ 'int($record["tx_done_ns"]) &gt;= int($record["tx_start_ns"])' ]</msg>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.381" endtime="20261006 14:33:20.381"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${record_payload}</var>
+<arg>bytes.fromhex($record["payload_hex"])</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.381" level="TRACE">Arguments: [ 'bytes.fromhex($record["payload_hex"])' ]</msg>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Return: b'\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\xe7\x03\xb8\x0b\xcce'</msg>
+<msg timestamp="20261006 14:33:20.382" level="INFO">${record_payload} = \xe7\xb8\xcce</msg>
+<status status="PASS" starttime="20261006 14:33:20.381" endtime="20261006 14:33:20.382"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${record_crc}</var>
+<arg>binascii.crc_hqx($record_payload[:22], 0xFFFF) == int.from_bytes($record_payload[22:24], 'little')</arg>
+<arg>modules=binascii</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Arguments: [ "binascii.crc_hqx($record_payload[:22], 0xFFFF) == int.from_bytes($record_payload[22:24], 'little')" | modules='binascii' ]</msg>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Return: True</msg>
+<msg timestamp="20261006 14:33:20.382" level="INFO">${record_crc} = True</msg>
+<status status="PASS" starttime="20261006 14:33:20.382" endtime="20261006 14:33:20.382"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${record_crc}</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.382" endtime="20261006 14:33:20.382"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record_payload}[0]</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.382" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.382" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.382" endtime="20261006 14:33:20.383"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record_payload}[2]</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.383" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.383" endtime="20261006 14:33:20.383"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:20.379" endtime="20261006 14:33:20.383"/>
+</iter>
+<iter>
+<var name="${record}">{'tx_index': 2, 'tx_start_ns': 404076340, 'tx_done_ns': 434076340, 'payload_length': 24, 'payload_hex': '01030100000001000000930100003f0219030000b80b6124', 'payload_captured': True, 'rf_frequency_word...</var>
+<kw name="Should Be Equal" library="BuiltIn">
+<arg>${record}[status]</arg>
+<arg>completed</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Arguments: [ 'completed' | 'completed' ]</msg>
+<msg timestamp="20261006 14:33:20.383" level="DEBUG">Argument types are:
+&lt;class 'str'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.383" endtime="20261006 14:33:20.383"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${record}[payload_captured]</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.383" endtime="20261006 14:33:20.383"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[payload_length]</arg>
+<arg>24</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.383" level="TRACE">Arguments: [ 24 | '24' ]</msg>
+<msg timestamp="20261006 14:33:20.384" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.383" endtime="20261006 14:33:20.384"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[rf_frequency_word]</arg>
+<arg>959447040</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Arguments: [ 959447040 | '959447040' ]</msg>
+<msg timestamp="20261006 14:33:20.384" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.384" endtime="20261006 14:33:20.384"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record}[tx_power_dbm]</arg>
+<arg>14</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Arguments: [ 14 | '14' ]</msg>
+<msg timestamp="20261006 14:33:20.384" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.384" endtime="20261006 14:33:20.384"/>
+</kw>
+<kw name="Should Not Be Equal" library="BuiltIn">
+<arg>${record}[tx_done_ns]</arg>
+<arg>${None}</arg>
+<doc>Fails if the given objects are equal.</doc>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Arguments: [ 434076340 | None ]</msg>
+<msg timestamp="20261006 14:33:20.384" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'NoneType'&gt;</msg>
+<msg timestamp="20261006 14:33:20.384" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.384" endtime="20261006 14:33:20.384"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>int($record["tx_done_ns"]) &gt;= int($record["tx_start_ns"])</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Arguments: [ 'int($record["tx_done_ns"]) &gt;= int($record["tx_start_ns"])' ]</msg>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.384" endtime="20261006 14:33:20.385"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${record_payload}</var>
+<arg>bytes.fromhex($record["payload_hex"])</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Arguments: [ 'bytes.fromhex($record["payload_hex"])' ]</msg>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Return: b'\x01\x03\x01\x00\x00\x00\x01\x00\x00\x00\x93\x01\x00\x00?\x02\x19\x03\x00\x00\xb8\x0ba$'</msg>
+<msg timestamp="20261006 14:33:20.385" level="INFO">${record_payload} = \x93?\xb8a$</msg>
+<status status="PASS" starttime="20261006 14:33:20.385" endtime="20261006 14:33:20.385"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<var>${record_crc}</var>
+<arg>binascii.crc_hqx($record_payload[:22], 0xFFFF) == int.from_bytes($record_payload[22:24], 'little')</arg>
+<arg>modules=binascii</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Arguments: [ "binascii.crc_hqx($record_payload[:22], 0xFFFF) == int.from_bytes($record_payload[22:24], 'little')" | modules='binascii' ]</msg>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Return: True</msg>
+<msg timestamp="20261006 14:33:20.385" level="INFO">${record_crc} = True</msg>
+<status status="PASS" starttime="20261006 14:33:20.385" endtime="20261006 14:33:20.385"/>
+</kw>
+<kw name="Should Be True" library="BuiltIn">
+<arg>${record_crc}</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.385" level="TRACE">Arguments: [ True ]</msg>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.385" endtime="20261006 14:33:20.386"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record_payload}[0]</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.386" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.386" endtime="20261006 14:33:20.386"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${record_payload}[2]</arg>
+<arg>1</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Arguments: [ 1 | '1' ]</msg>
+<msg timestamp="20261006 14:33:20.386" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.386" endtime="20261006 14:33:20.386"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:20.383" endtime="20261006 14:33:20.386"/>
+</iter>
+<status status="PASS" starttime="20261006 14:33:20.379" endtime="20261006 14:33:20.386"/>
+</for>
+<kw name="Should Be True" library="BuiltIn">
+<arg>int($first_record["tx_start_ns"]) &lt; int($second_record["tx_start_ns"])</arg>
+<doc>Fails if the given condition is not true.</doc>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Arguments: [ 'int($first_record["tx_start_ns"]) &lt; int($second_record["tx_start_ns"])' ]</msg>
+<msg timestamp="20261006 14:33:20.386" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.386" endtime="20261006 14:33:20.386"/>
+</kw>
+<if>
+<branch type="IF" condition="'${TX_TRACE_OUTPUT}' != ''">
+<kw name="Evaluate" library="BuiltIn">
+<arg>pathlib.Path($tx_trace_output).parent.mkdir(parents=True, exist_ok=True)</arg>
+<arg>modules=pathlib</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.387"/>
+</kw>
+<kw name="Evaluate" library="BuiltIn">
+<arg>pathlib.Path($tx_trace_output).write_text($trace_json, encoding='utf-8')</arg>
+<arg>modules=pathlib</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.387"/>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<arg>SX1262 TX trace exported to ${TX_TRACE_OUTPUT}</arg>
+<doc>Logs the given message to the console.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.387"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.386" endtime="20261006 14:33:20.387"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.386" endtime="20261006 14:33:20.387"/>
+</if>
+<kw name="Test Teardown" library="renode-keywords" type="TEARDOWN">
+<msg timestamp="20261006 14:33:20.387" level="TRACE">Arguments: [  ]</msg>
+<kw name="Stop Profiler" library="renode-keywords">
+<msg timestamp="20261006 14:33:20.387" level="TRACE">Arguments: [  ]</msg>
+<if>
+<branch type="IF" condition="${PROFILER_PROCESS}">
+<kw name="Terminate Process" library="Process">
+<arg>${PROFILER_PROCESS}</arg>
+<doc>Stops the process gracefully or forcefully.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.387"/>
+</kw>
+<kw name="Set Test Variable" library="BuiltIn">
+<arg>${PROFILER_PROCESS}</arg>
+<arg>None</arg>
+<doc>Makes a variable available everywhere within the scope of the current test.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.388"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.388"/>
+</if>
+<msg timestamp="20261006 14:33:20.388" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.388"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${failed}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:20.388" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:20.388" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:20.388" level="INFO">${failed} = None</msg>
+<status status="PASS" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</kw>
+<if>
+<branch type="IF" condition="${failed}">
+<kw name="Strip String" library="String">
+<var>${message}</var>
+<arg>${TEST_MESSAGE}</arg>
+<arg>mode=right</arg>
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</kw>
+<kw name="Set Test Message" library="BuiltIn">
+<arg>${message}</arg>
+<doc>Sets message for the current test case.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.388" endtime="20261006 14:33:20.388"/>
+</if>
+<kw name="Run Keyword If Timeout Occurred" library="BuiltIn">
+<var>${timed_out}</var>
+<arg>Set Variable</arg>
+<arg>True</arg>
+<doc>Runs the given keyword if either a test or a keyword timeout has occurred.</doc>
+<msg timestamp="20261006 14:33:20.389" level="TRACE">Arguments: [ 'Set Variable' | 'True' ]</msg>
+<msg timestamp="20261006 14:33:20.389" level="TRACE">Return: None</msg>
+<msg timestamp="20261006 14:33:20.389" level="INFO">${timed_out} = None</msg>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</kw>
+<if>
+<branch type="IF" condition="${timed_out}">
+<return>
+<status status="NOT RUN" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</return>
+<status status="NOT RUN" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</if>
+<if>
+<branch type="IF" condition="${CREATE_SNAPSHOT_ON_FAIL}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Create Snapshot Of Failed Test</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<msg timestamp="20261006 14:33:20.389" level="TRACE">Arguments: [ 'Create Snapshot Of Failed Test' ]</msg>
+<msg timestamp="20261006 14:33:20.389" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.389"/>
+</if>
+<kw name="Close Log File" library="Renode">
+<msg timestamp="20261006 14:33:20.389" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:20.389" endtime="20261006 14:33:20.391"/>
+</kw>
+<if>
+<branch type="IF" condition="&quot;${SAVE_LOGS_WHEN}&quot; == &quot;Always&quot; or ${failed}">
+<kw name="Print Log Saved Message" library="renode-keywords">
+<status status="NOT RUN" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.391"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.391"/>
+</branch>
+<branch type="ELSE">
+<kw name="Remove Log" library="renode-keywords">
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Arguments: [  ]</msg>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>'skipped' in @{TEST TAGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Arguments: [ "'skipped' in []" ]</msg>
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.391"/>
+</kw>
+<kw name="Return From Keyword If" library="BuiltIn">
+<arg>not ${SAVE_LOGS}</arg>
+<doc>Returns from the enclosing user keyword if ``condition`` is true.</doc>
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Arguments: [ 'not True' ]</msg>
+<msg timestamp="20261006 14:33:20.391" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.391"/>
+</kw>
+<kw name="Get Test Log Path" library="renode-keywords">
+<var>${log_path}</var>
+<msg timestamp="20261006 14:33:20.392" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Sanitized Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<msg timestamp="20261006 14:33:20.392" level="TRACE">Arguments: [  ]</msg>
+<kw name="Get Variable Value" library="BuiltIn">
+<var>${retry_index}</var>
+<arg>\${RETRYFAILED_RETRY_INDEX}</arg>
+<arg>0</arg>
+<doc>Returns variable value or ``default`` if the variable does not exist.</doc>
+<msg timestamp="20261006 14:33:20.392" level="TRACE">Arguments: [ '\\${RETRYFAILED_RETRY_INDEX}' | '0' ]</msg>
+<msg timestamp="20261006 14:33:20.392" level="TRACE">Return: '0'</msg>
+<msg timestamp="20261006 14:33:20.393" level="INFO">${retry_index} = 0</msg>
+<status status="PASS" starttime="20261006 14:33:20.392" endtime="20261006 14:33:20.393"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${test_name}</var>
+<arg>${SUITE NAME}.${TEST NAME}.fail${retry_index}</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits.fail0' ]</msg>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Return: 'gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits.fail0'</msg>
+<msg timestamp="20261006 14:33:20.393" level="INFO">${test_name} = gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:20.393" endtime="20261006 14:33:20.393"/>
+</kw>
+<kw name="Sanitize Test Name" library="renode-keywords">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Arguments: [ ${test_name}='gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits.fail0' ]</msg>
+<kw name="Replace String" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>${SPACE}</arg>
+<arg>_</arg>
+<doc>Replaces ``search_for`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits.fail0' | ' ' | '_' ]</msg>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Return: 'gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0'</msg>
+<msg timestamp="20261006 14:33:20.393" level="INFO">${test_name} = gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:20.393" endtime="20261006 14:33:20.393"/>
+</kw>
+<kw name="Replace String Using Regexp" library="String">
+<var>${test_name}</var>
+<arg>${test_name}</arg>
+<arg>[/""]</arg>
+<arg>-</arg>
+<doc>Replaces ``pattern`` in the given ``string`` with ``replace_with``.</doc>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Arguments: [ 'gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0' | '[/""]' | '-' ]</msg>
+<msg timestamp="20261006 14:33:20.393" level="TRACE">Return: 'gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0'</msg>
+<msg timestamp="20261006 14:33:20.394" level="INFO">${test_name} = gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:20.393" endtime="20261006 14:33:20.394"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:20.394" endtime="20261006 14:33:20.394"/>
+</return>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Return: 'gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0'</msg>
+<msg timestamp="20261006 14:33:20.394" level="INFO">${test_name} = gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:20.393" endtime="20261006 14:33:20.394"/>
+</kw>
+<return>
+<value>${test_name}</value>
+<status status="PASS" starttime="20261006 14:33:20.394" endtime="20261006 14:33:20.394"/>
+</return>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Return: 'gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0'</msg>
+<msg timestamp="20261006 14:33:20.394" level="INFO">${test_name} = gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0</msg>
+<status status="PASS" starttime="20261006 14:33:20.392" endtime="20261006 14:33:20.394"/>
+</kw>
+<kw name="Set Variable" library="BuiltIn">
+<var>${logs_dir}</var>
+<arg>${RESULTS_DIRECTORY}/logs</arg>
+<doc>Returns the given values which can then be assigned to a variables.</doc>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs'</msg>
+<msg timestamp="20261006 14:33:20.394" level="INFO">${logs_dir} = /tmp/riose-mini-mvp-clean-robot//logs</msg>
+<status status="PASS" starttime="20261006 14:33:20.394" endtime="20261006 14:33:20.394"/>
+</kw>
+<kw name="Create Directory" library="OperatingSystem">
+<arg>${logs_dir}</arg>
+<doc>Creates the specified directory.</doc>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs' ]</msg>
+<msg timestamp="20261006 14:33:20.394" level="INFO" html="true">Directory '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs"&gt;/tmp/riose-mini-mvp-clean-robot/logs&lt;/a&gt;' already exists.</msg>
+<msg timestamp="20261006 14:33:20.394" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.394" endtime="20261006 14:33:20.394"/>
+</kw>
+<return>
+<value>${logs_dir}/${test_name}.log</value>
+<status status="PASS" starttime="20261006 14:33:20.394" endtime="20261006 14:33:20.394"/>
+</return>
+<msg timestamp="20261006 14:33:20.395" level="TRACE">Return: '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0.log'</msg>
+<msg timestamp="20261006 14:33:20.395" level="INFO">${log_path} = /tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0.log</msg>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.395"/>
+</kw>
+<kw name="Remove File" library="OperatingSystem">
+<arg>${log_path}</arg>
+<doc>Removes a file with the given path.</doc>
+<msg timestamp="20261006 14:33:20.395" level="TRACE">Arguments: [ '/tmp/riose-mini-mvp-clean-robot//logs/gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0.log' ]</msg>
+<msg timestamp="20261006 14:33:20.395" level="INFO" html="true">File '&lt;a href="file:///tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0.log"&gt;/tmp/riose-mini-mvp-clean-robot/logs/gazebo-bridge.Firmware_Wakes_From_Simulated_Motion_Comparator_And_Transmits.fail0.log&lt;/a&gt;' does not exist.</msg>
+<msg timestamp="20261006 14:33:20.395" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.395"/>
+</kw>
+<msg timestamp="20261006 14:33:20.395" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.395"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.395"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.391" endtime="20261006 14:33:20.395"/>
+</if>
+<if>
+<branch type="IF" condition="${HOLD_ON_ERROR}">
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<var>${res}</var>
+<arg>Run Keyword And Ignore Error</arg>
+<arg>Import Library</arg>
+<arg>Dialogs</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.395"/>
+</kw>
+<kw name="Run Keyword If Test Failed" library="BuiltIn">
+<arg>Run Keywords</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' == 'FAIL'</arg>
+<arg>Log</arg>
+<arg>Couldn't load the Dialogs library - interactive debugging is not possible</arg>
+<arg>console=True</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Open GUI</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Pause Execution</arg>
+<arg>Test failed. Press OK once done debugging.</arg>
+<arg>AND</arg>
+<arg>Run Keyword If</arg>
+<arg>'${res[0]}' != 'FAIL'</arg>
+<arg>Close GUI</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.395"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.395"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.395"/>
+</if>
+<kw name="Reset Emulation" library="Renode">
+<msg timestamp="20261006 14:33:20.395" level="TRACE">Arguments: [  ]</msg>
+<msg timestamp="20261006 14:33:20.408" level="TRACE">Return: ''</msg>
+<status status="PASS" starttime="20261006 14:33:20.395" endtime="20261006 14:33:20.408"/>
+</kw>
+<msg timestamp="20261006 14:33:20.408" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.387" endtime="20261006 14:33:20.408"/>
+</kw>
+<status status="PASS" starttime="20261006 14:33:19.400" endtime="20261006 14:33:20.408"/>
+</test>
+<kw name="Teardown" library="renode-keywords" type="TEARDOWN">
+<msg timestamp="20261006 14:33:20.409" level="TRACE">Arguments: [  ]</msg>
+<if>
+<branch type="IF" condition="not ${SKIP_RUNNING_SERVER}">
+<kw name="Stop Remote Server" library="Renode">
+<status status="NOT RUN" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.409"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.409"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.409"/>
+</if>
+<if>
+<branch type="IF" condition="not ${SKIP_RUNNING_SERVER}">
+<kw name="Wait For Process" library="Process">
+<doc>Waits for the process to complete or to reach the given timeout.</doc>
+<status status="NOT RUN" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.409"/>
+</kw>
+<status status="NOT RUN" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.410"/>
+</branch>
+<status status="PASS" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.410"/>
+</if>
+<msg timestamp="20261006 14:33:20.410" level="TRACE">Return: None</msg>
+<status status="PASS" starttime="20261006 14:33:20.409" endtime="20261006 14:33:20.410"/>
+</kw>
+<doc>Firmware reads SIMULATED RESD samples; the movement wake contract uses a dedicated deterministic step fixture.</doc>
+<meta name="HotSpot_Action">-</meta>
+<status status="PASS" starttime="20261006 14:33:14.394" endtime="20261006 14:33:20.410"/>
+</suite>
+<statistics>
+<total>
+<stat pass="4" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="4" fail="0" skip="0" id="s1" name="Test Suite">Test Suite</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

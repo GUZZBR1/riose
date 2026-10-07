@@ -1,0 +1,113 @@
+{
+  "schema_version": "riose.network-scale-contention-closure/v1",
+  "campaign_id": "riose-network-contention-closure-corrected-2026-10",
+  "classification": "SIMULATED",
+  "parent_campaign_id": "riose-network-scale-capacity-2026-10",
+  "frequencia_expected_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+  "base_request": "examples/farm_rf_v1.json",
+  "experimental_question": "Repeat adaptive population comparisons at 10 s and 60 s, excluding 1 s cases whose FIFO mapping is invalid, and retain the valid controlled timing and static gateway checks.",
+  "design": {
+    "tag_positions": "All tags and trajectory epochs are co-located at [120, 200, 10.78] m, the existing single-tag receive-smoke location. This is an artificial controlled topology, not a farm deployment model.",
+    "timestamps_per_tag": 10,
+    "paired_fields": [
+      "tag count",
+      "tag positions",
+      "gateway positions",
+      "cadence",
+      "SF",
+      "payload",
+      "Sionna RF inputs",
+      "seed"
+    ],
+    "gateway_count": 4,
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14,
+    "spreading_factor": 7,
+    "payload_bytes": 12,
+    "localization_claim": "Input availability only. The control geometry is designed to isolate contention, not optimize anchor geometry.",
+    "schedule_support": {
+      "SOURCE_TIMESTAMP": "Exact common source times; synchronized burst.",
+      "SEEDED_PHASE": "FREQUENCIA's seeded per-device phase within the cadence, reused at every epoch.",
+      "NEAR_SYNCHRONIZED": "FREQUENCIA's seeded per-device phase within 10 ms, reused at every epoch.",
+      "not_supported": "Per-packet jitter and bursty schedules are not representable in the current Simulation Contract: every tag must have trajectory samples at the same timestamp set. Do not relabel SEEDED_PHASE as per-packet randomization."
+    },
+    "requested_vs_effective": "The request, generated FREQUENCIA config and trajectory hashes, run manifest parameter binding, ns-3 event schedule, and actual TX start timestamps are retained per execution.",
+    "duration_note": "Ten TX epochs per tag provide more repeated evidence than the original three-epoch campaign. Seeds vary deterministic device phases; they do not randomize RF geometry."
+  },
+  "run_sets": [
+    {
+      "id": "adaptive-population-10s",
+      "tags": [
+        5,
+        10,
+        20
+      ],
+      "gateways": [
+        4
+      ],
+      "cadence_s": [
+        10
+      ],
+      "schedules": [
+        "SEEDED_PHASE"
+      ],
+      "phase_window_s": null,
+      "epochs": 10,
+      "spreading_factors": [
+        7
+      ],
+      "payload_bytes": [
+        12
+      ],
+      "seeds": [
+        20261005,
+        20261006,
+        20261007
+      ],
+      "distribution": "gateway-control",
+      "load_class": "ADAPTIVE_LOAD_10S"
+    },
+    {
+      "id": "adaptive-population-60s",
+      "tags": [
+        5,
+        10,
+        20
+      ],
+      "gateways": [
+        4
+      ],
+      "cadence_s": [
+        60
+      ],
+      "schedules": [
+        "SEEDED_PHASE"
+      ],
+      "phase_window_s": null,
+      "epochs": 10,
+      "spreading_factors": [
+        7
+      ],
+      "payload_bytes": [
+        12
+      ],
+      "seeds": [
+        20261005,
+        20261006,
+        20261007
+      ],
+      "distribution": "gateway-control",
+      "load_class": "ADAPTIVE_LOAD_60S"
+    }
+  ],
+  "interpretation": {
+    "collision_attribution": "Only modeled gateway PHY INTERFERENCE outcomes support interference attribution. NO_PATH, UNDER_SENSITIVITY, NO_DEMODULATOR, NOT_TRANSMITTED, UNTRACED_DROP and UNKNOWN remain distinct.",
+    "capacity": "Conditional on this co-located synthetic geometry, four gateways, cadence, payload, SF, traffic schedule and ns-3 assumptions. Not a product/field animal capacity statement.",
+    "duty_cycle": "NOT_MODELED in the effective adapter config: the simulator supports duty-cycle enforcement, but this adapter configures the synthetic sub-band at 100% duty.",
+    "gateway_failure": "Only static omission can be tested by comparing the first three configured gateways with all four. A temporal offline/degraded/recovery state is not modeled.",
+    "application_delivery": "NOT_MODELED: terminal metric is gateway PHY reception.",
+    "localization": "LOCALIZATION_INPUT_AVAILABILITY only; no accuracy claim.",
+    "invalidated_evidence": "The initial closure ledger has 1-second schedule cases. Exclude those cases from interpretation because ns-3 TxStart FIFO associates delayed transmissions with the wrong source packet/event identity; see C.1 results."
+  }
+}

@@ -1,0 +1,13 @@
+experiment_id: rf-los-excluded-smoke
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/fed551b21fd648c7b1c2a3420a9c6953/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/fed551b21fd648c7b1c2a3420a9c6953/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/fed551b21fd648c7b1c2a3420a9c6953/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261003

@@ -1,0 +1,267 @@
+{
+  "schema_version": "riose.simulation.request/v1",
+  "campaign_id": "monte-carlo-20261012",
+  "scenario_id": "fixed-smoke-multiseed",
+  "seed": 20261012,
+  "backend": "sionna-rt",
+  "coordinate_frame": "ENU_LOCAL",
+  "operational_bounds_m": {
+    "east_min_m": 0.0,
+    "east_max_m": 1000.0,
+    "north_min_m": 0.0,
+    "north_max_m": 1000.0
+  },
+  "units": {
+    "position": "m",
+    "timestamp": "s",
+    "frequency": "Hz",
+    "bandwidth": "Hz",
+    "power": "dBm",
+    "delay": "s",
+    "phase": "rad"
+  },
+  "tags": [
+    {
+      "tag_ref": "riose-tag-001",
+      "transmitter_ref": "tx-001",
+      "animal_ref": "animal-001",
+      "device_ref": "device-001",
+      "position_m": [
+        120.0,
+        200.0,
+        10.780054003131093
+      ],
+      "trajectory_ref": "farm-rf-smoke-v1-trajectory"
+    }
+  ],
+  "receivers": [
+    {
+      "receiver_ref": "rx-GW-1",
+      "gateway_ref": "GW-1",
+      "anchor_ref": "riose-anchor-001",
+      "position_m": [
+        20.0,
+        20.0,
+        12.0
+      ]
+    },
+    {
+      "receiver_ref": "rx-GW-2",
+      "gateway_ref": "GW-2",
+      "anchor_ref": "riose-anchor-002",
+      "position_m": [
+        980.0,
+        20.0,
+        12.0
+      ]
+    },
+    {
+      "receiver_ref": "rx-GW-3",
+      "gateway_ref": "GW-3",
+      "anchor_ref": "riose-anchor-003",
+      "position_m": [
+        980.0,
+        980.0,
+        12.0
+      ]
+    },
+    {
+      "receiver_ref": "rx-GW-4",
+      "gateway_ref": "GW-4",
+      "anchor_ref": "riose-anchor-004",
+      "position_m": [
+        20.0,
+        980.0,
+        12.0
+      ]
+    }
+  ],
+  "id_mappings": [
+    {
+      "source_system": "frequencia",
+      "source_kind": "animal_id",
+      "source_id": "animal-001",
+      "riose_kind": "animal_id",
+      "riose_id": "riose-animal-001"
+    },
+    {
+      "source_system": "RIOSE",
+      "source_kind": "device_id",
+      "source_id": "device-001",
+      "riose_kind": "device_id",
+      "riose_id": "riose-device-001"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "transmitter_id",
+      "source_id": "tx-001",
+      "riose_kind": "tag_id",
+      "riose_id": "riose-tag-001"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "gateway_id",
+      "source_id": "GW-1",
+      "riose_kind": "gateway_id",
+      "riose_id": "riose-gateway-001"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "gateway_id",
+      "source_id": "GW-2",
+      "riose_kind": "gateway_id",
+      "riose_id": "riose-gateway-002"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "gateway_id",
+      "source_id": "GW-3",
+      "riose_kind": "gateway_id",
+      "riose_id": "riose-gateway-003"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "gateway_id",
+      "source_id": "GW-4",
+      "riose_kind": "gateway_id",
+      "riose_id": "riose-gateway-004"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "receiver_id",
+      "source_id": "rx-GW-1",
+      "riose_kind": "anchor_id",
+      "riose_id": "riose-anchor-001"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "receiver_id",
+      "source_id": "rx-GW-2",
+      "riose_kind": "anchor_id",
+      "riose_id": "riose-anchor-002"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "receiver_id",
+      "source_id": "rx-GW-3",
+      "riose_kind": "anchor_id",
+      "riose_id": "riose-anchor-003"
+    },
+    {
+      "source_system": "frequencia",
+      "source_kind": "receiver_id",
+      "source_id": "rx-GW-4",
+      "riose_kind": "anchor_id",
+      "riose_id": "riose-anchor-004"
+    }
+  ],
+  "trajectory": {
+    "samples": [
+      {
+        "tag_ref": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "position_m": [
+          120.0,
+          200.0,
+          10.780054003131093
+        ]
+      },
+      {
+        "tag_ref": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "position_m": [
+          121.0,
+          200.5,
+          10.801050604761606
+        ]
+      },
+      {
+        "tag_ref": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "position_m": [
+          122.0,
+          201.0,
+          10.82175341157224
+        ]
+      }
+    ],
+    "reference": null
+  },
+  "radio": {
+    "frequency_hz": 915000000,
+    "bandwidth_hz": 125000,
+    "tx_power_dbm": 14.0,
+    "phy": {
+      "technology": "LoRa",
+      "spreading_factor": 7
+    }
+  },
+  "solver": {
+    "parameters": {
+      "max_depth": 1,
+      "samples_per_src": 1000,
+      "max_num_paths_per_src": 1000,
+      "cfr_points": 5,
+      "los": true,
+      "specular_reflection": true,
+      "network": {
+        "enabled": true,
+        "spreading_factor": 7,
+        "payload_bytes": 12,
+        "traffic_interval_s": 60.0
+      },
+      "temporal": {
+        "detector": {
+          "mode": "THRESHOLD_DETECTOR",
+          "threshold_dbm": null,
+          "relative_threshold_db": -6.0
+        },
+        "clocks": {
+          "GW-1": {
+            "offset_s": 0.0,
+            "drift_ppm": 0.0,
+            "jitter_std_s": 2e-09,
+            "quantization_s": 1e-09
+          },
+          "GW-2": {
+            "offset_s": 1e-08,
+            "drift_ppm": 0.01,
+            "jitter_std_s": 2e-09,
+            "quantization_s": 1e-09
+          },
+          "GW-3": {
+            "offset_s": -1e-08,
+            "drift_ppm": -0.01,
+            "jitter_std_s": 2e-09,
+            "quantization_s": 1e-09
+          },
+          "GW-4": {
+            "offset_s": 2e-08,
+            "drift_ppm": 0.02,
+            "jitter_std_s": 2e-09,
+            "quantization_s": 1e-09
+          }
+        },
+        "correlated_jitter_std_s": 0.0,
+        "timestamp_error_std_s": 0.0,
+        "noise_figure_db": 6.0,
+        "snr_threshold_db": -10.0,
+        "detection_margin_db": 3.0,
+        "max_iterations": 50
+      }
+    }
+  },
+  "input_references": [
+    {
+      "name": "configs/farm_sionna_smoke.yaml",
+      "sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23"
+    }
+  ],
+  "provenance": {
+    "riose_revision": null,
+    "frequencia_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+    "dirty": true,
+    "created_at": "2026-10-06T13:30:00Z"
+  },
+  "expected_evidence": "SIMULATED"
+}

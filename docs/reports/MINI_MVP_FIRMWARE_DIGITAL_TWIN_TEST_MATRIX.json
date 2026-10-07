@@ -1,0 +1,116 @@
+{
+  "schema_version": "riose.mini_mvp_firmware_digital_twin_test_matrix/v2",
+  "captured_at": "2026-10-06",
+  "reported_status": "PASS",
+  "governed_candidate_status": "PASS_SIMULATED",
+  "provenance": {
+    "repository": "GUZZBR1/riose",
+    "remote_name": "fork",
+    "base_sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+    "approved_product_tree": "bb9713f64467d498c4547bbe9bc1e32f5617dadf",
+    "tested_candidate_head": "3c694b25132f0ae65c57b88ce37939e854ddbb07",
+    "branch": "mini-mvp/firmware-digital-twin",
+    "main_modified": false,
+    "push": false,
+    "pull_request": false,
+    "merge": false
+  },
+  "gap_closure": {
+    "robot_root_cause": "The movement Robot case replayed a general WALK RESD trace that cannot yield its exact expected firmware telemetry vector; the first movement samples also remain below the configured modeled wake threshold. This was a fixture/expectation mismatch, not a firmware comparator defect.",
+    "robot_fix": "Dedicated SIMULATED step fixture starts at (0,0,1) g then applies (0.576,0.793,0) g at 12.5 Hz. Register quantization preserves asserted payload (575,793,0) mg. Original strict wake, TX, payload, CRC, trace, IRQ-clear, and sleep assertions remain.",
+    "robot_result": "PASS, 4/4 in active and clean checkout",
+    "wake_resd_sha256": "fce895e711e9f6f50f3ce1bb2d5f1cc29d9869e8e240545a1b441f2e5a22bacb",
+    "full_python_result": "PASS, 617 passed, 7 skipped, 1 Starlette deprecation warning in active and clean checkout",
+    "python_environment": "uv sync --locked --extra dev --no-install-project installed locked dependencies from cache after full uv sync could not resolve Hatchling due package-index DNS; tests ran against checked-out source with explicit PYTHONPATH",
+    "identity_mapping_classification": {
+      "firmware_twin_identity_coherence": "IN_SCOPE_REQUIRED — validated for scenario tag_id=1 across firmware telemetry, Renode trace, MVP3 telemetry checks, and logical AnchorReceiver processing",
+      "general_core_enrollment_bridge": "FUTURE_PHASE — no Mini-MVP 1 gate blocker; Core hardware_id-to-animal_id mapping remains its own product boundary"
+    }
+  },
+  "regressions": [
+    {
+      "id": "ZEPHYR_CLEAN",
+      "status": "PASS",
+      "scope": "NUCLEO-L031K6 clean-checkout build; 28,980/32,768 B flash; 5,016/8,192 B RAM; not flashed"
+    },
+    {
+      "id": "ROBOT_RESD",
+      "status": "PASS",
+      "scope": "Renode 4/4; clean-checkout Robot XML and log preserved"
+    },
+    {
+      "id": "PYTHON_FULL",
+      "status": "PASS",
+      "scope": "617 passed / 7 skipped / 1 deprecation warning; clean checkout"
+    },
+    {
+      "id": "PYTHON_IDENTITY_TEMPORAL",
+      "status": "PASS",
+      "scope": "22 passed across telemetry, livestock backend identity, and temporal identity"
+    },
+    {
+      "id": "EMBEDDED_CTEST",
+      "status": "PASS",
+      "scope": "39/39; clean CMake configure/build, assertions enabled"
+    },
+    {
+      "id": "FIRMWARE_HOST_CTEST",
+      "status": "PASS",
+      "scope": "11/11; clean CMake configure/build"
+    },
+    {
+      "id": "GAZEBO_RENODE_LIVE",
+      "status": "PASS",
+      "scope": "Prior `02_walking` gate 11/11; 801 injections, 2 movement-derived TX, 16 simulated seconds, zero maximum barrier error; production live path untouched"
+    },
+    {
+      "id": "RESD_CONVERTER",
+      "status": "PASS",
+      "scope": "Committed fixture regenerated in clean checkout with matching SHA-256"
+    },
+    {
+      "id": "DIFF_CHECK",
+      "status": "PASS",
+      "scope": "git diff --check"
+    }
+  ],
+  "semantic_regression": {
+    "status": "PASS",
+    "production_firmware_changed": false,
+    "lis2dw12_scale_units": "unchanged: ±2 g, 0.244 mg/LSB, input in g, modeled register quantization preserved",
+    "movement_semantics": "unchanged configured high-pass wake comparator; deterministic single step is test stimulus only, not gait classification",
+    "sx1262_semantics": "packet/protocol/model behavior unchanged; TX_DONE is configured Renode latency, no over-air receiver claim",
+    "tag_identity": "encoding unchanged; scenario tag_id=1 remains coherent across tested firmware/twin path",
+    "temporal_attribution": "unchanged; existing virtual-clock and attribution contracts remain simulated",
+    "firmware_simulator_contract": "unchanged; only the RESD movement test source is now a dedicated deterministic fixture"
+  },
+  "scientific_classification": {
+    "tested_software": "Firmware FSM/encoding, tests, builds, identity and temporal contracts, and fault handling",
+    "simulated": "Gazebo motion/IMU, RESD replay, Renode sensor/radio, wake/TX, and clock mapping",
+    "measured_lab": "NONE",
+    "field_validated": "NONE"
+  },
+  "remaining_in_scope_gaps": [],
+  "future_followups": [
+    "General Core enrollment bridge for firmware tag_id to livestock animal_id/hardware_id",
+    "Physical flash/run, sensor calibration, RF/antenna/power, physical clock drift, and field evaluation"
+  ],
+  "preserved_evidence": {
+    "directory": "docs/reports/evidence/",
+    "files": {
+      "riose-mini-mvp-clean-python.log": "039f92a323f023736585fe78d3acdc6b8409ecd4b67d5b220a2118e9668de730",
+      "riose-mini-mvp-clean-robot.log": "4ae99620a39e5f91cb2207f5ee7ef0ed5bb442a922fbff2cc083d14a91ec82b3",
+      "robot_output.xml": "c2d8147fa4236d93e4c81b05f42dda17aba845552fce93fd0e45cc39eb0f88d4",
+      "riose-mini-mvp-clean-embedded-ctest.log": "d9234674aa2e9b4e0804a95452f8ba35c31b83ff4411c4f873d98d9218972caa",
+      "riose-mini-mvp-clean-host-ctest.log": "aa3d39145185bb9af34d0c14f597368ff62232c6899a221886d93c8004d0b195",
+      "riose-mini-mvp-clean-zephyr-build.log": "a1db1b8f5832929e0fac31e577f996caf340eb116491a364e38458cf249f477f",
+      "riose-mini-mvp-clean-wake-step.resd": "fce895e711e9f6f50f3ce1bb2d5f1cc29d9869e8e240545a1b441f2e5a22bacb"
+    }
+  },
+  "delivery": {
+    "local_commit": "3c694b25132f0ae65c57b88ce37939e854ddbb07",
+    "push": "NO",
+    "pr": "NO",
+    "main_modified": "NO"
+  }
+}

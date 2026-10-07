@@ -1,0 +1,44 @@
+{
+  "schema_version": "riose.dynamic-localization-campaign/v1",
+  "classification": "SIMULATED",
+  "campaign": "Dynamic Localization & Systemic Fault Injection",
+  "baseline": {
+    "implementation": "RIOSE Localization V2 Final",
+    "module": "src/riose/products/livestock_tracking/localization/tdoa_v2.py",
+    "api": "estimate_tdoa_v2",
+    "quality_semantics": "numerical CONVERGED plus declared 0–1000 m operational bounds; truth is not consulted",
+    "calibration_semantics": "fitted affine clock calibration remains UNVERIFIED; fit quality is not trust provenance"
+  },
+  "runtime_input_contract": ["anchor_positions_m", "local_timestamps_s", "timestamp_std_s", "clock_calibrations", "simulated_now_s"],
+  "offline_only": ["trajectory_truth_positions", "trajectory_labels", "fault_schedule", "position_error", "false_confidence_classification"],
+  "scenario_count": 28,
+  "seeds": {"pilot_start": 100, "pilot_count": 3, "final_count": 10, "final_seed_range_inclusive": [100, 109], "same_seed_replay_required": true},
+  "sampling": {"epochs_per_trajectory": 24, "interval_s": 1.0, "coordinate_frame": "synthetic local 2D Cartesian", "operating_bounds_m": [[0, 1000], [0, 1000]]},
+  "evaluation_thresholds": {
+    "bad_accepted_position_error_m": 10.0,
+    "classification": "engineering evaluation threshold, fixed before campaign execution; not a physical service requirement"
+  },
+  "metrics": {
+    "availability_denominators": "all requested epochs; report input, numerical and quality-accepted availability separately",
+    "error_metrics": "conditional on numerical estimates with offline truth match; always report evaluable count and availability",
+    "false_confidence": "accepted estimates with error >10m / all accepted estimates",
+    "rejected_good_numerical_point": "returned numerical estimates rejected by bounds whose post-estimation error is <=10m; does not estimate false rejection among missing outputs",
+    "recovery": "estimate-loss detection is first non-accepted epoch; recovery requires three consecutive accepted epochs after service loss; if service remains accepted throughout, mark recovery not applicable"
+  },
+  "radio_and_clock_model": "2D geometric LOS propagation, per-anchor affine clocks, deterministic fitted synthetic beacon pairs, seeded Gaussian jitter, temporal quantization, packet omission and timestamp corruption.",
+  "provenance": {
+    "riose_revision": "captured at run time",
+    "localization_v2_source_sha256": "captured at run time",
+    "scenario_inputs_sha256": "per epoch",
+    "calibration_records_sha256": "per epoch",
+    "generated_outputs": ["results.json", "results.md", "recovery-matrix.md"]
+  },
+  "explicitly_not_modeled": [
+    "FREQUENCIA engine execution in this analytic harness", "Sionna ray tracing", "ns-3 packet/channel effects",
+    "NLOS", "hardware clock accuracy", "field behavior", "RSSI-to-TDoA conversion", "physical deployment"
+  ],
+  "interpretation_constraints": [
+    "CONVERGED != ACCURATE", "CONVERGED != QUALITY_ACCEPTED", "GroundTruth is never an estimator input",
+    "simulated timestamp resolution != hardware clock accuracy", "PHY_RECEIVED != APPLICATION_DELIVERED"
+  ]
+}

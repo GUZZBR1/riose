@@ -215,11 +215,16 @@ one sample at a time. It feeds Renode's native LIS2DW12 register/FIFO path and
 the approximate WU comparator; `GazeboSampleInjectionCount` makes accepted
 samples observable. The Robot case injects individual vectors, reads
 `WAKE_UP_SRC`, and verifies that reading the source releases INT1. A Python
-`RenodeMonitorClient` can invoke this API over Renode's Telnet monitor and
-advance virtual time with explicit `emulation RunFor` steps. This is the
-control surface needed for a future streamed Gazebo bridge; the current
-experiment runner still records Gazebo first and then replays its RESD data.
-It does not claim live lockstep or a shared real-time clock.
+`RenodeMonitorClient` invokes this API over Renode's Telnet monitor and
+advances virtual time with explicit `emulation RunFor` steps.
+
+MVP3 also has a live lockstep bridge in
+`src/riose/products/ear_tag/mvp3/bridge/live_lockstep.py`. It advances paused
+Gazebo in bounded batches, injects timestamped IMU samples into Renode, and
+checks that the virtual clocks reach each sample before firmware evidence is
+collected. This is a simulated clock mapping and behavioral sensor model, not
+a shared real-time clock or physical sensor observation. The offline RESD
+record-and-replay path remains available as a separate experiment mode.
 
 The firmware writes `CTRL1=0x14`, which selects 12.5 Hz high-performance mode
 and 14-bit output on the LIS2DW12. Renode v1.17.0 maps ODR code 1 to 2 Hz
@@ -230,14 +235,20 @@ not drive the firmware clock during replay.
 
 The firmware's configured wake path is `CTRL4.INT1_WU` plus
 `CTRL7.INTERRUPTS_ENABLE`; it leaves `HP_REF_MODE` and `USR_OFF_ON_WU` clear.
-The `Firmware Wakes From Gazebo Motion Comparator And Transmits` Robot case
-checks that Zephyr is in `SLEEP`, feeds the walking RESD at the modeled ODR,
-and verifies the approximate comparator generates `WAKE_UP_SRC=0x0C`, resumes
-the firmware, and yields sample reads, `ALERT`, and a completed CRC-valid TX.
-After the configured 100 ms RX window, the test also verifies the firmware
-returns to `SLEEP`. The case preserves `CTRL1=0x14`. Its result establishes
-the digital firmware state sequence under the documented comparator
-approximation, not the physical sensor behavior.
+The `Firmware Wakes From Simulated Motion Comparator And Transmits` Robot
+case checks that Zephyr is in `SLEEP`, then feeds the dedicated
+`tests/fixtures/wakeup_step` RESD at the modeled ODR. This SIMULATED test
+fixture starts at (0, 0, 1) g and steps to (0.576, 0.793, 0) g. It is separate
+from the WALK dataset and is not animal or Gazebo data. The fixture preserves
+the case's exact one-wake, two completed TX, behavior, payload-axis, CRC and
+final-`SLEEP` assertions while respecting LIS2DW12 quantization. Its initial
+step crosses the configured approximate high-pass threshold once. Arbitrary
+WALK/Gazebo traces remain governed by their actual acceleration samples and do
+not promise this exact payload or wake count. The case preserves
+`CTRL1=0x14`; it establishes simulated firmware behavior, not physical sensor
+behavior. Convert the fixture with `dataset_to_resd.py` and pass it through
+`RIOSE_LIS2DW12_WAKE_RESD`; use `RIOSE_LIS2DW12_GAZEBO_RESD` for general
+RESD register/sample replay.
 
 The [ST LIS2DW12 datasheet](https://www.st.com/resource/en/datasheet/lis2dw12.pdf)
 defines the CTRL1 mode/ODR encoding and 14-bit output scale; [ST application

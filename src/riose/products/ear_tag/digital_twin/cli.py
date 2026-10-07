@@ -26,6 +26,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--spec", type=Path, default=DEFAULT_SPEC)
     run.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     run.add_argument("--seed", type=int, default=7)
+    run.add_argument("--skip-antenna", action="store_true",
+                     help="skip the independent RF experiment and evaluate tag simulation stages")
     args = parser.parse_args(argv)
     if args.command == "preflight":
         print(json.dumps(preflight(), indent=2, sort_keys=True))
@@ -38,7 +40,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "VALID", "sha256": digest, "parameter_statuses": parameter_statuses(spec)}, sort_keys=True))
         return 0
     try:
-        summary = run_twin(args.spec, args.output, args.seed)
+        summary = run_twin(args.spec, args.output, args.seed, skip_antenna=args.skip_antenna)
     except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
         print(f"digital twin run failed before report generation: {exc}", file=sys.stderr)
         return 2

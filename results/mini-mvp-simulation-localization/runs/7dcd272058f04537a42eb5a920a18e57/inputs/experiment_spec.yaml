@@ -1,0 +1,13 @@
+experiment_id: monte-carlo-20261011
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/7dcd272058f04537a42eb5a920a18e57/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/7dcd272058f04537a42eb5a920a18e57/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/7dcd272058f04537a42eb5a920a18e57/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 3
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261011

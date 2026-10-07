@@ -1,0 +1,14 @@
+{
+  "mission": "RIOSE Mini-MVP 4 — Intelligence & Animal Behavior",
+  "classifications": [
+    {"capability":"Movement pipeline","classification":"PRODUCT_OPTIONAL","basis":"Deterministic CSV parsing/windowing demonstrated on a public dataset; production inputs still require explicit sensor units, time and device contracts."},
+    {"capability":"Feature extraction","classification":"PRODUCT_OPTIONAL","basis":"Versioned deterministic 15-feature schema; source axis units remain unknown and field-device behavior is untested."},
+    {"capability":"Behavior ML","classification":"RESEARCH","basis":"Animal-disjoint holdout and grouped CV ran without detected split/preprocessing leakage, but minority-class performance is weak and no field validation exists."},
+    {"capability":"Prediction contract","classification":"PRODUCT_OPTIONAL","basis":"Versioned prediction provenance and explicit source-relative time basis fit the current intelligence contract; scores are uncalibrated."},
+    {"capability":"Persistence integration","classification":"PRODUCT_OPTIONAL","basis":"Uses existing Core SQLite Store adapter and round-trips held-out predictions; general concurrency guarantees were not evaluated."},
+    {"capability":"BioSignature","classification":"EXPERIMENTAL","basis":"Insufficient history and coverage for daily profiles or biomarker claims."},
+    {"capability":"Health Anomaly","classification":"RESEARCH","basis":"No clinical outcome labels or validated anomaly endpoints in the dataset."},
+    {"capability":"Reproduction Research","classification":"RESEARCH","basis":"No reproductive labels or outcomes; isolated from product inference."}
+  ],
+  "promotion_gate": "No model promotion to product from these results. Movement/features and contracts are optional reusable capabilities with input-contract and field-evaluation gates."
+}

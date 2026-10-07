@@ -1,0 +1,88 @@
+{
+  "mission": "MINI-MVP 5 — Persistence, Event-Chain & Reliability",
+  "base_sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+  "approved_product_tree": "bb9713f64467d498c4547bbe9bc1e32f5617dadf",
+  "branch": "mini-mvp/persistence-reliability",
+  "implementation_commit_sha": "e00726564f2d75d75086e44457e74cd6d15ab1ac",
+  "environment": {
+    "os": "Ubuntu 24.04 in WSL2",
+    "python": "3.12.3",
+    "database": "SQLite file in local WSL temporary/worktree filesystem",
+    "python_environment": "/home/gusta/projetos/RIOSE/riose/.venv (pre-existing shared project environment)",
+    "remote_fetch": "Could not resolve github.com; no remote state refresh was possible"
+  },
+  "baseline": {
+    "command": "PYTHONPATH=src /home/gusta/projetos/RIOSE/riose/.venv/bin/python -m pytest -q",
+    "result": "617 passed, 7 skipped, 1 warning in 72.35s",
+    "warning": "Starlette deprecation warning: httpx with starlette.testclient"
+  },
+  "final_full_suite": {
+    "command": "PYTHONPATH=src /home/gusta/projetos/RIOSE/riose/.venv/bin/python -m pytest -q",
+    "result": "630 passed, 7 skipped, 1 warning in 50.67s (clean checkout)",
+    "warning": "Starlette deprecation warning: httpx with starlette.testclient"
+  },
+  "clean_checkout": {
+    "commit": "e00726564f2d75d75086e44457e74cd6d15ab1ac",
+    "worktree": "/home/gusta/projetos/RIOSE/riose-mini-mvp5-clean",
+    "status_before_tests": "clean detached checkout",
+    "command": "PYTHONPATH=src /home/gusta/projetos/RIOSE/riose/.venv/bin/python -m pytest -q",
+    "result": "630 passed, 7 skipped, 1 warning in 50.67s"
+  },
+  "sqlite_configuration_observed": {
+    "journal_mode": "wal",
+    "synchronous_pragma": 2,
+    "synchronous_meaning": "FULL",
+    "busy_timeout_ms": 5000,
+    "foreign_keys": true,
+    "connection_timeout_seconds": 5,
+    "retry_policy": "SQLite waits for the configured busy timeout; application-level retry/backoff is not implemented"
+  },
+  "stress_summary": {
+    "multiprocess": {
+      "2 writers": {"attempted": 80, "successful": 80, "failed": 0, "chain_valid": true, "sqlite_integrity": "ok"},
+      "4 writers": {"attempted": 160, "successful": 160, "failed": 0, "chain_valid": true, "sqlite_integrity": "ok"},
+      "8 writers": {"attempted": 320, "successful": 320, "failed": 0, "chain_valid": true, "sqlite_integrity": "ok"}
+    },
+    "threads": {"writers": 8, "attempted": 320, "successful": 320, "failed": 0, "independent_store_connections": true, "chain_valid": true, "sqlite_integrity": "ok"},
+    "high_contention_case": "All process workers start together and append to one animal chain; 8-process case contains 320 appends, in addition to 320 thread appends in the separate thread case.",
+    "elapsed": "Targeted combined reliability run: 9.47s for 28 event, process, thread, CLI and tamper tests; environment-specific, not a throughput claim"
+  },
+  "cases": [
+    {"id":"T1","name":"compileall","status":"PASS","evidence":"python -m compileall -q src tests"},
+    {"id":"T2","name":"fresh database","status":"PASS","evidence":"Temporary Store databases used by event, API, CLI, thread and process tests"},
+    {"id":"T3","name":"schema constraints","status":"PARTIAL","evidence":"Existing tests cover animal uniqueness, foreign keys, behavior checks and idempotency uniqueness; animal_events has no SQL CHECK constraint for hash shape or event type"},
+    {"id":"T4","name":"event genesis","status":"PASS","evidence":"ANIMAL_CREATED event starts from 64 zero-byte genesis hash and verifies"},
+    {"id":"T5","name":"event append","status":"PASS","evidence":"Store and API append tests plus event-chain concurrency tests"},
+    {"id":"T6","name":"chain verification","status":"PASS","evidence":"Existing event contract tests and all concurrency runs verify the entire chain"},
+    {"id":"T7","name":"tamper detection","status":"PASS_WITH_LIMITATION","evidence":"Changes to hashed fields, interior deletion and reordering fail verification; deleting only the tail or all events cannot be detected without an external checkpoint"},
+    {"id":"T8","name":"deterministic hash","status":"PASS","evidence":"Frozen UTF-8 canonical byte vector and SHA-256 digest test"},
+    {"id":"T9","name":"thread concurrency","status":"PASS","evidence":"8 Store instances, 8 threads, 320 successful appends; chain valid and integrity_check=ok"},
+    {"id":"T10","name":"multi-process 2 writers","status":"PASS","evidence":"2 spawned processes × 40 appends; 80/80 successful; no chain fork"},
+    {"id":"T11","name":"multi-process 4 writers","status":"PASS","evidence":"4 spawned processes × 40 appends; 160/160 successful; no chain fork"},
+    {"id":"T12","name":"multi-process 8 writers","status":"PASS","evidence":"8 spawned processes × 40 appends; 320/320 successful; no chain fork"},
+    {"id":"T13","name":"high-contention race","status":"PASS","evidence":"Deterministic pre-fix two-process head-read barrier reproduction documented; fixed implementation then passed simultaneous 2/4/8-process Store append tests"},
+    {"id":"T14","name":"duplicate/idempotency","status":"PARTIAL","evidence":"Behavior observations are idempotent by (animal_id,idempotency_key), returning same record on exact retry and 409 on conflicting retry; event API has no idempotency key and a retried append is another event"},
+    {"id":"T15","name":"transaction rollback","status":"PASS","evidence":"Injected event insert failure rolls back owned append transaction; injected positions failure rolls back preceding telemetry rows in save_episode"},
+    {"id":"T16","name":"crash recovery","status":"PASS_WITH_LIMITATION","evidence":"Writer was terminated during repeated append load; reopened DB passed SQLite and chain checks and accepted another append. No power-loss or filesystem fault was simulated"},
+    {"id":"T17","name":"kill test","status":"PASS","evidence":"Independent spawned writer process terminated while appending; database reopened and validated"},
+    {"id":"T18","name":"SQLite integrity_check","status":"PASS","evidence":"PRAGMA integrity_check returned ok after all thread/process stress and kill recovery runs"},
+    {"id":"T19","name":"restart","status":"PASS","evidence":"Store close/reopen and continued event writes tested in event contract, legacy migration, observation and killed-writer flows"},
+    {"id":"T20","name":"migration","status":"PASS_WITH_LIMITATION","evidence":"Legacy schema without schema_version is opened, additively migrated, reopened, and appended without rehashing old rows; migration interruption was not injected"},
+    {"id":"T21","name":"API write path","status":"PASS_WITH_LIMITATION","evidence":"Animal and event API validation/write/verify plus behavior idempotency/retry tests pass; event API does not deduplicate retries and DB busy exhaustion is not separately injected"},
+    {"id":"T22","name":"CLI write path","status":"PASS","evidence":"cattle-rf demo run with one animal/anchor wrote telemetry, positions, metrics and animal event through Store; database reopened and verified"},
+    {"id":"T23","name":"observation persistence","status":"PASS","evidence":"Behavior observation round-trip, model/source/evidence provenance, idempotent retry and reopen tests"},
+    {"id":"T24","name":"prediction persistence","status":"PASS","evidence":"Prediction rows are persisted through BehaviorObservation with observation_kind=PREDICTION, model_version, source and evidence_status; no separate prediction database/store was found"},
+    {"id":"T25","name":"failure injection","status":"PASS_WITH_LIMITATION","evidence":"Invalid input, foreign key/unique constraint, injected insert triggers and temporary SQLite writer lock release tested; timeout exhaustion and disk/path failure not injected"},
+    {"id":"T26","name":"stress","status":"PASS","evidence":"880 appends across 2/4/8-process and 8-thread scenarios succeeded; no lost event rows, chain forks or SQLite integrity errors; local test elapsed time is not generalizable"},
+    {"id":"T27","name":"clean checkout","status":"PASS","evidence":"Detached clean worktree at e00726564f2d75d75086e44457e74cd6d15ab1ac; full suite 630 passed, 7 skipped"},
+    {"id":"T28","name":"full Python suite","status":"PASS","evidence":"630 passed, 7 skipped, 1 warning in 50.67s from a clean detached checkout"},
+    {"id":"T29","name":"git diff --check","status":"PASS","evidence":"Working-tree and staged report diff checks passed after artifact generation"}
+  ],
+  "deployment_gate": {
+    "multi_worker_shared_sqlite": "YES_TESTED",
+    "scope": "Independent local processes using canonical Store/API event append paths, one local SQLite file, tested at 2, 4 and 8 writer processes and 40 appends per writer",
+    "not_proven": ["distributed hosts", "network/shared filesystem", "unbounded writer counts", "callers that pass an already-open deferred transaction directly to append_event"],
+    "supported_mode": "Multiple local processes may write through Store/API using SQLite WAL on a local filesystem; SQLite serializes each event append with BEGIN IMMEDIATE and waits up to 5 seconds for the writer lock. No application retry is provided after timeout."
+  },
+  "overall_verdict": "PASS_WITH_LIMITATIONS"
+}

@@ -1,0 +1,28 @@
+{
+  "classification": "SIMULATED",
+  "schedule_interval_s": 1.0,
+  "fault_cases": [
+    {"case": "anchor_loss_recovery", "fault": "anchor_off", "window_epochs": [8, 14], "effect": "remove anchor D; restore after window"},
+    {"case": "two_anchor_loss_recovery", "fault": "anchor_off_pair", "window_epochs": [8, 14], "effect": "remove anchors C and D; restore after window; leaves two anchors"},
+    {"case": "bad_zone_crossing", "fault": "low_coverage_zone", "window_epochs": [10, 15], "effect": "predeclared C/D observation loss during path crossing; leaves two anchors"},
+    {"case": "clock_offset_identity", "fault": "clock_offset", "offset_ns": 20, "calibration": "ASSUMED_IDENTITY comparator"},
+    {"case": "clock_drift_corrected", "fault": "clock_drift", "drift_ppm": 20, "calibration": "synthetic fitted calibration"},
+    {"case": "clock_drift_wrong_calibration", "fault": "clock_drift_and_wrong_calibration", "drift_ppm": 20, "additional_bias": "200 ns offset + 20 ppm drift in calibration record"},
+    {"case": "clock_drift_missing_calibration", "fault": "clock_drift_without_D_calibration", "drift_ppm": 20, "expected_handling": "CLOCK_UNCALIBRATED fail closed"},
+    {"case": "clock_drift_stale_calibration", "fault": "clock_drift_with_stale_calibration", "drift_ppm": 20, "calibration_epoch_s": -500, "expected_handling": "CLOCK_UNQUALIFIED fail closed"},
+    {"case": "jitter_2ns", "fault": "timestamp_jitter", "std_ns": 2},
+    {"case": "jitter_10ns", "fault": "timestamp_jitter", "std_ns": 10},
+    {"case": "quantization_1ns", "fault": "timestamp_quantization", "step_ns": 1, "interpretation": "numeric simulation resolution, not clock accuracy"},
+    {"case": "missing_timestamp", "fault": "missing_timestamp", "window_epochs": [9, 10], "effect": "omit anchor D observation"},
+    {"case": "corrupted_timestamp", "fault": "corrupted_timestamp", "window_epochs": [9, 10], "effect": "add 10 s to anchor D timestamp"},
+    {"case": "stale_timestamp", "fault": "stale_timestamp", "window_epochs": [9, 10], "effect": "reuse previous epoch's D timestamp"},
+    {"case": "duplicate_timestamp", "fault": "duplicate_timestamp", "window_epochs": [9, 10], "effect": "repeat previous D timestamp across adjacent epochs"},
+    {"case": "packet_loss_25pct", "fault": "independent_packet_omission", "probability": 0.25, "seeded": true},
+    {"case": "burst_packet_loss", "fault": "burst_observation_loss", "window_epochs": [8, 12], "effect": "omit anchors C and D"},
+    {"case": "move_plus_anchor_loss", "fault": "movement_and_anchor_off", "window_epochs": [8, 14]},
+    {"case": "bad_geometry_plus_jitter", "fault": "near_collinear_geometry_and_jitter", "jitter_std_ns": 10},
+    {"case": "drift_plus_packet_loss", "fault": "clock_drift_and_packet_omission", "drift_ppm": 20, "probability": 0.25},
+    {"case": "jitter_plus_recovery", "fault": "jitter_and_anchor_recovery", "window_epochs": [8, 14], "jitter_std_ns": 2}
+  ],
+  "not_injected": ["RSSI corruption because this estimator does not consume RSSI", "transport duplicate identity", "unknown anchor identity", "hardware clock discontinuity"]
+}

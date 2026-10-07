@@ -1,0 +1,1343 @@
+{
+  "adapter_output": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e/adapter/adapter_output.json",
+  "adapter_report": {
+    "converted_estimates": 2,
+    "converted_observations": 12,
+    "input_locations": 2,
+    "input_observations": 12,
+    "non_received_observations": 6,
+    "reasons": [],
+    "rejected": 0,
+    "skipped": 0,
+    "warnings": [
+      "phase_rad, when present, is the earliest-arriving path coefficient phase, not combined channel phase."
+    ]
+  },
+  "manifest": {
+    "adapter_output": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e/adapter/adapter_output.json",
+    "antenna_assumptions": {
+      "classification": "IDEALIZED_SIMULATION_ANTENNA_NOT_PHYSICAL_HARDWARE",
+      "frequency_dependence": "idealized pattern held fixed; not a physical antenna model",
+      "gain_db": null,
+      "orientation": "backend default",
+      "rx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization",
+      "tx_model": "Sionna 1x1 PlanarArray, isotropic pattern, vertical polarization"
+    },
+    "backend_requested": "sionna-rt",
+    "backend_used": "frequencia.sionna-rt",
+    "base_config_path": "configs/farm_sionna_smoke.yaml",
+    "base_config_sha256": "5b8896c680ad93eca8f5a098b26e25d3f5e31d0b08e7f956a398bf0cb6ec4a23",
+    "campaign_id": "monte-carlo-20261012",
+    "coordinate_frame": "ENU_LOCAL",
+    "duration_seconds": 6.30891721900025,
+    "engine": {
+      "actual_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "device": "CPU (frequencia RF adapter sets CUDA_VISIBLE_DEVICES=-1)",
+      "dirty": true,
+      "expected_sha": "ba2bdabf003722aae8292580e048f7092d0356d6",
+      "path": "/home/gusta/projetos/frequencia",
+      "python": "/home/gusta/projetos/frequencia/.venv-sionna-agent1/bin/python",
+      "repository_url": "https://github.com/GUZZBR1/frequencia.git",
+      "sionna_version": "2.2.0"
+    },
+    "engine_output": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e/engine_output",
+    "evidence_classification": "SIMULATED",
+    "exit_code": 0,
+    "experiment_spec_sha256": "cf88d164102785918e2ddb87dac955aa0a379b2514f2d7a83523e4cf56b6818c",
+    "finished_at": "2026-10-06T13:29:48.404Z",
+    "frequency_hz": 915000000,
+    "generated_config_sha256": "8f189254ccbf44b4c4d985c82cad922b150101afa3d0db03601845735ac837fa",
+    "geometry_sha256": {
+      "farm-obstacles": "e0490ae278e43f4671f980252170465ca9a0ef705fa488be0620b97500757cd8",
+      "farm-terrain": "daf1f0c703322b45f6db797ee61403412ba33a777829c29073ed2133afb6162b"
+    },
+    "geometry_used": {
+      "farm-obstacles": "geometry/brazil_reference_rf_obstacles.ply",
+      "farm-terrain": "geometry/brazil_reference_terrain.ply"
+    },
+    "material_provenance": {
+      "classification": "UNCALIBRATED_PROXY",
+      "field_calibrated": false,
+      "frequency_dependence": "ITU presets are resolved by Sionna at the scene frequency",
+      "rural_soil": {
+        "calibrated": false,
+        "conductivity_s_m": 0.035,
+        "relative_permittivity": 15.0,
+        "source_type": "scenario_proxy",
+        "used_for_static_meshes": true
+      },
+      "source": "explicit configured constant-permittivity/conductivity proxy",
+      "static_custom_materials": {
+        "farm-obstacles": {
+          "conductivity_s_m": 0.035,
+          "relative_permittivity": 15.0
+        },
+        "farm-terrain": {
+          "conductivity_s_m": 0.035,
+          "relative_permittivity": 15.0
+        }
+      },
+      "static_materials": {}
+    },
+    "network": {
+      "artifact_sha256": {
+        "gateway_timestamps.json": "3b64cc2142d9f3cef16a721de637ab433c4c4a7dbf5cf6ed4a48f0d5a4958578",
+        "inputs.json": "aab50b53e1795a000693e963e6014d1a4d09c6ce520b5529c99ff199308888fa",
+        "localization.json": "db9373e078c9b300b94f33712aed2565ae4b2da0d0e4342b0a3d29ca4ede6f59",
+        "network_results.json": "5a445172ebe9152162c94d9b07de7293d11830d5aa55fec2238d76236c05accb",
+        "pipeline.json": "1c459f40d098128300b427c77f8ad8551fbfb1b133ca26486dac7e0357c4cc16",
+        "scoring.json": "a6ef26d8dcc9b19cc6e9b0a1c7a9911d55d6f75099e5eca9210d8c52bcda2a86"
+      },
+      "backend": "ns-3.48/lorawan-v0.3.7",
+      "bandwidth_hz": 125000,
+      "enabled": true,
+      "frequency_hz": 915000000,
+      "gateway_events": {
+        "NOT_TRANSMITTED": 4,
+        "NO_PATH": 2,
+        "RX": 6
+      },
+      "localization_method": "FREQUENCIA TDoA",
+      "localization_metrics": {
+        "attempts": 2,
+        "conditional_rmse_m": 74.91844208998613,
+        "converged": 2,
+        "convergence_rate_among_eligible": 1.0,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 0,
+        "gateway_count": 4,
+        "median_error_m": 65.76724696827245,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 101.64819165211354,
+        "quality_counts": {
+          "ACCEPTED": 2,
+          "NOT_EVALUATED": 0,
+          "REJECTED": 0
+        }
+      },
+      "lorawan_module": "v0.3.7",
+      "network_drop_events": 0,
+      "no_path_events": 2,
+      "not_transmitted_events": 4,
+      "ns3_root": "/home/gusta/.local/share/frequencia/ns-3.48",
+      "ns3_version": "3.48",
+      "packet_delivery_ratio": 1.0,
+      "payload_bytes": 12,
+      "resolution_is_hardware_precision": false,
+      "spreading_factor": 7,
+      "temporal_model": {
+        "clocks": {
+          "GW-1": {
+            "drift_ppm": 0.0,
+            "jitter_std_s": 2e-09,
+            "offset_s": 0.0,
+            "quantization_s": 1e-09
+          },
+          "GW-2": {
+            "drift_ppm": 0.01,
+            "jitter_std_s": 2e-09,
+            "offset_s": 1e-08,
+            "quantization_s": 1e-09
+          },
+          "GW-3": {
+            "drift_ppm": -0.01,
+            "jitter_std_s": 2e-09,
+            "offset_s": -1e-08,
+            "quantization_s": 1e-09
+          },
+          "GW-4": {
+            "drift_ppm": 0.02,
+            "jitter_std_s": 2e-09,
+            "offset_s": 2e-08,
+            "quantization_s": 1e-09
+          }
+        },
+        "correlated_jitter_std_s": 0.0,
+        "detection_margin_db": 3.0,
+        "detector": {
+          "mode": "THRESHOLD_DETECTOR",
+          "relative_threshold_db": -6.0,
+          "threshold_dbm": null
+        },
+        "max_iterations": 50,
+        "noise_figure_db": 6.0,
+        "snr_threshold_db": -10.0,
+        "timestamp_error_std_s": 0.0
+      },
+      "time_resolution_ps": 1,
+      "timestamp_classification": "SIMULATED_CLOCK_TIMESTAMP_MODEL",
+      "traffic_interval_s": 60.0,
+      "tx_power_dbm": 14.0
+    },
+    "parameter_binding": {
+      "network": {
+        "bandwidth_verification": "request constrained to the pinned adapter's single 125 kHz channel and forwarded to LoRaPhyConfig",
+        "effective": {
+          "bandwidth_hz": 125000,
+          "frequency_hz": 915000000,
+          "payload_bytes": 12,
+          "seed": 20261012,
+          "spreading_factor": 7,
+          "traffic_interval_s": 60.0,
+          "tx_power_dbm": 14.0
+        },
+        "requested": {
+          "enabled": true,
+          "payload_bytes": 12,
+          "spreading_factor": 7,
+          "traffic_interval_s": 60.0
+        },
+        "status": "VERIFIED"
+      },
+      "radio_and_backend": {
+        "effective": {
+          "backend": "sionna-rt",
+          "bandwidth_hz": 125000,
+          "frequency_hz": 915000000,
+          "seed": 20261012,
+          "tx_power_dbm": 14.0
+        },
+        "requested": {
+          "backend": "sionna-rt",
+          "bandwidth_hz": 125000,
+          "frequency_hz": 915000000,
+          "seed": 20261012,
+          "tx_power_dbm": 14.0
+        },
+        "status": "VERIFIED"
+      },
+      "request_sha256": "8e0afd3d8b885f6e74353af6bfee7c89c4f763a89289f9df8c5cf3cd9d75d7f1",
+      "schema_version": "riose.simulation.parameter-binding/v1",
+      "solver": {
+        "effective": {
+          "cfr_points": 5,
+          "los": true,
+          "max_depth": 1,
+          "max_num_paths_per_src": 1000,
+          "samples_per_src": 1000,
+          "specular_reflection": true
+        },
+        "requested": {
+          "cfr_points": 5,
+          "los": true,
+          "max_depth": 1,
+          "max_num_paths_per_src": 1000,
+          "samples_per_src": 1000,
+          "specular_reflection": true
+        },
+        "status": "VERIFIED"
+      },
+      "temporal": {
+        "effective": {
+          "clock_seed": 20261012,
+          "clocks": {
+            "GW-1": {
+              "drift_ppm": 0.0,
+              "jitter_std_s": 2e-09,
+              "offset_s": 0.0,
+              "quantization_s": 1e-09
+            },
+            "GW-2": {
+              "drift_ppm": 0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": 1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-3": {
+              "drift_ppm": -0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": -1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-4": {
+              "drift_ppm": 0.02,
+              "jitter_std_s": 2e-09,
+              "offset_s": 2e-08,
+              "quantization_s": 1e-09
+            }
+          },
+          "correlated_jitter_std_s": 0.0,
+          "detection_margin_db": 3.0,
+          "detector": {
+            "mode": "THRESHOLD_DETECTOR",
+            "relative_threshold_db": -6.0,
+            "threshold_dbm": null
+          },
+          "max_iterations": 50,
+          "noise_figure_db": 6.0,
+          "snr_threshold_db": -10.0,
+          "timestamp_error_std_s": 0.0
+        },
+        "effective_defaults": {
+          "phy.preamble_symbols": {
+            "effective": 8,
+            "requested": null,
+            "status": "VERIFIED"
+          },
+          "sweep.noise_density_dbm_hz": {
+            "effective": -174.0,
+            "requested": null,
+            "status": "VERIFIED"
+          }
+        },
+        "forwarded": {
+          "clocks": {
+            "GW-1": {
+              "drift_ppm": 0.0,
+              "jitter_std_s": 2e-09,
+              "offset_s": 0.0,
+              "quantization_s": 1e-09
+            },
+            "GW-2": {
+              "drift_ppm": 0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": 1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-3": {
+              "drift_ppm": -0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": -1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-4": {
+              "drift_ppm": 0.02,
+              "jitter_std_s": 2e-09,
+              "offset_s": 2e-08,
+              "quantization_s": 1e-09
+            }
+          },
+          "correlated_jitter_std_s": 0.0,
+          "detection_margin_db": 3.0,
+          "detector": {
+            "mode": "THRESHOLD_DETECTOR",
+            "relative_threshold_db": -6.0,
+            "threshold_dbm": null
+          },
+          "max_iterations": 50,
+          "noise_figure_db": 6.0,
+          "snr_threshold_db": -10.0,
+          "timestamp_error_std_s": 0.0
+        },
+        "input_sha256": "aab50b53e1795a000693e963e6014d1a4d09c6ce520b5529c99ff199308888fa",
+        "observed_detector_modes": [
+          "THRESHOLD_DETECTOR"
+        ],
+        "request_sha256": "8e0afd3d8b885f6e74353af6bfee7c89c4f763a89289f9df8c5cf3cd9d75d7f1",
+        "requested": {
+          "clocks": {
+            "GW-1": {
+              "drift_ppm": 0.0,
+              "jitter_std_s": 2e-09,
+              "offset_s": 0.0,
+              "quantization_s": 1e-09
+            },
+            "GW-2": {
+              "drift_ppm": 0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": 1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-3": {
+              "drift_ppm": -0.01,
+              "jitter_std_s": 2e-09,
+              "offset_s": -1e-08,
+              "quantization_s": 1e-09
+            },
+            "GW-4": {
+              "drift_ppm": 0.02,
+              "jitter_std_s": 2e-09,
+              "offset_s": 2e-08,
+              "quantization_s": 1e-09
+            }
+          },
+          "correlated_jitter_std_s": 0.0,
+          "detection_margin_db": 3.0,
+          "detector": {
+            "mode": "THRESHOLD_DETECTOR",
+            "relative_threshold_db": -6.0,
+            "threshold_dbm": null
+          },
+          "max_iterations": 50,
+          "noise_figure_db": 6.0,
+          "snr_threshold_db": -10.0,
+          "timestamp_error_std_s": 0.0
+        },
+        "run_id": "23bcdbee1705499ebaaf63f5df38846e",
+        "runtime_artifact_sha256": "1c459f40d098128300b427c77f8ad8551fbfb1b133ca26486dac7e0357c4cc16",
+        "schema_version": "riose.simulation.temporal-binding/v1",
+        "status": "VERIFIED"
+      },
+      "trajectory": {
+        "effective_csv_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+        "link_set_status": "VERIFIED",
+        "requested_sha256": "0f68d686d57d0cfe983ed6fe7892e6365d99ff6b4df5dd38336ccb7428faba07",
+        "status": "VERIFIED"
+      }
+    },
+    "raw_output_sha256": "b9021c9f1eb31ac034aea3e6b6f709db6077814637d0035b0858c9e6fb4fe950",
+    "request_sha256": "8e0afd3d8b885f6e74353af6bfee7c89c4f763a89289f9df8c5cf3cd9d75d7f1",
+    "riose": {
+      "dirty": true,
+      "revision": "5a6e09bcfe1de757e023f59459c9a6114bca292c"
+    },
+    "run_id": "23bcdbee1705499ebaaf63f5df38846e",
+    "scenario_metadata": {
+      "classification": "SYNTHETIC_REFERENCE_SCENARIO",
+      "configured_but_not_raytraced": [
+        "trees",
+        "pastures",
+        "fences",
+        "internal roads",
+        "corral",
+        "water troughs",
+        "feeders"
+      ],
+      "coordinate_system": "local ENU; x east, y north, z elevation, metres; gateway z config is height above local terrain",
+      "features": [
+        "relief",
+        "soil",
+        "pastures",
+        "trees",
+        "fences/paddocks",
+        "internal roads",
+        "corral",
+        "shed",
+        "water troughs",
+        "feeders"
+      ],
+      "land_use": {
+        "corral": {
+          "center_m": [
+            500.0,
+            500.0
+          ],
+          "size_m": [
+            100.0,
+            80.0
+          ]
+        },
+        "feeder_count": 4,
+        "feeders": [
+          {
+            "feeder_id": "FEED-01",
+            "position_m": [
+              300.0,
+              300.0
+            ]
+          },
+          {
+            "feeder_id": "FEED-02",
+            "position_m": [
+              700.0,
+              300.0
+            ]
+          },
+          {
+            "feeder_id": "FEED-03",
+            "position_m": [
+              300.0,
+              700.0
+            ]
+          },
+          {
+            "feeder_id": "FEED-04",
+            "position_m": [
+              700.0,
+              700.0
+            ]
+          }
+        ],
+        "fence_height_m": 1.4,
+        "internal_roads": [
+          {
+            "centerline_m": [
+              [
+                0,
+                180.0
+              ],
+              [
+                1000.0,
+                180.0
+              ]
+            ],
+            "road_id": "ROAD-E",
+            "width_m": 8.0
+          },
+          {
+            "centerline_m": [
+              [
+                180.0,
+                0
+              ],
+              [
+                180.0,
+                1000.0
+              ]
+            ],
+            "road_id": "ROAD-N",
+            "width_m": 8.0
+          }
+        ],
+        "paddock_fences": [
+          {
+            "fence_id": "F-01",
+            "height_m": 1.4,
+            "line_m": [
+              [
+                500.0,
+                0
+              ],
+              [
+                500.0,
+                1000.0
+              ]
+            ]
+          },
+          {
+            "fence_id": "F-02",
+            "height_m": 1.4,
+            "line_m": [
+              [
+                0,
+                500.0
+              ],
+              [
+                1000.0,
+                500.0
+              ]
+            ]
+          }
+        ],
+        "paddocks": 4,
+        "pasture_fraction": 0.78,
+        "road_width_m": 8.0,
+        "shed": {
+          "center_m": [
+            610.0,
+            500.0
+          ],
+          "height_m": 6.0,
+          "size_m": [
+            35.0,
+            24.0
+          ]
+        },
+        "tree_canopy_radius_m": 3.0,
+        "tree_count": 36,
+        "tree_height_m": 8.0,
+        "trees": [
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-001",
+            "x_m": 512.0309968689799,
+            "y_m": 543.3085065403337
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-002",
+            "x_m": 788.8847536052701,
+            "y_m": 575.7973657951093
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-003",
+            "x_m": 730.3951212067238,
+            "y_m": 890.738357427212
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-004",
+            "x_m": 787.5738401666028,
+            "y_m": 472.2628155206509
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-005",
+            "x_m": 642.165133969591,
+            "y_m": 568.8823748447428
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-006",
+            "x_m": 415.3492608020366,
+            "y_m": 643.5386635801941
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-007",
+            "x_m": 273.35883851514177,
+            "y_m": 458.43923379226317
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-008",
+            "x_m": 514.0394079740723,
+            "y_m": 359.7657550010094
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-009",
+            "x_m": 126.34480177060773,
+            "y_m": 757.9708430723301
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-010",
+            "x_m": 342.8017140789768,
+            "y_m": 384.199405253281
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-011",
+            "x_m": 92.37939744610063,
+            "y_m": 734.9778352868756
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-012",
+            "x_m": 374.13937599132004,
+            "y_m": 302.0758970421753
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-013",
+            "x_m": 707.9847990337838,
+            "y_m": 412.3171969411471
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-014",
+            "x_m": 446.2397658388981,
+            "y_m": 303.9446124508314
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-015",
+            "x_m": 485.8104038065658,
+            "y_m": 715.5394438239748
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-016",
+            "x_m": 649.4867850430295,
+            "y_m": 902.9198714071806
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-017",
+            "x_m": 878.6072657361262,
+            "y_m": 428.8441564636849
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-018",
+            "x_m": 439.31921755238204,
+            "y_m": 279.0840649808467
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-019",
+            "x_m": 513.478487886253,
+            "y_m": 907.4028022343482
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-020",
+            "x_m": 383.0829624716746,
+            "y_m": 492.6842515393652
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-021",
+            "x_m": 314.3356361519481,
+            "y_m": 886.3023071455615
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-022",
+            "x_m": 571.2059623777163,
+            "y_m": 296.53638451736254
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-023",
+            "x_m": 390.4019990021909,
+            "y_m": 86.72339871730294
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-024",
+            "x_m": 912.9642392172134,
+            "y_m": 711.0433363720404
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-025",
+            "x_m": 296.59204302912474,
+            "y_m": 159.5994026282513
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-026",
+            "x_m": 309.9414281913399,
+            "y_m": 707.3503453284044
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-027",
+            "x_m": 550.4467067869437,
+            "y_m": 574.4695863964637
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-028",
+            "x_m": 901.2201664416416,
+            "y_m": 601.9969994078693
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-029",
+            "x_m": 808.3371024646393,
+            "y_m": 565.8974935261607
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-030",
+            "x_m": 754.4993479131736,
+            "y_m": 901.2864400034791
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-031",
+            "x_m": 569.3122304126275,
+            "y_m": 467.0066033110429
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-032",
+            "x_m": 221.81730093630534,
+            "y_m": 148.43375506532286
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-033",
+            "x_m": 512.052682098915,
+            "y_m": 155.62097758123116
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-034",
+            "x_m": 121.74332126477198,
+            "y_m": 323.5561941010832
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-035",
+            "x_m": 667.162496994014,
+            "y_m": 516.2546584491475
+          },
+          {
+            "canopy_radius_m": 3.0,
+            "height_m": 8.0,
+            "tree_id": "TREE-036",
+            "x_m": 232.32553327511732,
+            "y_m": 366.07401578812517
+          }
+        ],
+        "water_trough_count": 4,
+        "water_troughs": [
+          {
+            "position_m": [
+              250.0,
+              250.0
+            ],
+            "trough_id": "WATER-01"
+          },
+          {
+            "position_m": [
+              750.0,
+              250.0
+            ],
+            "trough_id": "WATER-02"
+          },
+          {
+            "position_m": [
+              250.0,
+              750.0
+            ],
+            "trough_id": "WATER-03"
+          },
+          {
+            "position_m": [
+              750.0,
+              750.0
+            ],
+            "trough_id": "WATER-04"
+          }
+        ]
+      },
+      "limitations": [
+        "no georeferenced survey or real Brazilian property supplied",
+        "terrain and asset positions are synthetic, deterministic approximations",
+        "vegetation and fences are not raytraced; soil and building RF parameters require field calibration",
+        "current 2D TDoA solver assumes one configured source height; it does not use local terrain elevation as estimator input"
+      ],
+      "materials": {
+        "fences": "paddock boundaries and height are inventory geometry; wire impedance/mesh is not modeled",
+        "obstacle_mesh": "shed cuboid plus an optional RF test reflector; one explicitly configured Sionna material proxy is assigned to this combined mesh",
+        "pasture": "grass represented as land-use metadata; not raytraced",
+        "rf_test_reflector": "idealized geometry-test surface only when explicitly configured; not a farm asset",
+        "shed": "generic building geometry; wall material is an explicit Sionna proxy, not measured construction",
+        "soil": "permittivity/conductivity are approximate fixed rural-soil assumptions at 915 MHz, not site measurements",
+        "trees": "procedural inventory only; trunks and canopies are not raytraced or assigned a vegetation RF material"
+      },
+      "name": "brazil_rural_reference_smoke",
+      "rf_obstacles": [
+        "terrain",
+        "shed"
+      ],
+      "terrain": {
+        "grid_spacing_m": 100.0,
+        "relief_amplitude_m": 18.0,
+        "soil": {
+          "conductivity_s_per_m": 0.035,
+          "material": "rural_soil",
+          "relative_permittivity": 15.0
+        }
+      }
+    },
+    "schema_version": "riose.simulation.run-manifest/v1",
+    "seed": 20261012,
+    "solver_configuration": {
+      "cfr_points": 5,
+      "los": true,
+      "max_depth": 1,
+      "max_num_paths_per_src": 1000,
+      "samples_per_src": 1000,
+      "specular_reflection": true
+    },
+    "started_at": "2026-10-06T13:29:42.094Z",
+    "summary_artifact": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e/summary.md",
+    "summary_sha256": "cc8501977f1eea4b897d5cd7f804455f170460b6936709c04085ab8e12f43457",
+    "trajectory_sha256": "e5ec32357e1ef05a2c2478e6f6a144637dbccb0309863340df334e2a2110edfd",
+    "warnings": [
+      "The FARM route is a synthetic transmitter trajectory, not an animal behavior model.",
+      "PHY_RECEIVED means gateway PHY reception; application/server delivery is not modeled.",
+      "2D TDoA estimates contain east/north only; altitude is not estimated.",
+      "The Sionna run uses the declared idealized isotropic antenna and uncalibrated synthetic FARM geometry/materials."
+    ]
+  },
+  "result": {
+    "backend": "frequencia.sionna-rt",
+    "campaign_id": "monte-carlo-20261012",
+    "id_mappings": [
+      {
+        "riose_id": "riose-animal-001",
+        "riose_kind": "animal_id",
+        "source_id": "animal-001",
+        "source_kind": "animal_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-device-001",
+        "riose_kind": "device_id",
+        "source_id": "device-001",
+        "source_kind": "device_id",
+        "source_system": "RIOSE"
+      },
+      {
+        "riose_id": "riose-tag-001",
+        "riose_kind": "tag_id",
+        "source_id": "tx-001",
+        "source_kind": "transmitter_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-gateway-001",
+        "riose_kind": "gateway_id",
+        "source_id": "GW-1",
+        "source_kind": "gateway_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-gateway-002",
+        "riose_kind": "gateway_id",
+        "source_id": "GW-2",
+        "source_kind": "gateway_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-gateway-003",
+        "riose_kind": "gateway_id",
+        "source_id": "GW-3",
+        "source_kind": "gateway_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-gateway-004",
+        "riose_kind": "gateway_id",
+        "source_id": "GW-4",
+        "source_kind": "gateway_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-anchor-001",
+        "riose_kind": "anchor_id",
+        "source_id": "rx-GW-1",
+        "source_kind": "receiver_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-anchor-002",
+        "riose_kind": "anchor_id",
+        "source_id": "rx-GW-2",
+        "source_kind": "receiver_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-anchor-003",
+        "riose_kind": "anchor_id",
+        "source_id": "rx-GW-3",
+        "source_kind": "receiver_id",
+        "source_system": "frequencia"
+      },
+      {
+        "riose_id": "riose-anchor-004",
+        "riose_kind": "anchor_id",
+        "source_id": "rx-GW-4",
+        "source_kind": "receiver_id",
+        "source_system": "frequencia"
+      }
+    ],
+    "limitations": [
+      "The FARM route is a synthetic transmitter trajectory, not an animal behavior model.",
+      "PHY_RECEIVED means gateway PHY reception; application/server delivery is not modeled.",
+      "2D TDoA estimates contain east/north only; altitude is not estimated.",
+      "The Sionna run uses the declared idealized isotropic antenna and uncalibrated synthetic FARM geometry/materials."
+    ],
+    "locations": [
+      {
+        "method": "FREQUENCIA_TDOA:CONVERGED",
+        "position_m": [
+          145.73405547329278,
+          184.80297880721696
+        ],
+        "quality": null,
+        "quality_bounds_m": {
+          "east_max_m": 1000.0,
+          "east_min_m": 0.0,
+          "north_max_m": 1000.0,
+          "north_min_m": 0.0
+        },
+        "quality_reason": "WITHIN_DECLARED_OPERATIONAL_BOUNDS",
+        "quality_status": "ACCEPTED",
+        "solver_status": "CONVERGED",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0
+      },
+      {
+        "method": "FREQUENCIA_TDOA:CONVERGED",
+        "position_m": [
+          203.82283010104686,
+          141.5700951960897
+        ],
+        "quality": null,
+        "quality_bounds_m": {
+          "east_max_m": 1000.0,
+          "east_min_m": 0.0,
+          "north_max_m": 1000.0,
+          "north_min_m": 0.0
+        },
+        "quality_reason": "WITHIN_DECLARED_OPERATIONAL_BOUNDS",
+        "quality_status": "ACCEPTED",
+        "solver_status": "CONVERGED",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0
+      }
+    ],
+    "observations": [
+      {
+        "anchor_id": "riose-anchor-001",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 6.868625632705516e-07,
+          "received_power_dbm": -78.76673401707724,
+          "rssi_dbm": null,
+          "snr_db": 38.2641658528422,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-1",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-002",
+        "channel_state": "NO_PATH",
+        "metrics": {
+          "path_state": "NO_PATH",
+          "phase_rad": null,
+          "propagation_delay_s": null,
+          "received_power_dbm": null,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_RECEIVED",
+        "source_receiver_ref": "rx-GW-2",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-003",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 3.872794877679553e-06,
+          "received_power_dbm": -78.97310780654462,
+          "rssi_dbm": null,
+          "snr_db": 38.05779206337482,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-3",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-004",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 2.62309822574025e-06,
+          "received_power_dbm": -70.86400368395964,
+          "rssi_dbm": null,
+          "snr_db": 46.1668961859598,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-4",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 0.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-001",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 6.899431923557131e-07,
+          "received_power_dbm": -78.98802210487614,
+          "rssi_dbm": null,
+          "snr_db": 38.0428777650433,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-1",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-002",
+        "channel_state": "NO_PATH",
+        "metrics": {
+          "path_state": "NO_PATH",
+          "phase_rad": null,
+          "propagation_delay_s": null,
+          "received_power_dbm": null,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_RECEIVED",
+        "source_receiver_ref": "rx-GW-2",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-003",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 3.869203283102252e-06,
+          "received_power_dbm": -78.96504981262404,
+          "rssi_dbm": null,
+          "snr_db": 38.06585005729539,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-3",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-004",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 2.6218704078928567e-06,
+          "received_power_dbm": -70.88004473296456,
+          "rssi_dbm": null,
+          "snr_db": 46.150855136954874,
+          "tof_measured_s": null
+        },
+        "rx_state": "PHY_RECEIVED",
+        "source_receiver_ref": "rx-GW-4",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 1.0,
+        "tx_state": "TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-001",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 6.930301310603681e-07,
+          "received_power_dbm": -79.17778764048673,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_APPLICABLE",
+        "source_receiver_ref": "rx-GW-1",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "tx_state": "NOT_TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-002",
+        "channel_state": "NO_PATH",
+        "metrics": {
+          "path_state": "NO_PATH",
+          "phase_rad": null,
+          "propagation_delay_s": null,
+          "received_power_dbm": null,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_APPLICABLE",
+        "source_receiver_ref": "rx-GW-2",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "tx_state": "NOT_TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-003",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 3.865612598019652e-06,
+          "received_power_dbm": -78.95698679800289,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_APPLICABLE",
+        "source_receiver_ref": "rx-GW-3",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "tx_state": "NOT_TRANSMITTED"
+      },
+      {
+        "anchor_id": "riose-anchor-004",
+        "channel_state": "PATH",
+        "metrics": {
+          "path_state": "LOS",
+          "phase_rad": 0.0,
+          "propagation_delay_s": 2.620647137518972e-06,
+          "received_power_dbm": -70.90183848295571,
+          "rssi_dbm": null,
+          "snr_db": null,
+          "tof_measured_s": null
+        },
+        "rx_state": "NOT_APPLICABLE",
+        "source_receiver_ref": "rx-GW-4",
+        "source_tag_ref": "tx-001",
+        "status": "SIMULATED",
+        "tag_id": "riose-tag-001",
+        "timestamp_s": 2.0,
+        "tx_state": "NOT_TRANSMITTED"
+      }
+    ],
+    "provenance": {
+      "completed_at": "2026-10-06T13:29:48.376Z",
+      "output_sha256": "b9021c9f1eb31ac034aea3e6b6f709db6077814637d0035b0858c9e6fb4fe950",
+      "request_sha256": "8e0afd3d8b885f6e74353af6bfee7c89c4f763a89289f9df8c5cf3cd9d75d7f1"
+    },
+    "scenario_id": "fixed-smoke-multiseed",
+    "schema_version": "riose.simulation.result/v1",
+    "solver_version": "2.2.0",
+    "status": "SIMULATED",
+    "warnings": [
+      "phase_rad, when present, is the earliest-arriving path coefficient phase, not combined channel phase."
+    ]
+  },
+  "run_id": "23bcdbee1705499ebaaf63f5df38846e",
+  "status": "SIMULATED",
+  "summary": {
+    "LOS": 9,
+    "NLOS": 0,
+    "NO_PATH": 3,
+    "backend": "sionna-rt",
+    "gateways": 4,
+    "links": 12,
+    "network": {
+      "bandwidth_hz": 125000,
+      "collisions": 0,
+      "delivered_packets": 2,
+      "drops": 0,
+      "enabled": true,
+      "frequency_hz": 915000000,
+      "gateways": {
+        "GW-1": {
+          "attempted": 2,
+          "interference_drops": 0,
+          "pdr": 1.0,
+          "received": 2
+        },
+        "GW-2": {
+          "attempted": 2,
+          "interference_drops": 0,
+          "pdr": 0.0,
+          "received": 0
+        },
+        "GW-3": {
+          "attempted": 2,
+          "interference_drops": 0,
+          "pdr": 1.0,
+          "received": 2
+        },
+        "GW-4": {
+          "attempted": 2,
+          "interference_drops": 0,
+          "pdr": 1.0,
+          "received": 2
+        }
+      },
+      "localization": {
+        "attempts": 2,
+        "conditional_rmse_m": 74.91844208998613,
+        "converged": 2,
+        "convergence_rate_among_eligible": 1.0,
+        "coordinate_frame": "ENU_LOCAL",
+        "eligible": 2,
+        "failed": 0,
+        "gateway_count": 4,
+        "median_error_m": 65.76724696827245,
+        "method": "FREQUENCIA TDoA",
+        "p90_error_m": 101.64819165211354,
+        "quality_counts": {
+          "ACCEPTED": 2,
+          "NOT_EVALUATED": 0,
+          "REJECTED": 0
+        }
+      },
+      "network_backend": "ns-3.48/lorawan-v0.3.7",
+      "no_path": 2,
+      "not_transmitted": 4,
+      "outcomes": {
+        "NOT_TRANSMITTED": 4,
+        "NO_PATH": 2,
+        "RX": 6
+      },
+      "payload_bytes": 12,
+      "pdr": 1.0,
+      "received_gateway_events": 6,
+      "spreading_factor": 7,
+      "transmitted_packets": 2,
+      "tx_power_dbm": 14.0
+    },
+    "received_power_dbm": {
+      "count": 9,
+      "max": -70.86400368395964,
+      "mean": -76.27484167549906,
+      "median": -78.95698679800289,
+      "min": -79.17778764048673,
+      "stdev": 4.045984093550789
+    },
+    "runtime_seconds": 6.30891721900025,
+    "timestamps": 3,
+    "transmitters": 1
+  },
+  "summary_artifact": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e/summary.md",
+  "workspace": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/23bcdbee1705499ebaaf63f5df38846e"
+}

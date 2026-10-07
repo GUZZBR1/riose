@@ -1,0 +1,13 @@
+experiment_id: network-scale-20-tags
+environment: FARM
+backend: sionna-rt
+config: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/0875245da7b84e9fb7135f7f18aec082/inputs/farm_config.yaml
+output_dir: /home/gusta/projetos/frequencia/results/riose_simulation_lab/0875245da7b84e9fb7135f7f18aec082/engine
+trajectory: /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization/results/mini-mvp-simulation-localization/runs/0875245da7b84e9fb7135f7f18aec082/inputs/trajectory.csv
+trajectory_source: SYNTHETIC RIOSE request trajectory
+trajectory_frame: ENU local
+max_snapshots: 1
+rf:
+  center_frequency_hz: 915000000
+  bandwidth_hz: 125000
+  seed: 20261120

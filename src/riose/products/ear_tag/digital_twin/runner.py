@@ -245,7 +245,7 @@ def _run_electrical_fault(profile: str, schedule_path: Path, assumptions_path: P
     return host_run, payload
 
 
-def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
+def run_twin(spec_path: Path, output: Path, seed: int = 7, *, skip_antenna: bool = False) -> dict[str, Any]:
     # Child tools run from ROOT, so normalize both user paths against the
     # invoking process before any subprocess receives them.
     spec_path = resolve_user_path(spec_path)
@@ -641,45 +641,54 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
     antenna_csv = dirs["antenna"] / "antenna.csv"
     antenna_sweeps_csv = dirs["antenna"] / "sweeps.csv"
     _clear_previous_outputs(antenna_manifest, antenna_csv, antenna_sweeps_csv)
-    antenna_env = os.environ.copy()
-    if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
-            and env["modules"].get("CSXCAD")):
-        # Preserve the configured adapter selection for compatible CLI implementations.
-        antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
-    antenna_help = _run_command("antenna_capabilities",
-                               [sys.executable, "-m", "hardware.antenna.run", "--help"],
-                               ROOT, timeout_s=30, env=antenna_env)
-    sweeps_supported = (antenna_help.get("status") == "PASSED"
-                        and "--sweeps" in antenna_help.get("stdout", "").split())
-    if sweeps_supported:
-        antenna_cmd.append("--sweeps")
-    # Full 4/2/1 mm openEMS sweeps can run longer than 30 minutes on the
-    # high-Q battery/enclosure cases. A timeout remains fail-closed, but must
-    # leave enough room for a real convergence result on the provisioned host.
-    ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=7200, env=antenna_env)
-    ant_json: dict[str, Any] = {}
-    if antenna_manifest.exists():
-        ant_json = json.loads(antenna_manifest.read_text())
-        ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
-        ant["result_class"] = ant_json.get("result_class")
-        ant["scenarios"] = ant_json.get("scenarios", [])
-        ant["mesh_refinement"] = ant_json.get("mesh_refinement", {})
-        incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
-        if incomplete:
-            ant["detail"] = "; ".join(
-                f"{row.get('scenario', 'scenario')}: {row.get('status', 'UNKNOWN')} ({row.get('detail', '')})"
-                for row in incomplete
-            )
-        else:
-            ant["detail"] = ant_json.get("limitations", [""])[0]
-        if ant.get("return_code") not in (None, 0) and ant_json.get("status") == "COMPLETED":
+    if skip_antenna:
+        ant = {"status": "NOT_RUN", "required": False,
+               "detail": "Antenna stage explicitly skipped; tag simulation stages remain independent"}
+        ant_json: dict[str, Any] = {}
+        stages["antenna"] = ant
+        stages["antenna_sweeps"] = {"status": "NOT_RUN", "required": False,
+                                     "detail": "Antenna stage explicitly skipped",
+                                     "csv_path": str(antenna_sweeps_csv)}
+    else:
+        antenna_env = os.environ.copy()
+        if (not antenna_env.get("RIOSE_OPENEMS_ADAPTER") and env["modules"].get("openEMS")
+                and env["modules"].get("CSXCAD")):
+            # Preserve the configured adapter selection for compatible CLI implementations.
+            antenna_env["RIOSE_OPENEMS_ADAPTER"] = "hardware.antenna.openems_adapter"
+        antenna_help = _run_command("antenna_capabilities",
+                                   [sys.executable, "-m", "hardware.antenna.run", "--help"],
+                                   ROOT, timeout_s=30, env=antenna_env)
+        sweeps_supported = (antenna_help.get("status") == "PASSED"
+                            and "--sweeps" in antenna_help.get("stdout", "").split())
+        if sweeps_supported:
+            antenna_cmd.append("--sweeps")
+        # Full 4/2/1 mm openEMS sweeps can run longer than 30 minutes on the
+        # high-Q battery/enclosure cases. A timeout remains fail-closed, but must
+        # leave enough room for a real convergence result on the provisioned host.
+        ant = _run_command("antenna", antenna_cmd, ROOT, timeout_s=7200, env=antenna_env)
+        ant_json = {}
+        if antenna_manifest.exists():
+            ant_json = json.loads(antenna_manifest.read_text())
+            ant["status"] = "COMPLETED" if ant_json.get("status") == "COMPLETED" else ant_json.get("status", "NOT_AVAILABLE")
+            ant["result_class"] = ant_json.get("result_class")
+            ant["scenarios"] = ant_json.get("scenarios", [])
+            ant["mesh_refinement"] = ant_json.get("mesh_refinement", {})
+            incomplete = [row for row in ant["scenarios"] if row.get("status") != "COMPLETED"]
+            if incomplete:
+                ant["detail"] = "; ".join(
+                    f"{row.get('scenario', 'scenario')}: {row.get('status', 'UNKNOWN')} ({row.get('detail', '')})"
+                    for row in incomplete
+                )
+            else:
+                ant["detail"] = ant_json.get("limitations", [""])[0]
+            if ant.get("return_code") not in (None, 0) and ant_json.get("status") == "COMPLETED":
+                ant["status"] = "FAILED"
+                ant["detail"] = "Antenna runner returned an error despite a completed manifest"
+        elif ant.get("status") == "PASSED":
             ant["status"] = "FAILED"
-            ant["detail"] = "Antenna runner returned an error despite a completed manifest"
-    elif ant.get("status") == "PASSED":
-        ant["status"] = "FAILED"
-        ant["detail"] = "Antenna runner exited successfully without producing a manifest"
-    stages["antenna"] = ant
-    stages["antenna_sweeps"] = _antenna_sweep_result(spec, ant_json, antenna_sweeps_csv, sweeps_supported)
+            ant["detail"] = "Antenna runner exited successfully without producing a manifest"
+        stages["antenna"] = ant
+        stages["antenna_sweeps"] = _antenna_sweep_result(spec, ant_json, antenna_sweeps_csv, sweeps_supported)
 
     power_scenarios: dict[str, dict[str, Any]] = {}
     schedule_statuses: dict[str, str] = {}
@@ -806,11 +815,14 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         writer.writeheader()
         writer.writerows(failures)
 
-    gate = evaluate_gate(spec, stages, required_stage_names=(
+    required_stages = [
         "zephyr_firmware", "renode_firmware", "lis2dw12_datasets", "long_duration_1_7_30_days",
         "timer_and_sequence_rollover", "adversarial_fault_injection", "four_power_scenarios", "mechanical",
-        "antenna", "antenna_sweeps", "power",
-    ))
+        "power",
+    ]
+    if not skip_antenna:
+        required_stages.extend(("antenna", "antenna_sweeps"))
+    gate = evaluate_gate(spec, stages, required_stage_names=tuple(required_stages))
     summary = {"schema_version": "riose.mvp2.digital-twin/v1", "milestone": "MVP2_DIGITAL_TWIN",
                "result_class": "SIMULATED", "spec_path": str(spec_path), "spec_sha256": spec_hash,
                "parameter_statuses": parameter_statuses(spec), "environment": env, "stages": stages,

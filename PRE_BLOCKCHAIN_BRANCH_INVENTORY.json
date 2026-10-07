@@ -1,0 +1,1126 @@
+{
+  "target_ref": "fork/main",
+  "target_sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+  "local_ref_count": 51,
+  "remote_tracking_ref_count": 46,
+  "worktree_registration_count": 66,
+  "inventory_snapshot_note": "The integration/pre-blockchain-baseline ref entry captures its SHA at inventory generation before consolidation into the final single Lore-protocol commit; resolve its current final SHA from Git metadata.",
+  "refs": [
+    {
+      "ref": "refs/heads/archive/pre-promotion-main-2026-10-06",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "target_only_commits": 41,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/audit/final-integration-authority",
+      "sha": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "target_only_commits": 54,
+      "ref_only_commits": 7,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/autonomous-recovery-protocol",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "target_only_commits": 81,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "target_only_commits": 75,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-02-evidence-bridge",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "target_only_commits": 76,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-03-commitment-v1",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "target_only_commits": 76,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-convergence",
+      "sha": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
+      "target_only_commits": 66,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_NOT_READY"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "target_only_commits": 66,
+      "ref_only_commits": 4,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_NOT_READY"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-followup",
+      "sha": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "target_only_commits": 81,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_NOT_READY"
+    },
+    {
+      "ref": "refs/heads/codex/issue-12-integration-followup",
+      "sha": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "target_only_commits": 81,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/issue-21-dataset-foundation",
+      "sha": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-22-signal-engine",
+      "sha": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-23-behavior-ml",
+      "sha": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "target_only_commits": 45,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-24-behavior-persistence",
+      "sha": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-25-biosignature",
+      "sha": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-26-reproduction-intelligence",
+      "sha": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "target_only_commits": 44,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-27-health-anomaly",
+      "sha": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-28-movement-rf-context",
+      "sha": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/codex/issue-5-spi-timeout-followup",
+      "sha": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "target_only_commits": 81,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "target_only_commits": 81,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "target_only_commits": 81,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "target_only_commits": 66,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "target_only_commits": 66,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/integration/core-product-mvp",
+      "sha": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "target_only_commits": 58,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/integration/embedded-physical-digital-mvp",
+      "sha": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "target_only_commits": 58,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/integration/integrated-beta-final",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "target_only_commits": 0,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/integration/intelligence-research-mvp",
+      "sha": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "target_only_commits": 58,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED_OR_ALREADY_REPRESENTED"
+    },
+    {
+      "ref": "refs/heads/integration/pre-blockchain-baseline",
+      "sha": "3c1121efc1c50c2b1430b89e484e273c7fa0aa7c",
+      "target_only_commits": 0,
+      "ref_only_commits": 4,
+      "target_is_ancestor": false,
+      "classification": "CURRENT_INTEGRATION_CANDIDATE"
+    },
+    {
+      "ref": "refs/heads/integration/riose-candidate",
+      "sha": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "target_only_commits": 54,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/integration/riose-promotion-bridge",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "target_only_commits": 18,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/main",
+      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "target_only_commits": 71,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/blockchain-publication",
+      "sha": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "target_only_commits": 17,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/firmware-digital-twin",
+      "sha": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "target_only_commits": 16,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/intelligence-behavior",
+      "sha": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "target_only_commits": 17,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/persistence-reliability",
+      "sha": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "target_only_commits": 16,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/simulation-localization",
+      "sha": "d11d8838f41dbd36da2020365b914a86e2262b76",
+      "target_only_commits": 16,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp1-core-migration",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "target_only_commits": 0,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/recovery/mini-mvp-firmware-digital-twin-pre-reconcile",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "target_only_commits": 18,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/recovery/mini-mvp-simulation-localization-pre-reconcile",
+      "sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "target_only_commits": 17,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/recovery/multichain-mvp1-pre-migration",
+      "sha": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
+      "target_only_commits": 66,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "USER_STATE_PRESERVED_RECOVERY_REF"
+    },
+    {
+      "ref": "refs/heads/research/blockchain-hackathon-demo",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "target_only_commits": 66,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "BLOCKCHAIN_OUT_OF_SCOPE"
+    },
+    {
+      "ref": "refs/heads/research/movement-intelligence-e2e",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "target_only_commits": 41,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/research/network-contention-capacity-closure",
+      "sha": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "target_only_commits": 66,
+      "ref_only_commits": 19,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_SELECTIVELY_INTEGRATED"
+    },
+    {
+      "ref": "refs/heads/research/network-scale-capacity",
+      "sha": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "target_only_commits": 66,
+      "ref_only_commits": 15,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED"
+    },
+    {
+      "ref": "refs/heads/research/repository-audit",
+      "sha": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "target_only_commits": 66,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "REVIEWED_NO_READY_DELTA_IDENTIFIED"
+    },
+    {
+      "ref": "refs/heads/research/rf-realism-campaign",
+      "sha": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "target_only_commits": 66,
+      "ref_only_commits": 17,
+      "target_is_ancestor": false,
+      "classification": "SUPERSEDED"
+    },
+    {
+      "ref": "refs/heads/research/rf-realism-gap-closure",
+      "sha": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "target_only_commits": 66,
+      "ref_only_commits": 21,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_SELECTIVELY_INTEGRATED"
+    },
+    {
+      "ref": "refs/heads/research/riose-beta-final",
+      "sha": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "target_only_commits": 41,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "PARTIALLY_USEFUL_SELECTIVELY_INTEGRATED"
+    },
+    {
+      "ref": "refs/heads/research/simulation-lab",
+      "sha": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "target_only_commits": 66,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "REVIEWED_NO_READY_DELTA_IDENTIFIED"
+    },
+    {
+      "ref": "refs/heads/research/tag-simulation-closure",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "target_only_commits": 41,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/heads/riose/hackaton",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "target_only_commits": 81,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/HEAD",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "target_only_commits": 0,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/archive/pre-promotion-main-2026-10-06",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "target_only_commits": 41,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/autonomous-recovery-protocol",
+      "sha": "4afb0bc246e23b42875a68335baee3b594e1cb3f",
+      "target_only_commits": 101,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/battery-fit-correction",
+      "sha": "a5650ccbb4cb1dfa67be223ecc9f2b650f368365",
+      "target_only_commits": 102,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "target_only_commits": 75,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-03-firmware-trace",
+      "sha": "9de73f99ef7602ccc06c1a37aa393c614379d946",
+      "target_only_commits": 98,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-04-renode-platform",
+      "sha": "44b40b6c7c7b570d7f281f3a2c6d09d9bf405e0e",
+      "target_only_commits": 90,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-05-sleep-standby",
+      "sha": "86547d43bf60f6f88745bc9fc122365c111221c9",
+      "target_only_commits": 98,
+      "ref_only_commits": 4,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-05-sx1262-model",
+      "sha": "0052981d2e11e2c4ae89cedf02c26890368bb728",
+      "target_only_commits": 101,
+      "ref_only_commits": 4,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-06-lis2dw12",
+      "sha": "84e66fa4fa497f3a9f3b478f10dfa8eb0ac7011e",
+      "target_only_commits": 95,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-07-adversarial-runs",
+      "sha": "fe645ee0eb7c075096497ea0738baeb5c49ea1fd",
+      "target_only_commits": 99,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-07-followup",
+      "sha": "be156e2c47eec2082596b439d78605aa9e61fe08",
+      "target_only_commits": 95,
+      "ref_only_commits": 6,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-08-trace-ngspice",
+      "sha": "454d19e4108526c4397100cdf40efd4eacc620cc",
+      "target_only_commits": 98,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-09-parametric-cad",
+      "sha": "b9b561ee3f8c4f6bf0c4f47462a8f475fc754713",
+      "target_only_commits": 95,
+      "ref_only_commits": 6,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "target_only_commits": 66,
+      "ref_only_commits": 4,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-10-antenna-followup",
+      "sha": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "target_only_commits": 81,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-11-sionna-rt",
+      "sha": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "target_only_commits": 95,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-12-integration-followup",
+      "sha": "133bc4f9a6ebe5b6bf674eff66c83b7c977da7e4",
+      "target_only_commits": 77,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-21-dataset-foundation",
+      "sha": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-22-signal-engine",
+      "sha": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-23-behavior-ml",
+      "sha": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "target_only_commits": 45,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-24-behavior-persistence",
+      "sha": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-25-biosignature",
+      "sha": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-26-reproduction-intelligence",
+      "sha": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "target_only_commits": 44,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-27-health-anomaly",
+      "sha": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "target_only_commits": 59,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-28-movement-rf-context",
+      "sha": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-5-spi-timeout-followup",
+      "sha": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "target_only_commits": 81,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "target_only_commits": 81,
+      "ref_only_commits": 3,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "target_only_commits": 81,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/mvp2-wsl-toolchain",
+      "sha": "0ae041b4ed813e13ab329546165cdbffba458099",
+      "target_only_commits": 104,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "target_only_commits": 66,
+      "ref_only_commits": 12,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "target_only_commits": 66,
+      "ref_only_commits": 2,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/product-architecture-flows",
+      "sha": "2e90c4d7034776e08dc7baf47bf1dd4ff439eedd",
+      "target_only_commits": 103,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/fork/main",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "target_only_commits": 0,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/fork/recovery/rollback-main-pre-integrated-beta-2026-10-06",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "target_only_commits": 18,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/origin/HEAD",
+      "sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issue-4-privacy-guard",
+      "sha": "c5c5219bdfd5c57bbeccb47000236e535251a005",
+      "target_only_commits": 67,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issues-02-03-evidence-commitment",
+      "sha": "04e00701dc54127703d146621177d9e226d134fc",
+      "target_only_commits": 61,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issues-10-16-publication-followups",
+      "sha": "40d3a1f48a5b7d1c1def23b647050a6abc7098c6",
+      "target_only_commits": 63,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp2-wsl-toolchain",
+      "sha": "bc315ff52a77ef5fd82d7a4b76f9ff6d62cf1b56",
+      "target_only_commits": 104,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp3-visual-digital-twin",
+      "sha": "64a873cc53e5fb4c167e2d717e4436afcbf5392a",
+      "target_only_commits": 59,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp3-visual-production-pass",
+      "sha": "ee3b61dbbd7973ddc952a49b63b142db6b52de92",
+      "target_only_commits": 60,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/product-architecture-flows",
+      "sha": "2e90c4d7034776e08dc7baf47bf1dd4ff439eedd",
+      "target_only_commits": 103,
+      "ref_only_commits": 1,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/riose-site-main",
+      "sha": "999e27f8773acb869b34a4840f7151d49ff11206",
+      "target_only_commits": 76,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/riose-site-polish",
+      "sha": "387055b50d0e235aa73cd72f78de690e0b4a4d7b",
+      "target_only_commits": 95,
+      "ref_only_commits": 5,
+      "target_is_ancestor": false,
+      "classification": "CACHED_REMOTE_TRACKING_REF_REQUIRES_FETCH"
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+      "target_only_commits": 58,
+      "ref_only_commits": 0,
+      "target_is_ancestor": true,
+      "classification": "ALREADY_IN_MAIN"
+    }
+  ],
+  "worktrees": [
+    {
+      "head": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
+      "branch": "codex/issue-10-antenna-convergence",
+      "directory": "riose"
+    },
+    {
+      "head": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "branch": "integration/embedded-physical-digital-mvp",
+      "prunable": true,
+      "directory": "riose-embedded-physical-digital-mvp"
+    },
+    {
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "detached": true,
+      "prunable": true,
+      "directory": "riose-integrated-beta-clean-check"
+    },
+    {
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "branch": "integration/integrated-beta-final",
+      "prunable": true,
+      "directory": "riose-integrated-beta-final"
+    },
+    {
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "branch": "research/movement-intelligence-e2e",
+      "prunable": true,
+      "directory": "riose-movement-intelligence-e2e"
+    },
+    {
+      "head": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "branch": "research/riose-beta-final",
+      "directory": "riose-beta-final"
+    },
+    {
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "branch": "research/blockchain-hackathon-demo",
+      "directory": "riose-blockchain-hackathon-demo"
+    },
+    {
+      "head": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "branch": "integration/core-product-mvp",
+      "directory": "riose-core-product-mvp"
+    },
+    {
+      "head": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "branch": "audit/final-integration-authority",
+      "directory": "riose-final-integration-audit"
+    },
+    {
+      "head": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "branch": "integration/riose-candidate",
+      "directory": "riose-integration-candidate"
+    },
+    {
+      "head": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "branch": "integration/intelligence-research-mvp",
+      "directory": "riose-intelligence-research-mvp"
+    },
+    {
+      "head": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "branch": "codex/issue-22-signal-engine",
+      "directory": "riose-issue22"
+    },
+    {
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "branch": "codex/pr44-publication",
+      "directory": ".local-pr44-publication"
+    },
+    {
+      "head": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "branch": "codex/pr44-signal-engine",
+      "directory": ".local-pr44-signal"
+    },
+    {
+      "head": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "branch": "codex/issue-23-behavior-ml",
+      "directory": "riose-issue23"
+    },
+    {
+      "head": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "branch": "codex/issue-25-biosignature",
+      "directory": "riose-issue25"
+    },
+    {
+      "head": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "branch": "codex/issue-26-reproduction-intelligence",
+      "directory": "riose-issue26-live"
+    },
+    {
+      "head": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "branch": "codex/issue-27-health-anomaly",
+      "directory": "riose-issue27"
+    },
+    {
+      "head": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "branch": "codex/issue-28-movement-rf-context",
+      "directory": "riose-issue28"
+    },
+    {
+      "head": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "branch": "mini-mvp/blockchain-publication",
+      "directory": "riose-mini-mvp-blockchain-publication"
+    },
+    {
+      "head": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "branch": "mini-mvp/firmware-digital-twin",
+      "directory": "riose-mini-mvp-firmware-digital-twin"
+    },
+    {
+      "head": "d11d8838f41dbd36da2020365b914a86e2262b76",
+      "branch": "mini-mvp/simulation-localization",
+      "directory": "riose-mini-mvp-simulation-localization"
+    },
+    {
+      "head": "a6d3b49397344a60cdd1618d8f94e7e0ba95a2f8",
+      "detached": true,
+      "directory": "riose-mini-mvp4-clean"
+    },
+    {
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "detached": true,
+      "directory": "riose-mini-mvp4-commit-check"
+    },
+    {
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "branch": "mini-mvp/intelligence-behavior",
+      "directory": "riose-mini-mvp4-intelligence"
+    },
+    {
+      "head": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "branch": "mini-mvp/persistence-reliability",
+      "directory": "riose-mini-mvp5-persistence-reliability"
+    },
+    {
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "branch": "multichain/mvp1-core-migration",
+      "directory": "riose-multichain-mvp1"
+    },
+    {
+      "head": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "branch": "research/network-contention-capacity-closure",
+      "directory": "riose-network-contention-capacity-closure"
+    },
+    {
+      "head": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "branch": "research/network-scale-capacity",
+      "directory": "riose-network-scale-capacity"
+    },
+    {
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "detached": true,
+      "directory": "riose-post-promotion-remote-clean"
+    },
+    {
+      "head": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "branch": "codex/issue-10-antenna-followup",
+      "directory": "riose-pr-issue-10"
+    },
+    {
+      "head": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "branch": "codex/issue-12-integration-followup",
+      "directory": "riose-pr-issue-12"
+    },
+    {
+      "head": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "branch": "codex/issue-5-spi-timeout-followup",
+      "directory": "riose-pr-issue-5"
+    },
+    {
+      "head": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "branch": "codex/issue-6-resd-propagation-followup",
+      "directory": "riose-pr-issue-6"
+    },
+    {
+      "head": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "branch": "codex/issue-8-temperature-axis-followup",
+      "directory": "riose-pr-issue-8"
+    },
+    {
+      "head": "3c1121efc1c50c2b1430b89e484e273c7fa0aa7c",
+      "branch": "integration/pre-blockchain-baseline",
+      "directory": "riose-pre-blockchain-baseline"
+    },
+    {
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "branch": "integration/riose-promotion-bridge",
+      "directory": "riose-promotion-bridge"
+    },
+    {
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "detached": true,
+      "directory": "riose-promotion-bridge-clean"
+    },
+    {
+      "head": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "branch": "research/repository-audit",
+      "directory": "riose-repository-audit"
+    },
+    {
+      "head": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "branch": "research/rf-realism-campaign",
+      "directory": "riose-rf-realism-campaign"
+    },
+    {
+      "head": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "branch": "research/rf-realism-gap-closure",
+      "directory": "riose-rf-realism-gap-closure"
+    },
+    {
+      "head": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "branch": "research/simulation-lab",
+      "directory": "riose-simulation-lab"
+    },
+    {
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "branch": "research/tag-simulation-closure",
+      "directory": "riose-tag-simulation-closure"
+    },
+    {
+      "head": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+      "detached": true,
+      "directory": "riose-upstream-baseline-audit"
+    },
+    {
+      "head": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "branch": "codex/issue-01-event-contract-v1",
+      "directory": "riose-wt-issue-01"
+    },
+    {
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "branch": "codex/issue-02-evidence-bridge",
+      "directory": "riose-wt-issue-02"
+    },
+    {
+      "head": "9de73f99ef7602ccc06c1a37aa393c614379d946",
+      "detached": true,
+      "directory": "riose-wt-issue-03"
+    },
+    {
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "branch": "codex/issue-03-commitment-v1",
+      "directory": "riose-wt-issue-03-commitment-v1"
+    },
+    {
+      "head": "db00cca2d7248dd0adfc965d9aa2652e14f235ce",
+      "detached": true,
+      "directory": "riose-wt-issue-04"
+    },
+    {
+      "head": "ad6823d1788c1c0f0d457f04a702a4fcccbddd8e",
+      "detached": true,
+      "directory": "riose-wt-issue-05"
+    },
+    {
+      "head": "84e66fa4fa497f3a9f3b478f10dfa8eb0ac7011e",
+      "detached": true,
+      "directory": "riose-wt-issue-06"
+    },
+    {
+      "head": "be156e2c47eec2082596b439d78605aa9e61fe08",
+      "detached": true,
+      "directory": "riose-wt-issue-07"
+    },
+    {
+      "head": "8f06ff72c79c02bfefacb2eebc76b1976f308016",
+      "detached": true,
+      "directory": "riose-wt-issue-08"
+    },
+    {
+      "head": "e50f8609e822c72f8325c5ef547c51eb65c887c4",
+      "detached": true,
+      "directory": "riose-wt-issue-09"
+    },
+    {
+      "head": "a9d12c2769ec90f9466d9fb81a1b0d4bd4541a32",
+      "detached": true,
+      "directory": "riose-wt-issue-10"
+    },
+    {
+      "head": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "detached": true,
+      "directory": "riose-wt-issue-11"
+    },
+    {
+      "head": "e25b6417a0c98a632ed9a8dc05451f151df930bc",
+      "detached": true,
+      "directory": "riose-wt-issue-12"
+    },
+    {
+      "head": "b5b005ce0a7b9e3ea7c59e6162f79ba57f0be794",
+      "detached": true,
+      "directory": "riose-wt-issue-13"
+    },
+    {
+      "head": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "branch": "codex/issue-21-dataset-foundation",
+      "directory": "riose-wt-issue-21"
+    },
+    {
+      "head": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "branch": "codex/issue-24-behavior-persistence",
+      "directory": "riose-wt-issue-24"
+    },
+    {
+      "head": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "branch": "codex/issue-10-antenna-convergence-upstream",
+      "directory": "riose-wt-issue10-upstream"
+    },
+    {
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "detached": true,
+      "prunable": true,
+      "directory": "riose-beta-dynamic-replay"
+    },
+    {
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "detached": true,
+      "prunable": true,
+      "directory": "riose-beta-dynamic-replay-clean"
+    },
+    {
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "detached": true,
+      "prunable": true,
+      "directory": "riose-mini-mvp-clean"
+    },
+    {
+      "head": "3c694b25132f0ae65c57b88ce37939e854ddbb07",
+      "detached": true,
+      "directory": "riose-mini-mvp-clean-final"
+    },
+    {
+      "head": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "detached": true,
+      "prunable": true,
+      "directory": "riose-mini-mvp-clean-repro"
+    }
+  ]
+}

@@ -1,0 +1,565 @@
+{
+  "antenna_orientation": "NOT_MEANINGFULLY_TESTABLE_WITH_CURRENT_ISOTROPIC_MODEL",
+  "baseline": {
+    "campaign_branch_head": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+    "campaign_spec_recorded_riose_sha": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+    "campaign_spec_vs_execution_note": "Preserve the spec and final summary values with context; do not rewrite historical campaign artifacts.",
+    "full_original_campaign_rerun": false,
+    "minimal_analytic_and_sionna_controls_reproduced": true,
+    "original_campaign_branch": "research/rf-realism-campaign",
+    "original_campaign_execution_sha": "f231ffc783f7881d63675faa782efbbb605eb778",
+    "original_raw_sha256": "a99a6500a34ed40ce51c16f0abea70bc680e2ae3c22e869917b54d69492b7296",
+    "original_raw_sha256_verified": true
+  },
+  "classification": "SIMULATED",
+  "followup": {
+    "branch": "research/rf-realism-gap-closure",
+    "commit": "0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc",
+    "frequencia_dirty": false,
+    "frequencia_revision": "ba2bdabf003722aae8292580e048f7092d0356d6",
+    "radio": {
+      "bandwidth_hz": 125000,
+      "frequency_hz": 915000000,
+      "tx_power_dbm": 14.0
+    },
+    "riose_dirty_at_run": false,
+    "riose_revision_at_run": "0b3b1f3d69a0eb4684c2e7e81c39492ec8a471dc",
+    "seed": 20261005,
+    "sionna_rt_version": "2.2.0",
+    "working_tree_clean_at_run": true
+  },
+  "geometry_sha256": {
+    "gap_wall_only.ply": "d918a647cf5d5a3e2914a8a15c5b580ba21bff9c87b40be44c70eaff1908255e",
+    "gap_wall_reflector_y250.ply": "9d012222bc2a3e57ba18cadfbb243ced533d7fe2d9c586d12f0065e86ddc4842",
+    "gap_wall_reflector_y300.ply": "81e25a1186c577d8a53782a0eecf75a7ef6213be11ce1031908bc4301434ec2e",
+    "gap_wall_reflector_y350.ply": "2b19a60c1949aacab2fee4c5be2cd2c2a2416b6ad8d37ecf640be9b53dce37c0"
+  },
+  "model_comparison": {
+    "interpretation": "MODEL_DISAGREEMENT only; the analytic model ignores obstacles and neither backend is treated as ground truth.",
+    "paired_cases": 3,
+    "sionna_minus_analytic_db": {
+      "max": 3.09066554383233,
+      "mean": -3.5949119565249106,
+      "min": -7.49538401715327,
+      "p10": -7.272310692973375,
+      "p50": -6.380017396253791,
+      "p90": 1.196528955815106,
+      "p95": 2.143597249823717
+    }
+  },
+  "raw_artifact": {
+    "analytic_records": 5,
+    "computed_sha256": "988b7a569a2efd7b60238f480ba338ac0fb9fa3d2bb6ee773eccea5c9e0727c2",
+    "geometric_nlos_received_records": 4,
+    "los_received_records": 3,
+    "no_path_records": 8,
+    "path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-raw-runs.jsonl",
+    "records": 20,
+    "sha256": "988b7a569a2efd7b60238f480ba338ac0fb9fa3d2bb6ee773eccea5c9e0727c2",
+    "simulation_failures": 0,
+    "sionna_receiver_records": 15,
+    "sionna_snapshots": 5,
+    "summary_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/gap-closure-summary.json",
+    "summary_sha256": "cb97e2a50872df4062224cea5406f6627712b7155a2858a7601e1ff754c120ad"
+  },
+  "red_team": {
+    "critical": 0,
+    "major": 0,
+    "minor": 1,
+    "minor_resolved": 1,
+    "resolution": "Path length is not emitted directly by Sionna; delay is retained and path length in this manifest is explicitly derived from that delay."
+  },
+  "scenarios": [
+    {
+      "classification": "SIMULATED",
+      "delay_s": 2.0013844732602593e-06,
+      "direct_path_blocked": false,
+      "effective": {
+        "ground_material": "custom_medium_dry_ground_915mhz_endpoint",
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "obstacle_material": null,
+        "obstacle_mesh": null,
+        "samples_per_src": 200,
+        "seed": 20261005,
+        "specular_reflection": true
+      },
+      "geometry": {
+        "blocker": "ABSENT_IN_CLEAR_CONTROL",
+        "obstacle_mesh_sha256": null,
+        "reflector": null,
+        "reflector_y_m": null
+      },
+      "path_count": 2,
+      "path_evidence": [
+        {
+          "a": {
+            "imag": 0.0,
+            "real": 4.3454878323245794e-05
+          },
+          "delay_s": 2.0013844732602593e-06,
+          "interactions": [],
+          "path_index": 0,
+          "path_power_dbm": -73.2392292358867,
+          "path_power_w": 4.7432615882369426e-11
+        },
+        {
+          "a": {
+            "imag": -6.083887001295807e-06,
+            "real": -3.92671390727628e-05
+          },
+          "delay_s": 2.002095925490721e-06,
+          "interactions": [
+            {
+              "code": 1,
+              "object_id": 1,
+              "type": "specular",
+              "vertex_m": [
+                499.9439697265625,
+                500.0,
+                0.0
+              ]
+            }
+          ],
+          "path_index": 1,
+          "path_power_dbm": -74.01639353658953,
+          "path_power_w": 3.9660724769388624e-11
+        }
+      ],
+      "path_length_derived_from_delay_m": 599.9999706417284,
+      "received_power_dbm": -68.30123490771102,
+      "requested": {
+        "geometry": {
+          "blocker": "ABSENT_IN_CLEAR_CONTROL",
+          "obstacle_mesh_path": null,
+          "obstacle_mesh_sha256": null,
+          "reflector_y_m": null,
+          "rx_position_m": [
+            800.0,
+            500.0,
+            8.0
+          ],
+          "tx_position_m": [
+            200.0,
+            500.0,
+            8.0
+          ]
+        },
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "samples_per_src": 200,
+        "specular_reflection": true
+      },
+      "rx_position_m": [
+        800.0,
+        500.0,
+        8.0
+      ],
+      "scenario_id": "gap_los_control",
+      "state": "LOS_RECEIVED",
+      "tx_position_m": [
+        200.0,
+        500.0,
+        8.0
+      ],
+      "verified_indirect_path": false
+    },
+    {
+      "classification": "SIMULATED",
+      "delay_s": null,
+      "direct_path_blocked": true,
+      "effective": {
+        "ground_material": "custom_medium_dry_ground_915mhz_endpoint",
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "obstacle_material": "custom_concrete_915mhz",
+        "obstacle_mesh": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_only.ply",
+        "samples_per_src": 200,
+        "seed": 20261005,
+        "specular_reflection": true
+      },
+      "geometry": {
+        "blocker": {
+          "type": "vertical_plane",
+          "x_m": 500.0,
+          "y_bounds_m": [
+            400.0,
+            600.0
+          ],
+          "z_bounds_m": [
+            0.0,
+            20.0
+          ]
+        },
+        "obstacle_mesh_sha256": "d918a647cf5d5a3e2914a8a15c5b580ba21bff9c87b40be44c70eaff1908255e",
+        "reflector": "ABSENT_IN_WALL_ONLY_CONTROL",
+        "reflector_y_m": null
+      },
+      "path_count": 0,
+      "path_evidence": [],
+      "path_length_derived_from_delay_m": null,
+      "received_power_dbm": null,
+      "requested": {
+        "geometry": {
+          "blocker": {
+            "type": "vertical_plane",
+            "x_m": 500.0,
+            "y_bounds_m": [
+              400.0,
+              600.0
+            ],
+            "z_bounds_m": [
+              0.0,
+              20.0
+            ]
+          },
+          "obstacle_mesh_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_only.ply",
+          "obstacle_mesh_sha256": "d918a647cf5d5a3e2914a8a15c5b580ba21bff9c87b40be44c70eaff1908255e",
+          "reflector_y_m": null,
+          "rx_position_m": [
+            800.0,
+            500.0,
+            8.0
+          ],
+          "tx_position_m": [
+            200.0,
+            500.0,
+            8.0
+          ]
+        },
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "samples_per_src": 200,
+        "specular_reflection": true
+      },
+      "rx_position_m": [
+        800.0,
+        500.0,
+        8.0
+      ],
+      "scenario_id": "gap_wall_no_path_control",
+      "state": "NO_PATH",
+      "tx_position_m": [
+        200.0,
+        500.0,
+        8.0
+      ],
+      "verified_indirect_path": false
+    },
+    {
+      "classification": "SIMULATED",
+      "delay_s": 2.6052186967717716e-06,
+      "direct_path_blocked": true,
+      "effective": {
+        "ground_material": "custom_medium_dry_ground_915mhz_endpoint",
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "obstacle_material": "custom_concrete_915mhz",
+        "obstacle_mesh": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y250.ply",
+        "samples_per_src": 200,
+        "seed": 20261005,
+        "specular_reflection": true
+      },
+      "geometry": {
+        "blocker": {
+          "type": "vertical_plane",
+          "x_m": 500.0,
+          "y_bounds_m": [
+            400.0,
+            600.0
+          ],
+          "z_bounds_m": [
+            0.0,
+            20.0
+          ]
+        },
+        "obstacle_mesh_sha256": "9d012222bc2a3e57ba18cadfbb243ced533d7fe2d9c586d12f0065e86ddc4842",
+        "reflector": "separate finite vertical plane; synthetic concrete proxy",
+        "reflector_y_m": 250.0
+      },
+      "path_count": 1,
+      "path_evidence": [
+        {
+          "a": {
+            "imag": -4.605850335792638e-06,
+            "real": -2.220701026089955e-05
+          },
+          "delay_s": 2.6052186967717716e-06,
+          "interactions": [
+            {
+              "code": 1,
+              "object_id": 5,
+              "type": "specular",
+              "vertex_m": [
+                499.9992980957031,
+                250.0,
+                8.0
+              ]
+            }
+          ],
+          "path_index": 0,
+          "path_power_dbm": -78.88728453856515,
+          "path_power_w": 1.2920268713780906e-11
+        }
+      ],
+      "path_length_derived_from_delay_m": 781.0249167327661,
+      "received_power_dbm": -78.88728446869662,
+      "requested": {
+        "geometry": {
+          "blocker": {
+            "type": "vertical_plane",
+            "x_m": 500.0,
+            "y_bounds_m": [
+              400.0,
+              600.0
+            ],
+            "z_bounds_m": [
+              0.0,
+              20.0
+            ]
+          },
+          "obstacle_mesh_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y250.ply",
+          "obstacle_mesh_sha256": "9d012222bc2a3e57ba18cadfbb243ced533d7fe2d9c586d12f0065e86ddc4842",
+          "reflector_y_m": 250.0,
+          "rx_position_m": [
+            800.0,
+            500.0,
+            8.0
+          ],
+          "tx_position_m": [
+            200.0,
+            500.0,
+            8.0
+          ]
+        },
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "samples_per_src": 200,
+        "specular_reflection": true
+      },
+      "rx_position_m": [
+        800.0,
+        500.0,
+        8.0
+      ],
+      "scenario_id": "gap_wall_reflector_y250",
+      "state": "GEOMETRIC_NLOS_WITH_RECEIVED_PATH",
+      "tx_position_m": [
+        200.0,
+        500.0,
+        8.0
+      ],
+      "verified_indirect_path": true
+    },
+    {
+      "classification": "SIMULATED",
+      "delay_s": 2.4053647393884603e-06,
+      "direct_path_blocked": true,
+      "effective": {
+        "ground_material": "custom_medium_dry_ground_915mhz_endpoint",
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "obstacle_material": "custom_concrete_915mhz",
+        "obstacle_mesh": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y300.ply",
+        "samples_per_src": 200,
+        "seed": 20261005,
+        "specular_reflection": true
+      },
+      "geometry": {
+        "blocker": {
+          "type": "vertical_plane",
+          "x_m": 500.0,
+          "y_bounds_m": [
+            400.0,
+            600.0
+          ],
+          "z_bounds_m": [
+            0.0,
+            20.0
+          ]
+        },
+        "obstacle_mesh_sha256": "81e25a1186c577d8a53782a0eecf75a7ef6213be11ce1031908bc4301434ec2e",
+        "reflector": "separate finite vertical plane; synthetic concrete proxy",
+        "reflector_y_m": 300.0
+      },
+      "path_count": 1,
+      "path_evidence": [
+        {
+          "a": {
+            "imag": -5.278891876514535e-06,
+            "real": -2.5241091861971654e-05
+          },
+          "delay_s": 2.4053647393884603e-06,
+          "interactions": [
+            {
+              "code": 1,
+              "object_id": 7,
+              "type": "specular",
+              "vertex_m": [
+                499.9991455078125,
+                300.0,
+                7.999999523162842
+              ]
+            }
+          ],
+          "path_index": 0,
+          "path_power_dbm": -77.77191796594451,
+          "path_power_w": 1.670352776876355e-11
+        }
+      ],
+      "path_length_derived_from_delay_m": 721.1102076077959,
+      "received_power_dbm": -77.77191784779714,
+      "requested": {
+        "geometry": {
+          "blocker": {
+            "type": "vertical_plane",
+            "x_m": 500.0,
+            "y_bounds_m": [
+              400.0,
+              600.0
+            ],
+            "z_bounds_m": [
+              0.0,
+              20.0
+            ]
+          },
+          "obstacle_mesh_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y300.ply",
+          "obstacle_mesh_sha256": "81e25a1186c577d8a53782a0eecf75a7ef6213be11ce1031908bc4301434ec2e",
+          "reflector_y_m": 300.0,
+          "rx_position_m": [
+            800.0,
+            500.0,
+            8.0
+          ],
+          "tx_position_m": [
+            200.0,
+            500.0,
+            8.0
+          ]
+        },
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "samples_per_src": 200,
+        "specular_reflection": true
+      },
+      "rx_position_m": [
+        800.0,
+        500.0,
+        8.0
+      ],
+      "scenario_id": "gap_wall_reflector_y300",
+      "state": "GEOMETRIC_NLOS_WITH_RECEIVED_PATH",
+      "tx_position_m": [
+        200.0,
+        500.0,
+        8.0
+      ],
+      "verified_indirect_path": true
+    },
+    {
+      "classification": "SIMULATED",
+      "delay_s": null,
+      "direct_path_blocked": true,
+      "effective": {
+        "ground_material": "custom_medium_dry_ground_915mhz_endpoint",
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "obstacle_material": "custom_concrete_915mhz",
+        "obstacle_mesh": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y350.ply",
+        "samples_per_src": 200,
+        "seed": 20261005,
+        "specular_reflection": true
+      },
+      "geometry": {
+        "blocker": {
+          "type": "vertical_plane",
+          "x_m": 500.0,
+          "y_bounds_m": [
+            400.0,
+            600.0
+          ],
+          "z_bounds_m": [
+            0.0,
+            20.0
+          ]
+        },
+        "obstacle_mesh_sha256": "2b19a60c1949aacab2fee4c5be2cd2c2a2416b6ad8d37ecf640be9b53dce37c0",
+        "reflector": "separate finite vertical plane; synthetic concrete proxy",
+        "reflector_y_m": 350.0
+      },
+      "path_count": 0,
+      "path_evidence": [],
+      "path_length_derived_from_delay_m": null,
+      "received_power_dbm": null,
+      "requested": {
+        "geometry": {
+          "blocker": {
+            "type": "vertical_plane",
+            "x_m": 500.0,
+            "y_bounds_m": [
+              400.0,
+              600.0
+            ],
+            "z_bounds_m": [
+              0.0,
+              20.0
+            ]
+          },
+          "obstacle_mesh_path": "/home/gusta/.cache/RIOSE/rf_realism_gap_closure/formal/geometry/gap_wall_reflector_y350.ply",
+          "obstacle_mesh_sha256": "2b19a60c1949aacab2fee4c5be2cd2c2a2416b6ad8d37ecf640be9b53dce37c0",
+          "reflector_y_m": 350.0,
+          "rx_position_m": [
+            800.0,
+            500.0,
+            8.0
+          ],
+          "tx_position_m": [
+            200.0,
+            500.0,
+            8.0
+          ]
+        },
+        "los": true,
+        "max_depth": 1,
+        "max_num_paths_per_src": 200,
+        "samples_per_src": 200,
+        "specular_reflection": true
+      },
+      "rx_position_m": [
+        800.0,
+        500.0,
+        8.0
+      ],
+      "scenario_id": "gap_wall_reflector_y350",
+      "state": "NO_PATH",
+      "tx_position_m": [
+        200.0,
+        500.0,
+        8.0
+      ],
+      "verified_indirect_path": false
+    }
+  ],
+  "schema_version": "riose.rf-realism-gap-closure-evidence/v1",
+  "source_hashes": {
+    "analytic_source_sha256": "158158af3fb50d50d9ed4c86a43acc26fcb49bb730b97d158651267c8bee7f5e",
+    "campaign_script_sha256": "0a3bd62de299b9982d44295a1474b4f566b9ff9fb636056510e84392634041b3",
+    "flat_ground_sha256": "73a371209e59658ac83e0c40749511fbb42788ce9d455e718f86398f708d15f4",
+    "sionna_source_sha256": "2f2b352fe2f40d73cf2ee810b8aa1c730975f272bcb18edde112a7780891726d"
+  },
+  "vegetation": {
+    "capability": "NOT_SUPPORTED_DEFENSIBLY",
+    "claim": "Trees/pastures are not ray-traced with a foliage propagation model. A mesh using the concrete proxy would only be VEGETATION_PROXY_SIMULATED.",
+    "status": "MODEL_LIMITATION"
+  },
+  "verdict": "PASS_SIMULATED"
+}

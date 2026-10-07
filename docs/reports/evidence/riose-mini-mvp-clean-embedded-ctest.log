@@ -1,0 +1,84 @@
+Internal ctest changing into directory: /tmp/riose-mini-mvp-clean-hardware-tests-debug
+Test project /tmp/riose-mini-mvp-clean-hardware-tests-debug
+      Start  1: hardware_integration
+ 1/39 Test  #1: hardware_integration .........................   Passed    0.00 sec
+      Start  2: lis2dw12_scale
+ 2/39 Test  #2: lis2dw12_scale ...............................   Passed    0.00 sec
+      Start  3: digital_fault_crc_corruption
+ 3/39 Test  #3: digital_fault_crc_corruption .................   Passed    0.00 sec
+      Start  4: digital_fault_sx1262_busy_stuck
+ 4/39 Test  #4: digital_fault_sx1262_busy_stuck ..............   Passed    0.00 sec
+      Start  5: digital_fault_irq_missing
+ 5/39 Test  #5: digital_fault_irq_missing ....................   Passed    0.00 sec
+      Start  6: digital_reset_cause_reporting
+ 6/39 Test  #6: digital_reset_cause_reporting ................   Passed    0.00 sec
+      Start  7: firmware_trace_export
+ 7/39 Test  #7: firmware_trace_export ........................   Passed    0.00 sec
+      Start  8: firmware_trace_normal
+ 8/39 Test  #8: firmware_trace_normal ........................   Passed    0.00 sec
+      Start  9: firmware_trace_active
+ 9/39 Test  #9: firmware_trace_active ........................   Passed    0.00 sec
+      Start 10: firmware_trace_alert
+10/39 Test #10: firmware_trace_alert .........................   Passed    0.00 sec
+      Start 11: firmware_trace_worst_reasonable_case
+11/39 Test #11: firmware_trace_worst_reasonable_case .........   Passed    0.00 sec
+      Start 12: firmware_trace_schema
+12/39 Test #12: firmware_trace_schema ........................   Passed    0.04 sec
+      Start 13: firmware_trace_determinism
+13/39 Test #13: firmware_trace_determinism ...................   Passed    0.04 sec
+      Start 14: virtual_normal_1d
+14/39 Test #14: virtual_normal_1d ............................   Passed    0.00 sec
+      Start 15: virtual_active_1d
+15/39 Test #15: virtual_active_1d ............................   Passed    0.00 sec
+      Start 16: virtual_alert_1d
+16/39 Test #16: virtual_alert_1d .............................   Passed    0.00 sec
+      Start 17: virtual_worst_reasonable_case_1d
+17/39 Test #17: virtual_worst_reasonable_case_1d .............   Passed    0.00 sec
+      Start 18: virtual_normal_7d
+18/39 Test #18: virtual_normal_7d ............................   Passed    0.00 sec
+      Start 19: virtual_active_7d
+19/39 Test #19: virtual_active_7d ............................   Passed    0.00 sec
+      Start 20: virtual_alert_7d
+20/39 Test #20: virtual_alert_7d .............................   Passed    0.00 sec
+      Start 21: virtual_worst_reasonable_case_7d
+21/39 Test #21: virtual_worst_reasonable_case_7d .............   Passed    0.00 sec
+      Start 22: virtual_normal_30d
+22/39 Test #22: virtual_normal_30d ...........................   Passed    0.01 sec
+      Start 23: virtual_active_30d
+23/39 Test #23: virtual_active_30d ...........................   Passed    0.03 sec
+      Start 24: virtual_alert_30d
+24/39 Test #24: virtual_alert_30d ............................   Passed    0.14 sec
+      Start 25: virtual_worst_reasonable_case_30d
+25/39 Test #25: virtual_worst_reasonable_case_30d ............   Passed    0.03 sec
+      Start 26: sx1262_driver_config
+26/39 Test #26: sx1262_driver_config .........................   Passed    0.00 sec
+      Start 27: tag_host_cycle
+27/39 Test #27: tag_host_cycle ...............................   Passed    0.00 sec
+      Start 28: tag_host_longrun_NORMAL
+28/39 Test #28: tag_host_longrun_NORMAL ......................   Passed    0.00 sec
+      Start 29: tag_host_longrun_ACTIVE
+29/39 Test #29: tag_host_longrun_ACTIVE ......................   Passed    0.00 sec
+      Start 30: tag_host_longrun_ALERT
+30/39 Test #30: tag_host_longrun_ALERT .......................   Passed    0.02 sec
+      Start 31: tag_host_longrun_WORST_REASONABLE_CASE
+31/39 Test #31: tag_host_longrun_WORST_REASONABLE_CASE .......   Passed    0.02 sec
+      Start 32: tag_host_counter_wrap
+32/39 Test #32: tag_host_counter_wrap ........................   Passed    0.00 sec
+      Start 33: tag_host_fault_spi_timeout
+33/39 Test #33: tag_host_fault_spi_timeout ...................   Passed    0.00 sec
+      Start 34: tag_host_fault_i2c_timeout
+34/39 Test #34: tag_host_fault_i2c_timeout ...................   Passed    0.00 sec
+      Start 35: tag_host_fault_irq_missing
+35/39 Test #35: tag_host_fault_irq_missing ...................   Passed    0.00 sec
+      Start 36: tag_host_synthetic_watchdog_classification
+36/39 Test #36: tag_host_synthetic_watchdog_classification ...   Passed    0.00 sec
+      Start 37: tag_host_synthetic_reset_classification
+37/39 Test #37: tag_host_synthetic_reset_classification ......   Passed    0.00 sec
+      Start 38: sx1262_model_smoke
+38/39 Test #38: sx1262_model_smoke ...........................   Passed    0.00 sec
+      Start 39: lis2dw12_model
+39/39 Test #39: lis2dw12_model ...............................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 39
+
+Total Test time (real) =   0.39 sec

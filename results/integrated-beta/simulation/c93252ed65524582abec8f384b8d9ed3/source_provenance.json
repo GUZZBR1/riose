@@ -1,0 +1,9 @@
+{
+  "repository": "RIOSE",
+  "branch": "integration/integrated-beta-final",
+  "source_revision": "ac9f97ba173b204bfa01ecf0de16116023e33d58",
+  "integration_base": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+  "source_worktree_clean_before_run": true,
+  "evidence_classification": "SIMULATED",
+  "note": "The simulation runner could not resolve Git metadata through this Windows-registered WSL worktree and left riose revision/dirty fields null in the engine manifest. This companion records the source revision observed before campaign execution; it does not alter the campaign output."
+}

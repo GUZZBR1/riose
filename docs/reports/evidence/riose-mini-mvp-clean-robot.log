@@ -1,0 +1,25 @@
+Preparing suites
+Will run the following 1 test files:
+  - /tmp/riose-mini-mvp-clean-final/hardware/renode/tests/gazebo-bridge.robot
+
+Starting suites
+Running suite on Renode pid 11833 using port 49152: /tmp/riose-mini-mvp-clean-final/hardware/renode/tests/gazebo-bridge.robot
++++++ Starting test 'gazebo-bridge.Firmware Reads Gazebo RESD Samples'
++++++ Finished test 'gazebo-bridge.Firmware Reads Gazebo RESD Samples' in 3.84 seconds with status [92mOK[0m
++++++ Starting test 'gazebo-bridge.Firmware Startup TX Payload Is Captured'
++++++ Finished test 'gazebo-bridge.Firmware Startup TX Payload Is Captured' in 0.53 seconds with status [92mOK[0m
++++++ Starting test 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples'
++++++ Finished test 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples' in 0.22 seconds with status [92mOK[0m
++++++ Starting test 'gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits'
+movement WU evidence: tx=0x00000002 completed=0x00000002 wake_events=0x00000001 source_reads=0x00000001 samples_read=0x00000003 behavior=3 imu_mg=(575,793,0) WU_SRC=15 WU_IRQ=False CRC=True final_state=SLEEP
++++++ Finished test 'gazebo-bridge.Firmware Wakes From Simulated Motion Comparator And Transmits' in 1.01 seconds with status [92mOK[0m
+Suite /tmp/riose-mini-mvp-clean-final/hardware/renode/tests/gazebo-bridge.robot finished successfully in 6.03 seconds.
++++++ Finished suite [95m1/1[0m
+Cleaning up suites
+Closing Renode pid 11833
+Renode pid 11833 closed
+Aggregating all robot results
+Output:  /tmp/riose-mini-mvp-clean-robot/robot_output.xml
+Log:     /tmp/riose-mini-mvp-clean-robot/log.html
+Report:  /tmp/riose-mini-mvp-clean-robot/report.html
+Tests finished successfully :)

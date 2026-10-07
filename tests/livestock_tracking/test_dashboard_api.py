@@ -1,8 +1,6 @@
 from fastapi.testclient import TestClient
-from contextlib import ExitStack
 import math
 import sqlite3
-import time
 
 import pytest
 from riose.products.livestock_tracking.adapters import api as livestock_api
@@ -17,79 +15,14 @@ from cattle_rf.api import (
 )
 
 
-def test_farm_stream_interval_tracks_simulation_sample_rate():
-    assert livestock_api.farm_stream_interval_seconds(30, 5) == 1.0
-    assert livestock_api.farm_stream_interval_seconds(2, 5) == 0.8
-    assert livestock_api.farm_stream_interval_seconds(30, 0) == 1.0
-
-
-def test_farm_snapshot_cache_coalesces_clients_and_invalidates_on_run_changes(tmp_path, monkeypatch):
-    app = create_app(tmp_path / "snapshot-cache.sqlite3")
-    calls = 0
-    original_get_metrics = app.state.store.get_metrics
-
-    def counted_get_metrics():
-        nonlocal calls
-        calls += 1
-        return original_get_metrics()
-
-    monkeypatch.setattr(app.state.store, "get_metrics", counted_get_metrics)
-    with TestClient(app) as client:
-        first = client.get("/api/farm/snapshot")
-        second = client.get("/api/farm/snapshot")
-        assert first.status_code == second.status_code == 200
-        assert calls == 1
-
-        run = client.post("/api/simulation/run", json={
-            "animal_count": 1, "anchor_count": 1,
-            "anchors": [{"anchor_id": "anchor-one", "x": 500, "y": 500}],
-            "duration_s": 60, "sample_period_s": 30, "seed": 13,
-        })
-        assert run.status_code == 200, run.text
-        after_run = client.get("/api/farm/snapshot").json()
-        assert after_run["simulation"]["run_id"] == run.json()["run_id"]
-        assert calls == 2
-
-        started = client.post("/api/simulation/control", json={"action": "start"})
-        assert started.status_code == 200
-        after_control = client.get("/api/farm/snapshot").json()
-        assert after_control["simulation"]["status"] == "playing"
-        assert calls == 3
-
-
-def test_concurrent_farm_websockets_share_one_database_snapshot_per_tick(tmp_path, monkeypatch):
-    app = create_app(tmp_path / "shared-websocket-snapshot.sqlite3")
-    calls = 0
-    original_get_metrics = app.state.store.get_metrics
-
-    def counted_get_metrics():
-        nonlocal calls
-        calls += 1
-        return original_get_metrics()
-
-    monkeypatch.setattr(app.state.store, "get_metrics", counted_get_metrics)
-    client = TestClient(app)
-    with client:
-        with ExitStack() as stack:
-            sockets = [stack.enter_context(client.websocket_connect("/ws/farm")) for _ in range(10)]
-            first_tick = [socket.receive_json() for socket in sockets]
-            assert all(len(snapshot["animals"]) == 100 for snapshot in first_tick)
-            assert calls == 1
-
-            time.sleep(1.1)
-            second_tick = [socket.receive_json() for socket in sockets]
-            assert all(len(snapshot["scene_positions"]) == 0 for snapshot in second_tick)
-            assert calls <= 2
-
-
 def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     app = create_app(tmp_path / "dashboard.sqlite3")
     client = TestClient(app)
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="root"' in page.text
-    assert "/assets/digital-twin/farm.js" in page.text
-    assert "farm-map.webp" not in page.text
+    assert 'id="run-scenario"' in page.text
+    assert "/assets/demo.js" in page.text
+    assert "SIMULATED" in page.text
     anchors = [
         {"anchor_id": "north-west", "x": 0, "y": 0},
         {"anchor_id": "north-east", "x": 1000, "y": 0},
@@ -110,10 +43,6 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
         "north-west", "north-east", "south-east", "south-west"
     ]
     assert all(isinstance(a["enabled"], bool) for a in client.get("/api/anchors").json())
-    snapshot = client.get("/api/farm/snapshot").json()
-    assert len(snapshot["anchors"]) == 4
-    assert all(isinstance(a["enabled"], bool) for a in snapshot["anchors"])
-
     tag_id = "tag-0001"
     regular = client.get("/api/positions", params={"limit": 100, "at_s": 60}).json()
     assert regular and "ground_truth_x" not in regular[0]
@@ -124,6 +53,52 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     }).json()
     assert debug and "ground_truth_x" in debug[0]
     assert debug == sorted(debug, key=lambda row: row["timestamp"])
+
+
+def test_demo_run_records_simulated_event_and_verifies_local_chain(tmp_path):
+    client = TestClient(create_app(tmp_path / "demo-flow.sqlite3"))
+
+    run = client.post("/api/simulation/run", json={
+        "animal_count": 1,
+        "anchor_count": 4,
+        "duration_s": 20,
+        "sample_period_s": 5,
+        "seed": 7,
+        "method": "weighted_centroid",
+    })
+    assert run.status_code == 200, run.text
+    result = run.json()
+    assert result["evidence"] == "SIMULATED"
+    assert result["run_id"]
+
+    trajectory = client.get(
+        "/api/animals/cow-0001/trajectory",
+        params={"run_id": result["run_id"]},
+    )
+    assert trajectory.status_code == 200
+    assert trajectory.json()
+    assert all(point["status"] == "ACCEPTED" for point in trajectory.json())
+
+    event = client.post("/api/events", json={
+        "animal_id": "cow-0001",
+        "event_type": "SIMULATION_RUN_RECORDED",
+        "payload": {
+            "run_id": result["run_id"],
+            "evidence": "SIMULATED",
+            "estimated_positions": len(trajectory.json()),
+            "method": trajectory.json()[-1]["method"],
+        },
+    })
+    assert event.status_code == 201, event.text
+    assert event.json()["chain_valid"] is True
+    assert event.json()["event_type"] == "SIMULATION_RUN_RECORDED"
+
+    verification = client.get("/api/animals/cow-0001/events/verify")
+    assert verification.json() == {
+        "animal_id": "cow-0001",
+        "valid": True,
+        "evidence": "LOCAL_HASH_CHAIN",
+    }
 
 
 def test_animal_asset_intent_keeps_public_metadata_separate_and_submission_unverified(tmp_path):
@@ -296,6 +271,26 @@ def test_animal_asset_attempt_reservation_serializes_mint_and_only_releases_matc
     assert client.post("/api/animals/cow-reserve/asset-release", json={
         "attempt_ref": "d" * 32,
     }).status_code == 200
+def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions(tmp_path):
+    from riose.products.livestock_tracking.domain.contracts import Anchor
+
+    db_path = tmp_path / "restart-dashboard.sqlite3"
+    first_app = create_app(db_path)
+    first_app.state.store.create_animal("cow-no-fix", "tag-no-fix", "crypto-no-fix")
+    first_app.state.store.save_anchors([Anchor("anchor-a", 10, 20, kind="simulated")])
+    first_app.state.store.close()
+
+    restarted = create_app(db_path)
+    client = TestClient(restarted)
+    assert client.get("/api/anchors").json() == [
+        {"anchor_id":"anchor-a", "x":10.0, "y":20.0, "height_m":3.0,
+         "kind":"simulated", "enabled":True}
+    ]
+    assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
+    page = client.get("/demo")
+    assert page.status_code == 200
+    assert "Run the movement scenario" in page.text
+    client.close()
 
 
 def test_dashboard_rerun_replaces_duplicate_visible_samples_and_keeps_latest_page(tmp_path):
@@ -332,7 +327,7 @@ def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
     page = client.get("/demo")
 
     assert page.status_code == 200
-    assert 'id="root"' in page.text
+    assert 'id="run-scenario"' in page.text
     assert 'id="runFence"' not in page.text
     assert "api/experiments/virtual-fence" not in page.text
     simulation = client.post("/api/simulation/run", json={
@@ -368,6 +363,7 @@ def test_landing_page_and_static_product_assets(tmp_path):
     assert "/assets/product-scene.js" in page.text
     assert "/assets/landing.css" in page.text
     assert "/assets/landing.js" in page.text
+    assert 'class="nav-demo"' in page.text
     assert "<style>" not in page.text
     assert "<script>" not in page.text
 
@@ -395,6 +391,15 @@ def test_landing_page_and_static_product_assets(tmp_path):
     manifesto_js = client.get("/assets/manifesto.js")
     assert manifesto_js.status_code == 200
     assert "ascii-structure" in manifesto_js.text
+
+    demo = client.get("/demo")
+    assert demo.status_code == 200
+    assert 'src="/?view=tag&amp;embed=1&amp;animal_id=demo-animal"' in demo.text
+    assert "/assets/demo.css" in demo.text
+    assert "/assets/demo.js" in demo.text
+    for asset in ("demo.css", "demo.js"):
+        response = client.get(f"/assets/{asset}")
+        assert response.status_code == 200
 
     scene = client.get("/assets/product-scene.js")
     assert scene.status_code == 200
@@ -559,158 +564,6 @@ def test_memory_budget_rejects_large_ground_truth_even_with_one_enabled_anchor(t
     assert "in-memory sample budget" in response.json()["detail"]
 
 
-def test_farm_stream_and_playback_keep_100_animals_and_8_anchors(tmp_path):
-    client = TestClient(create_app(tmp_path / "digital-twin.sqlite3"))
-    with client:
-        response = client.post("/api/simulation/run", json={
-            "animal_count": 100,
-            "anchor_count": 8,
-            "duration_s": 30,
-            "sample_period_s": 30,
-            "seed": 41,
-        })
-        assert response.status_code == 200, response.text
-        assert response.json()["evidence"] == "SIMULATED"
-
-        # RF estimates can be unavailable while the simulator still has valid
-        # positions. The farm renderer must retain its independent scene poses.
-        store = client.app.state.store
-        with store._lock:
-            store.connection.execute(
-                "UPDATE positions SET x=NULL,y=NULL WHERE run_id=?",
-                (response.json()["run_id"],),
-            )
-            store.connection.commit()
-
-        with client.websocket_connect("/ws/farm") as websocket:
-            snapshot = websocket.receive_json()
-            assert snapshot["evidence"] == "SIMULATED"
-            assert snapshot["simulation"]["status"] == "paused"
-            assert len(snapshot["animals"]) == 100
-            assert len({animal["animal_id"] for animal in snapshot["animals"]}) == 100
-            assert len(snapshot["positions"]) == 100
-            assert len(snapshot["scene_positions"]) == 100
-            assert len(snapshot["positions"]) == len(snapshot["animals"])
-            assert all(position["x"] is None and position["y"] is None
-                       for position in snapshot["positions"])
-            assert len(snapshot["anchors"]) == 8
-            assert {position["status"] for position in snapshot["positions"]} == {"SIMULATED"}
-            assert all("ground_truth_x" not in position for position in snapshot["positions"])
-            debug = client.get("/api/positions", params={"debug": "true", "at_s": 0}).json()
-            truth_by_tag = {position["tag_id"]: (position["ground_truth_x"], position["ground_truth_y"])
-                            for position in debug}
-            scene_by_tag = {position["tag_id"]: (position["x"], position["y"])
-                            for position in snapshot["scene_positions"]}
-            assert scene_by_tag == truth_by_tag
-            assert len(snapshot["telemetry"]) == 800
-            asset = client.get("/api/animals/cow-0001/asset")
-            assert asset.status_code == 200
-            assert asset.json()["status"] == "UNREGISTERED"
-            assert asset.json()["evidence"] == "UNREGISTERED"
-
-        speed = client.post("/api/simulation/control", json={"action": "speed", "speed": 5})
-        assert speed.status_code == 200
-        assert speed.json()["speed"] == 5
-        started = client.post("/api/simulation/control", json={"action": "start"})
-        assert started.json()["status"] == "playing"
-        paused = client.post("/api/simulation/control", json={"action": "pause"})
-        assert paused.json()["status"] == "paused"
-        reset = client.post("/api/simulation/control", json={"action": "reset"})
-        assert reset.json()["time_s"] == 0
-
-        latest_run = client.post("/api/simulation/run", json={
-            "animal_count": 1,
-            "anchor_count": 4,
-            "duration_s": 30,
-            "sample_period_s": 30,
-            "seed": 12,
-        })
-        assert latest_run.status_code == 200
-        with client.websocket_connect("/ws/farm") as websocket:
-            snapshot = websocket.receive_json()
-        assert len(snapshot["animals"]) == 1
-        assert len(snapshot["positions"]) == 1
-        assert len(snapshot["anchors"]) == 4
-
-
-def test_empty_database_bootstraps_snapshot_and_websocket_farm(tmp_path):
-    client = TestClient(create_app(tmp_path / "empty-farm.sqlite3"))
-    with client:
-        first = client.get("/api/farm/snapshot")
-        assert first.status_code == 200, first.text
-        seeded = first.json()
-        assert seeded["type"] == "snapshot"
-        assert seeded["simulation"]["run_id"] is None
-        assert seeded["evidence"] == "SIMULATED"
-        assert len(seeded["animals"]) == 100
-        assert len(seeded["anchors"]) == 8
-        assert seeded["scene_positions"] == []
-
-        # Starting the regular simulator after bootstrap yields authoritative
-        # positions; the GET snapshot and existing WS share that payload.
-        response = client.post("/api/simulation/run", json={
-            "animal_count": 100,
-            "anchor_count": 8,
-            "duration_s": 4,
-            "sample_period_s": 2,
-            "seed": 7,
-            "anchors": seeded["anchors"],
-        })
-        assert response.status_code == 200, response.text
-        snapshot = client.get("/api/farm/snapshot").json()
-        assert snapshot["simulation"]["run_id"] == response.json()["run_id"]
-        assert len(snapshot["scene_positions"]) == 100
-        assert len(snapshot["positions"]) == 100
-        assert {animal["hardware_id"] for animal in snapshot["animals"]} == {
-            position["tag_id"] for position in snapshot["scene_positions"]
-        }
-        assert all(
-            isinstance(position["x"], (int, float))
-            and isinstance(position["y"], (int, float))
-            and math.isfinite(position["x"])
-            and math.isfinite(position["y"])
-            for position in snapshot["scene_positions"]
-        )
-
-        # HTTP and WebSocket use the same authoritative farm snapshot.
-        with client.websocket_connect("/ws/farm") as websocket:
-            streamed = websocket.receive_json()
-        assert streamed["simulation"]["run_id"] == snapshot["simulation"]["run_id"]
-        assert len(streamed["animals"]) == 100
-        assert len(streamed["scene_positions"]) == 100
-
-
-def test_farm_snapshot_preserves_run_entities_when_scene_poses_are_missing(tmp_path):
-    client = TestClient(create_app(tmp_path / "legacy-pose-gap.sqlite3"))
-    with client:
-        seeded = client.get("/api/farm/snapshot").json()
-        run = client.post("/api/simulation/run", json={
-            "animal_count": 100,
-            "anchor_count": 8,
-            "duration_s": 30,
-            "sample_period_s": 2,
-            "seed": 7,
-            "anchors": seeded["anchors"],
-        })
-        assert run.status_code == 200, run.text
-
-        # Reproduce a legacy run whose RF estimates remain but simulator pose
-        # history was not retained/migrated. Entity IDs must survive so the
-        # client can report and recover the missing pose source.
-        store = client.app.state.store
-        with store._lock:
-            store.connection.execute("DELETE FROM scene_truth WHERE run_id=?", (run.json()["run_id"],))
-            store.connection.execute("DELETE FROM debug_truth")
-            store.connection.commit()
-
-        snapshot = client.get("/api/farm/snapshot").json()
-        assert snapshot["simulation"]["run_id"] == run.json()["run_id"]
-        assert snapshot["simulation"]["status"] == "paused"
-        assert len(snapshot["positions"]) == 100
-        assert len(snapshot["animals"]) == 100
-        assert snapshot["scene_positions"] == []
-
-
 def test_animal_trajectory_can_be_limited_to_the_active_simulation_run(tmp_path):
     client = TestClient(create_app(tmp_path / "run-scoped-trajectory.sqlite3"))
     with client:
@@ -719,7 +572,7 @@ def test_animal_trajectory_can_be_limited_to_the_active_simulation_run(tmp_path)
             "duration_s": 90, "sample_period_s": 30, "seed": 31,
         })
         assert long_run.status_code == 200
-        old_run_id = client.get("/api/simulation/state").json()["run_id"]
+        old_run_id = long_run.json()["run_id"]
         assert len(client.get("/api/animals/cow-0001/trajectory",
                              params={"run_id": old_run_id}).json()) == 3
 
@@ -728,7 +581,7 @@ def test_animal_trajectory_can_be_limited_to_the_active_simulation_run(tmp_path)
             "duration_s": 30, "sample_period_s": 30, "seed": 32,
         })
         assert short_run.status_code == 200
-        new_run_id = client.get("/api/simulation/state").json()["run_id"]
+        new_run_id = short_run.json()["run_id"]
         latest = client.get("/api/animals/cow-0001/trajectory",
                             params={"run_id": new_run_id}).json()
         combined = client.get("/api/animals/cow-0001/trajectory").json()

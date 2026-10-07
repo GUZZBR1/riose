@@ -18,6 +18,7 @@ from .contracts import EvidenceStatus
 EVENT_TYPES = frozenset({
     "ANIMAL_CREATED", "OWNER_CHANGED", "WEIGHT_RECORDED", "VACCINATION",
     "HEALTH_EVENT", "TRANSFER", "SLAUGHTER", "VIRTUAL_FENCE_SIMULATED",
+    "SIMULATION_RUN_RECORDED",
 })
 GENESIS_HASH = "0" * 64
 EVENT_CONTRACT_V1 = "v1"
@@ -166,23 +167,35 @@ def append_event(connection: sqlite3.Connection, animal_id: str,
                              GENESIS_HASH, EVENT_CONTRACT_V1)
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"),
                          ensure_ascii=False, allow_nan=False)
-    row = connection.execute(
-        "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id DESC LIMIT 1",
-        (animal_id,),
-    ).fetchone()
-    previous_hash = row[0] if row else GENESIS_HASH
-    digest = event_digest(animal_id, event_type, timestamp, payload, previous_hash)
-    columns = {row[1] for row in connection.execute("PRAGMA table_info(animal_events)")}
-    if "schema_version" in columns:
-        cursor = connection.execute(
-            "INSERT INTO animal_events(animal_id,event_type,timestamp,payload,previous_hash,hash,signature,schema_version) VALUES(?,?,?,?,?,?,NULL,?)",
-            (animal_id, event_type, timestamp, encoded, previous_hash, digest, EVENT_CONTRACT_V1),
-        )
-    else:
-        cursor = connection.execute(
-            "INSERT INTO animal_events(animal_id,event_type,timestamp,payload,previous_hash,hash,signature) VALUES(?,?,?,?,?,?,NULL)",
-            (animal_id, event_type, timestamp, encoded, previous_hash, digest),
-        )
+    owns_transaction = not connection.in_transaction
+    if owns_transaction:
+        # Reserve SQLite's single-writer lock before reading the chain head.
+        # WAL and a process-local RLock alone cannot make read -> hash -> write atomic.
+        connection.execute("BEGIN IMMEDIATE")
+    try:
+        if not verify_event_chain(connection, animal_id):
+            raise ValueError("cannot append to an invalid event chain")
+        row = connection.execute(
+            "SELECT hash FROM animal_events WHERE animal_id=? ORDER BY event_id DESC LIMIT 1",
+            (animal_id,),
+        ).fetchone()
+        previous_hash = row[0] if row else GENESIS_HASH
+        digest = event_digest(animal_id, event_type, timestamp, payload, previous_hash)
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(animal_events)")}
+        if "schema_version" in columns:
+            cursor = connection.execute(
+                "INSERT INTO animal_events(animal_id,event_type,timestamp,payload,previous_hash,hash,signature,schema_version) VALUES(?,?,?,?,?,?,NULL,?)",
+                (animal_id, event_type, timestamp, encoded, previous_hash, digest, EVENT_CONTRACT_V1),
+            )
+        else:
+            cursor = connection.execute(
+                "INSERT INTO animal_events(animal_id,event_type,timestamp,payload,previous_hash,hash,signature) VALUES(?,?,?,?,?,?,NULL)",
+                (animal_id, event_type, timestamp, encoded, previous_hash, digest),
+            )
+    except Exception:
+        if owns_transaction:
+            connection.rollback()
+        raise
     if commit:
         connection.commit()
     return AnimalEvent(cursor.lastrowid, animal_id, event_type, timestamp,

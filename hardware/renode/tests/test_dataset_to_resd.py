@@ -101,6 +101,80 @@ def test_conversion_rejects_malformed_timestamps(tmp_path):
         module.convert_dataset(datasets / "manifest.json", "STATIC", tmp_path / "bad.resd", tmp_path)
 
 
+def test_conversion_rejects_unsupported_profile(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    generate_datasets(datasets, samples=4, seed=3)
+    with pytest.raises(ValueError, match="missing or ambiguous"):
+        module.convert_dataset(datasets / "manifest.json", "GHOST", tmp_path / "bad.resd", tmp_path)
+
+
+def test_conversion_rejects_missing_csv(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    generate_datasets(datasets, samples=4, seed=3)
+    (datasets / "static.csv").unlink()
+    with pytest.raises(FileNotFoundError):
+        module.convert_dataset(datasets / "manifest.json", "STATIC", tmp_path / "missing.resd", tmp_path)
+
+
+def test_conversion_rejects_wrong_axis_count(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    generate_datasets(datasets, samples=4, seed=3)
+    source = datasets / "static.csv"
+    source.write_text(source.read_text().replace("x_g,y_g,z_g", "x_g,y_g"))
+    with pytest.raises(ValueError, match="unexpected CSV columns"):
+        module.convert_dataset(datasets / "manifest.json", "STATIC", tmp_path / "bad.resd", tmp_path)
+
+
+def test_conversion_rejects_empty_stream(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    manifest = generate_datasets(datasets, samples=4, seed=3)
+    manifest["datasets"][0].update(samples=0, duration_s=0)
+    (datasets / "manifest.json").write_text(json.dumps(manifest))
+    (datasets / "static.csv").write_text("timestamp_s,x_g,y_g,z_g\n")
+    with pytest.raises(ValueError, match="at least one acceleration sample"):
+        module.convert_dataset(datasets / "manifest.json", "STATIC", tmp_path / "empty.resd", tmp_path)
+
+
+def test_conversion_rejects_acceleration_outside_sensor_range(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    generate_datasets(datasets, samples=4, seed=3)
+    source = datasets / "static.csv"
+    rows = source.read_text().splitlines()
+    fields = rows[1].split(",")
+    fields[3] = "16.000001000"
+    rows[1] = ",".join(fields)
+    source.write_text("\n".join(rows) + "\n")
+    renode = tmp_path / "renode"
+    _write_fake_csv2resd(renode / "tools" / "csv2resd" / "csv2resd.py")
+    with pytest.raises(ValueError, match="±16 g physical range"):
+        module.convert_dataset(datasets / "manifest.json", "STATIC", tmp_path / "range.resd", renode)
+
+
+def test_conversion_rejects_corrupted_renode_resd(tmp_path):
+    from hardware.models.lis2dw12.generate_datasets import generate_datasets
+
+    datasets = tmp_path / "datasets"
+    generate_datasets(datasets, samples=4, seed=3)
+    converter = tmp_path / "renode" / "tools" / "csv2resd" / "csv2resd.py"
+    converter.parent.mkdir(parents=True, exist_ok=True)
+    converter.write_text("import pathlib,sys\npathlib.Path(sys.argv[-1]).write_bytes(b'broken')\n")
+    output = tmp_path / "corrupt.resd"
+    with pytest.raises(ValueError, match="valid RESD v1"):
+        module.convert_dataset(datasets / "manifest.json", "STATIC", output, tmp_path / "renode")
+    assert not output.exists()
+    assert not output.with_suffix(".resd.json").exists()
+
+
 def test_failed_conversion_removes_stale_resd_and_metadata(tmp_path):
     from hardware.models.lis2dw12.generate_datasets import generate_datasets
 
@@ -137,5 +211,6 @@ def test_profile_identity_is_stable_for_same_seed_and_changes_for_new_seed(tmp_p
 
     assert first["profile_hash"] == same_seed["profile_hash"]
     assert first["profile_id"] == same_seed["profile_id"]
+    assert (tmp_path / "first.resd").read_bytes() == (tmp_path / "same.resd").read_bytes()
     assert first["profile_hash"] != other_seed["profile_hash"]
     assert first["profile_id"] != other_seed["profile_id"]

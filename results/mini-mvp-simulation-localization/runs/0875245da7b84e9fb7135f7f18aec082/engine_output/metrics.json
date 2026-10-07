@@ -1,0 +1,66 @@
+{
+  "observations": 80,
+  "snapshot_count": 1,
+  "status_counts": {
+    "LOS": 52,
+    "NLOS": 0,
+    "NO_PATH": 28
+  },
+  "geometric_nlos_count": 0,
+  "configuration_forced_nlos_count": 0,
+  "status_by_timestamp": [
+    {
+      "timestamp_s": 0.0,
+      "status_counts": {
+        "LOS": 52,
+        "NLOS": 0,
+        "NO_PATH": 28
+      },
+      "geometric_nlos_count": 0,
+      "configuration_forced_nlos_count": 0,
+      "path_count": 80,
+      "valid_received_power_count": 52,
+      "dominant_path_delay_s": {
+        "count": 52,
+        "min": 9.713616009321413e-07,
+        "median": 2.4821407578201615e-06,
+        "max": 3.7096185678819893e-06
+      },
+      "received_power_dbm": {
+        "min": -87.09085968398838,
+        "median": -75.53069598903423,
+        "max": -60.671724652143894,
+        "mean": -75.2106048776549,
+        "stdev": 5.022893745531632
+      },
+      "execution_seconds": 3.001837765000346,
+      "cache": "miss"
+    }
+  ],
+  "state_transitions": [],
+  "finite_received_power_count": 52,
+  "received_power_dbm": {
+    "count": 52,
+    "min": -87.09085968398838,
+    "median": -75.53069598903423,
+    "max": -60.671724652143894,
+    "mean": -75.2106048776549,
+    "stdev": 5.022893745531632
+  },
+  "finite_power_deltas_db": [],
+  "dominant_path_delay_deltas_s": [],
+  "path_count": 80,
+  "same_geometry_reproducibility": {
+    "comparison_count": 0,
+    "matching_count": 0,
+    "mismatching_count": 0,
+    "tolerance": {
+      "relative": 1e-09,
+      "absolute": 1e-15,
+      "note": "numeric outputs compared for repeated geometry within one run"
+    },
+    "comparisons": []
+  },
+  "transmitter_count": 20,
+  "receiver_count": 4
+}
