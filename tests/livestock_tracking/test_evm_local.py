@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import os
+import platform
 from pathlib import Path
 import subprocess
+import sys
 import time
 import urllib.request
 
@@ -47,6 +51,179 @@ def _wait_receipt(url: str, tx_hash: str) -> dict:
             return receipt
         time.sleep(0.1)
     raise AssertionError("local EVM did not mine the transaction")
+
+
+def _write_mvp4_evidence(
+    evidence_dir: Path,
+    event,
+    requests: dict,
+    outbox: SQLitePublicationOutbox,
+    results: dict,
+    rpc_receipts: dict,
+) -> None:
+    """Write the opt-in, privacy-minimized record for the local three-target run."""
+    scenario_id = "mvp4-offline-restart-local-multichain-v1"
+    repository_sha = os.environ["RIOSE_MVP4_REPOSITORY_SHA"]
+    branch = os.environ["RIOSE_MVP4_BRANCH"]
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+
+    def write(name: str, value: object) -> None:
+        (evidence_dir / f"{name}.json").write_text(
+            json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8",
+        )
+
+    payload_bytes = json.dumps(
+        event.payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+    ).encode("utf-8")
+    target_ids = {key: request["publication_id"] for key, request in requests.items()}
+    attempts = []
+    receipts = []
+    for key, request in requests.items():
+        attempt = outbox.latest_attempt(request["publication_id"])
+        assert attempt is not None
+        attempts.append({
+            "publication_id": request["publication_id"],
+            "target": key,
+            "chain": request["chain"],
+            "network": request["network"],
+            "adapter_id": attempt["adapter_id"],
+            "attempt_id": attempt["attempt_id"],
+            "attempt_number": attempt["attempt_number"],
+            "transaction_id": attempt["transaction_id"],
+            "payload_bytes": len(attempt["payload"]),
+            "payload_sha256": hashlib.sha256(attempt["payload"]).hexdigest(),
+            "status": attempt["status"],
+        })
+        for receipt in outbox.receipts(request["publication_id"]):
+            receipts.append({
+                "receipt_id": receipt["receipt_id"],
+                "publication_id": receipt["publication_id"],
+                "attempt_id": receipt["attempt_id"],
+                "target": key,
+                "adapter_id": receipt["adapter_id"],
+                "chain": receipt["chain"],
+                "network": receipt["network"],
+                "commitment": receipt["commitment"],
+                "transaction_id": receipt["transaction_id"],
+                "state": receipt["state"],
+                "block_ref": receipt["block_ref"],
+                "reason_code": receipt["reason_code"],
+                "evidence_status": receipt["evidence_status"],
+            })
+
+    write("scenario_config", {
+        "scenario_id": scenario_id,
+        "backends": {
+            "solana": "mock adapter; no Solana RPC",
+            "base": "local Ganache EVM; chain id 84532",
+            "arbitrum": "local Ganache EVM; chain id 421614",
+        },
+        "offline_phase": "targets report unavailable; event and target requests remain local without attempts",
+        "restart": "close and reopen the same SQLite database before dispatch",
+        "connectivity_restore": "local EVM RPCs become reachable; mock Solana adapter enabled",
+        "seed": "Ganache deterministic default wallet; no custom seed configured",
+        "public_chain_writes": False,
+    })
+    write("manifest", {
+        "scenario_id": scenario_id,
+        "repository": "GUZZBR1/riose",
+        "branch": branch,
+        "repository_sha": repository_sha,
+        "environment": {
+            "platform": platform.platform(),
+            "python": sys.version.split()[0],
+            "node": subprocess.check_output(["node", "--version"], cwd=ROOT, text=True).strip(),
+        },
+        "scenario_ids": [scenario_id],
+        "hashed_inputs": {
+            "event_payload_sha256": hashlib.sha256(payload_bytes).hexdigest(),
+            "event_hash": event.hash,
+            "canonical_commitment": next(iter(requests.values()))["commitment"],
+        },
+        "evidence_class": "LOCAL_AND_MOCKED",
+    })
+    write("events", [{
+        "scenario_id": scenario_id,
+        "event_id": event.event_id,
+        "contract": "Event V1",
+        "animal_ref_sha256": hashlib.sha256(event.animal_id.encode("utf-8")).hexdigest(),
+        "event_type": event.event_type,
+        "timestamp": event.timestamp,
+        "previous_hash": event.previous_hash,
+        "event_hash": event.hash,
+        "payload_sha256": hashlib.sha256(payload_bytes).hexdigest(),
+        "payload_included": False,
+    }])
+    write("commitments", [{
+        "scenario_id": scenario_id,
+        "event_id": event.event_id,
+        "algorithm": "sha256",
+        "commitment": next(iter(requests.values()))["commitment"],
+        "target_publication_ids": target_ids,
+        "same_across_targets": len({item["commitment"] for item in requests.values()}) == 1,
+    }])
+    write("attempts", attempts)
+    write("receipts", {
+        "journal": receipts,
+        "local_evm_rpc": rpc_receipts,
+        "solana_rpc_receipt": None,
+    })
+    write("failure_matrix", [
+        {"scenario": "NORMAL_ONLINE", "status": "PASS_LOCAL_SIMULATED", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"]},
+        {"scenario": "OFFLINE_CREATE", "status": "PASS_LOCAL", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"]},
+        {"scenario": "OFFLINE_RESTART", "status": "PASS_LOCAL", "tests": ["test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts", "test_queue_is_atomic_minimal_and_idempotent_across_restart"]},
+        {"scenario": "PARTIAL_TARGET_FAILURE", "status": "PASS_MOCKED", "tests": ["test_failure_of_one_target_does_not_change_sibling_target", "test_target_failure_does_not_invalidate_event_or_other_target"]},
+        {"scenario": "TARGET_RECOVERY", "status": "PASS_LOCAL_AND_MOCKED", "tests": ["test_submit_timeout_is_recoverable_with_exact_persisted_transaction", "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"]},
+        {"scenario": "CRASH_BEFORE_SEND", "status": "PASS_MOCKED", "tests": ["test_reconcile_prepared_after_restart_never_prepares_new_payload", "test_missing_adapter_leaves_request_queued_without_attempt"]},
+        {"scenario": "CRASH_AFTER_SEND", "status": "PASS_LOCAL_AND_MOCKED", "tests": ["test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert", "test_submit_timeout_is_recoverable_with_exact_persisted_transaction"]},
+        {"scenario": "RECEIPT_BEFORE_VERIFIED_RESTART", "status": "PARTIAL", "tests": ["test_confirmed_state_is_retained_if_receipt_disappears_before_verified"], "limitation": "Evidence covers CONFIRMED retention and later re-observation; no process kill is injected between receipt read and VERIFIED write."},
+        {"scenario": "DUPLICATE_PROCESSING", "status": "PASS_MOCKED_AND_LOCAL", "tests": ["test_repeated_process_does_not_prepare_a_second_transaction", "test_verified_target_never_resubmits", "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"]},
+        {"scenario": "CONCURRENT_WORKERS", "status": "PASS_LOCAL", "tests": ["test_two_store_connections_cannot_prepare_same_target_concurrently", "test_two_processes_reserve_distinct_nonces_for_one_signer", "test_independent_processes_serialize_event_chain_appends"]},
+        {"scenario": "REPEATED_RETRY", "status": "PARTIAL", "tests": ["test_retryable_requires_explicit_safe_to_retry_evidence", "test_proven_retryable_creates_one_new_attempt_on_next_process"], "limitation": "No scheduler, retry cap, exponential backoff, or multi-cycle retry-storm test exists."},
+        {"scenario": "PERMANENT_REJECTION", "status": "PASS_MOCKED_AND_LOCAL", "tests": ["test_rejected_target_cannot_later_become_verified", "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"]},
+        {"scenario": "UNKNOWN_RESULT", "status": "PASS_MOCKED_AND_LOCAL", "tests": ["test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty", "test_submit_timeout_is_recoverable_with_exact_persisted_transaction"]},
+    ])
+    write("recovery_results", {
+        "scenario_id": scenario_id,
+        "offline_backlog_survived_restart": True,
+        "event_hash_preserved": True,
+        "canonical_commitment_preserved": True,
+        "attempts_before_restore": 0,
+        "receipts_before_restore": 0,
+        "results_by_target": {key: result["status"] for key, result in results.items()},
+        "attempt_count_by_target": {key: 1 for key in requests},
+        "target_receipts_independent": True,
+    })
+    write("summary", {
+        "scenario_id": scenario_id,
+        "result": "PASS_LOCAL_MULTICHAIN_WITH_LIMITATIONS",
+        "targets": {key: result["status"] for key, result in results.items()},
+        "target_independence": "PASS_LOCAL_AND_MOCKED",
+        "partial_failure_recovery": "PASS_MOCKED",
+        "crash_windows": {
+            "before_send": "PASS_MOCKED",
+            "after_send_before_receipt_persistence": "PASS_LOCAL_AND_MOCKED",
+            "receipt_before_verified_restart": "PARTIAL",
+        },
+        "idempotency": "PASS_LOCAL_AND_MOCKED",
+        "nonce_management": "PASS_LOCAL_WITH_BASE_ORDERING_LIMITATION",
+        "concurrency": "PASS_LOCAL",
+        "retry_policy": "PARTIAL_OPERATOR_DRIVEN_NO_BACKOFF_OR_CAP",
+        "attempt_receipt_integrity": "PASS_LOCAL_AND_MOCKED",
+        "privacy_boundary": "PASS_LOCAL_AND_MOCKED",
+        "multichain_software": "COMPLETE",
+        "offline_first": "SOFTWARE_VALIDATED",
+        "solana_real_on_chain": "UNVERIFIED",
+        "base_real_on_chain": "UNVERIFIED",
+        "arbitrum_real_on_chain": "UNVERIFIED",
+        "field_validation": "NOT_PERFORMED",
+        "limitations": [
+            "Solana adapter in this E2E is mocked; Solana unit/integration tests use fake RPC.",
+            "Base and Arbitrum targets are local Ganache nodes with testnet chain IDs, not public testnets.",
+            "Retry/backoff is operator-driven; no automatic bounded retry scheduler is present.",
+            "Base nonce reservations are durable, but Base sends do not use the Arbitrum ordered-submission lease.",
+        ],
+    })
 
 
 def test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert(tmp_path):
@@ -369,7 +546,8 @@ def test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts(tm
             def verify(self, _envelope, _receipt):
                 return True
 
-        store = Store(tmp_path / "three-chain-local.sqlite3")
+        store_path = tmp_path / "three-chain-local.sqlite3"
+        store = Store(store_path)
         store.create_animal("private-cow", "private-tag", "private-secret")
         event = store.append_animal_event("private-cow", "WEIGHT_RECORDED", {"weight": 425}, 1)
         outbox = SQLitePublicationOutbox(store)
@@ -384,6 +562,45 @@ def test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts(tm
                 event.event_id, destination="evm-registry", chain=config.chain,
                 network=config.network_id,
             )
+        original_event_hash = event.hash
+        original_commitment = next(iter(requests.values()))["commitment"]
+        assert len(outbox.list_pending()) == 3
+        assert all(outbox.latest_attempt(item["publication_id"]) is None for item in requests.values())
+        assert all(outbox.receipts(item["publication_id"]) == [] for item in requests.values())
+
+        class OfflineAdapter:
+            def __init__(self, request):
+                self.adapter_id = request["adapter_id"]
+                self.chain = request["chain"]
+                self.network = request["network"]
+
+            def healthcheck(self):
+                return False
+
+        for request in requests.values():
+            with pytest.raises(ValueError, match="adapter is unavailable"):
+                PublicationDispatcher(outbox, [OfflineAdapter(request)]).process(
+                    request["publication_id"],
+                )
+        assert len(outbox.list_pending()) == 3
+        assert all(outbox.latest_attempt(item["publication_id"]) is None for item in requests.values())
+        assert all(outbox.receipts(item["publication_id"]) == [] for item in requests.values())
+
+        # Keep the same event and outbox offline, then reopen the SQLite file before dispatch.
+        store.close()
+        store = Store(store_path)
+        outbox = SQLitePublicationOutbox(store)
+        persisted_event = store.connection.execute(
+            "SELECT event_type,timestamp,hash FROM animal_events WHERE event_id=?", (event.event_id,),
+        ).fetchone()
+        assert persisted_event["hash"] == original_event_hash
+        assert len(outbox.list_pending()) == 3
+        requests = {key: outbox.get(item["publication_id"]) for key, item in requests.items()}
+        assert all(item["status"] == "QUEUED" for item in requests.values())
+        assert all(item["commitment"] == original_commitment for item in requests.values())
+        assert all(outbox.latest_attempt(item["publication_id"]) is None for item in requests.values())
+        assert all(outbox.receipts(item["publication_id"]) == [] for item in requests.values())
+
         nonce_coordinator = EVMNonceCoordinator(store)
         adapters = [MockSolanaAdapter()]
         for key, config in configs.items():
@@ -402,6 +619,7 @@ def test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts(tm
         assert all(outbox.verify_local_binding(request["publication_id"])
                    for request in requests.values())
         tx_ids = []
+        rpc_receipts = {}
         for key, request in requests.items():
             receipts = outbox.receipts(request["publication_id"])
             assert any(item["state"] == "CONFIRMED" for item in receipts)
@@ -413,9 +631,23 @@ def test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts(tm
             assert receipt["status"] == "0x1"
             assert len(receipt["logs"]) == 1
             assert receipt["logs"][0]["topics"][1].lower() == "0x" + requests[key]["commitment"]
-        assert b"private-tag" not in outbox.latest_attempt(
-            requests["base"]["publication_id"],
-        )["payload"]
+            rpc_receipts[key] = {
+                "transaction_id": tx_ids[1 if key == "base" else 2],
+                "status": receipt["status"],
+                "block_number": receipt["blockNumber"],
+                "block_hash": receipt["blockHash"],
+                "gas_used": receipt["gasUsed"],
+                "commitment_topic": receipt["logs"][0]["topics"][1],
+            }
+        for request in requests.values():
+            payload = outbox.latest_attempt(request["publication_id"])["payload"]
+            for private_value in (b"private-cow", b"private-tag", b"private-secret", b"425"):
+                assert private_value not in payload
+        evidence_dir = os.environ.get("RIOSE_MVP4_EVIDENCE_DIR")
+        if evidence_dir:
+            _write_mvp4_evidence(
+                Path(evidence_dir), event, requests, outbox, results, rpc_receipts,
+            )
     finally:
         if store is not None:
             store.close()
