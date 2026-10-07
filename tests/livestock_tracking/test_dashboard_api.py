@@ -20,9 +20,14 @@ def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     client = TestClient(app)
     page = client.get("/demo")
     assert page.status_code == 200
-    assert 'id="run-scenario"' in page.text
+    assert 'id="animal-list"' in page.text
+    assert 'id="continue-solana"' in page.text
+    assert "Health record" in page.text
+    assert "SAMPLE" not in page.text
+    assert "SIMULATED" not in page.text
+    assert "Herd</li>" not in page.text
+    assert "step-indicator" not in page.text
     assert "/assets/demo.js" in page.text
-    assert "SIMULATED" in page.text
     anchors = [
         {"anchor_id": "north-west", "x": 0, "y": 0},
         {"anchor_id": "north-east", "x": 1000, "y": 0},
@@ -289,7 +294,8 @@ def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions
     assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
     page = client.get("/demo")
     assert page.status_code == 200
-    assert "Run the movement scenario" in page.text
+    assert 'id="animal-list"' in page.text
+    assert "Animal records" in page.text
     client.close()
 
 
@@ -330,15 +336,16 @@ def test_landing_page_and_static_product_assets(tmp_path):
     assert "RIOSE — Livestock technology" in page.text
     assert "Machine learning-assisted self-powered ear tag for animal welfare" in page.text
     assert 'id="inspection-toggle"' not in page.text
-    assert "turn toward the rear" in page.text
-    assert "wire routing is illustrative" in page.text
+    assert "Every animal." in page.text
+    assert "One record." in page.text
+    assert "Explore the guided demo" in page.text
     assert "Xiaoyu Su, Peidi Fan, Ying Liu, Jianfeng Ping, Xunjia Li and Yuxiang Pan" in page.text
     assert "Nature Communications · 2026" in page.text
     assert "Independent study" not in page.text
     assert "5,399 sampling windows from three animals" in page.text
-    assert 'id="product-canvas"' in page.text
-    assert "scene-fallback" not in page.text
-    assert "/assets/product-scene.js" in page.text
+    assert 'id="product-canvas"' not in page.text
+    assert 'id="scene-wrap"' not in page.text
+    assert "/assets/product-scene.js" not in page.text
     assert "/assets/landing.css" in page.text
     assert "/assets/landing.js" in page.text
     assert 'class="nav-demo"' in page.text
@@ -358,10 +365,10 @@ def test_landing_page_and_static_product_assets(tmp_path):
 
     landing_css = client.get("/assets/landing.css")
     assert landing_css.status_code == 200
-    assert ".scene-wrap" in landing_css.text
+    assert ".hero-headline" in landing_css.text
     landing_js = client.get("/assets/landing.js")
     assert landing_js.status_code == 200
-    assert "sceneObserver" in landing_js.text
+    assert "openBrandDefinition" in landing_js.text
 
     manifesto_css = client.get("/assets/manifesto.css")
     assert manifesto_css.status_code == 200
@@ -372,27 +379,16 @@ def test_landing_page_and_static_product_assets(tmp_path):
 
     demo = client.get("/demo")
     assert demo.status_code == 200
-    assert 'src="/?view=tag&amp;embed=1&amp;animal_id=demo-animal"' in demo.text
+    assert 'src="/assets/demo/animal-0.webp"' in demo.text
     assert "/assets/demo.css" in demo.text
     assert "/assets/demo.js" in demo.text
     for asset in ("demo.css", "demo.js"):
         response = client.get(f"/assets/{asset}")
         assert response.status_code == 200
 
-    scene = client.get("/assets/product-scene.js")
-    assert scene.status_code == 200
-    assert "WebGLRenderer" in scene.text
-    assert "smoothstep(faceAlignment" in scene.text
-    assert "createTechnicalAnnotations" in scene.text
-    assert "wireRoutes" in scene.text
-    assert "Circuit board" in scene.text
-    assert "PCB · concept" not in scene.text
-    assert "CONCEPT STUDY" not in scene.text
-
-    three = client.get("/assets/vendor/three.module.js")
-    assert three.status_code == 200
-    assert "Three.js Authors" in three.text
-    assert three.headers.get("content-encoding") == "gzip"
+    for animal_index in range(4):
+        portrait = client.get(f"/assets/demo/animal-{animal_index}.webp")
+        assert portrait.status_code == 200
 
     fallback = client.get("/assets/riose-ear-tag-fallback.webp")
     assert fallback.status_code == 404

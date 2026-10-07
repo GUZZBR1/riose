@@ -2,7 +2,7 @@
 
 ## Direction
 
-RIOSE should feel like a small hardware research project: quiet, precise, and grounded in a physical object. The landing page centers the livestock ear tag and the independent research article. The manifesto has its own route so it can be read without adding another section to the product hero.
+RIOSE should feel like a small hardware research project: quiet, precise, and grounded in animal identity and verifiable records. The landing page introduces the product and links to the guided demo; the demo starts with animal records, then follows one profile through local history and an optional Solana Devnet asset. The manifesto has its own route so it can be read without adding another section to the product hero.
 
 ## Palette and surfaces
 
@@ -23,11 +23,8 @@ RIOSE should feel like a small hardware research project: quiet, precise, and gr
 
 - Keep the product dominant and the page naturally scrollable.
 - Lower the hero model by roughly 60–112px to create room above the ear attachment without changing the model or camera.
-- Product rotation is direct manipulation with a short, damped physical inertia. Keep zoom bounded.
-- A first product hover wakes the model with less than one degree of pointer response and a small lighting change; never add continuous auto-rotation.
-- The internal study stays hidden on hover. Reveal it gradually only during a held, rear-facing inspection, then restore the shell as the pointer is released.
-- The hero copy dims slightly on product hover, further while dragging, and exits during a short pinned scroll runway before the page continues naturally to research.
-- Respect reduced-motion preferences, preserve touch vertical scrolling, and never select page text while dragging the model.
+- Keep the landing page and demo free of continuous 3D scenes and random movement.
+- Use small, intentional hover and selection transitions on records and controls. Respect reduced-motion preferences and keep all interactions usable with touch and keyboard.
 - The header contracts to a centered wordmark while scrolling. A small dictionary-style definition may appear on wordmark hover, focus, or tap.
 - Header navigation and the São Paulo location link use a restrained lift and animated underline on hover/focus; the location opens its map destination.
 - Motion should ease softly and not delay the first usable frame. Do not add glow, particles, animated gradients, or game-like bounce.
@@ -41,7 +38,8 @@ RIOSE should feel like a small hardware research project: quiet, precise, and gr
 
 ## Layout
 
-- The root landing page opens with the two-line “Empires decay. Signals remain.” thesis layered over the still product; it remains a minimal product experience followed by the independent paper entry.
+- The root landing page opens with “Every animal. One record.” and a direct link to the guided demo, followed by the independent paper entry.
+- `/demo` opens on a sparse animal-record list with sample portraits; the physical tag is not repeated as the hero. The guide progresses from herd selection to the local record history and optional Solana asset.
 - `/manifesto` uses the same floating glass header and centered live-text Riose wordmark as the product page. Center the headline and reading column on the viewport; keep paragraph lines left-aligned for comfortable reading and preserve generous spacing.
 - Build the manifesto's monumental communications structure from browser text characters. Keep it monochrome, legible but restrained, cropped beyond the viewport, and free of gradients or illustrated assets; use only low-amplitude pointer and scroll movement.
 - Keep the manifesto link secondary in the expanded header. Do not add a card grid or promotional section to the landing page.

@@ -11,9 +11,7 @@
       --paper: #f2f2f0;
       --ink: #20211f;
       --quiet: #73746f;
-      --hero-copy-runway: clamp(112px, 14vh, 156px);
       --hero-stage-height: max(100svh, 560px);
-      --product-scene-offset: clamp(60px, 8vh, 112px);
       --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       --sans: "Arial", "Helvetica Neue", Helvetica, sans-serif;
       font-family: var(--sans);
@@ -187,11 +185,12 @@
 
     .hero-scroll-stage {
       position: relative;
-      height: calc(var(--hero-stage-height) + var(--hero-copy-runway));
+      min-height: var(--hero-stage-height);
+      height: var(--hero-stage-height);
     }
 
     .hero {
-      position: sticky;
+      position: relative;
       top: 0;
       display: grid;
       height: var(--hero-stage-height);
@@ -202,18 +201,15 @@
     }
 
     .hero-copy {
-      --hero-copy-opacity: 1;
-      --hero-copy-shift: 0px;
-      position: absolute;
+      position: relative;
       z-index: 2;
-      top: clamp(110px, 14vh, 164px);
-      left: 50%;
+      top: auto;
+      left: auto;
       width: min(94vw, 1040px);
-      pointer-events: none;
+      pointer-events: auto;
       text-align: center;
-      opacity: var(--hero-copy-opacity);
-      transform: translate3d(-50%, var(--hero-copy-shift), 0);
-      will-change: opacity, transform;
+      opacity: 1;
+      transform: none;
     }
 
     .hero-headline {
@@ -310,112 +306,12 @@
       to { opacity: 1; translate: 0 0; }
     }
 
-    .scene-wrap {
-      position: relative;
-      width: min(100vw, 1220px);
-      height: min(100svh, 980px);
-      min-height: 560px;
-      margin: 0 auto;
-      transform: translate3d(0, var(--product-scene-offset), 0);
-      touch-action: pan-y;
-      cursor: default;
-      outline: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .scene-wrap, .scene-wrap * {
-      -webkit-user-drag: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    body.is-product-dragging,
-    body.is-product-dragging * {
-      user-select: none !important;
-      -webkit-user-select: none !important;
-      -webkit-user-drag: none !important;
-    }
-
-    body.is-product-dragging { cursor: grabbing; }
-
-    .scene-wrap.is-over-product { cursor: grab; }
-    .scene-wrap.is-over-product:active { cursor: grabbing; }
-    .scene-wrap:focus-visible { outline: 1px solid rgb(40 40 38 / 28%); outline-offset: -8px; }
-
-    #product-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    #product-canvas { display: block; opacity: 0; transition: opacity 180ms ease-out; }
-    .scene-wrap.is-ready #product-canvas { opacity: 1; }
-    .scene-wrap.is-error::after {
-      position: absolute;
-      inset: 50% 24px auto;
-      transform: translateY(-50%);
-      color: rgb(40 40 38 / 68%);
-      font-size: 14px;
-      line-height: 1.5;
-      text-align: center;
-      content: "The 3D model could not start. Enable WebGL and reload the page.";
-    }
-
-    .technical-annotations {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 420ms ease;
-    }
-
-    .technical-annotations.is-visible { opacity: 1; }
-    .annotation-leader { fill: none; stroke: rgb(53 56 51 / 44%); stroke-width: .8; vector-effect: non-scaling-stroke; }
-    .annotation-label,
-    .annotation-note { fill: rgb(54 57 52 / 76%); font-family: var(--mono); font-size: 10px; letter-spacing: .015em; }
-    .annotation-note { fill: rgb(54 57 52 / 48%); font-size: 9px; letter-spacing: .09em; }
-
     .research {
       min-height: 100vh;
       padding: clamp(120px, 18vh, 220px) 24px clamp(120px, 20vh, 240px);
       background: var(--paper);
     }
 
-    body.is-tag-viewer { overflow: hidden; }
-    .is-tag-viewer .hero-scroll-stage { height: 100svh; }
-    .is-tag-viewer .hero { height: 100svh; min-height: 0; }
-    .is-tag-viewer .scene-wrap { width: 100vw; height: 100svh; min-height: 0; margin: 0; transform: none; }
-    .is-tag-viewer .floating-header { z-index: 12; }
-    .tag-viewer-controls, .tag-viewer-back {
-      position: fixed; z-index: 10; border: 1px solid rgb(255 255 255 / 68%);
-      background: rgb(248 248 246 / 58%); box-shadow: 0 12px 36px rgb(36 35 30 / 8%), inset 0 1px 0 rgb(255 255 255 / 75%);
-      -webkit-backdrop-filter: blur(20px) saturate(125%); backdrop-filter: blur(20px) saturate(125%);
-    }
-    .tag-viewer-controls { left: max(22px, env(safe-area-inset-left)); bottom: max(22px, env(safe-area-inset-bottom)); padding: 15px 17px 12px; border-radius: 18px; }
-    .tag-viewer-label, .tag-viewer-note { margin: 0; font: 10px/1.4 var(--mono); letter-spacing: .09em; color: rgb(32 33 31 / 68%); }
-    .tag-viewer-note { margin-top: 10px; color: rgb(32 33 31 / 48%); letter-spacing: .015em; }
-    .tag-viewer-modes { display: flex; gap: 5px; margin-top: 10px; }
-    .tag-viewer-modes button { padding: 8px 11px; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--ink); font: 11px var(--mono); cursor: pointer; transition: background 180ms ease, border-color 180ms ease; }
-    .tag-viewer-modes button:hover, .tag-viewer-modes button[aria-pressed="true"] { border-color: rgb(255 255 255 / 78%); background: rgb(255 255 255 / 64%); }
-    .tag-viewer-back { top: 90px; left: max(22px, env(safe-area-inset-left)); padding: 11px 15px; border-radius: 999px; font: 11px var(--mono); text-decoration: none; transition: transform 180ms ease; }
-    .tag-viewer-back:hover { transform: translateY(-2px); }
-    @media (max-width: 640px) { .tag-viewer-controls { left: 14px; bottom: 14px; padding: 12px; } .tag-viewer-back { top: 76px; left: 14px; } }
-
-    html:has(body.is-tag-embed), body.is-tag-embed { width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
-    .is-tag-embed #top, .is-tag-embed .hero-scroll-stage, .is-tag-embed .hero { width: 100%; height: 100%; min-height: 0; }
-    .is-tag-embed .hero { position: relative; }
-    .is-tag-embed .floating-header[hidden] { display: none; }
-    .is-tag-embed .scene-wrap { width: 100%; height: 100%; min-height: 0; margin: 0; transform: none; border-radius: 0; }
-    .is-tag-embed .tag-viewer-controls { position: absolute; right: 16px; bottom: 16px; left: auto; padding: 11px 13px 9px; border-radius: 16px; box-shadow: 0 8px 24px rgb(36 35 30 / 7%), inset 0 1px 0 rgb(255 255 255 / 75%); }
-    .is-tag-embed .tag-viewer-label { display: none; }
-    .is-tag-embed .tag-viewer-note { margin-top: 6px; font-size: 8px; }
-    .is-tag-embed .tag-viewer-modes { margin-top: 0; }
-    .is-tag-embed .tag-viewer-modes button { padding: 7px 9px; font-size: 9px; }
 
     .paper-entry {
       width: min(100%, 760px);
@@ -496,15 +392,10 @@
       .brand-meaning.is-open .brand-definition { height: 196px; }
       .location { font-size: 11px; }
       .floating-header.is-scrolled { width: 128px; min-height: 44px; padding: 0 10px; }
-      :root { --hero-copy-runway: clamp(88px, 14svh, 112px); }
-      :root { --product-scene-offset: clamp(60px, 9svh, 82px); }
-      .hero-copy { top: clamp(96px, 13vh, 136px); width: calc(100vw - 24px); }
+      .hero-copy { top: 0; width: calc(100vw - 24px); }
       .hero-headline { font-size: clamp(32px, 9.2vw, 58px); letter-spacing: -.045em; line-height: .98; }
       .hero-copy-subtitle { max-width: 390px; margin-top: 16px; font-size: 18px; line-height: 1.45; }
       .hero-demo-link { min-height: 50px; gap: 13px; padding: 0 17px 0 19px; font-size: 10px; }
-      .scene-wrap { width: 100vw; height: 100svh; min-height: 500px; }
-      .annotation-label { font-size: 8px; }
-      .annotation-note { font-size: 7px; }
       .research { min-height: 82vh; padding: 112px 24px 132px; }
       .paper-meta { font-size: 11px; }
       .authors { font-size: 12px; }
@@ -515,14 +406,12 @@
     }
 
     @media (min-width: 641px) and (max-width: 840px) {
-      .hero-copy { top: clamp(104px, 13vh, 132px); }
+      .hero-copy { top: 0; }
       .hero-headline { font-size: clamp(52px, 8vw, 68px); }
       .hero-copy-subtitle { max-width: 660px; font-size: 18px; }
-      :root { --product-scene-offset: clamp(60px, 8vh, 76px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      :root { --hero-copy-runway: 1px; }
       html { scroll-behavior: auto; }
       *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
       .hero-copy { will-change: auto; }

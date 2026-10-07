@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f2f2f0">
-  <meta name="description" content="See how a RIOSE ear tag turns field signals into verifiable animal records.">
+  <meta name="description" content="Explore animal records, verify their local history, and create an optional digital identity on Solana Devnet.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-2">
-  <title>RIOSE — Live product demo</title>
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-4">
+  <title>RIOSE — Guided demo</title>
 </head>
 <body>
   <header class="demo-header" id="demo-header">
@@ -20,80 +20,110 @@
     <span class="location">sao paulo, brazil</span>
   </header>
 
-  <main class="demo-page">
-    <section class="intro" aria-labelledby="demo-title">
-      <div class="intro-copy">
-        <p class="eyebrow"><span class="live-dot"></span> PRODUCT DEMO <span class="eyebrow-divider">/</span> SIMULATED FIELD RUN</p>
-        <h1 id="demo-title">Presence, without GPS.</h1>
-        <p class="intro-lede">A signal becomes a location estimate. A movement becomes a record you can verify.</p>
-        <button class="run-button" id="run-scenario" type="button">
-          <span>Run the movement scenario</span><span class="arrow" aria-hidden="true">↗</span>
+  <main class="demo-page" id="demo-main">
+    <section class="demo-screen herd-screen is-entering" id="herd-screen" aria-labelledby="herd-title">
+      <div class="screen-heading">
+        <h1 id="herd-title">Animal records</h1>
+        <p>Choose a record to follow its journey.</p>
+      </div>
+
+      <div class="animal-list" id="animal-list" role="listbox" aria-label="Animal records">
+        <button class="animal-row is-selected" type="button" role="option" aria-selected="true" tabindex="0" data-animal-index="0">
+          <img class="animal-portrait" src="/assets/demo/animal-0.webp" alt="" width="72" height="72">
+          <span class="animal-copy"><span class="animal-name">Animal 0</span><span class="animal-tag">TAG-0000</span></span>
         </button>
-        <p class="run-state" id="run-state" role="status" aria-live="polite">A short, reproducible simulation is ready.</p>
+        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="1">
+          <img class="animal-portrait" src="/assets/demo/animal-1.webp" alt="" width="72" height="72">
+          <span class="animal-copy"><span class="animal-name">Animal 1</span><span class="animal-tag">TAG-0001</span></span>
+        </button>
+        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="2">
+          <img class="animal-portrait" src="/assets/demo/animal-2.webp" alt="" width="72" height="72">
+          <span class="animal-copy"><span class="animal-name">Animal 2</span><span class="animal-tag">TAG-0002</span></span>
+        </button>
+        <button class="animal-row" type="button" role="option" aria-selected="false" tabindex="-1" data-animal-index="3">
+          <img class="animal-portrait" src="/assets/demo/animal-3.webp" alt="" width="72" height="72">
+          <span class="animal-copy"><span class="animal-name">Animal 3</span><span class="animal-tag">TAG-0003</span></span>
+        </button>
       </div>
-      <figure class="tag-stage">
-        <iframe src="/?view=tag&amp;embed=1&amp;animal_id=demo-animal" title="Interactive RIOSE ear tag product view" loading="eager"></iframe>
-        <figcaption>THE RIOSE EAR TAG <span>·</span> INTERACTIVE PRODUCT VIEW</figcaption>
-      </figure>
     </section>
 
-    <section class="signal-section" aria-labelledby="signal-title">
-      <div class="section-heading">
+    <section class="demo-screen detail-screen" id="record-screen" aria-labelledby="record-title" hidden>
+      <button class="back-button" id="back-to-herd" type="button">Back to records</button>
+      <div class="detail-heading">
         <div>
-          <p class="eyebrow">01 / FROM SIGNAL TO RECORD</p>
-          <h2 id="signal-title">One animal. A readable trail.</h2>
+          <p class="section-label" id="record-tag-id">TAG-0000</p>
+          <h1 id="record-title" tabindex="-1">Animal 0</h1>
         </div>
-        <span class="evidence-badge"><span class="live-dot"></span> SIMULATED</span>
       </div>
+      <div class="record-layout">
+        <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Portrait of Animal 0" width="380" height="380">
+        <div class="record-content">
+          <section class="health-summary" aria-labelledby="health-title">
+            <div class="section-heading"><h2 id="health-title">Health record</h2><span>Latest entries</span></div>
+            <div class="health-cards">
+              <article class="health-card">
+                <span class="health-label">Weight</span>
+                <strong id="profile-weight">428 kg</strong>
+                <span id="profile-weight-date">24 Sep 2026</span>
+              </article>
+              <article class="health-card">
+                <span class="health-label">Vaccinations</span>
+                <strong id="profile-vaccinations">03 records</strong>
+                <span id="profile-vaccination-date">14 Aug 2026</span>
+              </article>
+              <article class="health-card">
+                <span class="health-label">Health events</span>
+                <strong id="profile-health-events">02 records</strong>
+                <span id="profile-health-date">10 Mar 2026</span>
+              </article>
+            </div>
+          </section>
 
-      <div class="signal-grid">
-        <figure class="signal-figure">
-          <svg id="signal-map" viewBox="0 0 720 390" role="img" aria-labelledby="map-title map-description">
-            <title id="map-title">Radio anchor layout and estimated animal trajectory</title>
-            <desc id="map-description">A lightweight two-dimensional schematic based on receiver-derived simulated position estimates.</desc>
-            <rect class="field-outline" x="18" y="18" width="684" height="354" rx="3"></rect>
-            <path class="field-grid" d="M189 18v354M360 18v354M531 18v354M18 106h684M18 195h684M18 284h684"></path>
-            <g id="anchors-layer" aria-hidden="true"></g>
-            <polyline id="trajectory-line" class="trajectory-line" points=""></polyline>
-            <circle id="animal-position" class="animal-position" cx="360" cy="195" r="7" hidden></circle>
-            <g class="animal-placeholder" id="animal-placeholder" transform="translate(360 195)">
-              <circle r="4"></circle><circle class="pulse-ring" r="14"></circle>
-            </g>
-            <text class="map-note" x="36" y="350">LOCAL COORDINATES · RECEIVER ESTIMATES</text>
-          </svg>
-          <figcaption><span>FIELD SIGNAL SCHEMATIC</span><span id="position-count">WAITING FOR A RUN</span></figcaption>
-        </figure>
-
-        <aside class="record-panel" aria-labelledby="record-title">
-          <p class="eyebrow">ANIMAL RECORD</p>
-          <h3 id="record-title">Demo animal <span id="animal-id">· not run</span></h3>
-          <dl class="record-stats">
-            <div><dt>Estimated positions</dt><dd id="stat-positions">—</dd></div>
-            <div><dt>Scenario</dt><dd id="stat-scenario">Ready</dd></div>
-            <div><dt>Event chain</dt><dd id="stat-chain">Not checked</dd></div>
-          </dl>
-          <div class="chain-detail" id="chain-detail" aria-live="polite">Run the scenario to create a simulated run record and verify its local hash chain.</div>
-          <p class="record-note">Estimated positions and movement are simulated. The local hash chain detects changes to saved records; it does not establish physical identity or legal ownership.</p>
-        </aside>
+          <div class="event-history">
+            <h2>Verified record</h2>
+            <div class="event-entry">
+              <span class="event-marker" aria-hidden="true"></span>
+              <div><strong id="event-name">Animal identity added</strong><p id="event-time">Waiting for the local record</p></div>
+            </div>
+          </div>
+          <div class="verification-line" id="record-verification" role="status" aria-live="polite">Checking local record integrity…</div>
+          <p class="record-disclosure">Hash verification confirms this local event history has not changed. It does not prove physical identity, health, or ownership.</p>
+          <details class="profile-origin">
+            <summary>About these records</summary>
+            <p>Curated demo profile data, separate from the verified event history. It is not live telemetry or a veterinary assessment.</p>
+          </details>
+          <dl class="identity-fields"><div><dt>Animal ID</dt><dd id="record-animal-id">demo-animal-0</dd></div></dl>
+          <p class="quiet-status api-state" id="api-state" role="status" aria-live="polite" hidden></p>
+        </div>
+      </div>
+      <div class="step-footer detail-footer">
+        <button class="primary-button" id="continue-solana" type="button" disabled>Explore digital identity</button>
       </div>
     </section>
 
-    <section class="asset-section" aria-labelledby="asset-title">
-      <div class="asset-copy">
-        <p class="eyebrow">02 / OPTIONAL DIGITAL IDENTITY</p>
-        <h2 id="asset-title">An animal asset on Solana.</h2>
-        <p>Create or verify one privacy-preserving digital asset for this animal on Devnet. A wallet is only needed if you choose to create it.</p>
+    <section class="demo-screen solana-screen" id="solana-screen" aria-labelledby="solana-title" hidden>
+      <button class="back-button" id="back-to-record" type="button">Back to record</button>
+      <div class="solana-content">
+        <div class="solana-copy">
+          <p class="section-label">OPTIONAL</p>
+          <h1 id="solana-title" tabindex="-1">An identity on Solana.</h1>
+          <p class="solana-lede">Create a privacy-preserving animal asset on Devnet. A wallet is only needed if you choose to create one.</p>
+        </div>
+        <div class="asset-sheet">
+          <div class="asset-identity"><span>ANIMAL</span><strong id="asset-animal-name">Animal 0</strong><small id="asset-animal-id">—</small></div>
+          <div class="asset-network"><span class="network-dot" aria-hidden="true"></span><span>Solana Devnet</span></div>
+          <button class="primary-button" id="asset-action" type="button">Check asset status</button>
+          <p class="quiet-status" id="asset-state" role="status" aria-live="polite">No asset created. Wallet connection is optional.</p>
+          <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View verified asset ↗</a>
+        </div>
       </div>
-      <div class="asset-action">
-        <button class="quiet-button" id="asset-action" type="button" disabled>Run the scenario first</button>
-        <p id="asset-state" class="asset-state" role="status" aria-live="polite">No wallet required to explore the tracking demo.</p>
-        <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View verified asset ↗</a>
+      <div class="step-footer detail-footer">
+        <p class="solana-disclosure">Devnet transaction · Wallet signature required · Public metadata excludes tag ID, farm, location, health data, and telemetry.</p>
       </div>
-      <p class="asset-disclosure">DEVNET · Wallet signature required · Public metadata contains no animal ID, tag ID, farm, location, health data, or telemetry. A token does not prove physical identity or legal ownership.</p>
     </section>
 
-    <footer class="demo-footer"><a href="/">Riose</a><span>SIMULATED DATA · NO PHYSICAL RF CLAIMS</span><a href="/manifesto">Read the manifesto ↗</a></footer>
+    <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-2"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-4"></script>
 </body>
 </html>
