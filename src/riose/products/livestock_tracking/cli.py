@@ -156,9 +156,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "publication":
         from .publication_cli import run_publication_command
         from .adapters.solana_memo import SolanaRpcError
+        from .adapters.evm_registry import EVMRpcError
         try:
             return run_publication_command(args)
-        except (ValueError, SolanaRpcError) as exc:
+        except (ValueError, SolanaRpcError, EVMRpcError) as exc:
             parser.error(str(exc))
     return 2
 

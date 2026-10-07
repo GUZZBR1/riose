@@ -1,5 +1,6 @@
 .venv/
 node_modules/
+contracts/node_modules/
 __pycache__/
 *.py[cod]
 .pytest_cache/
