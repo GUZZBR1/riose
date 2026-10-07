@@ -9,6 +9,7 @@ import type { AnimalState, FarmDemoCallbacks } from './types';
 
 const MAX_ANIMALS = 100;
 const STARTING_ANIMALS = 24;
+const ANIMALS_STATIONARY = true;
 
 export class FarmScene extends Phaser.Scene {
   private readonly callbacks: FarmDemoCallbacks;
@@ -39,7 +40,7 @@ export class FarmScene extends Phaser.Scene {
     this.environment = new FarmEnvironmentLayer(this);
     this.environment.create();
     this.navigation = new FarmNavigation();
-    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, pastureForAnimal);
+    this.herd = new HerdController(this.requestedAnimalCount, this.navigation, pastureForAnimal, ANIMALS_STATIONARY);
     this.cows = Array.from({ length: this.requestedAnimalCount }, (_, index) =>
       new CowEntity(this, index, pastureForAnimal(index), () => this.selectAnimal(`animal-${index}`), this.environment));
     this.navGraphics = this.add.graphics().setDepth(9000).setVisible(this.navigationDebug);

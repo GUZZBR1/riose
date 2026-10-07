@@ -68,6 +68,20 @@ test('reduced motion keeps animal positions fixed', () => {
   assert.deepEqual(herd.getStates(), before);
 });
 
+test('the product demo uses fixed safe positions with no walking states', () => {
+  const navigation = new FarmNavigation();
+  const herd = new HerdController(24, navigation, pastureForAnimal, true);
+  const before = herd.getStates();
+  assert.ok(before.every((animal) => animal.status !== 'WALK' && animal.status !== 'DRINK'));
+  for (const animal of before) assert.ok(navigation.isWalkable(animal.x, animal.y));
+  assertMinimumSpacing(before, COW_SEPARATION_RADIUS - 1);
+  for (let step = 0; step < 10 * 60 * 20; step += 1) herd.update(50, false);
+  const after = herd.getStates();
+  assert.deepEqual(after.map(({ x, y }) => [x, y]), before.map(({ x, y }) => [x, y]));
+  assert.ok(after.some((animal) => animal.status === 'GRAZE'));
+  assert.ok(after.some((animal) => animal.status === 'REST' || animal.status === 'IDLE'));
+});
+
 test('the demo starts with a mixed herd and autonomous movement', () => {
   const navigation = new FarmNavigation();
   const herd = new HerdController(24, navigation, pastureForAnimal);

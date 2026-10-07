@@ -46,6 +46,7 @@ export class AnimalBehavior {
     private readonly pasture: PastureZone,
     private readonly navigation: FarmNavigation,
     spawn: WorldPoint,
+    private readonly stationary = false,
   ) {
     this.randomState = (0x9e3779b9 ^ Math.imul(index + 1, 0x85ebca6b)) >>> 0;
     this.x = spawn.x;
@@ -54,12 +55,15 @@ export class AnimalBehavior {
     this.previousY = spawn.y;
     this.heading = (this.random() * 2 - 1) * Math.PI;
     const place = index % 20;
-    this.status = place < 11 ? 'GRAZE' : place < 15 ? 'REST' : place < 19 ? 'WALK' : 'IDLE';
+    this.status = stationary
+      ? (place < 14 ? 'GRAZE' : place < 19 ? 'REST' : 'IDLE')
+      : (place < 11 ? 'GRAZE' : place < 15 ? 'REST' : place < 19 ? 'WALK' : 'IDLE');
     this.dwellRemaining = 4 + this.random() * 11;
-    if (this.status === 'WALK') this.chooseDestination();
+    if (!stationary && this.status === 'WALK') this.chooseDestination();
   }
 
   step(dt: number, neighbors: readonly NeighborPosition[]): void {
+    if (this.stationary) return;
     this.previousX = this.x;
     this.previousY = this.y;
 
@@ -285,17 +289,18 @@ export class HerdController {
     count: number,
     private readonly navigation: FarmNavigation,
     pastureFor: (index: number) => PastureZone,
+    private readonly stationary = false,
   ) {
     for (let index = 0; index < count; index += 1) {
       const pasture = pastureFor(index);
       const spawn = navigation.findSpawn(pasture.bounds, () => this.seeded(index + 1), this.animals.map((animal) => animal.current));
       if (!spawn) throw new Error(`No safe farm spawn available for animal ${index}.`);
-      this.animals.push(new AnimalBehavior(index, pasture, navigation, spawn));
+      this.animals.push(new AnimalBehavior(index, pasture, navigation, spawn, stationary));
     }
   }
 
   update(deltaMs: number, reducedMotion: boolean): void {
-    if (reducedMotion) return;
+    if (reducedMotion || this.stationary) return;
     this.accumulator = Math.min(this.accumulator + Math.min(deltaMs, 100) / 1000, 0.25);
     while (this.accumulator >= this.fixedStep) {
       this.rebuildSpatialHash();
