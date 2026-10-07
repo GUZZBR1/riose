@@ -4,9 +4,18 @@ const ganache = require('ganache');
 
 const secretPath = process.argv[2];
 if (!secretPath) throw new Error('secret file path required');
+const chainId = Number(process.argv[3] || 31337);
+if (!Number.isSafeInteger(chainId) || chainId < 1) throw new Error('valid chain ID required');
+const signerSource = process.argv[4];
+const wallet = signerSource
+  ? { accounts: [{
+      secretKey: Buffer.from(JSON.parse(fs.readFileSync(signerSource, 'utf8')).privateKey.replace(/^0x/, ''), 'hex'),
+      balance: '0x3635c9adc5dea00000',
+    }] }
+  : { totalAccounts: 3 };
 const server = ganache.server({
-  chain: { chainId: 31337 },
-  wallet: { totalAccounts: 3 },
+  chain: { chainId },
+  wallet,
   miner: { blockTime: 0 },
   logging: { quiet: true },
 });

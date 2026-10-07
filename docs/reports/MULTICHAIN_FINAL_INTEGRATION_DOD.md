@@ -63,16 +63,16 @@ only after final regressions demonstrate no incompatible changes.
 | F2 | Direct M3↔M4A, M3↔M4B, M4A↔M4B semantic reconciliation | Git DAG/diffs; cherry-picks; Base publisher fixture reconciled | PASS |
 | F3 | One shared EVM adapter/config/contract; no duplicate Base/Arbitrum adapters or domain logic | Final source/diff audit | PASS: one adapter/config/contract; chain-ID-specific gas/nonce behavior remains an adaptation risk |
 | F4 | Same canonical commitment for one Event V1 across three independent targets | Eight three-target scenarios assert one persisted commitment for Solana, Base, and Arbitrum | PASS |
-| F5 | Three-chain E2E, using mocked/local backends as available; state/receipt independence | Eight dispatcher scenarios: mocked Solana plus Base/Arbitrum signed EVM through fake RPC with normalized, separately persisted receipts | PASS_WITH_LIMITATION: requested local contract execution unavailable |
-| F6 | Partial failure matrix, all chains unavailable included; Event V1 remains valid | Success, each individual failure, each pair of failures, and all unavailable; commitment/event binding retained | PASS for mocked/fake-RPC matrix; no local EVM transport |
+| F5 | Three-chain E2E, using mocked/local backends as available; state/receipt independence | Local Ganache instances on chain IDs 84532/421614 plus mocked Solana; one event, three VERIFIED targets and separate receipts | PASS_SIMULATED_OR_LOCAL |
+| F6 | Partial failure matrix, all chains unavailable included; Event V1 remains valid | Eight fake-RPC/mock scenarios: success, each single failure, each double failure, and all unavailable; event binding retained | PASS; local three-target success E2E also passed |
 | F7 | Recovery, retries, duplicate dispatch, Solana PREPARED, EVM signed raw replay, worker contention | Solana PREPARED restart exact-wire test; EVM pending-nonce-advanced exact-wire test; generic restart/duplicate tests; two-process nonce reservation and worker contention tests | PASS |
 | F8 | Reorg/finality finding assessed without unsupported certainty | Test preserves CONFIRMED if receipt disappears before VERIFIED; dispatcher/code and M4 reports audited | PASS_WITH_LIMITATION: post-VERIFIED deep reorg is not detected |
 | F9 | Nonce safety across shared DB processes, contracts/targets, and network IDs; separate DB limit explicit | Two-process shared-DB reservation, same-chain multi-contract scope, Base/Arbitrum same-signer fanout, restart and ordering tests | PASS_WITH_LIMITATION: separate SQLite files do not coordinate |
 | F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Identity/config tests plus recorded read-only chain/genesis evidence in M4A/M4B reports | PASS: identity is chain ID + genesis + contract/code/publisher; no current public write |
 | F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; exact npm audit package list and path classes below | PASS_WITH_LIMITATION: native Windows signer ACL policy is not independently enforced |
 | F12 | Historical Base/Arbitrum claims consistent; typo search reported without erasing history | Exact report-source inspection | PASS: suspected phrase not found in checked Arbitrum reports |
-| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 838 passed / 7 skipped including local Ganache deploy/dispatch/revert; locked npm install and audit succeeded | PENDING detached full-suite rerun |
-| F14 | Independent red team and Factory Eval Harness after integration | Read-only independent review; explicit eval case/result below | PARTIAL: Factory case INCONCLUSIVE because required E2E/local contract evidence is missing |
+| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 839 passed / 7 skipped, including Ganache local EVM contract and three-chain local/mock E2E; locked npm install/audit succeeded | PENDING detached full-suite rerun |
+| F14 | Independent red team and Factory Eval Harness after integration | Read-only independent review; explicit eval case/result below | PENDING detached full-suite rerun before PASS |
 | F15 | Claims remain bounded; no public write without available safe signer/funding | No public writes, pushes or PRs; all simulated evidence labeled | PASS |
 
 ## Change-impact map and checkpoints
@@ -140,9 +140,12 @@ the final detached HEAD before evaluating completion.
 
 Baseline evidence in the branch reports: M3 `814 passed / 7 skipped`, M4A
 `815 passed / 7 skipped`, M4B `822 passed / 7 skipped`. These are historical
-reports, not final-candidate evidence. On this candidate, `838 passed / 7
+reports, not final-candidate evidence. On this candidate, `839 passed / 7
 skipped` across the complete Python suite. `test_evm_local.py` compiled and
 deployed the registry into Ganache, dispatched a commitment, exercised
-duplicate/revert behavior, and verified the resulting receipt. The locked npm
-install succeeded on the Windows host after WSL DNS could not resolve the
-registry. A final detached-worktree rerun remains.
+duplicate/revert and exact-wire recovery, and verified receipts. The new
+three-chain E2E deployed the same registry to two isolated local EVMs configured
+with chain IDs 84532 and 421614, plus a mocked Solana adapter, and verified
+three independent receipts against one commitment. The locked npm install
+succeeded on the Windows host after WSL DNS could not resolve the registry. A
+final detached-worktree rerun remains.
