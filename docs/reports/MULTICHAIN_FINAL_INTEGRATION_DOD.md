@@ -82,7 +82,7 @@ only after final regressions demonstrate no incompatible changes.
 | C0 | M3 authority, clean state, recovery ref | PASS |
 | C1 | Compile this DoD, anti-duplication, branch graph and trust boundaries | PASS |
 | C2 | Reconcile changes and integrate M4A/M4B commits | PASS; local recovery fix and Base fixture adaptation applied |
-| C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Three-target success/failure matrix, Solana/EVM restart tests, two-process nonce test and finality limitation test pass; local-contract remains |
+| C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Three-target local/mock success E2E, eight-case failure matrix, Solana/EVM restart tests, two-process nonce test and finality limitation test pass |
 | C4 | Toolchain advisory triage and independent red team | PASS_WITH_LIMITATION; exact 38-package audit classified; red-team fixes landed; conditional Windows ACL limitation retained |
 | C5 | Full suite/build, clean checkout, Factory Eval Harness | PASS; detached suite and compile passed; Factory evaluation PASS |
 
