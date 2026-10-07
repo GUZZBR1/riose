@@ -1,102 +1,121 @@
 # RIOSE
 
-**Livestock identity and provenance, built for offline-first operation.**
+**Offline-first livestock identity and event history, with optional verifiable commitments.**
 
-RIOSE is a research-stage livestock platform that connects animal and tag identity, sub-GHz positioning experiments, and local event records. An optional multichain publisher can anchor a privacy-preserving commitment for external verification; core records remain local and usable without a blockchain connection.
+RIOSE connects an animal and ear-tag identity to a local, ordered event history. When connectivity is available, it can publish a canonical commitment so a recipient can compare a known record with its digest—without putting the full event on-chain.
 
-> **Current evidence:** `MULTICHAIN_SOFTWARE = COMPLETE` · `FIELD_VALIDATION = NOT_PERFORMED` · `FREQUENCIA = EXTERNAL`
+**Software status:** `MULTICHAIN_SOFTWARE = COMPLETE` · `FIELD_VALIDATION = NOT_PERFORMED` · `FREQUENCIA = EXTERNAL`
 
-## The product
+[Run the demo](#run-the-demo) · [Architecture](#how-riose-works) · [Evidence and limits](#evidence-and-validation-status)
 
-Livestock activity and identity records need to remain useful when connectivity is unreliable, while still being traceable and shareable when needed. RIOSE explores that workflow with local animal records, RF simulation, ear-tag firmware and digital-twin models, and an append-only event history.
+## The problem and the product
 
-The software links an animal identity to local Event V1 records and their provenance. RF and tag outputs are simulations or modeled software evidence unless explicitly identified otherwise. RIOSE has not been validated on a farm.
+Farm workflows need to keep recording when connectivity is weak. They also need a way to share or check a record later without turning a blockchain into the operational database.
 
-## How it fits together
+RIOSE keeps animal records and Event V1 history local, then lets an operator publish a privacy-preserving commitment when a network is available. The current repository combines a seeded livestock/RF application with ear-tag firmware models, a digital-twin workflow, and optional Solana and EVM publication software.
+
+## How RIOSE works
 
 ```mermaid
 flowchart LR
-  TAG[Animal and ear-tag models (simulated)] --> RF[Sub-GHz RF simulation]
-  RF --> APP[Livestock application]
-  APP --> DB[(Local SQLite records)]
-  DB --> EVENT[Event V1 and local history]
-  EVENT --> COMMIT[Canonical SHA-256 commitment]
-  COMMIT --> PUB[Optional publication outbox]
-  PUB --> SOL[Solana Memo]
-  PUB --> EVM[Shared EVM registry]
-  EVM --> BASE[Base]
-  EVM --> ARB[Arbitrum]
+  subgraph FIELD["Animal and farm inputs"]
+    ID["Animal identity + ear-tag profile"]
+    RF["RF / sensor inputs<br/>simulated or modeled"]
+  end
+
+  subgraph LOCAL["RIOSE · OFF-CHAIN · OFFLINE-FIRST"]
+    APP["Livestock application"]
+    EVENT["Event V1<br/>ordered event history"]
+    STORE[("Local SQLite records<br/>+ publication outbox")]
+    HASH["Canonical SHA-256<br/>commitment"]
+    ID --> APP
+    RF --> APP
+    APP --> EVENT --> STORE --> HASH
+  end
+
+  subgraph CHAINS["OPTIONAL PUBLICATION · COMMITMENT ONLY"]
+    ROUTER["Per-target publisher<br/>independent state and receipts"]
+    SOL["Solana Memo"]
+    EVM["Shared EVM registry"]
+    BASE["Base"]
+    ARB["Arbitrum"]
+    SOLNET["Solana"]
+    HASH --> ROUTER
+    ROUTER --> SOL --> SOLNET
+    ROUTER --> EVM
+    EVM --> BASE
+    EVM --> ARB
+  end
 ```
 
-The local event and its canonical commitment are chain-neutral. Each publication target has its own state and receipt; a chain outage does not prevent local event capture. The public envelope contains a commitment, not animal or event details.
+The animal/event workflow and complete operational record stay off-chain. Publication is opt-in: the same chain-neutral commitment can be sent to independent targets, while an outage on one target does not replace or erase the local event history. The public envelope carries the commitment and its format metadata, not animal details or the full event.
 
-### Animal and tag identity
+### Why Web3?
 
-RIOSE keeps animal identity and event history in the local product domain. The software models an ear-tag identity and its sensor/firmware behavior; it does not claim a physically validated tag or deployment. The Event V1 record is the local source of truth. Its deterministic commitment can be reused across publication targets without re-hashing for each chain.
+When a real publication exists, independent parties can check that the same digest was registered on a shared target. To compare the digest with a private event, the authorized holder must use local verification context; publication alone does not disclose or validate the event.
 
-### RF and offline-first infrastructure
+A commitment does **not** prove that an animal event is true, establish animal ownership, or validate a sensor reading. Public verification requires a real transaction and independently checked receipt; local and mocked tests do not establish that evidence.
 
-The livestock product includes a CPU-first farm/RF simulator, positioning estimators, seeded datasets, and a local dashboard. The embedded workspace models firmware, radio and sensor interactions, and power behavior. Local SQLite records and the publication outbox support offline operation; publication is opt-in.
+### Multichain software support
 
-`FREQUENCIA = EXTERNAL`: FREQUENCIA is a separate research simulator integration, not a vendored RIOSE dependency. Research runs that use it require a separately configured checkout.
+RIOSE has one commitment and separate publication state for each target. These are implemented software paths, not claims of deployment to public networks.
 
-## Why Web3?
-
-An external party may need to check that a published record matches a digest RIOSE created at a particular time. The blockchain path provides an optional public commitment and separate per-network receipts. It does **not** prove that an animal event is true, identify the animal from the digest, validate ownership, or replace the local record.
-
-### Multichain status
-
-`MULTICHAIN_SOFTWARE = COMPLETE`: the shared publication flow and chain-specific software paths are implemented and tested with local or mocked backends. Those tests are not public-chain validation.
-
-| Network | Software path | Public-chain status |
+| Target | Implemented software path | Current evidence |
 | --- | --- | --- |
-| Solana | Solana Memo adapter; mocked software tests | `SOLANA_REAL_ON_CHAIN = UNVERIFIED` |
-| Base | Shared EVM adapter and registry; local Ganache tests use chain ID 84532 | `BASE_REAL_ON_CHAIN = UNVERIFIED` |
-| Arbitrum | Same EVM adapter and registry; local Ganache tests use chain ID 421614 | `ARBITRUM_REAL_ON_CHAIN = UNVERIFIED` |
+| Solana | Memo adapter | Software tests use mocked responses; `SOLANA_REAL_ON_CHAIN = UNVERIFIED` |
+| Base | Shared EVM adapter and commitment registry | Local Ganache tests use chain ID 84532; `BASE_REAL_ON_CHAIN = UNVERIFIED` |
+| Arbitrum | Same EVM adapter and registry | Local Ganache tests use chain ID 421614; `ARBITRUM_REAL_ON_CHAIN = UNVERIFIED` |
 
-Local Ganache instances configured with Base or Arbitrum testnet chain IDs remain local simulations. No public transaction, contract deployment, or public receipt is claimed. See the [final multichain integration evidence](docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md) and the [Base](docs/reports/MULTICHAIN_MVP4A_BASE_DOD.md) and [Arbitrum](docs/reports/MULTICHAIN_MVP4_ARBITRUM_DOD.md) evidence reports.
+The local Ganache chain IDs identify test profiles; they are not public Base or Arbitrum transactions. See the [final Multichain report](docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md), [Base evidence](docs/reports/MULTICHAIN_MVP4A_BASE_DOD.md), and [Arbitrum evidence](docs/reports/MULTICHAIN_MVP4_ARBITRUM_DOD.md).
 
-### Commitments and verification
+### What stays off-chain and on-chain
 
-The canonical SHA-256 commitment is calculated from the public envelope and stays the same across chains. Event history and identifying details remain local. Software tests cover deterministic commitments, privacy boundaries, independent target state, retries, and local EVM execution. On-chain verification still requires a real transaction and independently checked receipt evidence.
+| Off-chain in RIOSE | Published commitment |
+| --- | --- |
+| Animal identity, complete Event V1 history, operational data, processing, local persistence, and queued work | Commitment digest plus the minimal format data needed by the target adapter |
 
-## Digital twin and simulation
+The EVM registry accepts a `bytes32` commitment and exposes a registration event. Solana uses the Memo adapter. The full event and animal details are not replicated across these networks. Reusing one digest across targets makes those publications correlatable; it is not anonymity.
 
-The ear-tag digital twin checks a provenance-controlled specification and orchestrates available engineering tools. MVP 3 adds Gazebo animal/tag scenarios and can bridge simulated sensor data into firmware models. These outputs are `ASSUMED` or `SIMULATED`, not physical measurements or field evidence. Review the [MVP 2 report](docs/mvp2-digital-twin-report.md) and [MVP 3 report](docs/mvp3-animal-digital-twin-report.md) for gates and limits.
+## Current capabilities
 
-![Simulated localization error CDF; simulation output, not field validation](results/plots/localization_error_cdf.png)
+- **Animal identity and events:** local livestock records and a deterministic Event V1 chain.
+- **Offline-first publication:** SQLite persistence and an opt-in outbox hold work locally until an operator attempts publication.
+- **RF and tag engineering:** seeded farm/RF simulation, localization, C firmware models, and sensor/radio test harnesses.
+- **Digital Twin:** provenance-controlled specifications and optional engineering-tool orchestration; outputs remain `ASSUMED` or `SIMULATED`.
+- **Commitment verification:** deterministic SHA-256 commitment, privacy allowlist, and independent Solana/EVM target state.
 
-## Run locally
+## Run the demo
 
-Requirements: Python 3.12 or newer and [uv](https://docs.astral.sh/uv/).
+Requirements: Python 3.12 or newer and [uv](https://docs.astral.sh/uv/). The first install needs network access to fetch Python dependencies.
 
-```sh
-./setup.sh
+~~~sh
+uv sync
 uv run cattle-rf demo --host 127.0.0.1 --port 8000
-```
+~~~
 
-Open <http://127.0.0.1:8000>. The demo starts with a seeded farm and exposes local animal, anchor, telemetry, position, event, simulation, experiment, and metrics views. Position responses keep ground truth separate; debug truth fields require explicit opt-in.
+Open <http://127.0.0.1:8000>. The demo starts with a seeded farm and provides local animal, anchor, telemetry, position, event, simulation, experiment, and metrics views. Position responses separate estimates from ground truth; debug truth fields require explicit opt-in.
 
-To run tests and the benchmark:
+To run the Python suite and host firmware-model tests:
 
-```sh
+~~~sh
+uv sync --extra dev --extra solana --extra evm
+npm ci --prefix contracts
 uv run pytest -q
-make benchmark
-```
+make hardware-test
+~~~
 
-The C firmware-model suite can be run with `make hardware-test`. See
-[architecture](docs/architecture.md) for product boundaries and the
-[hardware report](hardware/reports/mvp-hardware-report.md) for model evidence
-and engineering limits.
+The CMake/CTest harness is a host-side firmware/model test, not a physical-device test. Hardware, Renode, Gazebo, and local-EVM checks have their own optional tool requirements.
 
 ## Technical stack
 
-- **Livestock product:** Python 3.12+, FastAPI, NumPy/SciPy, scikit-learn, and SQLite.
-- **Tag engineering:** C firmware models, Zephyr `native_sim`, and Renode platform models.
-- **Digital twin:** Gazebo Harmonic scenarios and provenance-aware specification checks.
-- **Publication:** Solana Memo support, a shared EVM adapter, and a Solidity commitment registry exercised with local Ganache tests.
+- **Application:** Python 3.12+, FastAPI, SQLite, NumPy, SciPy, and scikit-learn.
+- **Tag and RF engineering:** C host firmware models, Zephyr native_sim, Renode models, and seeded RF simulation.
+- **Digital Twin:** Python orchestration with optional mechanical, antenna, power, and Gazebo tools.
+- **Publication:** Solana Memo adapter, shared EVM adapter, Solidity registry, and local Ganache harness.
 
-## Evidence and limitations
+## Evidence and validation status
+
+Latest repository verification: **884 passed, 7 skipped** in the Python suite; **39/39 passed** in the host CMake/CTest suite. Local EVM tests and Solidity compilation exercise local tooling only.
 
 - `MULTICHAIN_SOFTWARE = COMPLETE`
 - `SOLANA_REAL_ON_CHAIN = UNVERIFIED`
@@ -104,16 +123,23 @@ and engineering limits.
 - `ARBITRUM_REAL_ON_CHAIN = UNVERIFIED`
 - `FIELD_VALIDATION = NOT_PERFORMED`
 - `FREQUENCIA = EXTERNAL`
+- `SIMULATED != VALIDATED`
 
-RF localization, hardware behavior, and digital-twin results are software simulations or models. Physical hardware, animal behavior, battery life, and field performance have not been validated. Local blockchain E2E tests do not establish public-chain transactions, confirmation, or finality. The current blockchain evidence and limitations are recorded in the [multichain integration report](docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md).
+RF localization, firmware behavior, power estimates, and Digital Twin outputs are software simulations or models unless a report explicitly says otherwise. No physical tag, animal, or farm validation has been performed. FREQUENCIA is an external simulator integration, not a vendored RIOSE dependency. Review the [integrated Beta gate](docs/reports/INTEGRATED_BETA_COMPLETION_GATE.md), [MVP 2 Digital Twin report](docs/mvp2-digital-twin-report.md), and [MVP 3 report](docs/mvp3-animal-digital-twin-report.md) for evidence and limitations.
+
+![Simulated localization error CDF; not field validation](results/plots/localization_error_cdf.png)
 
 ## Roadmap
 
-1. Validate tag mechanics, radio, sensors, and power on physical hardware.
-2. Run field studies and compare measured results with the simulation evidence.
-3. Perform independently verifiable public testnet publications for Solana, Base, and Arbitrum.
-4. Extend operational and finality evidence before making production claims.
+**Implemented:** local-first livestock workflow, Event V1, persisted commitments/outbox, software support for Solana/Base/Arbitrum, and simulation/model evidence.
 
-## Team
+**Next:** validate the tag and RF path on physical hardware; run field studies; and independently verify real public-chain publications and receipts for each target.
 
-Current GitHub contributors by commit history: [santleme](https://github.com/santleme) and [GUZZBR1](https://github.com/GUZZBR1). Roles and competition-team details are not specified in this repository.
+## Repository and team
+
+- `src/riose/products/livestock_tracking/` — livestock application, event domain, persistence, and publication.
+- `src/riose/products/ear_tag/` and `hardware/` — signal tools, Digital Twin, firmware, and engineering models.
+- `contracts/` — local Solidity registry and EVM test harness.
+- `tests/`, `docs/reports/`, and `results/` — regression tests and bounded evidence.
+
+The current GitHub commit history lists contributors [santleme](https://github.com/santleme) and [GUZZBR1](https://github.com/GUZZBR1). The repository does not specify competition-team roles.
