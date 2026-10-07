@@ -154,6 +154,50 @@ def test_wrong_rpc_chain_or_contract_code_fails_closed():
         client.ensure_expected_deployment()
 
 
+def test_base_sepolia_identity_uses_the_shared_evm_adapter():
+    """Exercise Base Sepolia identity with fake deployment-specific values."""
+    config = EVMNetworkConfig(
+        chain="base-sepolia",
+        chain_id=84532,
+        expected_genesis_hash="0x0dcc9e089e30b90ddfc55be9a37dd15bc551aeee999d2e2b51414c54eaf934e4",
+        rpc_url="https://sepolia.base.org",
+        contract_address="0x" + "1" * 40,
+        expected_code_hash="0x" + keccak(b"base-sepolia-test-runtime").hex(),
+        publisher_address="0x" + "2" * 40,
+        confirmations=1,  # Test fixture only; no live confirmation depth is selected.
+        gas_limit=150_000,
+        max_fee_per_gas_wei=2_000_000_000,
+        max_priority_fee_per_gas_wei=1_000_000_000,
+    )
+    client = EVMJsonRpcClient(config)
+    runtime_code = b"base-sepolia-test-runtime"
+    responses = {
+        "eth_chainId": "0x14a34",
+        "eth_getBlockByNumber": {"hash": config.expected_genesis_hash},
+        "eth_getCode": "0x" + runtime_code.hex(),
+    }
+    client.rpc = lambda method, _params: responses[method]
+
+    client.ensure_expected_deployment()
+    adapter = EVMRegistryAdapter(config, client=client)
+
+    assert adapter.adapter_id == "evm-registry"
+    assert adapter.chain == "base-sepolia"
+    assert adapter.network == config.network_id
+
+    responses["eth_chainId"] = "0x2105"
+    with pytest.raises(EVMRpcError, match="chain ID"):
+        client.ensure_expected_deployment()
+    responses["eth_chainId"] = "0x14a34"
+    responses["eth_getBlockByNumber"] = {"hash": "0x" + "4" * 64}
+    with pytest.raises(EVMRpcError, match="genesis"):
+        client.ensure_expected_deployment()
+    responses["eth_getBlockByNumber"] = {"hash": config.expected_genesis_hash}
+    responses["eth_getCode"] = "0x6000"
+    with pytest.raises(EVMRpcError, match="contract code"):
+        client.ensure_expected_deployment()
+
+
 def test_network_config_rejects_implicit_or_wrong_deployment():
     signer = Account.create()
     with pytest.raises(ValueError, match="RPC URL"):
