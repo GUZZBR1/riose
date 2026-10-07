@@ -45,7 +45,7 @@ try {
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
   await page.waitForFunction(() => Number(document.querySelector('#farm-canvas')?.dataset.movingAnimals) > 0);
-  await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
+  assert.equal(await page.locator('#farm-canvas-02 canvas').count(), 0, 'Farm 02 waits until its section approaches the viewport');
   await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
   assert.equal(new URL(page.url()).pathname, '/demo');
   const forbidden = await page.locator('body').innerText();
@@ -65,8 +65,11 @@ try {
   await page.waitForTimeout(450);
   await page.screenshot({ path: resolve(output, 'farm-demo-selected-animal.png') });
 
+  assert.equal(await page.evaluate(() => performance.getEntriesByType('resource').some((entry) => entry.name.includes('solana-identity-orb'))), false,
+    'the offscreen Solana artwork is not downloaded before its panel opens');
   await page.getByRole('button', { name: 'Create digital identity' }).click();
   await page.waitForFunction(() => document.querySelector('#solana-screen')?.getAttribute('aria-hidden') === 'false');
+  await page.waitForFunction(() => document.querySelector('#identity-art')?.complete && document.querySelector('#identity-art')?.naturalWidth > 0);
   await page.waitForTimeout(500);
   await page.screenshot({ path: resolve(output, 'farm-demo-solana-ready.png') });
   await page.getByRole('button', { name: 'Preview asset' }).click();
@@ -105,6 +108,7 @@ try {
   // Farm 02 is a distinct second scene, with its own entity keys and profile schema.
   await page.locator('#farm-stage-02').scrollIntoViewIfNeeded();
   await page.locator('#farm-canvas-02 canvas').waitFor({ state: 'visible', timeout: 10000 });
+  await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
   await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.movingAnimals !== undefined);
   await page.getByText('Choose an animal from a list').last().click();
   await page.getByRole('button', { name: 'Animal 42', exact: true }).click();
@@ -137,7 +141,7 @@ try {
   await mobilePage.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
   await mobilePage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
-  await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
+  assert.equal(await mobilePage.locator('#farm-canvas-02 canvas').count(), 0, 'mobile load defers Farm 02 until at least a small portion enters view');
   const mobileWidth = await mobilePage.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
   assert.ok(mobileWidth.scroll <= mobileWidth.client + 1, `mobile horizontal overflow: ${JSON.stringify(mobileWidth)}`);
   await mobilePage.locator('#farm-canvas').focus();
@@ -146,6 +150,9 @@ try {
   await mobilePage.waitForTimeout(300);
   await mobilePage.getByRole('button', { name: 'Create digital identity' }).click();
   await mobilePage.waitForFunction(() => document.querySelector('#solana-screen')?.getAttribute('aria-hidden') === 'false');
+  await mobilePage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
+  await mobilePage.locator('#farm-canvas-02 canvas').waitFor({ state: 'visible', timeout: 10000 });
+  await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
   await mobilePage.evaluate(() => window.scrollTo(0, 0));
   await mobilePage.screenshot({ path: resolve(output, 'farm-demo-mobile.png'), fullPage: true });
   await mobilePage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
@@ -175,12 +182,39 @@ try {
   await offlinePage.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
   await offlineContext.close();
 
+  // A repeatable, synthetic mobile-network check focused on the actual point
+  // when the opening farm can be selected, not just when HTML first paints.
+  const perfContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 1 });
+  const perfPage = await perfContext.newPage();
+  const perfCdp = await perfContext.newCDPSession(perfPage);
+  await perfCdp.send('Network.enable');
+  await perfCdp.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: 150,
+    downloadThroughput: 200 * 1024,
+    uploadThroughput: 100 * 1024,
+    connectionType: 'cellular3g',
+  });
+  await perfCdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const perfStartedAt = Date.now();
+  await perfPage.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
+  await perfPage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 30000 });
+  await perfPage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24', null, { timeout: 30000 });
+  const mobileFarmReadyMs = Date.now() - perfStartedAt;
+  const mobileInitialTransferBytes = await perfPage.evaluate(() => performance.getEntriesByType('resource').reduce((sum, entry) => sum + entry.transferSize, 0));
+  const mobileFcpMs = await perfPage.evaluate(() => performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? null);
+  assert.ok(mobileFarmReadyMs < 15000, `farm should become interactive within 15s on throttled mobile; got ${mobileFarmReadyMs}ms`);
+  assert.ok(mobileInitialTransferBytes < 2 * 1024 * 1024, `opening farm should transfer under 2 MiB; got ${mobileInitialTransferBytes} bytes`);
+  assert.equal(await perfPage.locator('#farm-canvas-02 canvas').count(), 0, 'slow mobile entry still defers the second farm');
+  await perfContext.close();
+
   const stressContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const stressPage = await stressContext.newPage();
   await stressPage.goto(`${baseUrl}/demo?herd=100`, { waitUntil: 'domcontentloaded' });
   await stressPage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await stressPage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '100');
-  await stressPage.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '100');
+  const initialTransferBytes = await stressPage.evaluate(() => performance.getEntriesByType('resource').reduce((sum, entry) => sum + entry.transferSize, 0));
+  assert.equal(await stressPage.locator('#farm-canvas-02 canvas').count(), 0, '100-animal entry load defers the offscreen scene');
   const measureFrames = () => stressPage.evaluate(() => new Promise((resolveResult) => {
     let frames = 0;
     let longTasks = 0;
@@ -200,6 +234,7 @@ try {
   await stressPage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
   await stressPage.waitForFunction(() => Number(document.querySelector('#farm-canvas-02')?.dataset.movingAnimals) > 0);
   const farm02Performance = await measureFrames();
+  const bothFarmsTransferBytes = await stressPage.evaluate(() => performance.getEntriesByType('resource').reduce((sum, entry) => sum + entry.transferSize, 0));
   await stressContext.close();
 
   const bundlePath = resolve(repository, 'src/riose/products/livestock_tracking/adapters/static/assets/farm-demo/farm-demo.js');
@@ -214,6 +249,10 @@ try {
     '- Desktop view: 1672 × 941 (matched to supplied reference); mobile view: 390 × 844',
     `- Farm 01 stress run: 100 animals; browser animation-frame rate: ${farm01Performance.fps} fps; observed long tasks: ${farm01Performance.longTasks}`,
     `- Farm 02 stress run: 100 animals; browser animation-frame rate: ${farm02Performance.fps} fps; observed long tasks: ${farm02Performance.longTasks}`,
+    `- Synthetic mobile loading: opening farm interactive in ${(mobileFarmReadyMs / 1000).toFixed(2)} s; first contentful paint ${(mobileFcpMs / 1000).toFixed(2)} s; ${(mobileInitialTransferBytes / 1024 / 1024).toFixed(2)} MiB transferred before Farm 02; throttled to 150 ms latency, 200 KiB/s download, and 4× CPU slowdown. This is a repeatable lab check, not field Core Web Vitals.`,
+    '- Loading audit: the first version waited for all Farm 01 decoration, Farm 02 art, and unopened Solana artwork before the scene was interactive; the opening scene took about 25 s on this throttled profile. The revised flow paints the island first, loads essential scene layers and animals next, then decorations; Farm 02 and Solana artwork load on demand. Matching runs reached interactive in 4.4–11.3 s, showing variability under CPU/network contention.',
+    `- Lazy scene transfer: ${(initialTransferBytes / 1024 / 1024).toFixed(2)} MiB before Farm 02 enters; ${(bothFarmsTransferBytes / 1024 / 1024).toFixed(2)} MiB after both scenes load`,
+    '- Farm 02 simulation and landscape assets load only after at least 10% of its stage is visible; Solana artwork loads only when its panel opens.',
     `- Scene bundle: ${rawBytes.toLocaleString('en-US')} bytes; gzip: ${gzipBytes.toLocaleString('en-US')} bytes`,
     '- Verified in-browser: one continuous page with distinct lush dairy and Cerrado beef farms; in-place animal and Solana panels; selection changes update both panels; outside click clears selection; keyboard and accessible-list selection; local preview without transaction; missing-wallet failure does not confirm an asset; API failure leaves both scenes and preview available; mobile layout; 100-animal rendering on each farm.',
     '- Simulation tests cover safe spawning, walkable boundaries, water and fences, route reachability, deterministic movement and 10 accelerated minutes for herds of 1, 10, 24 and 100 on each farm.',

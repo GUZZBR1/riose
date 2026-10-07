@@ -82,8 +82,10 @@ button { font: inherit; }
 .farm-stage { position: relative; isolation: isolate; width: 100%; height: 100%; overflow: visible; background: transparent; }
 .farm-canvas, .farm-canvas canvas { display: block; width: 100%; height: 100%; }
 .farm-canvas { position: absolute; inset: 0; touch-action: none; }
+.farm-canvas#farm-canvas::before { position: absolute; z-index: 0; inset: 0; background: center / contain no-repeat url('/assets/farm-demo/isometric/island-base.webp'); content: ""; opacity: 1; pointer-events: none; transition: opacity 220ms ease; }
+.farm-canvas#farm-canvas.is-ready::before { opacity: 0; }
 .farm-canvas:focus, .farm-canvas:focus-visible { outline: none; }
-.farm-canvas canvas { image-rendering: pixelated; outline: none; }
+.farm-canvas canvas { position: relative; z-index: 1; image-rendering: pixelated; outline: none; }
 .farm-intro-hint { position: absolute; z-index: 5; right: clamp(4px, 2vw, 28px); bottom: 8px; margin: 0; color: rgb(48 49 44 / 70%); font: 10px/1.4 var(--mono); letter-spacing: .035em; pointer-events: none; }
 .farm-sound-toggle { position: absolute; z-index: 6; right: clamp(4px, 2vw, 28px); bottom: 35px; padding: 5px 8px; border: 1px solid rgb(255 255 255 / 56%); border-radius: 999px; background: rgb(255 255 255 / 32%); color: #696a64; font: 8px/1.2 var(--mono); cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
 .farm-sound-toggle:hover, .farm-sound-toggle[aria-pressed="true"] { background: rgb(255 255 255 / 68%); color: var(--ink); }

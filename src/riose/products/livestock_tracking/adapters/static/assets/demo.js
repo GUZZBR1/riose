@@ -183,6 +183,10 @@ function setContextOpen(element, open) {
   element.classList.toggle('is-open', open);
   element.setAttribute('aria-hidden', String(!open));
   element.inert = !open;
+  if (open && element.id === 'solana-screen') {
+    const artwork = $('identity-art');
+    if (!artwork.getAttribute('src')) artwork.src = artwork.dataset.src;
+  }
 }
 
 function setMessage(id, message, status) {
@@ -393,38 +397,50 @@ function publishSceneState(animals) {
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-19');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-24');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
-    for (const [farmId, stage] of stageElements) {
+
+    const mountStage = (farmId, stage, isVisible) => {
+      if (farmStages.has(farmId)) return farmStages.get(farmId);
       renderAnimalChooser(stage, state.animalCount);
+      const mounted = { ...stage, farm: null, isVisible, ready: false };
+      farmStages.set(farmId, mounted);
       const farm = mountFarmDemo(stage.canvas, {
         farmId,
         animalCount: state.animalCount,
         onSelect: selectAnimal,
         onStates: publishSceneState,
         onReady: () => {
+          stage.canvas.classList.add('is-ready');
           revealFarmHint(stage);
-          const mounted = farmStages.get(farmId);
-          if (mounted) {
-            mounted.ready = true;
-            if (!mounted.isVisible) mounted.farm.setActive(false);
-          }
+          mounted.ready = true;
+          if (!mounted.isVisible) mounted.farm?.setActive(false);
         },
       });
-      farmStages.set(farmId, { ...stage, farm, isVisible: true });
+      mounted.farm = farm;
       state.farms.set(farmId, farm);
-    }
+      if (mounted.ready && !mounted.isVisible) farm.setActive(false);
+      return mounted;
+    };
+
+    // Farm 01 is the opening scene. Defer the second Phaser scene and its
+    // multi-megabyte art until its section approaches the viewport.
+    mountStage('farm01', stageElements.get('farm01'), true);
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         const farmId = entry.target.dataset.farmId;
-        const mounted = farmStages.get(farmId);
+        const stage = stageElements.get(farmId);
+        let mounted = farmStages.get(farmId);
+        if (!mounted && entry.isIntersecting && entry.intersectionRatio >= 0.1 && stage) {
+          mounted = mountStage(farmId, stage, true);
+        }
         if (!mounted) continue;
         mounted.isVisible = entry.isIntersecting;
-        if (mounted.ready) mounted.farm.setActive(entry.isIntersecting);
+        if (mounted.ready) mounted.farm?.setActive(entry.isIntersecting);
       }
       farmAudio.setFarmVisibility([...farmStages.values()].some((mounted) => mounted.isVisible));
-    }, { rootMargin: '360px 0px 360px 0px' });
+    }, { rootMargin: '0px' });
     for (const stage of stageElements.values()) observer.observe(stage.stage);
     window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
   } catch (error) {

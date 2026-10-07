@@ -39,7 +39,13 @@ export class FarmScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
     this.environment = new FarmEnvironmentLayer(this, this.definition.id,
       this.definition.worldWidth, this.definition.worldHeight);
-    this.environment.create();
+    this.cameraController = new CameraController(this, this.reducedMotion,
+      this.definition.worldWidth, this.definition.worldHeight);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.onShutdown, this);
+    this.environment.create(() => this.initializeFarm());
+  }
+
+  private initializeFarm(): void {
     this.navigation = new FarmNavigation(this.definition.navigation);
     this.herd = new HerdController(this.requestedAnimalCount, this.navigation, this.definition.pastureForAnimal,
       false, { ...this.definition.behavior, seed: this.definition.seed });
@@ -48,8 +54,6 @@ export class FarmScene extends Phaser.Scene {
         () => this.selectAnimal(`${this.definition.id}-animal-${index}`), this.environment, this.definition.id));
     this.navGraphics = this.add.graphics().setDepth(9000).setVisible(this.navigationDebug);
 
-    this.cameraController = new CameraController(this, this.reducedMotion,
-      this.definition.worldWidth, this.definition.worldHeight);
     this.input.on('pointerdown', this.clearSelectionOnLandscape, this);
     this.input.keyboard?.on('keydown-ESC', () => this.selectAnimal(null));
     this.input.keyboard?.on('keydown-LEFT', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
@@ -60,10 +64,10 @@ export class FarmScene extends Phaser.Scene {
     this.ready = true;
     this.callbacks.onReady?.();
     this.events.emit('farm-ready');
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.onShutdown, this);
   }
 
   update(_time: number, delta: number): void {
+    if (!this.ready) return;
     this.herd.update(delta, this.reducedMotion);
     const snapshots = this.herd.getStates(true);
     this.cows.forEach((cow, index) => cow.update(snapshots[index], delta, this.reducedMotion));
