@@ -12,7 +12,7 @@ This file preserves the required scope and will be updated with evidence.
 | B1 | Reuse Event V1, canonical CommitmentV1 binding, target, SQLite Store/outbox, attempts, receipts, dispatcher, ChainAdapter, retry/recovery state machine | Source inventory and final diff | PASS |
 | B2 | Search for existing EVM/contract/ABI/signing/runtime assets before adding any | Repository and local-tool inventory | COVERED: no EVM code, Solidity, ABI, library or local runtime in approved base |
 | B3 | Map trust boundaries and evidence invalidated by EVM changes | Boundary map below, regression results | PASS |
-| B4 | Preserve material checkpoints: base, DoD/inventory, contract+adapter, local execution, red team, clean checkout | Git commits and report updates | SOURCE COMMIT DONE; CLEAN CHECKOUT PENDING |
+| B4 | Preserve material checkpoints: base, DoD/inventory, contract+adapter, local execution, red team, clean checkout | Git commits and report updates | PASS |
 
 No BaseAdapter or ArbitrumAdapter is permitted. The same EVM adapter and
 contract source must accept future network/deployment configuration for both.
@@ -63,7 +63,7 @@ is not invalidated by proximity alone.
 | D8 | Real local EVM deploy, publication, event, duplicate, revert, recovery, and multiple commitments | Local runtime transcripts and independent receipt/log inspection | PASS |
 | D9 | Local measured deployment/publication/duplicate or revert gas | Receipts and report; no fiat estimate | PASS |
 | D10 | Security review of privacy, replay, duplicate, signer, RPC/contract trust, gas/storage, admin/proxy | Independent review and disposition | PASS WITH DOCUMENTED LIMIT |
-| D11 | Full Python/contract/local regression, package/build and dependency checks in final clean detached checkout | Commands and output at final HEAD | PENDING CLEAN CHECKOUT |
+| D11 | Full Python/contract/local regression, package/build and dependency checks in final clean detached checkout | Commands and output at final HEAD | PASS AT SOURCE HEAD; DOC-ONLY FINAL HEAD TO BE RECHECKED |
 | D12 | Base and Arbitrum handoffs use only future config/deployment differences | Handoff artifacts, no live network claims | PASS |
 
 ## Required tests
@@ -76,7 +76,7 @@ is not invalidated by proximity alone.
 | T12–T14 | RPC failure yields no fabricated receipt; restart and evidence-bounded recovery | PASS |
 | T15–T16 | Same-signer nonce concurrency and independent EVM targets | PASS |
 | T17–T19 | Solana, SQLite, and Event chain regressions | PASS IN FULL SUITE |
-| T20 | Full regression | 814 PASSED, 7 SKIPPED; FINAL CHECKOUT PENDING |
+| T20 | Full regression | 814 PASSED, 7 SKIPPED IN DETACHED CHECKOUT |
 
 Fault injection must cover RPC unavailable, timeouts before/after send,
 invalid contract, revert, absent receipt, restart, duplicate worker, nonce
@@ -101,7 +101,7 @@ Local deployment may prove `EVM_CORE=TESTED_SOFTWARE` and
   second independent contract with the same canonical commitment, and a real
   after-submit timeout recovered after closing/reopening SQLite.
 - The test-only Node toolchain is locked in `contracts/package-lock.json` with
-  Ganache 7.9.2 and solc 0.8.28. An offline Windows installation required
+  Ganache 7.9.2 and solc 0.8.37. An offline Windows installation required
   `npm ci --force --ignore-scripts` because Ganache's bundled lock includes a
   Darwin-only `fsevents` entry; Node then used its JavaScript fallback on WSL.
   This is a local test-toolchain constraint, not an EVM runtime dependency.
@@ -110,6 +110,18 @@ Local deployment may prove `EVM_CORE=TESTED_SOFTWARE` and
   7 skipped, 1 pre-existing Starlette deprecation warning before final
   checkout reproduction. `uv lock --check --offline`, `uv pip check`, Python
   byte-compilation, and `uv build --offline` passed.
+
+The detached checkout at implementation/documentation HEAD `256638c` was
+installed from the wheel cache into a fresh `.venv` with
+`uv pip install --no-index --find-links ... -e ".[dev,solana,evm]"`.
+`uv lock --check` passed using the portable PyPI lock; `uv pip check` found 67
+compatible packages; `uv build --offline` produced sdist and wheel; the full
+suite reported **814 passed, 7 skipped** in 84.81 seconds; and `git status
+--porcelain` was empty. The local EVM integration test is part of that suite.
+`uv sync --locked --offline --no-index --find-links` cannot validate a PyPI
+lock against a local wheel-only index, so the clean checkout used the offline
+wheel installer and independently checked the portable lock. The final
+documentation-only HEAD receives a separate checkout recheck.
 
 Independent red team found five concrete issues. Contract front-running by an
 unauthorized publisher was fixed with an immutable publisher argument and a
