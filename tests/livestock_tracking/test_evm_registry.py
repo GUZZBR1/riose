@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
+from dataclasses import asdict, replace
+import urllib.error
 import pytest
 
 from eth_account import Account
+from eth_account.typed_transactions import TypedTransaction
 from eth_utils import keccak
+from hexbytes import HexBytes
 
 from riose.products.livestock_tracking.adapters.evm_config import EVMNetworkConfig
 from riose.products.livestock_tracking.adapters.evm_registry import (
@@ -114,6 +117,12 @@ def test_wrong_commitment_or_target_rejects_persisted_signed_wire(prepared_targe
     other = EVMRegistryAdapter(_config(adapter.config.publisher_address, chain_id=31338), client=adapter.client)
     with pytest.raises(ValueError, match="prepared EVM transaction"):
         other.validate_prepared(prepared, build_public_envelope(request["commitment"]))
+    other_contract = EVMRegistryAdapter(
+        _config(adapter.config.publisher_address, address="0x" + "2" * 40),
+        client=adapter.client,
+    )
+    with pytest.raises(ValueError, match="prepared EVM transaction"):
+        other_contract.validate_prepared(prepared, build_public_envelope(request["commitment"]))
 
 
 def test_missing_receipt_and_restart_only_replay_same_wire(prepared_target):
@@ -152,6 +161,26 @@ def test_wrong_rpc_chain_or_contract_code_fails_closed():
     )
     with pytest.raises(EVMRpcError, match="genesis"):
         client.ensure_expected_deployment()
+    client.rpc = lambda method, params: (
+        hex(config.chain_id) if method == "eth_chainId"
+        else {"hash": config.expected_genesis_hash} if method == "eth_getBlockByNumber"
+        else "0x6000"
+    )
+    with pytest.raises(EVMRpcError, match="code did not match"):
+        client.ensure_expected_deployment()
+
+
+def test_evm_rpc_transport_unavailable_is_sanitized(monkeypatch):
+    signer = Account.create()
+    client = EVMJsonRpcClient(_config(signer.address))
+
+    def unavailable(*_args, **_kwargs):
+        raise urllib.error.URLError("private endpoint detail")
+
+    monkeypatch.setattr("urllib.request.urlopen", unavailable)
+    with pytest.raises(EVMRpcError, match="transport unavailable") as error:
+        client.rpc("eth_chainId", [])
+    assert "private endpoint detail" not in str(error.value)
 
 
 def test_base_sepolia_identity_uses_the_shared_evm_adapter():
@@ -209,6 +238,113 @@ def test_network_config_rejects_implicit_or_wrong_deployment():
             publisher_address=signer.address, confirmations=1, gas_limit=150_000,
             max_fee_per_gas_wei=2, max_priority_fee_per_gas_wei=1,
         )
+
+
+def test_arbitrum_sepolia_config_pins_chain_and_full_rpc():
+    signer = Account.create()
+    values = {
+        "chain": "arbitrum-sepolia", "chain_id": 421614,
+        "expected_genesis_hash": "0x" + "3" * 64,
+        "rpc_url": "https://sepolia-rollup.arbitrum.io/rpc",
+        "contract_address": "0x" + "1" * 40,
+        "expected_code_hash": "0x" + "2" * 64,
+        "publisher_address": signer.address, "confirmations": 1,
+        "gas_limit": 300_000, "max_fee_per_gas_wei": 2_000_000_000,
+        "max_priority_fee_per_gas_wei": 1_000_000_000,
+    }
+    assert EVMNetworkConfig(**values).chain_id == 421614
+    with pytest.raises(ValueError, match="chain_id must be 421614"):
+        EVMNetworkConfig(**{**values, "chain_id": 31337})
+    assert EVMNetworkConfig(**{**values, "chain": "arbitrum"}).chain_id == 421614
+    with pytest.raises(ValueError, match="must use an Arbitrum label"):
+        EVMNetworkConfig(**{**values, "chain": "evm"})
+    with pytest.raises(ValueError, match="full RPC endpoint"):
+        EVMNetworkConfig(**{
+            **values,
+            "rpc_url": "https://sepolia-rollup-sequencer.arbitrum.io/rpc",
+        })
+
+
+def test_expected_deployment_checks_immutable_publisher():
+    signer = Account.create()
+    code = "0x6000"
+    config = replace(
+        _config(signer.address),
+        expected_code_hash="0x" + keccak(bytes.fromhex(code[2:])).hex(),
+    )
+    client = EVMJsonRpcClient(config)
+    publisher_word = "0x" + ("0" * 24) + signer.address[2:].lower()
+    client.rpc = lambda method, params: {
+        "eth_chainId": hex(config.chain_id),
+        "eth_getBlockByNumber": {"hash": config.expected_genesis_hash},
+        "eth_getCode": code,
+        "eth_call": publisher_word,
+    }[method]
+    client.ensure_expected_deployment()
+    client.rpc = lambda method, params: (
+        publisher_word[:-1] + ("0" if publisher_word[-1] != "0" else "1")
+        if method == "eth_call" else {
+            "eth_chainId": hex(config.chain_id),
+            "eth_getBlockByNumber": {"hash": config.expected_genesis_hash},
+            "eth_getCode": code,
+        }[method]
+    )
+    with pytest.raises(EVMRpcError, match="publisher"):
+        client.ensure_expected_deployment()
+    malformed_word = "0x" + ("f" * 24) + signer.address[2:].lower()
+    client.rpc = lambda method, params: (
+        malformed_word if method == "eth_call" else {
+            "eth_chainId": hex(config.chain_id),
+            "eth_getBlockByNumber": {"hash": config.expected_genesis_hash},
+            "eth_getCode": code,
+        }[method]
+    )
+    with pytest.raises(EVMRpcError, match="publisher"):
+        client.ensure_expected_deployment()
+
+
+@pytest.mark.parametrize(
+    ("estimate", "expected_gas", "raises"),
+    [(100_000, 110_000, False), (121_000, None, True)],
+)
+def test_arbitrum_gas_estimate_uses_configured_cap(tmp_path, estimate, expected_gas, raises):
+    store = Store(tmp_path / "arbitrum.sqlite3")
+    store.create_animal("local-cow", "local-tag", "local-secret")
+    event = store.append_animal_event("local-cow", "WEIGHT_RECORDED", {"weight": 425}, 1)
+    signer = Account.create()
+    config = replace(
+        _config(signer.address), chain="arbitrum-sepolia", chain_id=421614,
+        rpc_url="https://sepolia-rollup.arbitrum.io/rpc", gas_limit=120_000,
+    )
+    outbox = SQLitePublicationOutbox(store)
+    request = outbox.enqueue_event(
+        event.event_id, destination="evm-registry", chain=config.chain,
+        network=config.network_id,
+    )
+    assert outbox.claim_processing(request["publication_id"])
+    client = FakeRPC(config)
+    client.estimate = estimate
+    client.rpc = lambda method, params: (
+        hex(client.estimate) if method == "eth_estimateGas"
+        else "0x0" if method == "eth_getTransactionCount"
+        else "0x" + keccak(bytes.fromhex(params[0][2:])).hex()
+        if method == "eth_sendRawTransaction" else None
+    )
+    adapter = EVMRegistryAdapter(
+        config, client=client, signer=signer,
+        nonce_coordinator=EVMNonceCoordinator(store),
+        publication_id=request["publication_id"],
+    )
+    try:
+        if raises:
+            with pytest.raises(EVMRpcError, match="gas cap"):
+                adapter.prepare(build_public_envelope(request["commitment"]))
+        else:
+            prepared = adapter.prepare(build_public_envelope(request["commitment"]))
+            transaction = TypedTransaction.from_bytes(HexBytes(prepared.payload)).as_dict()
+            assert transaction["gas"] == expected_gas
+    finally:
+        store.close()
 
 
 def test_network_config_rejects_duplicate_keys_and_oversized_json(tmp_path):

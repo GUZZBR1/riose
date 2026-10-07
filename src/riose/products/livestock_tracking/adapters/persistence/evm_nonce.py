@@ -13,6 +13,7 @@ import re
 import secrets
 import sqlite3
 import time
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,6 +36,13 @@ CREATE TABLE IF NOT EXISTS evm_nonce_reservations (
 );
 CREATE INDEX IF NOT EXISTS idx_evm_nonce_reservations_expiry
   ON evm_nonce_reservations(expires_at);
+CREATE TABLE IF NOT EXISTS evm_nonce_submission_locks (
+  network TEXT NOT NULL,
+  sender TEXT NOT NULL,
+  token TEXT NOT NULL,
+  expires_at REAL NOT NULL,
+  PRIMARY KEY(network,sender)
+);
 """
 
 
@@ -142,6 +150,108 @@ class EVMNonceCoordinator:
             except Exception:
                 con.rollback()
                 raise
+
+    def submit_in_nonce_order(
+        self,
+        publication_id: str,
+        nonce: int,
+        reservation_token: str,
+        current_nonce: Callable[[], int],
+        submit: Callable[[], object],
+        *,
+        lease_seconds: float = 130.0,
+    ) -> object:
+        """Serialize one sender's Arbitrum sends and require the current nonce.
+
+        A short SQLite lease is shared across Store connections and processes.
+        The RPC calls happen outside the database transaction while the lease
+        prevents another RIOSE worker from overtaking this send.
+        """
+        if not isinstance(publication_id, str) or _IDENTIFIER.fullmatch(publication_id) is None:
+            raise ValueError("publication_id must be a valid identifier")
+        if type(nonce) is not int or not 0 <= nonce <= _MAX_NONCE:
+            raise ValueError("nonce must fit a non-negative SQLite integer")
+        if not isinstance(reservation_token, str) or re.fullmatch(r"[0-9a-f]{32}", reservation_token) is None:
+            raise ValueError("nonce reservation token is invalid")
+        if not callable(current_nonce) or not callable(submit):
+            raise TypeError("nonce callbacks must be callable")
+        if (type(lease_seconds) not in (int, float) or not math.isfinite(lease_seconds)
+                or not 1 <= lease_seconds <= 3600):
+            raise ValueError("submission lease must be between 1 and 3600 seconds")
+
+        lock_token = secrets.token_hex(16)
+        now = time.time()
+        with self.store._lock:
+            con = self.store.connection
+            con.execute("BEGIN IMMEDIATE")
+            try:
+                reservation = con.execute(
+                    "SELECT nonce,token,network,sender FROM evm_nonce_reservations WHERE publication_id=?",
+                    (publication_id,),
+                ).fetchone()
+                if (reservation is None or int(reservation["nonce"]) != nonce
+                        or reservation["token"] != reservation_token):
+                    raise RuntimeError("EVM nonce reservation did not match the signed attempt")
+                active = con.execute(
+                    "SELECT token,expires_at FROM evm_nonce_submission_locks "
+                    "WHERE network=? AND sender=?",
+                    (reservation["network"], reservation["sender"]),
+                ).fetchone()
+                if active is not None and float(active["expires_at"]) > now:
+                    raise RuntimeError("another Arbitrum sender submission is in progress")
+                con.execute(
+                    "DELETE FROM evm_nonce_submission_locks WHERE network=? AND sender=?",
+                    (reservation["network"], reservation["sender"]),
+                )
+                con.execute(
+                    "INSERT INTO evm_nonce_submission_locks(network,sender,token,expires_at) "
+                    "VALUES(?,?,?,?)",
+                    (reservation["network"], reservation["sender"], lock_token, now + lease_seconds),
+                )
+                con.commit()
+            except Exception:
+                con.rollback()
+                raise
+        try:
+            observed_nonce = current_nonce()
+            if observed_nonce != nonce:
+                raise RuntimeError("EVM nonce is not current; wait for the lower nonce")
+            with self.store._lock:
+                con = self.store.connection
+                con.execute("BEGIN IMMEDIATE")
+                try:
+                    lock = con.execute(
+                        "SELECT expires_at FROM evm_nonce_submission_locks "
+                        "WHERE network=? AND sender=? AND token=?",
+                        (reservation["network"], reservation["sender"], lock_token),
+                    ).fetchone()
+                    if lock is None or float(lock["expires_at"]) <= time.time():
+                        raise RuntimeError("Arbitrum sender submission lease expired before send")
+                    con.execute(
+                        "UPDATE evm_nonce_submission_locks SET expires_at=? "
+                        "WHERE network=? AND sender=? AND token=?",
+                        (time.time() + lease_seconds, reservation["network"],
+                         reservation["sender"], lock_token),
+                    )
+                    con.commit()
+                except Exception:
+                    con.rollback()
+                    raise
+            return submit()
+        finally:
+            with self.store._lock:
+                con = self.store.connection
+                con.execute("BEGIN IMMEDIATE")
+                try:
+                    con.execute(
+                        "DELETE FROM evm_nonce_submission_locks "
+                        "WHERE network=? AND sender=? AND token=?",
+                        (reservation["network"], reservation["sender"], lock_token),
+                    )
+                    con.commit()
+                except Exception:
+                    con.rollback()
+                    raise
 
     @staticmethod
     def _reap_unpersisted(con: sqlite3.Connection, now: float) -> None:

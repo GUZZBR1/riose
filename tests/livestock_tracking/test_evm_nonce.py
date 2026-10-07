@@ -2,7 +2,7 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import get_context
-from threading import Barrier
+from threading import Barrier, Event
 
 import pytest
 
@@ -113,6 +113,127 @@ def test_two_contract_targets_share_chain_nonce_scope(tmp_path):
                                 nonce_scope="evm-chain-31337")
         assert (a[0], b[0]) == (1, 2)
         assert first["commitment"] == second["commitment"]
+    finally:
+        store.close()
+
+
+def test_arbitrum_submission_waits_for_lower_reserved_nonce(tmp_path):
+    path = tmp_path / "arbitrum-order.sqlite3"
+    first_id, second_id = _requests(path, count=2)[:2]
+    store = Store(path)
+    outbox = SQLitePublicationOutbox(store)
+    coordinator = EVMNonceCoordinator(store)
+    nonce_scope = "evm-chain-421614-" + ("3" * 64)
+    network = NETWORK
+    try:
+        assert outbox.claim_processing(first_id)
+        assert outbox.claim_processing(second_id)
+        first_nonce, first_token = coordinator.reserve(
+            first_id, network, SENDER, 0, nonce_scope=nonce_scope,
+        )
+        second_nonce, second_token = coordinator.reserve(
+            second_id, network, SENDER, 0, nonce_scope=nonce_scope,
+        )
+        assert (first_nonce, second_nonce) == (0, 1)
+        sent = []
+
+        with pytest.raises(RuntimeError, match="lower nonce"):
+            coordinator.submit_in_nonce_order(
+                second_id, second_nonce, second_token, lambda: 0,
+                lambda: sent.append(1),
+            )
+        assert sent == []
+        coordinator.submit_in_nonce_order(
+            first_id, first_nonce, first_token, lambda: 0,
+            lambda: sent.append(0),
+        )
+        coordinator.submit_in_nonce_order(
+            second_id, second_nonce, second_token, lambda: 1,
+            lambda: sent.append(1),
+        )
+        assert sent == [0, 1]
+    finally:
+        store.close()
+
+
+def test_arbitrum_submission_lease_serializes_store_connections(tmp_path):
+    path = tmp_path / "arbitrum-lease.sqlite3"
+    first_id, second_id = _requests(path, count=2)[:2]
+    store, other_store = Store(path), Store(path)
+    first_outbox, other_outbox = SQLitePublicationOutbox(store), SQLitePublicationOutbox(other_store)
+    first_coordinator, other_coordinator = EVMNonceCoordinator(store), EVMNonceCoordinator(other_store)
+    scope = "evm-chain-421614-" + ("4" * 64)
+    try:
+        assert first_outbox.claim_processing(first_id)
+        assert first_outbox.claim_processing(second_id)
+        first_nonce, first_token = first_coordinator.reserve(
+            first_id, NETWORK, SENDER, 0, nonce_scope=scope,
+        )
+        second_nonce, second_token = first_coordinator.reserve(
+            second_id, NETWORK, SENDER, 0, nonce_scope=scope,
+        )
+        entered, release = Event(), Event()
+        sent = []
+
+        def blocked_nonce_read():
+            entered.set()
+            assert release.wait(timeout=5)
+            return 0
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            first_send = pool.submit(
+                first_coordinator.submit_in_nonce_order,
+                first_id, first_nonce, first_token, blocked_nonce_read,
+                lambda: sent.append(0),
+            )
+            assert entered.wait(timeout=5)
+            with pytest.raises(RuntimeError, match="another Arbitrum sender submission"):
+                other_coordinator.submit_in_nonce_order(
+                    second_id, second_nonce, second_token, lambda: 0,
+                    lambda: sent.append(1),
+                )
+            assert sent == []
+            release.set()
+            first_send.result(timeout=5)
+
+        other_coordinator.submit_in_nonce_order(
+            second_id, second_nonce, second_token, lambda: 1,
+            lambda: sent.append(1),
+        )
+        assert sent == [0, 1]
+    finally:
+        store.close()
+        other_store.close()
+
+
+def test_expired_arbitrum_submission_lease_blocks_send(tmp_path):
+    path = tmp_path / "arbitrum-expired-lease.sqlite3"
+    publication_id = _requests(path, count=1)[0]
+    store = Store(path)
+    outbox = SQLitePublicationOutbox(store)
+    coordinator = EVMNonceCoordinator(store)
+    scope = "evm-chain-421614-" + ("5" * 64)
+    try:
+        assert outbox.claim_processing(publication_id)
+        nonce, token = coordinator.reserve(
+            publication_id, NETWORK, SENDER, 0, nonce_scope=scope,
+        )
+        sent = []
+
+        def expire_lease():
+            store.connection.execute(
+                "UPDATE evm_nonce_submission_locks SET expires_at=0 WHERE sender=?",
+                (SENDER.lower(),),
+            )
+            store.connection.commit()
+            return 0
+
+        with pytest.raises(RuntimeError, match="lease expired"):
+            coordinator.submit_in_nonce_order(
+                publication_id, nonce, token, expire_lease,
+                lambda: sent.append(0),
+            )
+        assert sent == []
     finally:
         store.close()
 

@@ -114,7 +114,15 @@ class EVMJsonRpcClient:
         code_hash = "0x" + _eth_account()[2](bytes.fromhex(code[2:])).hex()
         if code_hash.lower() != self.config.expected_code_hash.lower():
             raise EVMRpcError("EVM contract code did not match configuration")
-
+        publisher_call = self.rpc("eth_call", [{
+            "to": self.config.contract_address,
+            "data": "0x" + _selector("publisher()").hex(),
+        }, "latest"])
+        expected_publisher = "0x" + ("0" * 24) + self.config.publisher_address[2:]
+        if (type(publisher_call) is not str
+                or re.fullmatch(r"0x[0-9a-fA-F]{64}", publisher_call) is None
+                or publisher_call.lower() != expected_publisher.lower()):
+            raise EVMRpcError("EVM registry publisher did not match configuration")
 
 class EVMRegistryAdapter:
     """One adapter for any explicitly configured EVM deployment."""
@@ -152,6 +160,18 @@ class EVMRegistryAdapter:
             raise ValueError("EVM signer and nonce coordination are required to prepare")
         Account, _, _, to_checksum_address, _ = _eth_account()
         self.client.ensure_expected_deployment()
+        data = _selector("register(bytes32)") + encode_registry_commitment(commitment)
+        gas_limit = self.config.gas_limit
+        if self.config.chain_id == 421614:
+            estimated_gas = _quantity(self.client.rpc("eth_estimateGas", [{
+                "from": self.config.publisher_address,
+                "to": self.config.contract_address,
+                "value": "0x0",
+                "data": "0x" + data.hex(),
+            }, "latest"]), "gas estimate")
+            if not 21_000 <= estimated_gas <= self.config.gas_limit:
+                raise EVMRpcError("Arbitrum gas estimate exceeded the configured gas cap")
+            gas_limit = min(self.config.gas_limit, (estimated_gas * 110 + 99) // 100)
         pending_nonce = _quantity(
             self.client.rpc("eth_getTransactionCount", [self.config.publisher_address, "pending"]),
             "pending nonce",
@@ -160,7 +180,6 @@ class EVMRegistryAdapter:
             self.publication_id, self.network, self.config.publisher_address, pending_nonce,
             nonce_scope=self.config.nonce_scope,
         )
-        data = _selector("register(bytes32)") + encode_registry_commitment(commitment)
         transaction = {
             "type": 2,
             "chainId": self.config.chain_id,
@@ -168,7 +187,7 @@ class EVMRegistryAdapter:
             "to": to_checksum_address(self.config.contract_address),
             "value": 0,
             "data": data,
-            "gas": self.config.gas_limit,
+            "gas": gas_limit,
             "maxFeePerGas": self.config.max_fee_per_gas_wei,
             "maxPriorityFeePerGas": self.config.max_priority_fee_per_gas_wei,
         }
@@ -244,10 +263,30 @@ class EVMRegistryAdapter:
                 or "0x" + _eth_account()[2](prepared.payload).hex() != prepared.transaction_id.lower()):
             raise ValueError("prepared EVM transaction hash is invalid")
         self.client.ensure_expected_deployment()
-        result = self.client.rpc("eth_sendRawTransaction", ["0x" + prepared.payload.hex()])
-        if type(result) is not str or result.lower() != prepared.transaction_id.lower():
-            raise EVMRpcError("EVM RPC returned a mismatched transaction hash")
-        return prepared.transaction_id
+        def send() -> str:
+            result = self.client.rpc("eth_sendRawTransaction", ["0x" + prepared.payload.hex()])
+            if type(result) is not str or result.lower() != prepared.transaction_id.lower():
+                raise EVMRpcError("EVM RPC returned a mismatched transaction hash")
+            return prepared.transaction_id
+
+        if self.config.chain_id == 421614:
+            if self.nonce_coordinator is None or self.publication_id is None:
+                raise EVMRpcError("Arbitrum nonce ordering requires the durable coordinator")
+            nonce = prepared.metadata.get("nonce")
+            token = prepared.metadata.get("nonce_reservation_token")
+            try:
+                return self.nonce_coordinator.submit_in_nonce_order(
+                    self.publication_id, nonce, token,
+                    lambda: _quantity(self.client.rpc(
+                        "eth_getTransactionCount",
+                        [self.config.publisher_address, "pending"],
+                    ), "pending nonce"),
+                    send,
+                    lease_seconds=(2 * self.config.timeout_s) + 15,
+                )
+            except RuntimeError as exc:
+                raise EVMRpcError(str(exc)) from exc
+        return send()
 
     def get_receipt(
         self, transaction_id: str, commitment: PublicCommitmentEnvelope

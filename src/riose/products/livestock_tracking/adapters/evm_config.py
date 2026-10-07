@@ -39,6 +39,10 @@ class EVMNetworkConfig:
             raise ValueError("EVM chain must be a bounded technical identifier")
         if type(self.chain_id) is not int or not 1 <= self.chain_id < 2**64:
             raise ValueError("EVM chain_id must be a positive integer")
+        if self.chain == "arbitrum-sepolia" and self.chain_id != 421614:
+            raise ValueError("Arbitrum Sepolia chain_id must be 421614")
+        if self.chain_id == 421614 and self.chain not in {"arbitrum", "arbitrum-sepolia"}:
+            raise ValueError("chain ID 421614 must use an Arbitrum label")
         if type(self.expected_genesis_hash) is not str or _HASH.fullmatch(self.expected_genesis_hash) is None:
             raise ValueError("EVM expected_genesis_hash must be a 32-byte hex digest")
         if int(self.expected_genesis_hash, 16) == 0:
@@ -61,6 +65,9 @@ class EVMNetworkConfig:
         local_http = parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost", "::1"}
         if parsed.scheme != "https" and not local_http:
             raise ValueError("EVM RPC URL must be HTTPS or loopback HTTP")
+        if (self.chain_id == 421614 and parsed.hostname
+                and parsed.hostname.endswith("-sequencer.arbitrum.io")):
+            raise ValueError("Arbitrum Sepolia requires a full RPC endpoint")
         if type(self.confirmations) is not int or not 1 <= self.confirmations <= 128:
             raise ValueError("EVM confirmations must be between 1 and 128")
         if type(self.gas_limit) is not int or not 21_000 <= self.gas_limit <= 1_000_000:

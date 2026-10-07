@@ -113,7 +113,7 @@ def _send_or_reconcile(args: argparse.Namespace, outbox: object) -> int:
         signer = load_evm_signer(key_file) if preparing else None
         adapter = EVMRegistryAdapter(
             config, signer=signer,
-            nonce_coordinator=EVMNonceCoordinator(outbox.store) if preparing else None,
+            nonce_coordinator=EVMNonceCoordinator(outbox.store),
             publication_id=args.publication_id,
         )
     else:
