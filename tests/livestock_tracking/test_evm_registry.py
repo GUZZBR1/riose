@@ -23,7 +23,7 @@ from riose.products.livestock_tracking.application.publication_dispatcher import
 from riose.products.livestock_tracking.domain.privacy import (
     build_public_envelope, serialize_public_envelope,
 )
-from riose.products.livestock_tracking.domain.publication import PreparedPublication
+from riose.products.livestock_tracking.domain.publication import ChainReceipt, PreparedPublication
 from riose.products.livestock_tracking.cli import main
 
 
@@ -42,6 +42,7 @@ class FakeRPC:
         self.config = config
         self.sends = []
         self.absent = True
+        self.fail_send = False
 
     def ensure_expected_deployment(self):
         return None
@@ -50,9 +51,13 @@ class FakeRPC:
         if method == "eth_getTransactionCount":
             return "0x0"
         if method == "eth_sendRawTransaction":
+            if self.fail_send:
+                raise EVMRpcError("simulated RPC transport unavailable")
             wire = bytes.fromhex(params[0][2:])
             self.sends.append(wire)
             return "0x" + keccak(wire).hex()
+        if method == "eth_estimateGas":
+            return "0x5208"
         if method == "eth_getTransactionReceipt":
             return None
         raise AssertionError(method)
@@ -102,6 +107,101 @@ def test_evm_serialization_is_canonical_bytes32_and_private_fields_stay_local(pr
     assert b"private-tag" not in attempt["payload"]
     assert b"private-secret" not in attempt["payload"]
     assert outbox.get(request["publication_id"])["commitment"] == request["commitment"]
+
+
+@pytest.mark.parametrize("failed_target", [None, "solana", "base", "arbitrum", "all"])
+def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target):
+    class MockSolana:
+        adapter_id = "solana-memo"
+        chain = "solana"
+        network = "solana-local"
+
+        def healthcheck(self):
+            return True
+
+        def prepare(self, envelope):
+            self.commitment = envelope.commitment
+            return PreparedPublication("mock-solana-1", envelope.commitment.encode(), {})
+
+        def validate_prepared(self, prepared, envelope):
+            assert prepared.payload == envelope.commitment.encode()
+
+        def submit(self, prepared):
+            if failed_target in {"solana", "all"}:
+                raise RuntimeError("simulated Solana transport unavailable")
+            return prepared.transaction_id
+
+        def get_receipt(self, transaction_id, _envelope):
+            if failed_target in {"solana", "all"}:
+                return None
+            return ChainReceipt(
+                chain=self.chain, network=self.network, transaction_id=transaction_id,
+                status="CONFIRMED", block_ref="mock-slot-1", evidence_status="MOCKED",
+            )
+
+        def verify(self, _envelope, _receipt):
+            return True
+
+    store = Store(tmp_path / "three-targets.sqlite3")
+    try:
+        store.create_animal("private-cow", "private-tag", "private-secret")
+        event = store.append_animal_event("private-cow", "WEIGHT_RECORDED", {"weight": 425}, 1)
+        signer = Account.create()
+        base_config = replace(
+            _config(signer.address), chain="base-sepolia", chain_id=84532,
+            rpc_url="https://sepolia.base.org",
+        )
+        arbitrum_config = replace(
+            _config(signer.address), chain="arbitrum-sepolia", chain_id=421614,
+            rpc_url="https://sepolia-rollup.arbitrum.io/rpc",
+        )
+        outbox = SQLitePublicationOutbox(store)
+        configs = {"base": base_config, "arbitrum": arbitrum_config}
+        requests = {
+            "solana": outbox.enqueue_event(
+                event.event_id, destination="solana-memo", chain="solana", network="solana-local",
+            ),
+        }
+        for key, config in configs.items():
+            requests[key] = outbox.enqueue_event(
+                event.event_id, destination="evm-registry", chain=config.chain,
+                network=config.network_id,
+            )
+
+        solana = MockSolana()
+        coordinator = EVMNonceCoordinator(store)
+        evm_adapters = {}
+        clients = {}
+        for key, config in configs.items():
+            client = FakeRPC(config)
+            client.fail_send = failed_target in {key, "all"}
+            clients[key] = client
+            evm_adapters[key] = EVMRegistryAdapter(
+                config, client=client, signer=signer, nonce_coordinator=coordinator,
+                publication_id=requests[key]["publication_id"],
+            )
+        dispatcher = PublicationDispatcher(outbox, [solana, *evm_adapters.values()])
+        for key in ("solana", "base", "arbitrum"):
+            dispatcher.process(requests[key]["publication_id"])
+
+        commitments = {request["commitment"] for request in requests.values()}
+        assert len(commitments) == 1
+        assert solana.commitment == requests["solana"]["commitment"]
+        expected = {
+            "solana": "UNKNOWN" if failed_target in {"solana", "all"} else "VERIFIED",
+            "base": "UNKNOWN" if failed_target in {"base", "all"} else "RPC_ACCEPTED",
+            "arbitrum": "UNKNOWN" if failed_target in {"arbitrum", "all"} else "RPC_ACCEPTED",
+        }
+        assert {
+            key: outbox.get(request["publication_id"])["status"]
+            for key, request in requests.items()
+        } == expected
+        assert all(outbox.get(request["publication_id"])["event_id"] == event.event_id
+                   for request in requests.values())
+        assert all(b"private-tag" not in client.sends[0] and b"private-secret" not in client.sends[0]
+                   for key, client in clients.items() if failed_target not in {key, "all"})
+    finally:
+        store.close()
 
 
 def test_wrong_commitment_or_target_rejects_persisted_signed_wire(prepared_target):
