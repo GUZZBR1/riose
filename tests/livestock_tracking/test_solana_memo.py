@@ -9,6 +9,10 @@ from riose.products.livestock_tracking.adapters.solana_memo import (
 from riose.products.livestock_tracking.domain.commitment import create_commitment_v1, public_envelope
 from riose.products.livestock_tracking.domain.publication import ChainAdapter
 from riose.products.livestock_tracking.domain.publication import PreparedPublication
+from riose.products.livestock_tracking.adapters.persistence import Store
+from riose.products.livestock_tracking.adapters.persistence.publication_outbox import SQLitePublicationOutbox
+from riose.products.livestock_tracking.application.publication_dispatcher import PublicationDispatcher
+from riose.products.livestock_tracking.domain.privacy import build_public_envelope
 
 GENESIS = "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC"
 
@@ -174,6 +178,52 @@ def test_persisted_solana_attempt_rejects_changed_signature_wire_or_memo():
     for attempt in altered:
         with pytest.raises(ValueError, match="prepared Solana"):
             adapter.validate_prepared(attempt, envelope)
+
+
+def test_prepared_solana_attempt_recovers_after_restart_without_repreparing(tmp_path):
+    from solders.keypair import Keypair
+
+    db_path = tmp_path / "solana-recovery.sqlite3"
+    store = Store(db_path)
+    store.create_animal("private-cow", "private-tag", "private-secret")
+    event = store.append_animal_event("private-cow", "WEIGHT_RECORDED", {"weight": 425}, 1)
+    outbox = SQLitePublicationOutbox(store)
+    config = SolanaMemoConfig("https://rpc.example", GENESIS)
+    request = outbox.enqueue_event(
+        event.event_id, destination="solana-memo", chain="solana",
+        network=config.network_id,
+    )
+    signer = Keypair()
+    initial_client = FakeClient(config)
+    initial_adapter = SolanaMemoAdapter(initial_client, signer)
+    envelope = build_public_envelope(request["commitment"])
+    prepared = initial_adapter.prepare(envelope)
+    attempt = outbox.prepare_publication_attempt(
+        request["publication_id"], adapter_id=initial_adapter.adapter_id,
+        transaction_id=prepared.transaction_id, payload=prepared.payload,
+        metadata=prepared.metadata,
+    )
+    assert outbox.get(request["publication_id"])["status"] == "PREPARED"
+    saved_wire = attempt["payload"]
+    store.close()
+
+    reopened = Store(db_path)
+    try:
+        recovered_outbox = SQLitePublicationOutbox(reopened)
+        recovery_client = FakeClient(config, observed=None)
+        adapter = SolanaMemoAdapter(recovery_client, signer)
+        result = PublicationDispatcher(recovered_outbox, [adapter]).reconcile(
+            request["publication_id"],
+        )
+        sent = [params for method, params in recovery_client.calls if method == "sendTransaction"]
+        assert result["status"] == "RPC_ACCEPTED"
+        assert recovered_outbox.latest_attempt(request["publication_id"])["payload"] == saved_wire
+        assert len(sent) == 1
+        assert base64.b64decode(sent[0][0]) == saved_wire
+        assert not any(method == "getLatestBlockhash" for method, _ in recovery_client.calls)
+        assert recovered_outbox.latest_attempt(request["publication_id"])["attempt_id"] == attempt["attempt_id"]
+    finally:
+        reopened.close()
 
 
 def test_solana_adapter_submit_checks_cluster_before_network_send():

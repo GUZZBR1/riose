@@ -62,18 +62,18 @@ only after final regressions demonstrate no incompatible changes.
 | F1 | Isolated candidate at M3 with recovery ref, no main/upstream mutation | Git refs/status/worktree | PASS at start |
 | F2 | Direct M3↔M4A, M3↔M4B, M4A↔M4B semantic reconciliation | Git DAG/diffs; cherry-picks; Base publisher fixture reconciled | PASS |
 | F3 | One shared EVM adapter/config/contract; no duplicate Base/Arbitrum adapters or domain logic | Final source/diff audit | PASS: one adapter/config/contract; chain-ID-specific gas/nonce behavior remains an adaptation risk |
-| F4 | Same canonical commitment for one Event V1 across three independent targets | Five three-target scenarios assert one persisted commitment for Solana, Base, and Arbitrum | PASS |
-| F5 | Three-chain E2E, using mocked/local backends as available; state/receipt independence | Five dispatcher scenarios: mocked Solana plus Base/Arbitrum signed EVM through fake RPC; independent states and receipts | PASS_WITH_LIMITATION: no local contract execution |
-| F6 | Partial failure matrix, all chains unavailable included; Event V1 remains valid | Success, each individual target failure, and all-target failure; commitments remain bound | PASS for mocked/fake-RPC matrix; no real local EVM transport |
-| F7 | Recovery, retries, duplicate dispatch, Solana PREPARED, EVM signed raw replay, worker contention | 26 EVM registry/nonce tests passed, including new pending-nonce-advanced exact-wire replay test | PARTIAL: no full cross-chain E2E |
-| F8 | Reorg/finality finding assessed without unsupported certainty | State-machine analysis and tests or explicit limitation | UNVERIFIED |
-| F9 | Nonce safety across shared DB processes, contracts/targets, and network IDs; separate DB limit explicit | Multiprocess tests and deployment boundary | UNVERIFIED |
-| F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Config tests and read-only checks if available | UNVERIFIED |
-| F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; npm findings classified below | PARTIAL: native Windows signer ACL policy is conditional; package-level advisory mapping not reproduced |
+| F4 | Same canonical commitment for one Event V1 across three independent targets | Eight three-target scenarios assert one persisted commitment for Solana, Base, and Arbitrum | PASS |
+| F5 | Three-chain E2E, using mocked/local backends as available; state/receipt independence | Eight dispatcher scenarios: mocked Solana plus Base/Arbitrum signed EVM through fake RPC with normalized, separately persisted receipts | PASS_WITH_LIMITATION: requested local contract execution unavailable |
+| F6 | Partial failure matrix, all chains unavailable included; Event V1 remains valid | Success, each individual failure, each pair of failures, and all unavailable; commitment/event binding retained | PASS for mocked/fake-RPC matrix; no local EVM transport |
+| F7 | Recovery, retries, duplicate dispatch, Solana PREPARED, EVM signed raw replay, worker contention | Solana PREPARED restart exact-wire test; EVM pending-nonce-advanced exact-wire test; generic restart/duplicate tests; two-process nonce reservation and worker contention tests | PASS |
+| F8 | Reorg/finality finding assessed without unsupported certainty | Test preserves CONFIRMED if receipt disappears before VERIFIED; dispatcher/code and M4 reports audited | PASS_WITH_LIMITATION: post-VERIFIED deep reorg is not detected |
+| F9 | Nonce safety across shared DB processes, contracts/targets, and network IDs; separate DB limit explicit | Two-process shared-DB reservation, same-chain multi-contract scope, Base/Arbitrum same-signer fanout, restart and ordering tests | PASS_WITH_LIMITATION: separate SQLite files do not coordinate |
+| F10 | Base Sepolia 84532 and Arbitrum Sepolia 421614 validated against configured genesis and RPC | Identity/config tests plus recorded read-only chain/genesis evidence in M4A/M4B reports | PASS: identity is chain ID + genesis + contract/code/publisher; no current public write |
+| F11 | Privacy, signer, RPC, deployment, replay, duplicate, malformed-receipt and tooling-security audit | Independent read-only red team; malformed reverted logs and CLI exception leaks fixed with tests; exact npm audit package list and path classes below | PASS_WITH_LIMITATION: native Windows signer ACL policy is not independently enforced |
 | F12 | Historical Base/Arbitrum claims consistent; typo search reported without erasing history | Exact report-source inspection | PASS: suspected phrase not found in checked Arbitrum reports |
-| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 832 passed / 7 skipped excluding `test_evm_local.py`; 30 EVM registry/nonce tests passed; detached clean checkout compiled successfully | PARTIAL: Ganache not cached for local contract test; DNS unavailable |
+| F13 | Full regression, contract/local EVM, build/lock/dependency, clean detached checkout | 838 passed / 7 skipped including local Ganache deploy/dispatch/revert; locked npm install and audit succeeded | PENDING detached full-suite rerun |
 | F14 | Independent red team and Factory Eval Harness after integration | Read-only independent review; explicit eval case/result below | PARTIAL: Factory case INCONCLUSIVE because required E2E/local contract evidence is missing |
-| F15 | Claims remain bounded; no public write without available safe signer/funding | Final report evidence ledger | UNVERIFIED |
+| F15 | Claims remain bounded; no public write without available safe signer/funding | No public writes, pushes or PRs; all simulated evidence labeled | PASS |
 
 ## Change-impact map and checkpoints
 
@@ -82,9 +82,9 @@ only after final regressions demonstrate no incompatible changes.
 | C0 | M3 authority, clean state, recovery ref | PASS |
 | C1 | Compile this DoD, anti-duplication, branch graph and trust boundaries | PASS |
 | C2 | Reconcile changes and integrate M4A/M4B commits | PASS; local recovery fix and Base fixture adaptation applied |
-| C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Mocked three-target E2E/failure matrix and exact-wire replay tests PASS; local-contract and finality-depth limits remain |
-| C4 | Toolchain advisory triage and independent red team | PARTIAL; red-team fixes landed; npm tree classified, exact advisory path map unavailable |
-| C5 | Full suite/build, clean checkout, Factory Eval Harness | PARTIAL; detached checkout and compileall passed; local EVM package unavailable; Factory case remains inconclusive |
+| C3 | Three-chain E2E and partial-failure/recovery/nonce/finality tests | Three-target success/failure matrix, Solana/EVM restart tests, two-process nonce test and finality limitation test pass; local-contract remains |
+| C4 | Toolchain advisory triage and independent red team | PASS_WITH_LIMITATION; exact 38-package audit classified; red-team fixes landed; conditional Windows ACL limitation retained |
+| C5 | Full suite/build, clean checkout, Factory Eval Harness | Pending detached full-suite and harness rerun |
 
 ## Factory Eval Harness case
 
@@ -106,10 +106,9 @@ trace_requirements: Event ID, commitment, three target IDs, adapter calls, attem
 evidence_requirements: Combined E2E, partial-failure matrix, nonce/replay tests, full suite, local contract evidence, independent red-team report.
 ```
 
-Eval result: **INCONCLUSIVE**. The EVM exact-wire recovery unit tests and shared
-commitment logic pass, but the three-target E2E, partial-failure matrix, local
-contract run, and full suite are not verified in this environment. The missing
-verification is a gate; this candidate is not labeled complete.
+Eval result: **PENDING final detached checkout**. Current-candidate full suite,
+local EVM contract and three-target failure matrix have passed; repeat them on
+the final detached HEAD before evaluating completion.
 
 ## Red-team dispositions
 
@@ -121,17 +120,29 @@ verification is a gate; this candidate is not labeled complete.
 - **Accepted conditional limitation:** signer-file permission checks use
   POSIX mode bits and `O_NOFOLLOW`; production signer loading is documented
   for Linux/WSL. Native Windows ACL/reparse-point enforcement is not claimed.
-- **Tooling classification:** the 38 historical npm advisories are
-  `DEV_TOOL_ONLY` and `NOT_REACHABLE` from the Python runtime; executing the
-  test/build toolchain is `BUILD_TIME_RISK`. Exact package-to-advisory paths
-  were not re-fetched because Ganache was absent from the npm cache and DNS
-  resolution failed. No dependency upgrades were applied.
+- **Tooling audit:** `npm ci --force --ignore-scripts` installed the unchanged
+  lockfile; `npm audit` returned 38 advisories (1 low, 8 moderate, 24 high,
+  5 critical). Direct vulnerable packages are Ganache 7.9.2 (high) and solc
+  0.8.37 (high). The 38 affected package names are `@microsoft/api-extractor`,
+  `@microsoft/api-extractor-model`, `@microsoft/tsdoc-config`,
+  `@rushstack/node-core-library`, `@rushstack/ts-command-line`,
+  `@trufflesuite/uws-js-unofficial`, `ajv`, `argparse`, `bn.js`,
+  `brace-expansion`, `braces`, `browserify-sign`, `browserslist`, `cipher-base`,
+  `cross-spawn`, `diff`, `elliptic`, `ganache`, `js-yaml`, `json5`, `lodash`,
+  `micromatch`, `minimatch`, `mocha`, `nanoid`, `pbkdf2`, `picomatch`,
+  `secp256k1`, `semver`, `serialize-javascript`, `sha.js`, `solc`,
+  `sprintf-js`, `terser-webpack-plugin`, `tmp`, `validator`, `webpack`, and
+  `ws`. All are `DEV_TOOL_ONLY`; exposure when invoking the contract simulator
+  or compiler is `BUILD_TIME_RISK`; none is `RUNTIME_PRODUCT_RISK` or reachable
+  from the Python product package. No bulk upgrades were applied; the audit's
+  Ganache remediation proposes a major-version change and is not a safe
+  unreviewed fix.
 
 Baseline evidence in the branch reports: M3 `814 passed / 7 skipped`, M4A
 `815 passed / 7 skipped`, M4B `822 passed / 7 skipped`. These are historical
-reports, not final-candidate evidence. On this candidate, `832 passed / 7
-skipped` with only `test_evm_local.py` excluded, and all 30 EVM registry/nonce
-tests passed using cached Python packages. The local-EVM module requires
-Ganache; `npm ci --offline --force --ignore-scripts` failed because Ganache
-7.9.2 was not cached. Do not treat these runs as full-suite or local-contract
-evidence.
+reports, not final-candidate evidence. On this candidate, `838 passed / 7
+skipped` across the complete Python suite. `test_evm_local.py` compiled and
+deployed the registry into Ganache, dispatched a commitment, exercised
+duplicate/revert behavior, and verified the resulting receipt. The locked npm
+install succeeded on the Windows host after WSL DNS could not resolve the
+registry. A final detached-worktree rerun remains.

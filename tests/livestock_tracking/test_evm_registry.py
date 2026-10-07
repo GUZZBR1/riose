@@ -43,6 +43,9 @@ class FakeRPC:
         self.sends = []
         self.absent = True
         self.fail_send = False
+        self.confirm_sends = False
+        self.transaction = None
+        self.transaction_hash = None
 
     def ensure_expected_deployment(self):
         return None
@@ -55,11 +58,43 @@ class FakeRPC:
                 raise EVMRpcError("simulated RPC transport unavailable")
             wire = bytes.fromhex(params[0][2:])
             self.sends.append(wire)
-            return "0x" + keccak(wire).hex()
+            self.transaction = TypedTransaction.from_bytes(HexBytes(wire)).as_dict()
+            self.transaction["from"] = Account.recover_transaction(wire)
+            self.transaction_hash = "0x" + keccak(wire).hex()
+            return self.transaction_hash
         if method == "eth_estimateGas":
             return "0x5208"
         if method == "eth_getTransactionReceipt":
+            if self.confirm_sends and params[0] == self.transaction_hash:
+                block_hash = "0x" + "a" * 64
+                tx = self.transaction
+                tx_to = "0x" + bytes(tx["to"]).hex()
+                tx_input = "0x" + bytes(tx["data"]).hex()
+                topic0 = "0x" + keccak(text="CommitmentRegistered(bytes32,address)").hex()
+                return {
+                    "blockNumber": "0x1", "blockHash": block_hash, "status": "0x1",
+                    "transactionHash": self.transaction_hash, "to": tx_to,
+                    "from": tx["from"], "logs": [{
+                        "address": self.config.contract_address,
+                        "transactionHash": self.transaction_hash, "blockHash": block_hash,
+                        "blockNumber": "0x1", "removed": False,
+                        "topics": [topic0, "0x" + bytes(tx["data"])[4:].hex(),
+                                   "0x" + ("0" * 24) + tx["from"][2:].lower()],
+                        "data": "0x",
+                    }],
+                }
             return None
+        if method == "eth_blockNumber" and self.confirm_sends:
+            return "0x1"
+        if method == "eth_getBlockByNumber" and self.confirm_sends:
+            return {"hash": "0x" + "a" * 64, "timestamp": "0x2"}
+        if method == "eth_getTransactionByHash" and self.confirm_sends:
+            tx = self.transaction
+            return {
+                "hash": self.transaction_hash, "blockHash": "0x" + "a" * 64,
+                "blockNumber": "0x1", "to": "0x" + bytes(tx["to"]).hex(),
+                "from": tx["from"], "input": "0x" + bytes(tx["data"]).hex(),
+            }
         raise AssertionError(method)
 
 
@@ -109,8 +144,13 @@ def test_evm_serialization_is_canonical_bytes32_and_private_fields_stay_local(pr
     assert outbox.get(request["publication_id"])["commitment"] == request["commitment"]
 
 
-@pytest.mark.parametrize("failed_target", [None, "solana", "base", "arbitrum", "all"])
-def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target):
+@pytest.mark.parametrize("failed_targets", [
+    (), ("solana",), ("base",), ("arbitrum",),
+    ("solana", "base"), ("solana", "arbitrum"), ("base", "arbitrum"),
+    ("solana", "base", "arbitrum"),
+])
+def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_targets):
+    failure_set = set(failed_targets)
     class MockSolana:
         adapter_id = "solana-memo"
         chain = "solana"
@@ -127,12 +167,12 @@ def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target
             assert prepared.payload == envelope.commitment.encode()
 
         def submit(self, prepared):
-            if failed_target in {"solana", "all"}:
+            if "solana" in failure_set:
                 raise RuntimeError("simulated Solana transport unavailable")
             return prepared.transaction_id
 
         def get_receipt(self, transaction_id, _envelope):
-            if failed_target in {"solana", "all"}:
+            if "solana" in failure_set:
                 return None
             return ChainReceipt(
                 chain=self.chain, network=self.network, transaction_id=transaction_id,
@@ -174,7 +214,8 @@ def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target
         clients = {}
         for key, config in configs.items():
             client = FakeRPC(config)
-            client.fail_send = failed_target in {key, "all"}
+            client.fail_send = key in failure_set
+            client.confirm_sends = True
             clients[key] = client
             evm_adapters[key] = EVMRegistryAdapter(
                 config, client=client, signer=signer, nonce_coordinator=coordinator,
@@ -188,9 +229,8 @@ def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target
         assert len(commitments) == 1
         assert solana.commitment == requests["solana"]["commitment"]
         expected = {
-            "solana": "UNKNOWN" if failed_target in {"solana", "all"} else "VERIFIED",
-            "base": "UNKNOWN" if failed_target in {"base", "all"} else "RPC_ACCEPTED",
-            "arbitrum": "UNKNOWN" if failed_target in {"arbitrum", "all"} else "RPC_ACCEPTED",
+            key: "UNKNOWN" if key in failure_set else "VERIFIED"
+            for key in ("solana", "base", "arbitrum")
         }
         assert {
             key: outbox.get(request["publication_id"])["status"]
@@ -198,8 +238,16 @@ def test_one_event_fans_out_to_three_independent_targets(tmp_path, failed_target
         } == expected
         assert all(outbox.get(request["publication_id"])["event_id"] == event.event_id
                    for request in requests.values())
+        successful_receipts = [
+            outbox.receipts(request["publication_id"])
+            for key, request in requests.items()
+            if key not in failure_set
+        ]
+        assert all(any(receipt["state"] == "CONFIRMED" for receipt in receipts)
+                   for receipts in successful_receipts)
+        assert len({receipts[-1]["transaction_id"] for receipts in successful_receipts}) == len(successful_receipts)
         assert all(b"private-tag" not in client.sends[0] and b"private-secret" not in client.sends[0]
-                   for key, client in clients.items() if failed_target not in {key, "all"})
+                   for key, client in clients.items() if key not in failure_set)
     finally:
         store.close()
 

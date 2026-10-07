@@ -156,6 +156,23 @@ def test_reconcile_confirmed_receipt_verifies_and_finishes(publication):
     assert receipts[-1]["confirmed_at"] is not None
 
 
+def test_confirmed_state_is_retained_if_receipt_disappears_before_verified(publication):
+    _store, outbox, _event, request = publication
+    adapter = FakeAdapter()
+    adapter.receipt = _receipt(adapter)
+    adapter.verification = None
+    dispatcher = _dispatcher(outbox, adapter, request["publication_id"])
+
+    first = dispatcher.process(request["publication_id"])
+    assert first["status"] == "CONFIRMED"
+    adapter.receipt = None
+
+    later = dispatcher.reconcile(request["publication_id"])
+
+    assert later["status"] == "CONFIRMED"
+    assert outbox.get(request["publication_id"])["status"] == "CONFIRMED"
+
+
 def test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty(publication):
     _store, outbox, _event, request = publication
     adapter = FakeAdapter()
