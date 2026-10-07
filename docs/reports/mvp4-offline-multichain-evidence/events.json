@@ -1,0 +1,14 @@
+[
+  {
+    "animal_ref_sha256": "9454d41fcb816fc3e7cf551ca8b8ccae155fc3a9a0bae6e3ead999b508c62ec7",
+    "contract": "Event V1",
+    "event_hash": "14c9386b0fed9a8bdb45d4282299a3293e91c2530ed6268da4ef4b193f46a4d8",
+    "event_id": 2,
+    "event_type": "WEIGHT_RECORDED",
+    "payload_included": false,
+    "payload_sha256": "6d547cefd139d6603e900809349612241814bd6aad164eba0e03c396acfc1abf",
+    "previous_hash": "cf735838e5139d329a95aea44ba8aba1b1a1db1efa6c229205dc548d1bc8923e",
+    "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+    "timestamp": 1.0
+  }
+]

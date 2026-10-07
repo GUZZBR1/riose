@@ -1,0 +1,15 @@
+{
+  "algorithm": "SHA-256",
+  "files": {
+    "attempts.json": "ba6cea920a2c8feaf43ee10a7366b80bed1abb6d6d79a14bb93cf6a4c34859be",
+    "capability_map.json": "1861cae2e4c81f188c63719cc1f4e07d893d9d472ad2a4711a46565fc8837172",
+    "commitments.json": "62be9360952145aacf5db0325825f74bb668a8a90d65fa663a361749c7f9d011",
+    "events.json": "7d6eedcab16df16d641ca27d44575f34d1bfc698751dd1329fef0c642c43384f",
+    "failure_matrix.json": "2e68f409031c027431fba897a99a9115f0bf31a896365f7672290cf99ef20357",
+    "manifest.json": "2abfda120d0e25ac18e99f2636f337eb5e5840ad3fd9ef17bd59712a0d696599",
+    "receipts.json": "299a49eb6b3c0962ceb73267ee968f5f492a8823c9af72f1bcf8d2af098701ce",
+    "recovery_results.json": "8b4862c253938f3df746fa2c98655e90bd91e08452dbcd6cfe5841154a115179",
+    "scenario_config.json": "76443fbe16718897693534a58b2fcb786b102795d5a5effd5405045cb8ef250b",
+    "summary.json": "3f422ea18eed38b1f7358a80388054bd2f340e16c6d690a5a20a1a7385cf16c7"
+  }
+}

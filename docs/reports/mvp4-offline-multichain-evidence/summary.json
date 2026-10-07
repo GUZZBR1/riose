@@ -1,0 +1,46 @@
+{
+  "arbitrum_real_on_chain": "UNVERIFIED",
+  "attempt_receipt_integrity": "PASS_LOCAL_AND_MOCKED",
+  "base_real_on_chain": "UNVERIFIED",
+  "concurrency": "PASS_LOCAL",
+  "crash_windows": {
+    "after_send_before_receipt_persistence": "PASS_TIMEOUT_SIMULATED",
+    "before_send": "PASS_RESTART_SIMULATED",
+    "receipt_before_verified_restart": "PARTIAL"
+  },
+  "field_validation": "NOT_PERFORMED",
+  "idempotency": "PASS_LOCAL_AND_MOCKED",
+  "limitations": [
+    "Solana adapter in this E2E is mocked; Solana unit/integration tests use fake RPC.",
+    "Base and Arbitrum targets are local Ganache nodes with testnet chain IDs, not public testnets.",
+    "Retry/backoff is operator-driven; no automatic bounded retry scheduler is present.",
+    "Base nonce reservations are durable, but Base sends do not use the Arbitrum ordered-submission lease."
+  ],
+  "multichain_software": "COMPLETE",
+  "nonce_management": "PASS_LOCAL_WITH_BASE_ORDERING_LIMITATION",
+  "offline_first": "SOFTWARE_VALIDATED",
+  "partial_failure_recovery": "PASS_MOCKED",
+  "privacy_boundary": "PASS_LOCAL_AND_MOCKED",
+  "result": "PASS_LOCAL_MULTICHAIN_WITH_LIMITATIONS",
+  "retry_policy": "PARTIAL_OPERATOR_DRIVEN_NO_BACKOFF_OR_CAP",
+  "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+  "solana_real_on_chain": "UNVERIFIED",
+  "target_independence": "PASS_LOCAL_AND_MOCKED",
+  "targets": {
+    "arbitrum": "VERIFIED",
+    "base": "VERIFIED",
+    "solana": "VERIFIED"
+  },
+  "verification": {
+    "focused_multichain_suite": "145 passed",
+    "full_python_suite": "885 passed, 7 skipped",
+    "offline_multichain_e2e": "1 passed",
+    "compileall": "PASS",
+    "uv_lock_check_offline": "PASS",
+    "uv_pip_check": "PASS",
+    "sdist_and_wheel_build": "PASS",
+    "npm_ci_from_lockfile": "PASS",
+    "git_diff_check": "PASS",
+    "npm_audit_summary": "38 development-tool advisories: 1 low, 8 moderate, 24 high, 5 critical"
+  }
+}

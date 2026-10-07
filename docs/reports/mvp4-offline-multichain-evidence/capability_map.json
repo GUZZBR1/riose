@@ -1,0 +1,79 @@
+{
+  "repository": "GUZZBR1/riose",
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "capabilities": {
+    "Event V1": {
+      "status": "READY_LOCAL",
+      "evidence": ["tests/livestock_tracking/test_event_contract.py", "tests/livestock_tracking/test_event_chain_concurrency.py"]
+    },
+    "Persistence": {
+      "status": "READY_LOCAL",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/sqlite_store.py", "tests/livestock_tracking/test_event_chain_concurrency.py"]
+    },
+    "Offline storage": {
+      "status": "READY_LOCAL",
+      "evidence": ["tests/livestock_tracking/test_publication_outbox.py::test_queue_is_atomic_minimal_and_idempotent_across_restart", "tests/livestock_tracking/test_evm_local.py::test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"]
+    },
+    "Outbox": {
+      "status": "READY_LOCAL",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py", "tests/livestock_tracking/test_publication_outbox.py"]
+    },
+    "Canonical commitment": {
+      "status": "READY_LOCAL",
+      "evidence": ["src/riose/products/livestock_tracking/domain/commitment.py", "tests/livestock_tracking/test_commitment_privacy.py"]
+    },
+    "Dispatcher": {
+      "status": "READY_LOCAL",
+      "evidence": ["src/riose/products/livestock_tracking/application/publication_dispatcher.py", "tests/livestock_tracking/test_publication_dispatcher.py"]
+    },
+    "SolanaMemoAdapter": {
+      "status": "PARTIAL",
+      "note": "Production adapter and signed-wire recovery exist; tests use fake RPC, and the three-target E2E uses a mock adapter. No real Solana chain evidence.",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/solana_memo.py", "tests/livestock_tracking/test_solana_memo.py"]
+    },
+    "EVMAdapter": {
+      "status": "READY_SIMULATED",
+      "note": "Local Ganache deployment, dispatch, and receipt verification pass; no public-chain evidence.",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/evm_registry.py", "tests/livestock_tracking/test_evm_local.py"]
+    },
+    "Base config": {
+      "status": "READY_SIMULATED",
+      "note": "Local EVM uses chain id 84532; Base Sepolia RPC or public-chain publication was not tested.",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/evm_config.py", "tests/livestock_tracking/test_evm_registry.py", "tests/livestock_tracking/test_evm_local.py"]
+    },
+    "Arbitrum config": {
+      "status": "READY_SIMULATED",
+      "note": "Local EVM uses chain id 421614; Arbitrum Sepolia RPC or public-chain publication was not tested.",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/evm_config.py", "tests/livestock_tracking/test_evm_nonce.py", "tests/livestock_tracking/test_evm_local.py"]
+    },
+    "Attempts": {
+      "status": "READY_LOCAL",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py", "tests/livestock_tracking/test_publication_outbox.py", "tests/livestock_tracking/test_publication_dispatcher.py"]
+    },
+    "Receipts": {
+      "status": "READY_SIMULATED",
+      "note": "Correlated, append-only journal and local/mock verification; public-chain validity is unverified.",
+      "evidence": ["tests/livestock_tracking/test_publication_outbox.py::test_receipts_are_correlated_append_only_and_states_fail_closed", "tests/livestock_tracking/test_evm_local.py"]
+    },
+    "Retry": {
+      "status": "PARTIAL",
+      "note": "Only explicit safe-to-retry evidence allows another attempt. There is no automatic scheduler, retry cap, or exponential backoff.",
+      "evidence": ["tests/livestock_tracking/test_publication_dispatcher.py::test_retryable_requires_explicit_safe_to_retry_evidence", "tests/livestock_tracking/test_publication_dispatcher.py::test_proven_retryable_creates_one_new_attempt_on_next_process"]
+    },
+    "Recovery": {
+      "status": "PARTIAL",
+      "note": "Durable exact-attempt reconciliation is implemented. A forced restart between receipt observation and VERIFIED persistence is not demonstrated.",
+      "evidence": ["tests/livestock_tracking/test_publication_dispatcher.py::test_submit_timeout_is_recoverable_with_exact_persisted_transaction", "tests/livestock_tracking/test_publication_dispatcher.py::test_reconcile_prepared_after_restart_never_prepares_new_payload"]
+    },
+    "Nonce management": {
+      "status": "READY_LOCAL",
+      "note": "SQLite reservations and Arbitrum ordered submission are tested across processes/restarts. Base has reservations but does not use the Arbitrum ordered-submission lease.",
+      "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/evm_nonce.py", "tests/livestock_tracking/test_evm_nonce.py"]
+    },
+    "Concurrency protection": {
+      "status": "READY_LOCAL",
+      "note": "SQLite claims, process-level nonce reservation, and event append serialization are covered; nonce coordination requires a shared database.",
+      "evidence": ["tests/livestock_tracking/test_publication_dispatcher.py::test_two_store_connections_cannot_prepare_same_target_concurrently", "tests/livestock_tracking/test_evm_nonce.py::test_two_processes_reserve_distinct_nonces_for_one_signer", "tests/livestock_tracking/test_event_chain_concurrency.py"]
+    }
+  }
+}

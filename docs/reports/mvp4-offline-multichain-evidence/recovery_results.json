@@ -1,0 +1,19 @@
+{
+  "attempt_count_by_target": {
+    "arbitrum": 1,
+    "base": 1,
+    "solana": 1
+  },
+  "attempts_before_restore": 0,
+  "canonical_commitment_preserved": true,
+  "event_hash_preserved": true,
+  "offline_backlog_survived_restart": true,
+  "receipts_before_restore": 0,
+  "results_by_target": {
+    "arbitrum": "VERIFIED",
+    "base": "VERIFIED",
+    "solana": "VERIFIED"
+  },
+  "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+  "target_receipts_independent": true
+}

@@ -1,0 +1,13 @@
+{
+  "backends": {
+    "arbitrum": "local Ganache EVM; chain id 421614",
+    "base": "local Ganache EVM; chain id 84532",
+    "solana": "mock adapter; no Solana RPC"
+  },
+  "connectivity_restore": "local EVM RPCs become reachable; mock Solana adapter enabled",
+  "offline_phase": "targets report unavailable; event and target requests remain local without attempts",
+  "public_chain_writes": false,
+  "restart": "close and reopen the same SQLite database before dispatch",
+  "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+  "seed": "Ganache deterministic default wallet; no custom seed configured"
+}

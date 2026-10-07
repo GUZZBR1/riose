@@ -1,0 +1,14 @@
+[
+  {
+    "algorithm": "sha256",
+    "commitment": "a9e64038ce294f5a40f5614f669c45a3814ab93d870d67df75fd91483730ebc6",
+    "event_id": 2,
+    "same_across_targets": true,
+    "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+    "target_publication_ids": {
+      "arbitrum": "582f4232915f9f7b4312bbfebb74d0ed",
+      "base": "ba745fc2198dc22910d98c88040da8e1",
+      "solana": "a2f193776379b24dd493b5d73197ed56"
+    }
+  }
+]

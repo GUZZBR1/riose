@@ -1,0 +1,110 @@
+[
+  {
+    "scenario": "NORMAL_ONLINE",
+    "status": "PASS_LOCAL_SIMULATED",
+    "tests": [
+      "test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"
+    ]
+  },
+  {
+    "scenario": "OFFLINE_CREATE",
+    "status": "PASS_LOCAL",
+    "tests": [
+      "test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts"
+    ]
+  },
+  {
+    "scenario": "OFFLINE_RESTART",
+    "status": "PASS_LOCAL",
+    "tests": [
+      "test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts",
+      "test_queue_is_atomic_minimal_and_idempotent_across_restart"
+    ]
+  },
+  {
+    "scenario": "PARTIAL_TARGET_FAILURE",
+    "status": "PASS_MOCKED",
+    "tests": [
+      "test_three_target_partial_failure_recovers_only_the_unavailable_target",
+      "test_failure_of_one_target_does_not_change_sibling_target",
+      "test_target_failure_does_not_invalidate_event_or_other_target"
+    ]
+  },
+  {
+    "scenario": "TARGET_RECOVERY",
+    "status": "PASS_LOCAL_AND_MOCKED",
+    "tests": [
+      "test_submit_timeout_is_recoverable_with_exact_persisted_transaction",
+      "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"
+    ]
+  },
+  {
+    "limitation": "SQLite is reopened at the persisted PREPARED/QUEUED boundary; no forced process kill is injected.",
+    "scenario": "CRASH_BEFORE_SEND",
+    "status": "PASS_RESTART_SIMULATED",
+    "tests": [
+      "test_reconcile_prepared_after_restart_never_prepares_new_payload",
+      "test_missing_adapter_leaves_request_queued_without_attempt"
+    ]
+  },
+  {
+    "limitation": "The local RPC accepts the transaction and an injected timeout creates ambiguity before restart/reconciliation; no forced process kill is injected.",
+    "scenario": "CRASH_AFTER_SEND",
+    "status": "PASS_TIMEOUT_SIMULATED",
+    "tests": [
+      "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert",
+      "test_submit_timeout_is_recoverable_with_exact_persisted_transaction"
+    ]
+  },
+  {
+    "limitation": "Evidence covers CONFIRMED retention and later re-observation; no process kill is injected between receipt read and VERIFIED write.",
+    "scenario": "RECEIPT_BEFORE_VERIFIED_RESTART",
+    "status": "PARTIAL",
+    "tests": [
+      "test_confirmed_state_is_retained_if_receipt_disappears_before_verified"
+    ]
+  },
+  {
+    "scenario": "DUPLICATE_PROCESSING",
+    "status": "PASS_MOCKED_AND_LOCAL",
+    "tests": [
+      "test_repeated_process_does_not_prepare_a_second_transaction",
+      "test_verified_target_never_resubmits",
+      "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"
+    ]
+  },
+  {
+    "scenario": "CONCURRENT_WORKERS",
+    "status": "PASS_LOCAL",
+    "tests": [
+      "test_two_store_connections_cannot_prepare_same_target_concurrently",
+      "test_two_processes_reserve_distinct_nonces_for_one_signer",
+      "test_independent_processes_serialize_event_chain_appends"
+    ]
+  },
+  {
+    "limitation": "No scheduler, retry cap, exponential backoff, or multi-cycle retry-storm test exists.",
+    "scenario": "REPEATED_RETRY",
+    "status": "PARTIAL",
+    "tests": [
+      "test_retryable_requires_explicit_safe_to_retry_evidence",
+      "test_proven_retryable_creates_one_new_attempt_on_next_process"
+    ]
+  },
+  {
+    "scenario": "PERMANENT_REJECTION",
+    "status": "PASS_MOCKED_AND_LOCAL",
+    "tests": [
+      "test_rejected_target_cannot_later_become_verified",
+      "test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert"
+    ]
+  },
+  {
+    "scenario": "UNKNOWN_RESULT",
+    "status": "PASS_MOCKED_AND_LOCAL",
+    "tests": [
+      "test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty",
+      "test_submit_timeout_is_recoverable_with_exact_persisted_transaction"
+    ]
+  }
+]

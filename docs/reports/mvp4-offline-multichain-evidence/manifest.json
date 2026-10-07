@@ -1,0 +1,20 @@
+{
+  "branch": "validation/mvp4-offline-multichain",
+  "environment": {
+    "node": "v22.22.2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "evidence_class": "LOCAL_AND_MOCKED",
+  "hashed_inputs": {
+    "canonical_commitment": "a9e64038ce294f5a40f5614f669c45a3814ab93d870d67df75fd91483730ebc6",
+    "event_hash": "14c9386b0fed9a8bdb45d4282299a3293e91c2530ed6268da4ef4b193f46a4d8",
+    "event_payload_sha256": "6d547cefd139d6603e900809349612241814bd6aad164eba0e03c396acfc1abf"
+  },
+  "repository": "GUZZBR1/riose",
+  "repository_sha": "d650549bc26c2f16e005065149ce309153668016",
+  "scenario_id": "mvp4-offline-restart-local-multichain-v1",
+  "scenario_ids": [
+    "mvp4-offline-restart-local-multichain-v1"
+  ]
+}
