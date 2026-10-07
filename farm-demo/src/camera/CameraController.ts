@@ -18,7 +18,6 @@ export class CameraController {
     scene.input.on('pointermove', this.pointerMove, this);
     scene.input.on('pointerup', this.pointerUp, this);
     scene.input.on('pointerupoutside', this.pointerUp, this);
-    scene.input.on('wheel', this.wheel, this);
     scene.scale.on(Phaser.Scale.Events.RESIZE, this.resize, this);
     this.resize();
   }
@@ -44,7 +43,6 @@ export class CameraController {
     this.scene.input.off('pointermove', this.pointerMove, this);
     this.scene.input.off('pointerup', this.pointerUp, this);
     this.scene.input.off('pointerupoutside', this.pointerUp, this);
-    this.scene.input.off('wheel', this.wheel, this);
     this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.resize, this);
   }
 
@@ -66,6 +64,10 @@ export class CameraController {
   private pointerDown(pointer: Phaser.Input.Pointer): void {
     const hits = this.scene.input.hitTestPointer(pointer);
     if (hits.some((gameObject) => gameObject.getData('farmCow') === true)) return;
+    // Keep ordinary pointer and touch gestures available to the page. Panning
+    // is an intentional Shift + primary-button gesture, never a normal drag.
+    const event = pointer.event as MouseEvent | undefined;
+    if (!event?.shiftKey || event.button !== 0) return;
     this.dragging = true;
     this.lastX = pointer.x;
     this.lastY = pointer.y;
@@ -82,13 +84,4 @@ export class CameraController {
   }
 
   private pointerUp(): void { this.dragging = false; }
-
-  private wheel(_pointer: Phaser.Input.Pointer, _objects: Phaser.GameObjects.GameObject[], _dx: number, dy: number): void {
-    const camera = this.scene.cameras.main;
-    const zoom = Phaser.Math.Clamp(camera.zoom * (dy > 0 ? 0.92 : 1.08), 0.2, 1.2);
-    this.scene.tweens.killTweensOf(camera);
-    if (this.reducedMotion) camera.setZoom(zoom);
-    else this.scene.tweens.add({ targets: camera, zoom, duration: 220, ease: 'Sine.easeOut' });
-    this.clampToIllustration();
-  }
 }

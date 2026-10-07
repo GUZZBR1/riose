@@ -81,7 +81,7 @@ button { font: inherit; }
 .farm-column { position: relative; min-width: 0; height: 100%; }
 .farm-stage { position: relative; isolation: isolate; width: 100%; height: 100%; overflow: visible; background: transparent; }
 .farm-canvas, .farm-canvas canvas { display: block; width: 100%; height: 100%; }
-.farm-canvas { position: absolute; inset: 0; touch-action: none; }
+.farm-canvas { position: absolute; inset: 0; touch-action: pan-y pinch-zoom; }
 .farm-canvas#farm-canvas::before { position: absolute; z-index: 0; inset: 0; background: center / contain no-repeat url('/assets/farm-demo/isometric/island-base.webp'); content: ""; opacity: 1; pointer-events: none; transition: opacity 220ms ease; }
 .farm-canvas#farm-canvas.is-ready::before { opacity: 0; }
 .farm-canvas:focus, .farm-canvas:focus-visible { outline: none; }

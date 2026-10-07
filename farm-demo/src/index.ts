@@ -18,7 +18,7 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
     height: '100%',
     minHeight: '420px',
     overflow: 'visible',
-    touchAction: 'none',
+    touchAction: 'pan-y pinch-zoom',
   });
   parent.appendChild(host);
 
@@ -43,7 +43,13 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     render: { pixelArt: true, antialias: false, roundPixels: true },
-    input: { activePointers: 1 },
+    // Let the browser handle the wheel normally so it scrolls the page over
+    // the game canvas instead of swallowing the gesture as map input.
+    input: {
+      activePointers: 1,
+      mouse: { preventDefaultWheel: false },
+      touch: { capture: false },
+    },
     scene: [scene],
   });
 

@@ -46,6 +46,14 @@ try {
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
   await page.waitForFunction(() => Number(document.querySelector('#farm-canvas')?.dataset.movingAnimals) > 0);
   assert.equal(await page.locator('#farm-canvas-02 canvas').count(), 0, 'Farm 02 waits until its section approaches the viewport');
+  assert.equal(await page.locator('#farm-canvas .riose-farm-canvas-host').evaluate((host) => getComputedStyle(host).touchAction), 'pan-y pinch-zoom',
+    'touch gestures over the farm must preserve native vertical page scrolling');
+  await page.mouse.move(780, 520);
+  await page.mouse.wheel(0, 420);
+  await page.waitForFunction(() => window.scrollY > 0, null, { timeout: 3000 });
+  assert.ok(await page.evaluate(() => window.scrollY > 0), 'ordinary wheel scrolling over the farm moves the page');
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.waitForFunction(() => window.scrollY === 0);
   await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
   assert.equal(new URL(page.url()).pathname, '/demo');
   const forbidden = await page.locator('body').innerText();
@@ -142,6 +150,17 @@ try {
   await mobilePage.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await mobilePage.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
   assert.equal(await mobilePage.locator('#farm-canvas-02 canvas').count(), 0, 'mobile load defers Farm 02 until at least a small portion enters view');
+  const touchCdp = await mobileContext.newCDPSession(mobilePage);
+  await touchCdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 180, y: 500 }] });
+  for (let y = 470; y >= 260; y -= 30) {
+    await touchCdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 180, y }] });
+    await mobilePage.waitForTimeout(15);
+  }
+  await touchCdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await mobilePage.waitForFunction(() => window.scrollY > 0, null, { timeout: 3000 });
+  assert.ok(await mobilePage.evaluate(() => window.scrollY > 0), 'touch swipe over the farm scrolls the page');
+  await mobilePage.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await mobilePage.waitForFunction(() => window.scrollY === 0);
   const mobileWidth = await mobilePage.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
   assert.ok(mobileWidth.scroll <= mobileWidth.client + 1, `mobile horizontal overflow: ${JSON.stringify(mobileWidth)}`);
   await mobilePage.locator('#farm-canvas').focus();
@@ -249,6 +268,7 @@ try {
     '- Desktop view: 1672 × 941 (matched to supplied reference); mobile view: 390 × 844',
     `- Farm 01 stress run: 100 animals; browser animation-frame rate: ${farm01Performance.fps} fps; observed long tasks: ${farm01Performance.longTasks}`,
     `- Farm 02 stress run: 100 animals; browser animation-frame rate: ${farm02Performance.fps} fps; observed long tasks: ${farm02Performance.longTasks}`,
+    '- Input behavior: mouse wheel scrolls the page over the farm; camera no longer zooms on wheel. Touch uses native vertical page pan; deliberate scene panning is Shift + left-drag.',
     `- Synthetic mobile loading: opening farm interactive in ${(mobileFarmReadyMs / 1000).toFixed(2)} s; first contentful paint ${(mobileFcpMs / 1000).toFixed(2)} s; ${(mobileInitialTransferBytes / 1024 / 1024).toFixed(2)} MiB transferred before Farm 02; throttled to 150 ms latency, 200 KiB/s download, and 4× CPU slowdown. This is a repeatable lab check, not field Core Web Vitals.`,
     '- Loading audit: the first version waited for all Farm 01 decoration, Farm 02 art, and unopened Solana artwork before the scene was interactive; the opening scene took about 25 s on this throttled profile. The revised flow paints the island first, loads essential scene layers and animals next, then decorations; Farm 02 and Solana artwork load on demand. Matching runs reached interactive in 4.4–11.3 s, showing variability under CPU/network contention.',
     `- Lazy scene transfer: ${(initialTransferBytes / 1024 / 1024).toFixed(2)} MiB before Farm 02 enters; ${(bothFarmsTransferBytes / 1024 / 1024).toFixed(2)} MiB after both scenes load`,
