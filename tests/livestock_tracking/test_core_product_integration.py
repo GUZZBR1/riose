@@ -88,9 +88,10 @@ def test_upstream_site_and_mvp3_dashboard_routes_remain_available(tmp_path):
     assert manifesto.status_code == 200
     assert "RIOSE" in manifesto.text
     assert dashboard.status_code == 200
-    assert 'id="run-scenario"' in dashboard.text
+    assert 'id="farm-screen"' in dashboard.text
+    assert 'id="farm-roster"' in dashboard.text
     assert "/assets/demo.js" in dashboard.text
-    assert "/assets/digital-twin/farm.js" not in dashboard.text
+    assert "/assets/farm-demo/farm-demo.js" in demo_script.text
     assert demo_styles.status_code == 200
     assert demo_script.status_code == 200
     assert farm_snapshot.status_code == 404

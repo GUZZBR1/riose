@@ -111,6 +111,9 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "eth-account" },
+    { name = "eth-utils" },
+    { name = "hexbytes" },
     { name = "httpx" },
     { name = "pytest" },
 ]
@@ -126,9 +129,12 @@ solana = [
 [package.metadata]
 requires-dist = [
     { name = "construct", specifier = "==2.10.70" },
+    { name = "eth-account", marker = "extra == 'dev'", specifier = "==0.14.0" },
     { name = "eth-account", marker = "extra == 'evm'", specifier = "==0.14.0" },
+    { name = "eth-utils", marker = "extra == 'dev'", specifier = ">=6,<7" },
     { name = "eth-utils", marker = "extra == 'evm'", specifier = ">=6,<7" },
     { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "hexbytes", marker = "extra == 'dev'", specifier = ">=2,<3" },
     { name = "hexbytes", marker = "extra == 'evm'", specifier = ">=2,<3" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27,<1" },
     { name = "matplotlib", specifier = ">=3.9,<4" },
