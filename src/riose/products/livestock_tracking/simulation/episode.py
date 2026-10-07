@@ -52,7 +52,10 @@ def simulate_episode(config: FarmConfig, anchors: Sequence[Anchor] | None = None
     """Generate a reproducible episode with inference observations and separate truth."""
     world_obstacles = tuple(DEFAULT_OBSTACLES if obstacles is None else obstacles)
     anchor_set = tuple(generate_anchors(config, world_obstacles) if anchors is None else anchors)
-    farm = FarmSimulator(config, world_obstacles, escape_targets)
+    # `obstacles` here primarily describes RF attenuation. Passing the default
+    # RF set as a caller override would incorrectly disable the farm-layout
+    # collision geometry, so only explicit custom geometry is forwarded.
+    farm = FarmSimulator(config, obstacles, escape_targets)
     truth, motion = farm.generate()
     observations = simulate_observations(config, anchor_set, truth, motion,
                                          world_obstacles, rf_config)

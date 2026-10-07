@@ -4,14 +4,21 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from contextlib import asynccontextmanager
+import asyncio
 from datetime import date
 import json
 import math
+import os
 from pathlib import Path
+import threading
+import time
 from typing import Any, Literal
+import uuid
 import sqlite3
+from urllib.error import URLError
+from urllib.request import Request as UrlRequest, urlopen
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -20,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..domain.behavior import BehaviorObservation
 from ..domain.contracts import Anchor, EvidenceStatus, FarmConfig
+from ..simulation.episode import generate_anchors
 from .persistence import Store
 from ..domain.identity import make_cryptographic_id
 
@@ -64,6 +72,58 @@ class EventCreate(BaseModel):
         if len(encoded.encode("utf-8")) > 65536:
             raise ValueError("payload must be at most 64 KiB")
         return value
+
+
+class AnimalAssetSubmission(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    asset_address: str = Field(min_length=32, max_length=44, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+    owner_address: str = Field(min_length=32, max_length=44, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+    transaction_signature: str = Field(min_length=80, max_length=90, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+    attempt_ref: str = Field(min_length=32, max_length=32, pattern=r"^[0-9a-f]{32}$")
+
+
+class AnimalAssetReservation(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    asset_address: str = Field(min_length=32, max_length=44, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+    owner_address: str = Field(min_length=32, max_length=44, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+    attempt_ref: str = Field(min_length=32, max_length=32, pattern=r"^[0-9a-f]{32}$")
+
+
+class AnimalAssetAttemptRelease(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    attempt_ref: str = Field(min_length=32, max_length=32, pattern=r"^[0-9a-f]{32}$")
+
+
+class AnimalAssetReconciliation(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    transaction_signature: str = Field(min_length=80, max_length=90, pattern=r"^[1-9A-HJ-NP-Za-km-z]+$")
+
+
+def devnet_signature_status(signature: str) -> dict[str, Any] | None:
+    """Read one Devnet signature status from the configured Solana JSON-RPC."""
+    endpoint = os.environ.get("RIOSE_SOLANA_DEVNET_RPC", "https://api.devnet.solana.com")
+    payload = json.dumps({
+        "jsonrpc": "2.0",
+        "id": "riose-asset-reconcile",
+        "method": "getSignatureStatuses",
+        "params": [[signature], {"searchTransactionHistory": True}],
+    }).encode("utf-8")
+    request = UrlRequest(endpoint, data=payload, headers={"Content-Type": "application/json"})
+    with urlopen(request, timeout=5) as response:
+        result = json.loads(response.read().decode("utf-8"))
+    if not isinstance(result, dict) or "error" in result:
+        raise ValueError("Solana Devnet RPC returned an error")
+    rpc_result = result.get("result")
+    if not isinstance(rpc_result, dict):
+        raise ValueError("Solana Devnet RPC response has no result object")
+    values = rpc_result.get("value")
+    if not isinstance(values, list):
+        raise ValueError("Solana Devnet RPC response has no status list")
+    if not values or values[0] is None:
+        return None
+    if not isinstance(values[0], dict):
+        raise ValueError("Solana Devnet RPC status is malformed")
+    return values[0]
 
 
 class BehaviorObservationCreate(BaseModel):
@@ -121,6 +181,83 @@ class SimulationRequest(BaseModel):
     anchors: list[AnchorInput] | None = Field(default=None, min_length=1, max_length=40)
 
 
+class SimulationControl(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: Literal["start", "pause", "reset", "speed"]
+    speed: float | None = Field(default=None, ge=0.1, le=50, allow_inf_nan=False)
+
+
+class SimulationPlayback:
+    """Thread-safe wall-clock playback over persisted simulator output."""
+
+    def __init__(self, run_id: str | None = None) -> None:
+        self._lock = threading.RLock()
+        self.run_id = run_id
+        self.start_s = 0.0
+        self.end_s = 0.0
+        self.time_s = 0.0
+        self.speed = 1.0
+        self.status = "empty"
+        self._last_tick = time.monotonic()
+
+    def configure(self, run_id: str | None, bounds: tuple[float, float] | None) -> None:
+        with self._lock:
+            self.run_id = run_id
+            if bounds is None:
+                self.start_s = self.end_s = self.time_s = 0.0
+                self.status = "empty"
+            else:
+                self.start_s, self.end_s = bounds
+                self.time_s = self.start_s
+                self.status = "paused"
+            self._last_tick = time.monotonic()
+
+    def _advance(self, now: float) -> None:
+        if self.status == "playing":
+            self.time_s = min(self.end_s, self.time_s + (now - self._last_tick) * self.speed)
+            if self.time_s >= self.end_s:
+                self.status = "ended"
+        self._last_tick = now
+
+    def command(self, action: str, speed: float | None = None) -> dict[str, Any]:
+        with self._lock:
+            now = time.monotonic()
+            self._advance(now)
+            if self.status == "empty":
+                raise ValueError("run a simulation before controlling playback")
+            if action == "start":
+                if self.time_s >= self.end_s:
+                    self.time_s = self.start_s
+                self.status = "playing"
+            elif action == "pause":
+                self.status = "paused"
+            elif action == "reset":
+                self.time_s = self.start_s
+                self.status = "paused"
+            elif action == "speed":
+                if speed is None:
+                    raise ValueError("speed is required for the speed action")
+                self.speed = speed
+            self._last_tick = time.monotonic()
+            return self._snapshot_locked()
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            self._advance(time.monotonic())
+            return self._snapshot_locked()
+
+    def _snapshot_locked(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "time_s": self.time_s,
+            "start_s": self.start_s,
+            "end_s": self.end_s,
+            "speed": self.speed,
+            "run_id": self.run_id,
+            "evidence": "SIMULATED",
+        }
+
+
 class CSIRequest(BaseModel):
     timestamp_s: float = Field(default=0.0, allow_inf_nan=False)
     tag_id: str = "tag-0001"
@@ -152,6 +289,7 @@ class FenceRequest(BaseModel):
 # supervised methods include three additional training episodes.
 MAX_SIMULATION_OBSERVATIONS = 500_000
 MAX_SIMULATION_MEMORY_UNITS = 1_000_000
+FARM_SNAPSHOT_CACHE_TTL_S = 1.0
 
 
 def estimate_simulation_observations(body: SimulationRequest, enabled_anchors: int) -> int:
@@ -183,6 +321,16 @@ def estimate_simulation_memory_units(body: SimulationRequest, enabled_anchors: i
                                           min(30.0, body.sample_period_s)))
         units += 3 * training_animals * training_steps * (enabled_anchors + 3)
     return units
+
+
+def farm_stream_interval_seconds(sample_period_s: float, playback_speed: float) -> float:
+    """Publish once per simulator sample without polling needlessly."""
+    safe_period = sample_period_s if math.isfinite(sample_period_s) and sample_period_s > 0 else 30.0
+    safe_speed = playback_speed if math.isfinite(playback_speed) and playback_speed > 0 else 1.0
+    # Publish at least every other simulator sample. Dense herds carry large
+    # position, telemetry and event snapshots, so sub-second polling multiplies
+    # work across every open demo tab without improving visual interpolation.
+    return min(1.0, max(0.05, 2.0 * safe_period / safe_speed))
 
 
 def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
@@ -218,6 +366,21 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     app.state.anchors = []
     app.state.last_config = None
     app.state.last_ground_truth = None
+    # Persisted legacy runs do not carry the original FarmConfig. Treat those as
+    # the historical 30 s cadence so the product demo can prepare a live-rate run.
+    app.state.sample_periods = {}
+    initial_run_id = app.state.store.latest_run_id()
+    initial_bounds = app.state.store.simulation_time_range(initial_run_id)
+    if initial_bounds is None:
+        initial_bounds = app.state.store.simulation_time_range()
+        initial_run_id = None
+    app.state.playback = SimulationPlayback(initial_run_id)
+    app.state.playback.configure(initial_run_id, initial_bounds)
+    app.state.farm_bootstrap_lock = threading.Lock()
+    app.state.farm_snapshot_cache_lock = threading.Lock()
+    app.state.farm_snapshot_cache: dict[str, Any] | None = None
+    app.state.farm_snapshot_cache_json: str | None = None
+    app.state.farm_snapshot_cache_time = 0.0
 
     static_dir = Path(__file__).parent / "static"
     app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="site-assets")
@@ -251,6 +414,185 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             )
         except sqlite3.IntegrityError as exc:
             raise HTTPException(status_code=409, detail="animal_id or hardware_id already exists") from exc
+
+    @app.post("/api/animals/{animal_id}/asset-intent")
+    def prepare_animal_asset(animal_id: str, request: Request) -> dict[str, Any]:
+        record = app.state.store.prepare_animal_asset(animal_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        attempt = app.state.store.get_animal_asset_attempt(animal_id)
+        active_attempt = attempt if attempt and attempt["status"] == "RESERVED" else None
+        status = "SIGNING" if active_attempt else record["status"]
+        metadata_uri = str(request.url_for(
+            "animal_asset_metadata", public_ref=record["public_ref"]
+        ))
+        return {
+            "cluster": "devnet",
+            "status": status,
+            "public_ref": record["public_ref"],
+            "metadata_uri": metadata_uri,
+            "asset_address": active_attempt["asset_address"] if active_attempt else record["asset_address"],
+            "owner_address": active_attempt["owner_address"] if active_attempt else record["owner_address"],
+            "transaction_signature": record["transaction_signature"],
+            "attempt_ref": active_attempt["attempt_ref"] if active_attempt else None,
+            "evidence": "ATTEMPT_RESERVED" if active_attempt else "PREPARED",
+        }
+
+    @app.post("/api/animals/{animal_id}/asset-reserve")
+    def reserve_animal_asset(animal_id: str, body: AnimalAssetReservation,
+                             request: Request) -> dict[str, Any]:
+        current = app.state.store.get_animal_asset(animal_id)
+        if current is None:
+            if app.state.store.get_animal(animal_id) is None:
+                raise HTTPException(status_code=404, detail="animal not found")
+            raise HTTPException(status_code=409, detail="create an asset intent first")
+        metadata_uri = str(request.url_for(
+            "animal_asset_metadata", public_ref=current["public_ref"]
+        ))
+        try:
+            attempt = app.state.store.reserve_animal_asset_attempt(
+                animal_id,
+                attempt_ref=body.attempt_ref,
+                asset_address=body.asset_address,
+                owner_address=body.owner_address,
+                metadata_uri=metadata_uri,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="asset address or attempt reference already reserved") from exc
+        if attempt is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return {
+            "cluster": attempt["cluster"],
+            "status": attempt["status"],
+            "attempt_ref": attempt["attempt_ref"],
+            "asset_address": attempt["asset_address"],
+            "owner_address": attempt["owner_address"],
+            "metadata_uri": attempt["metadata_uri"],
+            "evidence": "ATTEMPT_RESERVED",
+        }
+
+    @app.post("/api/animals/{animal_id}/asset-release")
+    def release_animal_asset_attempt(animal_id: str,
+                                     body: AnimalAssetAttemptRelease) -> dict[str, str]:
+        current = app.state.store.get_animal_asset(animal_id)
+        attempt = app.state.store.get_animal_asset_attempt(animal_id)
+        if (current is not None and current["status"] == "PREPARED"
+                and attempt is None):
+            return {"cluster": "devnet", "status": "PREPARED", "evidence": "UNSIGNED_RESERVATION_RELEASED"}
+        released = app.state.store.release_animal_asset_attempt(animal_id, body.attempt_ref)
+        if not released:
+            raise HTTPException(status_code=409, detail="only the matching unsigned reservation can be released")
+        return {"cluster": "devnet", "status": "PREPARED", "evidence": "UNSIGNED_RESERVATION_RELEASED"}
+
+    @app.post("/api/animals/{animal_id}/asset-submission")
+    def submit_animal_asset(
+        animal_id: str, body: AnimalAssetSubmission, request: Request
+    ) -> dict[str, Any]:
+        current = app.state.store.get_animal_asset(animal_id)
+        if current is None:
+            if app.state.store.get_animal(animal_id) is None:
+                raise HTTPException(status_code=404, detail="animal not found")
+            raise HTTPException(status_code=409, detail="create an asset intent first")
+        metadata_uri = str(request.url_for(
+            "animal_asset_metadata", public_ref=current["public_ref"]
+        ))
+        try:
+            record = app.state.store.submit_animal_asset(
+                animal_id,
+                asset_address=body.asset_address,
+                owner_address=body.owner_address,
+                metadata_uri=metadata_uri,
+                transaction_signature=body.transaction_signature,
+                attempt_ref=body.attempt_ref,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="asset address or transaction signature already registered") from exc
+        if record is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return {
+            "cluster": record["cluster"],
+            "status": record["status"],
+            "asset_address": record["asset_address"],
+            "owner_address": record["owner_address"],
+            "metadata_uri": record["metadata_uri"],
+            "transaction_signature": record["transaction_signature"],
+            "evidence": "SUBMITTED_UNVERIFIED",
+        }
+
+    @app.get("/api/animals/{animal_id}/asset")
+    def animal_asset(animal_id: str, request: Request) -> dict[str, Any]:
+        record = app.state.store.get_animal_asset(animal_id)
+        if record is None:
+            if app.state.store.get_animal(animal_id) is None:
+                raise HTTPException(status_code=404, detail="animal not found")
+            return {
+                "cluster": "devnet",
+                "status": "UNREGISTERED",
+                "asset_address": None,
+                "owner_address": None,
+                "metadata_uri": None,
+                "transaction_signature": None,
+                "evidence": "UNREGISTERED",
+            }
+        metadata_uri = str(request.url_for(
+            "animal_asset_metadata", public_ref=record["public_ref"]
+        ))
+        attempt = app.state.store.get_animal_asset_attempt(animal_id)
+        active_attempt = attempt if attempt and attempt["status"] == "RESERVED" else None
+        status = "SIGNING" if record["status"] == "PREPARED" and active_attempt else record["status"]
+        return {
+            "cluster": record["cluster"],
+            "status": status,
+            "asset_address": active_attempt["asset_address"] if active_attempt else record["asset_address"],
+            "owner_address": active_attempt["owner_address"] if active_attempt else record["owner_address"],
+            "metadata_uri": (active_attempt["metadata_uri"] if active_attempt else record["metadata_uri"]) or metadata_uri,
+            "transaction_signature": record["transaction_signature"],
+            "attempt_ref": active_attempt["attempt_ref"] if active_attempt else None,
+            "evidence": ("ATTEMPT_RESERVED" if status == "SIGNING" else
+                         "PREPARED" if status == "PREPARED" else "SUBMITTED_UNVERIFIED"),
+        }
+
+    @app.post("/api/animals/{animal_id}/asset-reconcile")
+    def reconcile_animal_asset(
+        animal_id: str, body: AnimalAssetReconciliation
+    ) -> dict[str, Any]:
+        record = app.state.store.get_animal_asset(animal_id)
+        if record is None:
+            if app.state.store.get_animal(animal_id) is None:
+                raise HTTPException(status_code=404, detail="animal not found")
+            raise HTTPException(status_code=409, detail="animal has no submitted asset")
+        if record["status"] != "SUBMITTED" or record["transaction_signature"] != body.transaction_signature:
+            raise HTTPException(status_code=409, detail="signature does not match the submitted asset")
+        try:
+            status = devnet_signature_status(body.transaction_signature)
+        except (URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=503, detail="Devnet RPC is unavailable; submission state is unchanged") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=502, detail="Devnet RPC returned an invalid response") from exc
+        if status is None or status.get("confirmationStatus") not in {"confirmed", "finalized"}:
+            raise HTTPException(status_code=409, detail="transaction outcome is still unknown; state is unchanged")
+        if status.get("err") is None:
+            raise HTTPException(status_code=409, detail="transaction succeeded; state is unchanged")
+        reset = app.state.store.reset_failed_animal_asset(animal_id, body.transaction_signature)
+        if reset is None or reset["status"] != "PREPARED":
+            raise HTTPException(status_code=409, detail="submitted asset changed during reconciliation")
+        return {"cluster": "devnet", "status": "PREPARED", "evidence": "ONCHAIN_FAILURE_CONFIRMED"}
+
+    @app.get("/api/animal-assets/metadata/{public_ref}", name="animal_asset_metadata")
+    def animal_asset_metadata(public_ref: str, request: Request) -> dict[str, Any]:
+        if not app.state.store.animal_asset_metadata_ref_exists(public_ref):
+            raise HTTPException(status_code=404, detail="asset metadata not found")
+        return {
+            "name": "RIOSE · Ativo bovino",
+            "description": "Ativo digital individual RIOSE. Este token não comprova identidade física nem propriedade legal do animal.",
+            "image": str(request.url_for("site-assets", path="riose-mark.png")),
+            "external_url": str(request.base_url),
+            "attributes": [],
+        }
 
     @app.get("/api/animals/{animal_id}")
     def animal(animal_id: str) -> dict[str, Any]:
@@ -299,21 +641,127 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return result
 
     @app.get("/api/animals/{animal_id}/trajectory")
-    def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
-        result = app.state.store.animal_trajectory(animal_id, limit)
+    def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000),
+                          run_id: str | None = Query(None, min_length=1, max_length=64)) -> list[dict[str, Any]]:
+        result = app.state.store.animal_trajectory(animal_id, limit, run_id=run_id)
         if result is None:
             raise HTTPException(status_code=404, detail="animal not found")
         return result
 
     @app.get("/api/anchors")
     def anchors() -> list[dict[str, Any]]:
-        return [asdict(a) for a in app.state.anchors]
+        return app.state.store.list_anchors()
 
     @app.get("/api/positions")
     def positions(limit: int = Query(1000, ge=1, le=10000), debug: bool = False,
                   at_s: float | None = Query(None, ge=0)) -> list[dict[str, Any]]:
         # Ground truth is joined only after an explicit debug request.
         return app.state.store.positions(limit, debug=debug, at_s=at_s)
+
+    @app.get("/api/simulation/state")
+    def simulation_state() -> dict[str, Any]:
+        return app.state.playback.snapshot()
+
+    @app.post("/api/simulation/control")
+    def control_simulation(body: SimulationControl) -> dict[str, Any]:
+        try:
+            state = app.state.playback.command(body.action, body.speed)
+            invalidate_farm_snapshot()
+            return state
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    def build_farm_snapshot() -> dict[str, Any]:
+        # Seed identity and the canonical 8-anchor layout before the first run.
+        # The frontend needs these records to request its configured demo run;
+        # filtering animals to active pose tags here would create a cold-start
+        # cycle (no run -> no scene poses -> no animals -> no run request).
+        with app.state.farm_bootstrap_lock:
+            playback = app.state.playback.snapshot()
+            if not playback["run_id"]:
+                config = FarmConfig(animal_count=100, anchor_count=8)
+                ensure_animals(app.state.store, config.animal_count)
+                if not app.state.store.list_anchors():
+                    app.state.store.replace_anchors(generate_anchors(config))
+
+        playback = app.state.playback.snapshot()
+        run_id = playback["run_id"]
+        positions = (app.state.store.positions(
+            limit=10000, at_s=playback["time_s"], run_id=run_id,
+        ) if run_id else [])
+        scene_positions = (app.state.store.scene_positions(
+            at_s=playback["time_s"], run_id=run_id, limit=10000,
+        ) if run_id else [])
+        # Render entities from simulator truth independently from RF estimates.
+        # An animal remains in the field view when localization is unavailable.
+        # Keep entity records available when a legacy/corrupt run has no valid
+        # scene poses. The frontend can then identify the missing pose channel
+        # and start a fresh SIMULATED demo run instead of reducing the herd to 0.
+        active_tags = ({position["tag_id"] for position in scene_positions}
+                       | {position["tag_id"] for position in positions})
+        all_animals = app.state.store.list_animals()
+        return {
+            "type": "snapshot",
+            "simulation": playback,
+            "sample_period_s": app.state.sample_periods.get(run_id, 30.0),
+            "animals": ([animal for animal in all_animals if animal["hardware_id"] in active_tags]
+                        if run_id and active_tags else all_animals),
+            "positions": positions,
+            # Presentation pose from the simulator. This is not an RF estimate.
+            "scene_positions": scene_positions,
+            "anchors": app.state.store.list_anchors(),
+            "telemetry": [{**reading, "packet_received": bool(reading["packet_received"])}
+                          for reading in app.state.store.telemetry_at(
+                              playback["time_s"], run_id=run_id, limit=10000,
+                          )],
+            "events": app.state.store.events(limit=200),
+            "metrics": app.state.store.get_metrics(),
+            "evidence": "SIMULATED",
+        }
+
+    def invalidate_farm_snapshot() -> None:
+        with app.state.farm_snapshot_cache_lock:
+            app.state.farm_snapshot_cache = None
+            app.state.farm_snapshot_cache_json = None
+            app.state.farm_snapshot_cache_time = 0.0
+
+    def farm_snapshot_payload() -> tuple[dict[str, Any], str]:
+        # Share snapshots between simultaneous HTTP and WebSocket clients so
+        # every open demo tab does not issue another full SQLite query or JSON
+        # serialization per tick. WebSockets share the encoded payload as text.
+        with app.state.farm_snapshot_cache_lock:
+            now = time.monotonic()
+            cached = app.state.farm_snapshot_cache
+            if cached is not None and now - app.state.farm_snapshot_cache_time < FARM_SNAPSHOT_CACHE_TTL_S:
+                encoded = app.state.farm_snapshot_cache_json
+                if encoded is not None:
+                    return cached, encoded
+            snapshot = build_farm_snapshot()
+            encoded = json.dumps(snapshot, separators=(",", ":"), allow_nan=False)
+            app.state.farm_snapshot_cache = snapshot
+            app.state.farm_snapshot_cache_json = encoded
+            app.state.farm_snapshot_cache_time = time.monotonic()
+            return snapshot, encoded
+
+    def farm_snapshot() -> dict[str, Any]:
+        return farm_snapshot_payload()[0]
+
+    @app.get("/api/farm/snapshot")
+    def get_farm_snapshot() -> dict[str, Any]:
+        return farm_snapshot()
+
+    @app.websocket("/ws/farm")
+    async def farm_stream(websocket: WebSocket) -> None:
+        await websocket.accept()
+        try:
+            while True:
+                snapshot, encoded = farm_snapshot_payload()
+                await websocket.send_text(encoded)
+                await asyncio.sleep(farm_stream_interval_seconds(
+                    snapshot["sample_period_s"], snapshot["simulation"]["speed"],
+                ))
+        except WebSocketDisconnect:
+            return
 
     @app.get("/api/positions/history")
     def position_history(tag_id: str = Query(min_length=1, max_length=64),
@@ -395,17 +843,23 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             episode, estimates, metrics = run_episode(config, body.method, anchors=anchor_set)
         except (ImportError, ValueError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        app.state.store.save_anchors(episode.anchors)
-        app.state.store.save_episode(episode.observations, estimates, episode.ground_truth)
+        run_id = uuid.uuid4().hex
+        app.state.store.replace_anchors(episode.anchors)
+        app.state.store.save_episode(
+            episode.observations, estimates, episode.ground_truth, run_id=run_id,
+        )
         app.state.anchors = list(episode.anchors)
         app.state.last_config = config
+        app.state.sample_periods[run_id] = body.sample_period_s
         # The virtual fence only needs truth. Do not retain all observations and
         # estimates for the lifetime of the dashboard process.
         app.state.last_ground_truth = episode.ground_truth
         app.state.store.set_metrics(metrics)
         ensure_animals(app.state.store, body.animal_count)
+        app.state.playback.configure(run_id, app.state.store.simulation_time_range(run_id))
+        invalidate_farm_snapshot()
         return {"status": "completed", "evidence": "SIMULATED", "observations": len(episode.observations),
-                "estimates": len(estimates), "metrics": metrics}
+                "estimates": len(estimates), "run_id": run_id, "metrics": metrics}
 
     @app.get("/api/experiments")
     def experiments() -> dict[str, Any]:

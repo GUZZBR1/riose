@@ -1,3 +1,47 @@
+    const productParams = new URLSearchParams(window.location.search);
+    const productViewerMode = productParams.get('view') === 'tag';
+    if (productViewerMode) {
+      const animalId = productParams.get('animal_id') || 'unassigned';
+      const embeddedViewer = productParams.get('embed') === '1';
+      document.body.classList.add(embeddedViewer ? 'is-tag-embed' : 'is-tag-viewer');
+      document.querySelector('.hero-copy').hidden = true;
+      document.querySelector('.research').hidden = true;
+      if (embeddedViewer) document.querySelector('.floating-header').hidden = true;
+      const viewer = document.createElement('aside');
+      viewer.className = 'tag-viewer-controls';
+      viewer.setAttribute('aria-label', 'Ear tag product viewer');
+      const label = document.createElement('p');
+      label.className = 'tag-viewer-label';
+      label.textContent = `RIOSE TAG · ${animalId}`;
+      viewer.append(label);
+      const modes = document.createElement('div');
+      modes.className = 'tag-viewer-modes';
+      for (const [mode, text] of [['solid', 'Solid'], ['transparent', 'Transparent'], ['exploded', 'Exploded']]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = text;
+        button.setAttribute('aria-pressed', String(mode === 'solid'));
+        button.addEventListener('click', () => {
+          modes.querySelectorAll('button').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          window.dispatchEvent(new CustomEvent('riose:product-viewer-state', { detail: { view: mode } }));
+        });
+        modes.append(button);
+      }
+      viewer.append(modes);
+      const note = document.createElement('p');
+      note.className = 'tag-viewer-note';
+      note.textContent = 'Assembly geometry is provisional.';
+      viewer.append(note);
+      document.querySelector('.hero').append(viewer);
+      if (!embeddedViewer) {
+        const back = document.createElement('a');
+        back.className = 'tag-viewer-back';
+        back.href = '/demo';
+        back.textContent = '← Return to farm';
+        document.querySelector('.hero').append(back);
+      }
+    }
+
     const hero = document.querySelector('.hero');
     const heroStage = document.getElementById('hero-scroll-stage');
     const heroCopy = document.getElementById('hero-copy');
@@ -109,7 +153,7 @@
       if (!entry.isIntersecting) return;
       const sceneScript = document.createElement('script');
       sceneScript.type = 'module';
-      sceneScript.src = '/assets/product-scene.js?v=20261005-1';
+      sceneScript.src = '/assets/product-scene.js?v=20261006-6';
       sceneScript.onerror = () => {
         sceneWrap.classList.add('is-error');
         document.getElementById('scene-status').textContent = 'The 3D model could not be loaded. Enable WebGL and reload the page.';

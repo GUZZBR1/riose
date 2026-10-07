@@ -1,0 +1,20 @@
+{
+  "name": "riose-animal-asset-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/animal-tokenization.js --bundle --format=esm --target=es2022 --outfile=../src/riose/products/livestock_tracking/adapters/static/assets/animal-tokenization.bundle.js"
+  },
+  "dependencies": {
+    "@metaplex-foundation/mpl-core": "^1.10.0",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.6.0",
+    "@metaplex-foundation/umi-signer-wallet-adapters": "^1.6.0",
+    "@solana/wallet-adapter-base": "^0.9.28",
+    "@solana/wallet-adapter-phantom": "^0.9.30",
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

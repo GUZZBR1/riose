@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import sqlite3
 import threading
+import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable
 
@@ -14,6 +16,8 @@ from ...domain.identity import append_event
 
 if TYPE_CHECKING:
     from ...domain.identity import LocalChainEvidence
+
+logger = logging.getLogger(__name__)
 
 
 SCHEMA = """
@@ -37,13 +41,13 @@ CREATE TABLE IF NOT EXISTS animal_events (
 CREATE TABLE IF NOT EXISTS telemetry (
   id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp REAL NOT NULL,
   tag_id TEXT NOT NULL, anchor_id TEXT NOT NULL, rssi_dbm REAL, snr_db REAL,
-  packet_received INTEGER NOT NULL, imu_accel_norm_g REAL,
+  packet_received INTEGER NOT NULL, imu_accel_norm_g REAL, run_id TEXT,
   behavior_state TEXT, status TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS positions (
   id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp REAL NOT NULL,
   tag_id TEXT NOT NULL, x REAL, y REAL, method TEXT NOT NULL,
-  quality REAL, status TEXT NOT NULL
+  quality REAL, status TEXT NOT NULL, run_id TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_telemetry_sample_reruns
   ON telemetry(tag_id,anchor_id,timestamp,id);
@@ -53,6 +57,13 @@ CREATE TABLE IF NOT EXISTS debug_truth (
   timestamp REAL NOT NULL, tag_id TEXT NOT NULL, x REAL NOT NULL, y REAL NOT NULL,
   PRIMARY KEY(timestamp, tag_id)
 );
+CREATE TABLE IF NOT EXISTS scene_truth (
+  run_id TEXT NOT NULL, timestamp REAL NOT NULL, tag_id TEXT NOT NULL,
+  x REAL NOT NULL, y REAL NOT NULL,
+  PRIMARY KEY(run_id,timestamp,tag_id)
+);
+CREATE INDEX IF NOT EXISTS idx_scene_truth_run_time
+  ON scene_truth(run_id,timestamp,tag_id);
 CREATE TABLE IF NOT EXISTS run_metrics (
   key TEXT PRIMARY KEY, value TEXT NOT NULL
 );
@@ -80,6 +91,33 @@ CREATE TABLE IF NOT EXISTS behavior_observations (
 );
 CREATE INDEX IF NOT EXISTS idx_behavior_history
   ON behavior_observations(animal_id,timestamp_s,id);
+CREATE TABLE IF NOT EXISTS animal_assets (
+  animal_id TEXT NOT NULL,
+  cluster TEXT NOT NULL CHECK(cluster = 'devnet'),
+  public_ref TEXT NOT NULL UNIQUE,
+  asset_address TEXT UNIQUE,
+  owner_address TEXT,
+  metadata_uri TEXT,
+  transaction_signature TEXT UNIQUE,
+  status TEXT NOT NULL CHECK(status IN ('PREPARED','SUBMITTED')),
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL,
+  PRIMARY KEY(animal_id, cluster),
+  FOREIGN KEY(animal_id) REFERENCES animals(animal_id)
+);
+CREATE TABLE IF NOT EXISTS animal_asset_attempts (
+  animal_id TEXT PRIMARY KEY,
+  cluster TEXT NOT NULL CHECK(cluster = 'devnet'),
+  attempt_ref TEXT NOT NULL UNIQUE,
+  asset_address TEXT NOT NULL UNIQUE,
+  owner_address TEXT NOT NULL,
+  metadata_uri TEXT NOT NULL,
+  transaction_signature TEXT UNIQUE,
+  status TEXT NOT NULL CHECK(status IN ('RESERVED','SUBMITTED')),
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL,
+  FOREIGN KEY(animal_id,cluster) REFERENCES animal_assets(animal_id,cluster) ON DELETE CASCADE
+);
 """
 
 
@@ -96,6 +134,18 @@ class Store:
         if "schema_version" not in columns:
             # NULL identifies historical rows written before the v1 marker existed.
             self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
+        for table in ("positions", "telemetry"):
+            columns = {row[1] for row in self.connection.execute(f"PRAGMA table_info({table})")}
+            if "run_id" not in columns:
+                self.connection.execute(f"ALTER TABLE {table} ADD COLUMN run_id TEXT")
+        self.connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_telemetry_run_frame "
+            "ON telemetry(run_id,timestamp,tag_id,anchor_id,id)"
+        )
+        self.connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_positions_run_frame "
+            "ON positions(run_id,timestamp,tag_id,id)"
+        )
         self.connection.commit()
 
     def close(self) -> None:
@@ -110,6 +160,30 @@ class Store:
                 [(a.anchor_id, a.x, a.y, a.height_m, a.kind, int(a.enabled)) for a in anchors],
             )
             self.connection.commit()
+
+    def replace_anchors(self, anchors: Iterable[Any]) -> None:
+        """Persist exactly the physical anchors used by the current episode."""
+        values = list(anchors)
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            try:
+                self.connection.execute("DELETE FROM anchors")
+                self.connection.executemany(
+                    "INSERT INTO anchors(anchor_id,x,y,height_m,kind,enabled) VALUES(?,?,?,?,?,?)",
+                    [(a.anchor_id, a.x, a.y, a.height_m, a.kind, int(a.enabled)) for a in values],
+                )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
+
+    def list_anchors(self) -> list[dict[str, Any]]:
+        with self._lock:
+            # SQLite stores BOOLEAN-affinity columns as integers. Normalize at
+            # the persistence boundary so the JSON/API contract stays boolean.
+            return [{**dict(row), "enabled": bool(row["enabled"])} for row in self.connection.execute(
+                "SELECT anchor_id,x,y,height_m,kind,enabled FROM anchors ORDER BY rowid"
+            )]
 
     def create_animal(self, animal_id: str, hardware_id: str, cryptographic_id: str,
                       **profile: Any) -> dict[str, Any]:
@@ -176,7 +250,189 @@ class Store:
         with self._lock:
             return [dict(row) for row in self.connection.execute("SELECT * FROM animals ORDER BY animal_id")]
 
-    def animal_trajectory(self, animal_id: str, limit: int = 1000) -> list[dict[str, Any]] | None:
+    def prepare_animal_asset(self, animal_id: str) -> dict[str, Any] | None:
+        """Create or return the private, one-per-animal Devnet asset intent."""
+        import time
+
+        with self._lock:
+            if self.connection.execute(
+                "SELECT 1 FROM animals WHERE animal_id=?", (animal_id,)
+            ).fetchone() is None:
+                return None
+            now = time.time()
+            self.connection.execute(
+                "INSERT OR IGNORE INTO animal_assets "
+                "(animal_id,cluster,public_ref,status,created_at,updated_at) "
+                "VALUES(?, 'devnet', ?, 'PREPARED', ?, ?)",
+                (animal_id, uuid.uuid4().hex, now, now),
+            )
+            self.connection.commit()
+            return self._animal_asset_row(animal_id)
+
+    def _animal_asset_row(self, animal_id: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT * FROM animal_assets WHERE animal_id=? AND cluster='devnet'",
+            (animal_id,),
+        ).fetchone()
+        return None if row is None else dict(row)
+
+    def get_animal_asset(self, animal_id: str) -> dict[str, Any] | None:
+        """Return private registry data for an animal's Devnet asset."""
+        with self._lock:
+            return self._animal_asset_row(animal_id)
+
+    def animal_asset_metadata_ref_exists(self, public_ref: str) -> bool:
+        with self._lock:
+            return self.connection.execute(
+                "SELECT 1 FROM animal_assets WHERE public_ref=?", (public_ref,)
+            ).fetchone() is not None
+
+    def get_animal_asset_attempt(self, animal_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT * FROM animal_asset_attempts WHERE animal_id=? AND cluster='devnet'",
+                (animal_id,),
+            ).fetchone()
+            return None if row is None else dict(row)
+
+    def reserve_animal_asset_attempt(self, animal_id: str, *, attempt_ref: str,
+                                     asset_address: str, owner_address: str,
+                                     metadata_uri: str) -> dict[str, Any] | None:
+        """Atomically reserve the one Devnet asset slot before wallet submission."""
+        import time
+
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            try:
+                record = self._animal_asset_row(animal_id)
+                if record is None:
+                    self.connection.rollback()
+                    return None
+                if record["status"] != "PREPARED":
+                    raise ValueError("an asset is already submitted for this animal")
+                existing = self.connection.execute(
+                    "SELECT * FROM animal_asset_attempts WHERE animal_id=? AND cluster='devnet'",
+                    (animal_id,),
+                ).fetchone()
+                if existing is not None:
+                    same_attempt = (
+                        existing["attempt_ref"] == attempt_ref
+                        and existing["asset_address"] == asset_address
+                        and existing["owner_address"] == owner_address
+                        and existing["metadata_uri"] == metadata_uri
+                    )
+                    if not same_attempt:
+                        raise ValueError("another asset creation attempt is already reserved")
+                    self.connection.commit()
+                    return dict(existing)
+                now = time.time()
+                self.connection.execute(
+                    "INSERT INTO animal_asset_attempts "
+                    "(animal_id,cluster,attempt_ref,asset_address,owner_address,metadata_uri,status,created_at,updated_at) "
+                    "VALUES(?, 'devnet', ?, ?, ?, ?, 'RESERVED', ?, ?)",
+                    (animal_id, attempt_ref, asset_address, owner_address, metadata_uri, now, now),
+                )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
+            return self.get_animal_asset_attempt(animal_id)
+
+    def release_animal_asset_attempt(self, animal_id: str, attempt_ref: str) -> bool:
+        """Release only a still-reserved attempt; submitted transactions cannot be cancelled."""
+        with self._lock:
+            cursor = self.connection.execute(
+                "DELETE FROM animal_asset_attempts WHERE animal_id=? AND cluster='devnet' "
+                "AND attempt_ref=? AND status='RESERVED' AND transaction_signature IS NULL",
+                (animal_id, attempt_ref),
+            )
+            self.connection.commit()
+            return cursor.rowcount == 1
+
+    def submit_animal_asset(self, animal_id: str, *, asset_address: str,
+                            owner_address: str, metadata_uri: str,
+                            transaction_signature: str, attempt_ref: str) -> dict[str, Any] | None:
+        """Record wallet-submitted identifiers as unverified, never as confirmed."""
+        import time
+
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            try:
+                current = self._animal_asset_row(animal_id)
+                if current is None:
+                    self.connection.rollback()
+                    return None
+                attempt = self.connection.execute(
+                    "SELECT * FROM animal_asset_attempts WHERE animal_id=? AND cluster='devnet'",
+                    (animal_id,),
+                ).fetchone()
+                if current["status"] == "SUBMITTED":
+                    same_submission = (
+                        current["asset_address"] == asset_address
+                        and current["owner_address"] == owner_address
+                        and current["metadata_uri"] == metadata_uri
+                        and current["transaction_signature"] == transaction_signature
+                        and attempt is not None
+                        and attempt["attempt_ref"] == attempt_ref
+                        and attempt["status"] == "SUBMITTED"
+                    )
+                    if not same_submission:
+                        raise ValueError("an asset submission already exists for this animal")
+                    self.connection.commit()
+                    return current
+                if (attempt is None or attempt["status"] != "RESERVED"
+                        or attempt["attempt_ref"] != attempt_ref
+                        or attempt["asset_address"] != asset_address
+                        or attempt["owner_address"] != owner_address
+                        or attempt["metadata_uri"] != metadata_uri):
+                    raise ValueError("submission does not match the reserved asset attempt")
+                self.connection.execute(
+                    "UPDATE animal_assets SET asset_address=?, owner_address=?, metadata_uri=?, "
+                    "transaction_signature=?, status='SUBMITTED', updated_at=? "
+                    "WHERE animal_id=? AND cluster='devnet' AND status='PREPARED'",
+                    (asset_address, owner_address, metadata_uri, transaction_signature,
+                     time.time(), animal_id),
+                )
+                self.connection.execute(
+                    "UPDATE animal_asset_attempts SET transaction_signature=?, status='SUBMITTED', updated_at=? "
+                    "WHERE animal_id=? AND cluster='devnet' AND attempt_ref=? AND status='RESERVED'",
+                    (transaction_signature, time.time(), animal_id, attempt_ref),
+                )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
+            return self._animal_asset_row(animal_id)
+
+    def reset_failed_animal_asset(self, animal_id: str,
+                                  transaction_signature: str) -> dict[str, Any] | None:
+        """Clear a submitted asset only after its confirmed failure was checked externally."""
+        import time
+
+        with self._lock:
+            self.connection.execute("BEGIN IMMEDIATE")
+            try:
+                cursor = self.connection.execute(
+                    "UPDATE animal_assets SET asset_address=NULL, owner_address=NULL, "
+                    "metadata_uri=NULL, transaction_signature=NULL, status='PREPARED', updated_at=? "
+                    "WHERE animal_id=? AND cluster='devnet' AND status='SUBMITTED' "
+                    "AND transaction_signature=?",
+                    (time.time(), animal_id, transaction_signature),
+                )
+                if cursor.rowcount == 1:
+                    self.connection.execute(
+                        "DELETE FROM animal_asset_attempts WHERE animal_id=? AND cluster='devnet' "
+                        "AND status='SUBMITTED' AND transaction_signature=?",
+                        (animal_id, transaction_signature),
+                    )
+                self.connection.commit()
+            except Exception:
+                self.connection.rollback()
+                raise
+            return self._animal_asset_row(animal_id)
+
+    def animal_trajectory(self, animal_id: str, limit: int = 1000,
+                          run_id: str | None = None) -> list[dict[str, Any]] | None:
         """Return receiver-derived positions for the tag assigned to an animal."""
         with self._lock:
             animal = self.connection.execute(
@@ -184,36 +440,91 @@ class Store:
             ).fetchone()
             if animal is None:
                 return None
+            run_filter = " AND run_id=?" if run_id is not None else ""
+            args: tuple[Any, ...] = (animal["hardware_id"], run_id, limit) if run_id is not None else (animal["hardware_id"], limit)
             rows = self.connection.execute(
                 "SELECT timestamp,tag_id,x,y,method,quality,status FROM ("
                 "SELECT timestamp,tag_id,x,y,method,quality,status,id,"
                 "ROW_NUMBER() OVER(PARTITION BY tag_id,timestamp ORDER BY id DESC) AS sample_rank "
-                "FROM positions WHERE tag_id=?"
+                f"FROM positions WHERE tag_id=?{run_filter}"
                 ") WHERE sample_rank=1 ORDER BY timestamp DESC,id DESC LIMIT ?",
-                (animal["hardware_id"], limit),
+                args,
             ).fetchall()
             return [dict(row) for row in reversed(rows)]
 
     def save_episode(self, observations: Iterable[Any], estimates: Iterable[Any],
-                     truth: Iterable[Any], persist_truth: bool = True) -> None:
+                     truth: Iterable[Any], persist_truth: bool = True,
+                     run_id: str | None = None) -> None:
         with self._lock:
             self.connection.executemany(
-                "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status) VALUES(?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO telemetry(timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,imu_accel_norm_g,behavior_state,status,run_id) VALUES(?,?,?,?,?,?,?,?,?,?)",
                 ((o.timestamp_s, o.tag_id, o.anchor_id, o.rssi_dbm, o.snr_db,
-                  int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value)
+                  int(o.packet_received), o.imu_accel_norm_g, o.behavior_state, o.status.value, run_id)
                  for o in observations),
             )
             self.connection.executemany(
-                "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status) VALUES(?,?,?,?,?,?,?)",
-                ((e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value)
+                "INSERT INTO positions(timestamp,tag_id,x,y,method,quality,status,run_id) VALUES(?,?,?,?,?,?,?,?)",
+                ((e.timestamp_s, e.tag_id, e.x, e.y, e.method, e.quality, e.status.value, run_id)
                  for e in estimates),
             )
             if persist_truth:
+                truth_rows = tuple(truth)
                 self.connection.executemany(
                     "INSERT OR REPLACE INTO debug_truth(timestamp,tag_id,x,y) VALUES(?,?,?,?)",
-                    ((t.timestamp_s, t.tag_id, t.x, t.y) for t in truth),
+                    ((t.timestamp_s, t.tag_id, t.x, t.y) for t in truth_rows),
                 )
+                if run_id is not None:
+                    self.connection.executemany(
+                        "INSERT OR REPLACE INTO scene_truth(run_id,timestamp,tag_id,x,y) VALUES(?,?,?,?,?)",
+                        ((run_id, t.timestamp_s, t.tag_id, t.x, t.y) for t in truth_rows),
+                    )
             self.connection.commit()
+
+    def latest_run_id(self) -> str | None:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT run_id FROM positions WHERE run_id IS NOT NULL ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            return None if row is None else str(row["run_id"])
+
+    def simulation_time_range(self, run_id: str | None = None) -> tuple[float, float] | None:
+        with self._lock:
+            if run_id is None:
+                row = self.connection.execute(
+                    "SELECT MIN(timestamp) AS start_s,MAX(timestamp) AS end_s FROM positions"
+                ).fetchone()
+            else:
+                row = self.connection.execute(
+                    "SELECT MIN(timestamp) AS start_s,MAX(timestamp) AS end_s "
+                    "FROM positions WHERE run_id=?", (run_id,)
+                ).fetchone()
+            if row is None or row["start_s"] is None or row["end_s"] is None:
+                return None
+            return float(row["start_s"]), float(row["end_s"])
+
+    def telemetry_at(self, at_s: float, run_id: str | None = None,
+                     limit: int = 10000) -> list[dict[str, Any]]:
+        # A simulator frame writes every tag/anchor observation at the same timestamp.
+        # Select that frame via the run/timestamp index instead of ranking the whole
+        # playback history on each WebSocket tick.
+        if run_id is None:
+            query = """SELECT timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,
+                       imu_accel_norm_g,behavior_state,status
+              FROM telemetry WHERE run_id IS NULL AND timestamp=(
+                SELECT MAX(timestamp) FROM telemetry
+                WHERE run_id IS NULL AND timestamp<=?
+              ) ORDER BY tag_id,anchor_id LIMIT ?"""
+            args: tuple[Any, ...] = (at_s, limit)
+        else:
+            query = """SELECT timestamp,tag_id,anchor_id,rssi_dbm,snr_db,packet_received,
+                       imu_accel_norm_g,behavior_state,status
+              FROM telemetry WHERE run_id=? AND timestamp=(
+                SELECT MAX(timestamp) FROM telemetry
+                WHERE run_id=? AND timestamp<=?
+              ) ORDER BY tag_id,anchor_id LIMIT ?"""
+            args = (run_id, run_id, at_s, limit)
+        with self._lock:
+            return [dict(row) for row in self.connection.execute(query, args)]
 
     def telemetry(self, limit: int = 1000, tag_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
@@ -231,9 +542,17 @@ class Store:
             return [dict(r) for r in rows]
 
     def positions(self, limit: int = 1000, debug: bool = False,
-                  at_s: float | None = None) -> list[dict[str, Any]]:
-        time_filter = "WHERE timestamp <= ?" if at_s is not None else ""
-        args: tuple[Any, ...] = (at_s,) if at_s is not None else ()
+                  at_s: float | None = None,
+                  run_id: str | None = None) -> list[dict[str, Any]]:
+        filters = []
+        args: tuple[Any, ...] = ()
+        if at_s is not None:
+            filters.append("timestamp <= ?")
+            args += (at_s,)
+        if run_id is not None:
+            filters.append("run_id = ?")
+            args += (run_id,)
+        time_filter = "WHERE " + " AND ".join(filters) if filters else ""
         projection = "p.timestamp,p.tag_id,p.x,p.y,p.method,p.quality,p.status"
         join = ""
         truth_cte = ""
@@ -254,6 +573,80 @@ class Store:
           WHERE p.rn=1 ORDER BY p.tag_id LIMIT ?"""
         with self._lock:
             return [dict(r) for r in self.connection.execute(query, (*args, limit))]
+
+    def scene_positions(self, at_s: float, run_id: str | None = None,
+                        limit: int = 10000) -> list[dict[str, Any]]:
+        """Simulation poses for the 3D scene, kept separate from RF estimates."""
+        if run_id is not None:
+            query = """WITH ranked AS (
+                SELECT timestamp,tag_id,x,y,
+                       ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC) AS rn
+                FROM scene_truth WHERE run_id=? AND timestamp<=?
+              ) SELECT tag_id,timestamp,x,y FROM ranked
+                WHERE rn=1 ORDER BY tag_id LIMIT ?"""
+            with self._lock:
+                rows = self.connection.execute(query, (run_id, at_s, limit)).fetchall()
+            if rows:
+                valid: list[dict[str, Any]] = []
+                rejected: list[str] = []
+                for row in rows:
+                    try:
+                        x, y = float(row["x"]), float(row["y"])
+                    except (TypeError, ValueError, OverflowError):
+                        rejected.append(f"{row['tag_id']}: coordinates are missing or non-numeric")
+                        continue
+                    if not math.isfinite(x) or not math.isfinite(y):
+                        rejected.append(f"{row['tag_id']}: coordinates are not finite")
+                        continue
+                    valid.append({**dict(row), "x": x, "y": y})
+                if rejected:
+                    logger.warning(
+                        "Rejected invalid scene poses for run %s at %.3f: %s",
+                        run_id, at_s, "; ".join(rejected[:20]),
+                    )
+                if valid:
+                    return valid
+
+        # Compatibility for runs written before scene_truth was introduced and
+        # for legacy callers without a run id. New runs never depend on RF rows.
+        filters = ["timestamp <= ?"]
+        args: tuple[Any, ...] = (at_s,)
+        if run_id is not None:
+            filters.append("run_id = ?")
+            args += (run_id,)
+        query = f"""WITH ranked AS (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY tag_id ORDER BY timestamp DESC,id DESC) AS rn
+            FROM positions WHERE {' AND '.join(filters)}
+          ), poses AS (
+            SELECT p.tag_id, p.timestamp AS estimate_timestamp, d.timestamp AS scene_timestamp,
+                   d.x, d.y,
+                   ROW_NUMBER() OVER(PARTITION BY p.tag_id
+                     ORDER BY ABS(d.timestamp-p.timestamp),d.timestamp DESC) AS truth_rank
+            FROM ranked p JOIN debug_truth d
+              ON d.tag_id=p.tag_id AND ABS(d.timestamp-p.timestamp)<=1.0
+            WHERE p.rn=1
+          ) SELECT tag_id,scene_timestamp AS timestamp,x,y FROM poses
+            WHERE truth_rank=1 ORDER BY tag_id LIMIT ?"""
+        with self._lock:
+            rows = self.connection.execute(query, (*args, limit)).fetchall()
+        valid: list[dict[str, Any]] = []
+        rejected: list[str] = []
+        for row in rows:
+            try:
+                x, y = float(row["x"]), float(row["y"])
+            except (TypeError, ValueError, OverflowError):
+                rejected.append(f"{row['tag_id']}: legacy scene coordinates are missing or non-numeric")
+                continue
+            if not math.isfinite(x) or not math.isfinite(y):
+                rejected.append(f"{row['tag_id']}: legacy scene coordinates are not finite")
+                continue
+            valid.append({"tag_id": row["tag_id"], "timestamp": row["timestamp"], "x": x, "y": y})
+        if rejected:
+            logger.warning(
+                "Rejected invalid legacy scene poses for run %s at %.3f: %s",
+                run_id, at_s, "; ".join(rejected[:20]),
+            )
+        return valid
 
     def positions_history(self, tag_id: str, limit: int = 1000,
                           debug: bool = False) -> list[dict[str, Any]]:
