@@ -28,6 +28,12 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTRACTS = ROOT / "contracts"
 
 
+def _require_local_evm_toolchain() -> None:
+    required_packages = ("ganache", "solc")
+    if any(not (CONTRACTS / "node_modules" / package).is_dir() for package in required_packages):
+        pytest.skip("Install the optional local EVM toolchain with npm ci --prefix contracts")
+
+
 def _rpc(url: str, method: str, params: list) -> object:
     wire = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode()
     with urllib.request.urlopen(
@@ -50,6 +56,7 @@ def _wait_receipt(url: str, tx_hash: str) -> dict:
 
 
 def test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert(tmp_path):
+    _require_local_evm_toolchain()
     if not (CONTRACTS / "package-lock.json").exists():
         raise AssertionError("contract toolchain lock is missing")
     secret_file = tmp_path / "local-signer.json"
@@ -279,6 +286,7 @@ def test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert(tmp_path):
 
 
 def test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts(tmp_path):
+    _require_local_evm_toolchain()
     servers = []
     store = None
     try:
