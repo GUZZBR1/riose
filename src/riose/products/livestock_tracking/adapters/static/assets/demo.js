@@ -440,7 +440,7 @@ async function initFarm() {
         if (mounted.ready) mounted.farm?.setActive(entry.isIntersecting);
       }
       farmAudio.setFarmVisibility([...farmStages.values()].some((mounted) => mounted.isVisible));
-    }, { rootMargin: '0px' });
+    }, { rootMargin: '0px', threshold: [0, 0.1] });
     for (const stage of stageElements.values()) observer.observe(stage.stage);
     window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
   } catch (error) {
