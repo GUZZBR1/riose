@@ -93,13 +93,23 @@ export class FarmScene extends Phaser.Scene {
         const host = this.game.canvas.parentElement;
         const camera = this.cameras.main;
         host?.setAttribute('data-farm-drag-state', JSON.stringify({
+          camera: {
+            scrollX: camera.scrollX,
+            scrollY: camera.scrollY,
+            zoomX: camera.zoomX,
+            zoomY: camera.zoomY,
+            width: camera.width,
+            height: camera.height,
+            originX: camera.originX,
+            originY: camera.originY,
+          },
           animals: snapshots.map(({ x, y }) => {
             // Phaser renders world points relative to camera scroll and origin.
             return {
               x,
               y,
-              screenX: camera.x + camera.width * camera.originX * (1 - camera.zoom) + (x - camera.scrollX) * camera.zoom,
-              screenY: camera.y + camera.height * camera.originY * (1 - camera.zoom) + (y - 20 - camera.scrollY) * camera.zoom,
+              screenX: camera.x + camera.width * camera.originX * (1 - camera.zoomX) + (x - camera.scrollX) * camera.zoomX,
+              screenY: camera.y + camera.height * camera.originY * (1 - camera.zoomY) + (y - 20 - camera.scrollY) * camera.zoomY,
             };
           }),
         }));
@@ -120,6 +130,7 @@ export class FarmScene extends Phaser.Scene {
     const state = selected?.getState() ?? null;
     this.callbacks.onSelect?.(state);
     if (state && focus) this.cameraController.focus(state.estimatedPosition.x, state.estimatedPosition.y);
+    else if (!state) this.cameraController.showOverview();
     else this.cameraController.cancelFocus();
   }
 

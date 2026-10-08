@@ -38,6 +38,38 @@ async function selectByKeyboard(target) {
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'false');
   assert.equal(await page.locator('#record-title').textContent(), `Animal ${target}`);
   assert.equal(await page.locator('#farm-canvas canvas').isVisible(), true, 'farm remains visible beside the selected animal');
+  await page.waitForFunction((animalIndex) => {
+    const host = document.querySelector('#farm-canvas .riose-farm-canvas-host');
+    if (!host?.dataset.farmDragState) return false;
+    const { animals, camera } = JSON.parse(host.dataset.farmDragState);
+    const animal = animals[animalIndex];
+    const overviewZoom = Math.min(camera.width / 1536, camera.height / 1024) * 0.96;
+    return camera.zoomX > overviewZoom * 1.14 &&
+      animal.screenX > camera.width * 0.15 && animal.screenX < camera.width * 0.85 &&
+      animal.screenY > camera.height * 0.15 && animal.screenY < camera.height * 0.85;
+  }, target, { timeout: 5000 });
+}
+
+async function selectByMapClick(target) {
+  const point = await page.locator('#farm-canvas .riose-farm-canvas-host').evaluate((host, animalIndex) => {
+    const { animals } = JSON.parse(host.dataset.farmDragState);
+    const animal = animals[animalIndex];
+    const rect = host.getBoundingClientRect();
+    return { x: rect.left + animal.screenX, y: rect.top + animal.screenY - 10 };
+  }, target);
+  await page.mouse.click(point.x, point.y);
+  await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'false');
+  assert.equal(await page.locator('#record-title').textContent(), `Animal ${target}`);
+  await page.waitForFunction((animalIndex) => {
+    const host = document.querySelector('#farm-canvas .riose-farm-canvas-host');
+    if (!host?.dataset.farmDragState) return false;
+    const { animals, camera } = JSON.parse(host.dataset.farmDragState);
+    const animal = animals[animalIndex];
+    const overviewZoom = Math.min(camera.width / 1536, camera.height / 1024) * 0.96;
+    return camera.zoomX > overviewZoom * 1.14 &&
+      animal.screenX > camera.width * 0.15 && animal.screenX < camera.width * 0.85 &&
+      animal.screenY > camera.height * 0.15 && animal.screenY < camera.height * 0.85;
+  }, target, { timeout: 5000 });
 }
 
 try {
@@ -88,6 +120,10 @@ try {
     return Math.hypot(animal.x - x, animal.y - y) > 5;
   }, { x: cowStart.worldX, y: cowStart.worldY }, { timeout: 5000 });
   assert.equal(await page.locator('#record-title').textContent(), 'Animal 0', 'dragging a cow also selects it');
+  await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
+  await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
+
+  await selectByMapClick(0);
   await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
 
