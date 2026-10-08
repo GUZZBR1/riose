@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, replace
 import os
+import time
 import urllib.error
 import pytest
 
@@ -222,9 +223,8 @@ def test_base_submission_uses_shared_durable_nonce_ordering(prepared_target):
         config, client=client, signer=signer, nonce_coordinator=spy,
         publication_id=request["publication_id"],
     )
-    envelope = build_public_envelope(request["commitment"])
-    prepared = adapter.prepare(envelope)
-    assert adapter.submit(prepared) == prepared.transaction_id
+    result = PublicationDispatcher(outbox, [adapter]).process(request["publication_id"])
+    assert result["status"] == "RPC_ACCEPTED"
     assert spy.ordered_submissions == 1
     assert len(client.sends) == 1
 
@@ -371,7 +371,7 @@ def test_persisted_signed_wire_cannot_exceed_configured_priority_fee_cap(prepare
         adapter.validate_prepared(prepared, build_public_envelope(request["commitment"]))
 
 
-def test_missing_receipt_and_restart_only_replay_same_wire(prepared_target):
+def test_missing_receipt_and_restart_preserve_rpc_accepted_without_resend(prepared_target):
     store, outbox, request, adapter, client = prepared_target
     dispatcher = PublicationDispatcher(outbox, [adapter])
     dispatcher.process(request["publication_id"])
@@ -381,9 +381,9 @@ def test_missing_receipt_and_restart_only_replay_same_wire(prepared_target):
     restarted_outbox = SQLitePublicationOutbox(reopened)
     restarted_adapter = EVMRegistryAdapter(adapter.config, client=client, publication_id=request["publication_id"])
     restarted = PublicationDispatcher(restarted_outbox, [restarted_adapter])
-    assert restarted.reconcile(request["publication_id"])["status"] == "UNKNOWN"
-    assert restarted.reconcile(request["publication_id"])["status"] == "UNKNOWN"
-    assert client.sends == [first["payload"], first["payload"]]
+    assert restarted.reconcile(request["publication_id"])["status"] == "RPC_ACCEPTED"
+    assert restarted.reconcile(request["publication_id"])["status"] == "RPC_ACCEPTED"
+    assert client.sends == [first["payload"]]
     assert restarted_outbox.latest_attempt(request["publication_id"])["attempt_id"] == first["attempt_id"]
     reopened.close()
 
@@ -791,6 +791,15 @@ def test_submit_timeout_retains_one_durable_wire_for_replay(prepared_target, aft
     assert attempt is not None
     assert client.sends == ([attempt["payload"]] if after_send else [])
     client.rpc = original
+    before_due = PublicationDispatcher(outbox, [adapter]).reconcile(request["publication_id"])
+    assert before_due["status"] == "UNKNOWN"
+    assert client.sends == ([attempt["payload"]] if after_send else [])
+    with outbox.store._lock:
+        outbox.store.connection.execute(
+            "UPDATE publication_outbox SET available_at=? WHERE publication_id=?",
+            (time.time() - 1, request["publication_id"]),
+        )
+        outbox.store.connection.commit()
     replayed = PublicationDispatcher(outbox, [adapter]).reconcile(request["publication_id"])
     assert replayed["status"] == "RPC_ACCEPTED"
     assert client.sends[-1] == attempt["payload"]

@@ -5,6 +5,7 @@
   "rules": [
     {"pattern": "CadQuery unavailable; dedicated CI CAD job installs requirements-cad.txt", "classification": "EXPECTED_OPTIONAL", "reason": "The independent CAD job installs the optional CAD dependency and requires the export tests."},
     {"pattern": "CadQuery is available; covered by the CAD export integration test", "classification": "EXPECTED_OPTIONAL", "reason": "The duplicate unit path is intentionally skipped when the dedicated export integration test owns the case."},
+    {"pattern": "O_NOFOLLOW provides atomic POSIX symlink rejection", "classification": "EXPECTED_OPTIONAL", "reason": "This test exercises the non-POSIX symlink precheck; POSIX uses atomic O_NOFOLLOW coverage in the adjacent tests."},
     {"pattern": "No module named 'sklearn'", "classification": "ENVIRONMENT_MISSING", "reason": "scikit-learn is a declared runtime dependency; install failure is not an optional pass."},
     {"pattern": "No module named 'yaml'", "classification": "ENVIRONMENT_MISSING", "reason": "PyYAML is a declared runtime dependency; install failure is not an optional pass."},
     {"pattern": "No module named 'fastapi'", "classification": "ENVIRONMENT_MISSING", "reason": "FastAPI is a declared runtime dependency; install failure is not an optional pass."}

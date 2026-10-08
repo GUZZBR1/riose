@@ -14,7 +14,7 @@
     "local_ci_results.json": "208b0d06a6c24ff1b52e5774dfe98be04a936d01df9f475612a846ca44b46118",
     "red_team_report.md": "377c16d20f4c75b97ba984d01098c954bdc35a8022b63e64f22329e98dc9b455",
     "scientific_invariants.json": "b72ac01af40f0fefbcf06f319a4bd8aaccb5d68db6e314446de6e2f13bb7ff9e",
-    "skip_classification.json": "fe062169d469c82baff248cd241c2568a7c8b404db5c7aeb7bdc214986a264f6",
+    "skip_classification.json": "4c4ba2838ac8c8ff7ba15f18284be2e11c11a119c65168a93841357cef775899",
     "test_costs.json": "25593905ac48912ff06f66c19c3db31e39c0f2502e816b8e6713449397b3ce9e",
     "workflow_security.json": "d4a08c2fd1ef2c487ba4ec8e687733015d27b5248c76f3cffa58da95228f0466"
   },

@@ -60,7 +60,7 @@ def run_smoke() -> dict[str, Any]:
         store = Store(db_path)
         store.create_animal("sc3-synthetic-animal", "sc3-synthetic-tag", "sc3-synthetic-crypto-id")
         event = store.append_animal_event(
-            "sc3-synthetic-animal", "WEIGHT_RECORDED", {"weight_kg": 421.0, "evidence": "SIMULATED"}, 1_800_000_000.0
+            "sc3-synthetic-animal", "WEIGHT_RECORDED", {"weight_kg": 421.0, "evidence": "SIMULATED"}, 1_700_000_000.0
         )
         event_evidence = store.event_chain_evidence("sc3-synthetic-animal")
         if event_evidence is None or not event_evidence.valid:
@@ -68,7 +68,7 @@ def run_smoke() -> dict[str, Any]:
 
         outbox = SQLitePublicationOutbox(store)
         request = outbox.enqueue_event(
-            event.event_id, chain="base", destination="sc3-local-mock-evm", network="local-mock", now=1_800_000_001.0
+            event.event_id, chain="base", destination="sc3-local-mock-evm", network="local-mock", now=1_700_000_001.0
         )
         if not outbox.verify_local_binding(request["publication_id"]):
             raise RuntimeError("fresh Commitment V1 binding did not verify")

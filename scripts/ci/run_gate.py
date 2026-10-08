@@ -129,9 +129,10 @@ def _main() -> None:
     _run(["cmake", "-S", "hardware/tests", "-B", build_dir])
     _run(["cmake", "--build", build_dir, "--parallel"])
     _run(["ctest", "--test-dir", build_dir, "--output-on-failure"])
+    dist_dir = os.environ.get("RIOSE_DIST_DIR", "/tmp/riose-sc4-ci-dist")
     _run([
         "uv", "build", "--build-constraints", "build-constraints.txt",
-        "--wheel", "--out-dir", "/tmp/riose-sc4-ci-dist",
+        "--wheel", "--out-dir", dist_dir,
     ])
 
 
