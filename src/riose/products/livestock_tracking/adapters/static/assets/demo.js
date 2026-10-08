@@ -64,6 +64,11 @@ function profileFor(farmId, index, animal = null) {
       condition: `${(3 + (seed % 12) / 10).toFixed(1)} / 5`,
       signal: `14:${String(seed % 60).padStart(2, '0')}`,
       location: animal?.zone || 'North range',
+      fieldNote: choose([
+        'Keeps to the open grass between shade stops.', 'Returns to the trough after a slow circuit.',
+        'Holds a steady place near the east fence.', 'Moves between the water point and the tree line.',
+        'Stays with a small group in the south range.', 'Pauses in shade before crossing the open pasture.',
+      ], 23),
       journey: [],
     };
   }
@@ -85,6 +90,11 @@ function profileFor(farmId, index, animal = null) {
       { moment: 'Midday', story: `Pauses for water at ${midday}, then returns to the herd.` },
       { moment: 'Evening', story: `Moves with the group toward ${evening}.` },
     ],
+    fieldNote: choose([
+      `Often grazes near ${morning}.`, `Takes a quiet pause by ${midday}.`,
+      `Keeps close to the group around ${evening}.`, `Returns to the open grass after water.`,
+      `Favors the shaded edge during the warm part of the day.`, `Moves between grass and water with the herd.`,
+    ], 37),
   };
 }
 
@@ -165,6 +175,27 @@ class FarmAudioManager {
         this.renderButtons();
       }
     }, delay);
+  }
+
+  playIdentityChime() {
+    if (!this.enabled || typeof AudioContext === 'undefined') return;
+    try {
+      const context = new AudioContext();
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.025, context.currentTime + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.5);
+      gain.connect(context.destination);
+      for (const [frequency, delay] of [[660, 0], [880, 0.09]]) {
+        const tone = context.createOscillator();
+        tone.type = 'sine';
+        tone.frequency.value = frequency;
+        tone.connect(gain);
+        tone.start(context.currentTime + delay);
+        tone.stop(context.currentTime + 0.52);
+      }
+      window.setTimeout(() => void context.close(), 650);
+    } catch { /* Sound is optional; the visual confirmation remains primary. */ }
   }
 }
 
@@ -264,16 +295,19 @@ function resetIdentityCard(profile) {
   state.recordDigest = null;
   state.identityRunId += 1;
   $('asset-complete').hidden = true;
+  $('asset-demo-preview').hidden = true;
   $('asset-progress').hidden = true;
   $('asset-actions').hidden = false;
   $('asset-error').hidden = true;
   $('asset-error').textContent = '';
+  $('preview-without-wallet').hidden = false;
   $('asset-action').hidden = false;
   $('asset-action').disabled = true;
   $('asset-action').textContent = 'Preparing record…';
+  $('preview-without-wallet').disabled = true;
   $('asset-explorer').hidden = true;
   $('solana-screen').dataset.proofState = 'no-asset';
-  $('identity-art-wrap').classList.remove('is-assembling', 'is-confirmed');
+  $('identity-art-wrap').classList.remove('is-assembling', 'is-confirmed', 'is-preview');
   setProofSteps('NO_ASSET');
   $('continue-solana').textContent = 'Digital identity';
   const arrow = document.createElement('span');
@@ -288,6 +322,8 @@ function resetRecordState(profile) {
   $('record-portrait').src = profile.image;
   $('record-portrait').alt = `${profile.name}, cattle portrait`;
   $('record-portrait').classList.toggle('is-nelore', profile.farmId === 'farm02');
+  $('animal-field-note').hidden = false;
+  $('animal-field-note-copy').textContent = profile.fieldNote;
   $('animal-panel-body').classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('selected-animal-status').parentElement.classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('animal-journey').hidden = profile.farmId === 'farm02';
@@ -322,6 +358,11 @@ function clearAnimalSelection() {
   state.animal = null;
   state.asset = null;
   state.identityExpanded = false;
+  $('asset-demo-preview').hidden = true;
+  $('asset-complete').hidden = true;
+  $('asset-progress').hidden = true;
+  $('preview-without-wallet').hidden = false;
+  $('identity-art-wrap').classList.remove('is-assembling', 'is-confirmed', 'is-preview');
   for (const stage of stageElements.values()) updateAnimalChooserSelection(stage, null);
   setContextOpen($('record-screen'), false);
   setContextOpen($('solana-screen'), false);
@@ -396,7 +437,7 @@ function publishSceneState(animals) {
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261008-03');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261008-04');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
 
@@ -497,6 +538,7 @@ async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
       $('asset-action').disabled = false;
       $('asset-action').textContent = 'Create digital identity';
     }
+    $('preview-without-wallet').disabled = false;
     if (state.identityExpanded) await refreshAsset(requestId);
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
@@ -505,6 +547,7 @@ async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
     $('api-state').hidden = false;
     $('asset-action').disabled = true;
     $('asset-action').textContent = 'Record unavailable';
+    $('preview-without-wallet').disabled = true;
     if (state.identityExpanded) {
       state.assetStatus = 'ERROR';
       state.assetStatusLoaded = true;
@@ -514,7 +557,7 @@ async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
 }
 
 function tokenizationModule() {
-  return import('/assets/animal-tokenization.bundle.js?v=20261008-03');
+  return import('/assets/animal-tokenization.bundle.js?v=20261008-04');
 }
 
 function setProofSteps(phase) {
@@ -522,6 +565,7 @@ function setProofSteps(phase) {
     NO_ASSET: [], PREPARING_RECORD: [], HASHING: ['record'], SIGNATURE_REQUIRED: ['record', 'hash'],
     SUBMITTING_TO_DEVNET: ['record', 'hash'], CONFIRMING: ['record', 'hash', 'solana'],
     CONFIRMED: ['record', 'hash', 'solana', 'wallet'], ADDED_TO_WALLET: ['record', 'hash', 'solana', 'wallet'],
+    DEMO_PREVIEW: ['record', 'hash'],
   }[phase] || [];
   const active = {
     PREPARING_RECORD: 'record', HASHING: 'hash', SIGNATURE_REQUIRED: 'wallet',
@@ -546,16 +590,18 @@ function setAssetPhase(phase) {
   setProofSteps(phase);
   $('asset-progress').hidden = false;
   $('asset-complete').hidden = true;
+  $('asset-demo-preview').hidden = true;
   $('asset-actions').hidden = true;
+  $('preview-without-wallet').hidden = true;
   $('asset-error').hidden = true;
   $('asset-state').textContent = phaseCopy[phase] || 'Preparing digital identity';
   $('asset-state').dataset.state = phase === 'ERROR' ? 'error' : phase === 'CONFIRMED' ? 'confirmed' : 'submitting';
   $('identity-art-wrap').classList.toggle('is-assembling', !['CONFIRMED', 'ADDED_TO_WALLET'].includes(phase));
 }
 
-function updateIdentityToggle(confirmed = false) {
+function updateIdentityToggle(confirmed = false, preview = false) {
   const button = $('continue-solana');
-  button.replaceChildren(document.createTextNode(confirmed ? 'View proof' : 'Digital identity'));
+  button.replaceChildren(document.createTextNode(confirmed ? 'View proof' : preview ? 'View preview' : 'Digital identity'));
   const arrow = document.createElement('span');
   arrow.setAttribute('aria-hidden', 'true');
   arrow.textContent = '↗';
@@ -591,6 +637,7 @@ async function refreshAsset(requestId = state.selectionGeneration) {
       $('solana-screen').dataset.proofState = 'no-asset';
       $('asset-progress').hidden = true;
       $('asset-actions').hidden = false;
+      $('preview-without-wallet').hidden = false;
       $('asset-action').disabled = false;
       $('asset-action').textContent = 'Create digital identity';
       updateIdentityToggle(false);
@@ -615,12 +662,15 @@ function showAssetError(message) {
   $('solana-screen').dataset.proofState = 'error';
   $('asset-progress').hidden = true;
   $('asset-complete').hidden = true;
+  $('asset-demo-preview').hidden = true;
   $('asset-actions').hidden = false;
+  $('preview-without-wallet').hidden = false;
   $('asset-error').textContent = message;
   $('asset-error').hidden = false;
   $('asset-action').disabled = false;
   $('asset-action').textContent = 'Retry';
   $('identity-art-wrap').classList.remove('is-assembling');
+  state.farms.get(state.activeFarmId)?.markAnimalIdentity?.(state.selectedSceneAnimal?.id, 'none');
 }
 
 function shortAddress(value, lead = 7, trail = 5) {
@@ -634,7 +684,9 @@ function renderCompletedIdentity(asset, module) {
   $('solana-screen').dataset.proofState = 'added-to-wallet';
   setProofSteps('ADDED_TO_WALLET');
   $('asset-progress').hidden = true;
+  $('asset-demo-preview').hidden = true;
   $('asset-actions').hidden = true;
+  $('preview-without-wallet').hidden = true;
   $('asset-error').hidden = true;
   $('asset-complete').hidden = false;
   $('proof-animal-name').textContent = asset.name || state.selectedProfile?.name || 'Animal';
@@ -652,9 +704,65 @@ function renderCompletedIdentity(asset, module) {
   $('asset-state').textContent = 'Digital identity created';
   $('asset-state').dataset.state = 'confirmed';
   updateIdentityToggle(true);
+  state.farms.get(state.activeFarmId)?.markAnimalIdentity?.(state.selectedSceneAnimal?.id, 'confirmed');
+  farmAudio.playIdentityChime();
 }
 
-function animateIdentityLink(requestId) {
+function waitFor(milliseconds, runId) {
+  return new Promise((resolve) => window.setTimeout(() => resolve(runId === state.identityRunId), milliseconds));
+}
+
+function renderDemoPreview(reason = 'wallet-not-connected') {
+  state.asset = null;
+  state.assetStatus = 'DEMO_PREVIEW';
+  state.assetStatusLoaded = true;
+  $('solana-screen').dataset.proofState = 'demo-preview';
+  setProofSteps('DEMO_PREVIEW');
+  $('asset-progress').hidden = true;
+  $('asset-complete').hidden = true;
+  $('asset-demo-preview').hidden = false;
+  $('asset-actions').hidden = true;
+  $('preview-without-wallet').hidden = true;
+  $('asset-error').hidden = true;
+  $('demo-preview-animal').textContent = state.selectedProfile?.name || 'Animal';
+  $('demo-preview-tag').textContent = state.selectedProfile?.tagLabel || '—';
+  $('demo-preview-digest').textContent = shortAddress(state.recordDigest, 12, 8);
+  $('demo-preview-digest').title = state.recordDigest || '';
+  $('demo-preview-status').textContent = reason === 'signature-declined'
+    ? 'Signature skipped — showing simulated issuance.'
+    : 'Wallet not connected — showing simulated issuance.';
+  $('identity-art-wrap').classList.remove('is-assembling', 'is-confirmed');
+  $('identity-art-wrap').classList.add('is-preview');
+  $('asset-state').textContent = 'Preview identity created';
+  $('asset-state').dataset.state = 'confirmed';
+  updateIdentityToggle(false, true);
+  state.farms.get(state.activeFarmId)?.markAnimalIdentity?.(state.selectedSceneAnimal?.id, 'preview');
+  farmAudio.playIdentityChime();
+}
+
+async function runDemoPreview(reason = 'wallet-not-connected') {
+  if (!state.selectedProfile || !state.animal || ['PREPARING_RECORD', 'HASHING', 'SIGNATURE_REQUIRED', 'SUBMITTING_TO_DEVNET', 'CONFIRMING'].includes(state.assetStatus)) return;
+  const requestId = state.selectionGeneration;
+  const runId = ++state.identityRunId;
+  if (!state.recordDigest) {
+    showAssetError('Verify the local animal record before previewing its identity.');
+    return;
+  }
+  state.farms.get(state.activeFarmId)?.pulseAnimalIdentity?.(state.selectedSceneAnimal?.id);
+  state.farms.get(state.activeFarmId)?.markAnimalIdentity?.(state.selectedSceneAnimal?.id, 'pending');
+  $('asset-action').disabled = true;
+  setAssetPhase('PREPARING_RECORD');
+  $('asset-state').textContent = 'Preparing farm record';
+  if (!await waitFor(300, runId) || requestId !== state.selectionGeneration) return;
+  setAssetPhase('HASHING');
+  $('asset-state').textContent = 'Creating digest';
+  if (!await waitFor(300, runId) || requestId !== state.selectionGeneration) return;
+  await animateIdentityLink(runId, 1500);
+  if (runId !== state.identityRunId || requestId !== state.selectionGeneration) return;
+  renderDemoPreview(reason);
+}
+
+function animateIdentityLink(requestId, duration = 1900) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const farm = state.farms.get(state.activeFarmId);
   const animalId = state.selectedSceneAnimal?.id;
@@ -675,7 +783,6 @@ function animateIdentityLink(requestId) {
     return text;
   }));
   const length = path.getTotalLength();
-  const duration = 1900;
   const start = performance.now();
   const overlay = $('identity-motion-overlay');
   overlay.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
@@ -719,14 +826,17 @@ async function performAssetAction() {
   }
   const requestId = state.selectionGeneration;
   const runId = ++state.identityRunId;
+  let signatureSkipped = false;
+  let signatureSkipReason = 'wallet-not-connected';
   state.farms.get(state.activeFarmId)?.pulseAnimalIdentity?.(state.selectedSceneAnimal?.id);
+  state.farms.get(state.activeFarmId)?.markAnimalIdentity?.(state.selectedSceneAnimal?.id, 'pending');
   $('identity-art-wrap').classList.remove('is-confirmed');
   $('asset-action').disabled = true;
   setAssetPhase('PREPARING_RECORD');
   try {
     const module = await tokenizationModule();
     const result = await module.mintAnimalAsset(state.animal.animal_id, {
-      onProgress: async ({ state: phase, result: verified, record_digest: digest }) => {
+      onProgress: async ({ state: phase, result: verified, record_digest: digest, reason }) => {
         if (requestId !== state.selectionGeneration || runId !== state.identityRunId) return;
         if (phase === 'PREPARING_RECORD') setAssetPhase(phase);
         else if (phase === 'HASHING') {
@@ -744,6 +854,13 @@ async function performAssetAction() {
             await new Promise((resolve) => window.setTimeout(resolve, 380));
           }
         }
+        else if (phase === 'WALLET_CONNECTED') {
+          $('asset-state').textContent = 'Wallet connected — review the signature';
+        } else if (phase === 'SIGNATURE_SKIPPED') {
+          signatureSkipped = true;
+          signatureSkipReason = reason === 'signature-declined' ? 'signature-declined' : 'wallet-not-connected';
+          $('asset-state').textContent = 'Preparing a clearly marked demo preview';
+        }
         else if (phase === 'CONFIRMING') setAssetPhase(phase);
       },
     });
@@ -757,6 +874,15 @@ async function performAssetAction() {
     renderCompletedIdentity(result, module);
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
+    if (signatureSkipped) {
+      if (!state.recordDigest) {
+        showAssetError('The local record digest is not available. Retry after record verification.');
+        return;
+      }
+      await waitFor(350, runId);
+      if (requestId === state.selectionGeneration && runId === state.identityRunId) renderDemoPreview(signatureSkipReason);
+      return;
+    }
     state.assetStatusLoaded = true;
     const detail = typeof error?.message === 'string' ? error.message.trim() : '';
     const fallback = state.assetStatus === 'SIGNATURE_REQUIRED'
@@ -783,6 +909,23 @@ $('demo-main').querySelectorAll('[data-farm-sound]').forEach((button) => button.
 $('asset-action').addEventListener('click', () => {
   if (state.assetStatus === 'CONFIRMING' && state.assetStatusLoaded) void refreshAsset();
   else void performAssetAction();
+});
+$('preview-without-wallet').addEventListener('click', () => void runDemoPreview('wallet-not-connected'));
+$('replay-preview').addEventListener('click', () => void runDemoPreview('wallet-not-connected'));
+$('connect-wallet-action').addEventListener('click', () => {
+  $('asset-demo-preview').hidden = true;
+  $('identity-art-wrap').classList.remove('is-preview');
+  $('asset-actions').hidden = false;
+  $('preview-without-wallet').hidden = false;
+  $('asset-action').disabled = false;
+  state.assetStatus = 'NO_ASSET';
+  state.assetStatusLoaded = true;
+  $('asset-state').textContent = 'Ready when you are.';
+  $('asset-state').dataset.state = 'no-asset';
+  $('solana-screen').dataset.proofState = 'no-asset';
+  setProofSteps('NO_ASSET');
+  updateIdentityToggle(false);
+  void performAssetAction();
 });
 $('copy-asset-id').addEventListener('click', async () => {
   if (!state.asset?.asset_address) return;

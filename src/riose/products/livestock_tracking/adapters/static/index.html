@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261008-05">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261008-06">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -77,6 +77,7 @@
                   <p>Illustrative demo profile. It is not a veterinary assessment.</p>
                 </details>
               </section>
+              <p class="animal-field-note" id="animal-field-note" hidden><span>FIELD NOTE · ILLUSTRATIVE</span><span id="animal-field-note-copy"></span></p>
               <div class="record-integrity" id="record-verification" role="status" aria-live="polite" data-state="pending">
                 <span class="integrity-dot" aria-hidden="true"></span><span>Checking record integrity…</span>
               </div>
@@ -108,7 +109,7 @@
                 <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Ready when you are.</p>
               </div>
               <section class="asset-complete" id="asset-complete" aria-live="polite" hidden>
-                <div class="asset-complete-heading"><span class="asset-complete-mark" aria-hidden="true">✓</span><div><h3>Digital identity created</h3><p>A verifiable Riose record digest has been anchored on Solana.</p></div></div>
+                <div class="asset-complete-heading"><span class="asset-complete-mark" aria-hidden="true">✓</span><div><p class="asset-mode-label">REAL · DEVNET</p><h3>Digital identity issued on Devnet</h3><p>The selected animal’s Riose record digest is anchored on Solana.</p></div></div>
                 <dl class="asset-proof-data">
                   <div><dt>Animal</dt><dd id="proof-animal-name"></dd></div>
                   <div><dt>Riose tag</dt><dd id="proof-public-tag"></dd></div>
@@ -120,7 +121,16 @@
                 <p class="wallet-explainer">Your wallet controls the keys for this digital identity. The physical animal remains represented by its Riose record.</p>
                 <div class="asset-actions"><a id="asset-explorer" class="primary-button asset-link" href="#" target="_blank" rel="noopener noreferrer">View proof</a><button id="copy-asset-id" class="secondary-button" type="button">Copy asset ID</button></div>
               </div>
+              <section class="asset-demo-preview" id="asset-demo-preview" aria-live="polite" hidden>
+                <div class="asset-demo-heading"><span class="demo-mode-label">DEMO MODE</span><span class="asset-demo-mark" aria-hidden="true">ID</span></div>
+                <h3>Preview identity prepared</h3>
+                <p id="demo-preview-status">Wallet not connected — showing simulated issuance.</p>
+                <dl><div><dt>Animal</dt><dd id="demo-preview-animal"></dd></div><div><dt>Riose tag</dt><dd id="demo-preview-tag"></dd></div><div><dt>Record digest</dt><dd id="demo-preview-digest"></dd></div></dl>
+                <p class="demo-preview-disclosure">Preview only · no transaction was sent to Solana.</p>
+                <div class="asset-actions"><button class="primary-button" id="connect-wallet-action" type="button">Connect wallet to issue on Devnet</button><button class="secondary-button" id="replay-preview" type="button">Replay preview</button></div>
+              </section>
               <div class="asset-actions" id="asset-actions"><button class="primary-button" id="asset-action" type="button">Create digital identity</button></div>
+              <button class="text-action" id="preview-without-wallet" type="button">Preview without wallet</button>
               <p class="asset-error" id="asset-error" role="alert" hidden></p>
             </div>
           </div>
@@ -157,6 +167,6 @@
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
   <svg class="identity-motion-overlay" id="identity-motion-overlay" aria-hidden="true" focusable="false"><path id="identity-motion-path"></path><g id="identity-motion-fragments"></g></svg>
-  <script type="module" src="/assets/demo.js?v=20261008-04"></script>
+  <script type="module" src="/assets/demo.js?v=20261008-05"></script>
 </body>
 </html>

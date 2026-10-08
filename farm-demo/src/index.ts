@@ -67,6 +67,10 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
       if (destroyed || !scene.ready) return false;
       return scene.pulseAnimalIdentity(id);
     },
+    markAnimalIdentity(id: string, mode: 'pending' | 'preview' | 'confirmed' | 'none'): boolean {
+      if (destroyed || !scene.ready) return false;
+      return scene.markAnimalIdentity(id, mode);
+    },
     getAnimalScreenPosition(id: string): { x: number; y: number } | null {
       return destroyed || !scene.ready ? null : scene.getAnimalScreenPosition(id);
     },

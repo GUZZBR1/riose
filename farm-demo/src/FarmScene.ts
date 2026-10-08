@@ -148,6 +148,13 @@ export class FarmScene extends Phaser.Scene {
     return true;
   }
 
+  markAnimalIdentity(id: string, mode: 'pending' | 'preview' | 'confirmed' | 'none'): boolean {
+    const cow = this.cowById(id);
+    if (!cow || id !== this.selectedId) return false;
+    cow.markIdentity(mode, this.reducedMotion);
+    return true;
+  }
+
   getAnimalScreenPosition(id: string): { x: number; y: number } | null {
     const cow = this.cowById(id);
     if (!cow || !this.game.canvas) return null;

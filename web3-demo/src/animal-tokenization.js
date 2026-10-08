@@ -63,9 +63,16 @@ async function releaseUnsignedAttempt(animalId, submission) {
   localStorage.removeItem(pendingKey(animalId));
 }
 
-export async function connectWallet() {
+export async function connectWallet(onProgress = async () => {}) {
   const wallet = new PhantomWalletAdapter();
-  await wallet.connect();
+  try {
+    await wallet.connect();
+  } catch (error) {
+    const message = typeof error?.message === 'string' ? error.message : '';
+    await onProgress({ state: 'SIGNATURE_SKIPPED', reason: /reject|denied|cancel/i.test(message) ? 'signature-declined' : 'wallet-not-connected' });
+    throw error;
+  }
+  await onProgress({ state: 'WALLET_CONNECTED' });
   return { wallet, address: wallet.publicKey.toBase58() };
 }
 
@@ -215,7 +222,7 @@ async function performMintAnimalAsset(animalId, onProgress = () => {}) {
 
   await onProgress({ state: 'SIGNATURE_REQUIRED', public_tag: intent.public_tag,
     record_digest: intent.record_digest, created_at: intent.created_at });
-  const { wallet } = await connectWallet();
+  const { wallet } = await connectWallet(onProgress);
   const umi = makeUmi(wallet);
   const signer = generateSigner(umi);
   const ownerAddress = wallet.publicKey.toBase58();
@@ -252,6 +259,7 @@ async function performMintAnimalAsset(animalId, onProgress = () => {}) {
   } catch (error) {
     if (isExplicitWalletRejection(error)) {
       await releaseUnsignedAttempt(animalId, submission);
+      await onProgress({ state: 'SIGNATURE_SKIPPED', reason: 'signature-declined' });
       throw new Error('A assinatura foi recusada na carteira; nenhuma transação foi enviada.');
     }
     throw error;

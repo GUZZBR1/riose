@@ -30,6 +30,7 @@ export interface FarmDemoHandle {
   focusAnimal(id: string): void;
   selectAnimal(id: string | null): void;
   pulseAnimalIdentity(id: string): boolean;
+  markAnimalIdentity(id: string, mode: 'pending' | 'preview' | 'confirmed' | 'none'): boolean;
   getAnimalScreenPosition(id: string): { x: number; y: number } | null;
   getAnimals(): readonly AnimalState[];
   setActive(active: boolean): void;

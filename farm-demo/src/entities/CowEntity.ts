@@ -13,12 +13,16 @@ export class CowEntity {
   private readonly selection: Phaser.GameObjects.Ellipse;
   private readonly tagHalo: Phaser.GameObjects.Ellipse;
   private readonly tagMarker: Phaser.GameObjects.Rectangle;
+  private readonly identityScan: Phaser.GameObjects.Rectangle;
+  private readonly identityBadge: Phaser.GameObjects.Text;
   private readonly pasture: PastureZone;
   private snapshot: BehaviorSnapshot;
   private hovered = false;
   private walkPhase = 0;
   private lastX: number;
   private lastY: number;
+  private identityPulseUntil = 0;
+  private identityBadgeUntil = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -56,6 +60,12 @@ export class CowEntity {
       .setStrokeStyle(1, 0x806824, 0.85)
       .setDepth(this.snapshot.y + 7)
       .setVisible(false);
+    this.identityScan = scene.add.rectangle(this.snapshot.x, this.snapshot.y - 24, 42, 1.5, 0xc4f1dc, 0.9)
+      .setBlendMode(Phaser.BlendModes.ADD).setVisible(false);
+    this.identityBadge = scene.add.text(this.snapshot.x, this.snapshot.y - 42, 'ID PREVIEW', {
+      fontFamily: 'monospace', fontSize: '7px', color: '#46685c',
+      backgroundColor: 'rgba(245,247,240,0.88)', padding: { x: 4, y: 3 },
+    }).setOrigin(0.5).setDepth(this.snapshot.y + 9).setAlpha(0).setVisible(false);
   }
 
   update(snapshot: BehaviorSnapshot, _deltaMs: number, reducedMotion: boolean): void {
@@ -75,6 +85,18 @@ export class CowEntity {
     const tagY = y - 24 - gaitLift;
     this.tagHalo.setPosition(tagX, tagY).setDepth(y + 6);
     this.tagMarker.setPosition(tagX, tagY).setDepth(y + 7);
+    this.identityBadge.setPosition(tagX, tagY - 24).setDepth(y + 9);
+    if (this.identityPulseUntil > this.scene.time.now) {
+      const progress = 1 - (this.identityPulseUntil - this.scene.time.now) / 1650;
+      const fade = Math.min(1, progress * 5, (1 - progress) * 5);
+      this.identityScan.setPosition(tagX, tagY - 18 + progress * 36).setDepth(y + 8).setAlpha(fade * 0.72).setVisible(true);
+    } else {
+      this.identityScan.setVisible(false);
+    }
+    if (this.identityBadgeUntil && this.identityBadgeUntil <= this.scene.time.now) {
+      this.identityBadgeUntil = 0;
+      this.identityBadge.setVisible(false).setAlpha(0);
+    }
   }
 
   setSelected(selected: boolean): void {
@@ -88,10 +110,12 @@ export class CowEntity {
   }
 
   pulseIdentityTag(reducedMotion: boolean): void {
-    this.scene.tweens.killTweensOf([this.selection, this.tagHalo, this.tagMarker]);
+    this.scene.tweens.killTweensOf([this.selection, this.tagHalo, this.tagMarker, this.identityBadge]);
     this.selection.setVisible(true).setScale(1).setAlpha(0.86);
     this.tagHalo.setVisible(true).setScale(0.65).setAlpha(0.85);
     this.tagMarker.setVisible(true).setAlpha(1);
+    this.identityPulseUntil = this.scene.time.now + (reducedMotion ? 0 : 1650);
+    this.identityScan.setVisible(!reducedMotion).setAlpha(0);
     const clearTag = () => {
       this.tagHalo.setVisible(false).setScale(1).setAlpha(0.16);
       this.tagMarker.setVisible(false).setAlpha(1);
@@ -105,6 +129,27 @@ export class CowEntity {
       duration: 360, yoyo: true, repeat: 2, ease: 'Sine.easeInOut' });
     this.scene.tweens.add({ targets: this.tagHalo, scaleX: 1.65, scaleY: 1.65, alpha: 0.06,
       duration: 460, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: clearTag });
+  }
+
+  markIdentity(mode: 'pending' | 'preview' | 'confirmed' | 'none', reducedMotion: boolean): void {
+    this.scene.tweens.killTweensOf(this.identityBadge);
+    if (mode === 'none') {
+      this.identityBadgeUntil = 0;
+      this.identityBadge.setVisible(false).setAlpha(0);
+      return;
+    }
+    const label = mode === 'confirmed' ? 'IDENTITY · DEVNET'
+      : mode === 'preview' ? 'IDENTITY · PREVIEW' : 'IDENTITY · INDEXING';
+    this.identityBadge.setText(label)
+      .setPosition(this.snapshot.x, this.snapshot.y - 43)
+      .setDepth(this.snapshot.y + 9).setVisible(true).setAlpha(0);
+    this.identityBadgeUntil = mode === 'pending' ? 0 : this.scene.time.now + (reducedMotion ? 1800 : 3600);
+    if (reducedMotion) {
+      this.identityBadge.setAlpha(0.92);
+      return;
+    }
+    this.scene.tweens.add({ targets: this.identityBadge, alpha: 0.92, y: this.snapshot.y - 51,
+      duration: 280, yoyo: true, hold: 2600, ease: 'Sine.easeOut' });
   }
 
   getState(): AnimalState {
@@ -124,6 +169,8 @@ export class CowEntity {
     this.selection.destroy();
     this.tagHalo.destroy();
     this.tagMarker.destroy();
+    this.identityScan.destroy();
+    this.identityBadge.destroy();
   }
 
   private setHovered(hovered: boolean): void {
