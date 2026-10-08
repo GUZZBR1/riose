@@ -7,7 +7,7 @@
     "pyproject.toml": "ea1cd6cc66c82b3245c93de23c626836671e6af02cca411ac99f48a6c90c968c"
   },
   "environment_variable_names_set": [],
-  "generated_at_utc": "2026-10-08T12:26:35.010120+00:00",
+  "generated_at_utc": "2026-10-08T12:47:02.515822+00:00",
   "lockfile_hashes_sha256": {
     "contracts/package-lock.json": "ea239d5a67f165ae80d01bc0b0c158d8f839dcd7ca793c8f28daea10de15b31e",
     "uv.lock": "2db7575b0385c45d6cc95ea108c8f4c04bd0802c41b0c8eb3485f2999c4e76bf"
@@ -25,32 +25,11 @@
   },
   "schema_version": 1,
   "secrets_included": false,
-  "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94",
+  "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
   "source_tree": {
-    "git_tree_sha": "ab45d2250df9c2e215f072ffb17a564074bca2a4",
-    "status_lines": [
-      "A  reproducibility/README.md",
-      "A  reproducibility/artifact_comparison.json",
-      "A  reproducibility/bootstrap_report.json",
-      "A  reproducibility/cache_dependency_report.json",
-      "A  reproducibility/claims.json",
-      "A  reproducibility/clean_room_run_1.json",
-      "A  reproducibility/clean_room_run_2.json",
-      "A  reproducibility/dependency_matrix.json",
-      "A  reproducibility/discovery.json",
-      "A  reproducibility/doctor_report.json",
-      "A  reproducibility/environment_manifest.json",
-      "A  reproducibility/final_report.md",
-      "A  reproducibility/firmware_environment.json",
-      "A  reproducibility/integrated_smoke.json",
-      "A  reproducibility/limitations.json",
-      "A  reproducibility/manifest.json",
-      "A  reproducibility/node_environment.json",
-      "A  reproducibility/python_environment.json",
-      "A  reproducibility/red_team_report.md",
-      "A  reproducibility/solidity_environment.json"
-    ],
-    "working_tree_clean": false
+    "git_tree_sha": "c973a8bd7b4cebd8f257f4fe2f002d9da76d81bc",
+    "status_lines": [],
+    "working_tree_clean": true
   },
   "tools": {
     "cc": {

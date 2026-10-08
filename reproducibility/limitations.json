@@ -16,9 +16,14 @@
       "impact": "Those specific firmware and engineering gates were not run; core host CTest is independent and passed twice."
     },
     {
-      "detail": "Native subagent launches failed because the account did not support the role-mapped gpt-5.x models.",
-      "id": "NO_INDEPENDENT_SUBAGENT_AUDIT",
-      "impact": "The red-team checklist was executed by the primary agent; independent review remains outstanding."
+      "detail": "pyproject.toml requires unpinned hatchling; two clean-source offline builds selected hatchling 1.32.4 from cache, while an isolated empty-cache build failed because hatchling was absent.",
+      "id": "PEP517_BUILD_BACKEND_NOT_LOCKED",
+      "impact": "The tested wheel/sdist match is scoped to the observed cached builder and transitive versions. Fresh uncached package-build reproduction remains unverified until build dependencies are pinned/locked."
+    },
+    {
+      "detail": "A read-only native subagent review found missing Solidity source argv, optional doctor false-incompatibility, foreign-source import acceptance, unchecked local EVM versions, stale evidence, and dirty-snapshot package provenance.",
+      "id": "INDEPENDENT_RED_TEAM_FINDINGS",
+      "impact": "All identified code/evidence defects were corrected and regression-checked; the unpinned PEP 517 backend remains disclosed."
     }
   ],
   "not_claimed": [

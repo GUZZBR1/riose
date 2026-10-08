@@ -1,24 +1,28 @@
 {
-  "schema_version": 1,
-  "status": "PASS_WITH_EVM_LIMITATION",
-  "python": "3.12.3",
-  "interpreter": "/usr/bin/python3",
-  "uv": "0.11.26",
-  "lockfile": "uv.lock",
-  "lock_check": "PASS: uv lock --check --offline resolved 68 packages.",
   "clean_install": "PASS from the existing cache for core, dev, and Solana extras; the EVM extra is blocked by the missing ckzg 2.1.8 wheel and registry DNS.",
-  "project_environment": ".venv contains the source project, core/dev requirements, and solders 0.29.0 from uv.lock.",
-  "import_provenance": {
-    "riose": "Imported from this checkout's src/riose tree.",
-    "required_dependencies": "Core/dev dependency imports resolved from this checkout's .venv; see doctor_report.json.",
-    "external_pythonpath": "Unset during clean-room install and doctor.",
-    "editable_install": "PASS: uv built and installed the local cattle-rf project from this checkout."
-  },
-  "optional_extras": {
-    "solana": "PASS: solders 0.29.0 installed offline; no public Solana network used.",
-    "evm": "BLOCKED: eth-account's dependency graph could not install because cytoolz 1.1.0 and ckzg 2.1.8 were absent from cache."
-  },
+  "compileall": "PASS: python3 -m compileall -q src scripts.",
+  "doctor_regression_tests": "PASS: 3 tests cover absent optional tools, foreign checkout import provenance, and Solc mismatch against package-lock.json.",
   "full_python_regression": "BLOCKED at collection by two EVM modules importing missing eth_account; remaining suite passed 851 tests with 7 skips in each of two fresh venvs.",
+  "import_provenance": {
+    "editable_install": "PASS: uv built and installed the local cattle-rf project from this checkout.",
+    "external_pythonpath": "Unset during clean-room install and doctor.",
+    "required_dependencies": "Core/dev dependency imports resolved from this checkout's .venv; see doctor_report.json.",
+    "riose": "Imported from this checkout's src/riose tree."
+  },
+  "interpreter": "/usr/bin/python3",
+  "latest_regression_recheck": "854 passed, 7 skipped, 1 warning in the non-EVM suite; full suite still fails collection in two EVM modules importing missing eth_account.",
+  "latest_source_sha": "97aeeacf1878f0d12a4b4b518a4c3c529f35841e",
+  "lock_check": "PASS: uv lock --check --offline resolved 68 packages.",
+  "lockfile": "uv.lock",
+  "optional_extras": {
+    "evm": "BLOCKED: eth-account's dependency graph could not install because cytoolz 1.1.0 and ckzg 2.1.8 were absent from cache.",
+    "solana": "PASS: solders 0.29.0 installed offline; no public Solana network used."
+  },
+  "project_environment": ".venv contains the source project, core/dev requirements, and solders 0.29.0 from uv.lock.",
+  "python": "3.12.3",
+  "schema_version": 1,
   "second_venv": "/tmp/riose-sc3-run2-python-env; uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache.",
-  "compileall": "PASS: python3 -m compileall -q src scripts."
+  "shell_entrypoint_validation": "PASS: fresh ada955d checkout with core.autocrlf=true had LF line endings in all tracked shell scripts and reproducibility JSON/Markdown; bash -n passed and doctor.sh executed via its shebang.",
+  "status": "PASS_WITH_EVM_LIMITATION",
+  "uv": "0.11.26"
 }

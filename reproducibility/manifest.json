@@ -2,11 +2,11 @@
   "evidence_files": [
     {
       "path": "reproducibility/README.md",
-      "sha256": "33d5d99e9ce4fb1c451e592f2cfa1426d5188b0c715b4f65493876a1f63b4f1c"
+      "sha256": "e1dba1b0216ce3236fbe2db19d0dd050b8caffe716d6470022e0c1a1e13c1d59"
     },
     {
       "path": "reproducibility/artifact_comparison.json",
-      "sha256": "65d038bf8cf8017d2ab3e9fa09afd9eaf60ad30b4d0bf5fb824cd57cc19f26eb"
+      "sha256": "2d235762543cadae8a76d5ceb0a4c0c61fb864a86ab049c4cb43becd7b4a1e91"
     },
     {
       "path": "reproducibility/bootstrap_report.json",
@@ -14,23 +14,23 @@
     },
     {
       "path": "reproducibility/cache_dependency_report.json",
-      "sha256": "0153f518a3b69e447dd92732fb7c740bc94ad44309af9a6269219306b6406c3c"
+      "sha256": "74b20c7ad7c2c5359dcfd35640477b8238808f81b3d1ac973c1a7308dace4ed4"
     },
     {
       "path": "reproducibility/claims.json",
-      "sha256": "7b8fc6f92a65729735ed902aac406d039cb1759625920bb01e31c8807d5f7d41"
+      "sha256": "9c676e0c49e5ac00ebbf2e42923b18358419c293d88a23f75eb2e90dd49bd8d8"
     },
     {
       "path": "reproducibility/clean_room_run_1.json",
-      "sha256": "4bb36697e01235378e9e3224d0549dcc60894a79b87774b8f66737d038694f42"
+      "sha256": "f4a5c44572d9dcc760b1a6dfb248b2f60974188e0ee0deb0d0f25ffaba55772f"
     },
     {
       "path": "reproducibility/clean_room_run_2.json",
-      "sha256": "6aad6fb53a26d309a2f6dd4f4cd989c21eb2bc9a98fb1f7b145c3c72f26419fd"
+      "sha256": "3f659982a9e5f0af398821cc39673b5dd57d08571c85d80531c03d21bfb59fc0"
     },
     {
       "path": "reproducibility/dependency_matrix.json",
-      "sha256": "3f0425f5a1858e1d0618cf9eb018bd0126b2875f560994d3369f6a3b3be092ea"
+      "sha256": "e306a6f928ad6d86185e422d511630d35018218b1e6eb12fb204062edd5ac0eb"
     },
     {
       "path": "reproducibility/discovery.json",
@@ -38,15 +38,15 @@
     },
     {
       "path": "reproducibility/doctor_report.json",
-      "sha256": "a8d057116ec0d5a51790cd7fbb52084b1076daebb13814e03f2fe391e316218d"
+      "sha256": "95f7f04f6c5c4ebf629cf4fcf9ac25ff01026063f96ac24ee7fe921b673da798"
     },
     {
       "path": "reproducibility/environment_manifest.json",
-      "sha256": "f5927ce9d1bd3534c46a13f4e32f5b48dd4f604a7839a2e04666c99978a88496"
+      "sha256": "e9f728815f0d033991e7afb03b06c6263677745825ebdd46886e6e428762bac8"
     },
     {
       "path": "reproducibility/final_report.md",
-      "sha256": "69ca27e92a426995137c008a66eba6f4d046c0780a900fa6c13aeee03167f93a"
+      "sha256": "ecbf92b67e1bc5ee21b2f41fe73efc8697f35df8258b4bb25e355696ee6a6061"
     },
     {
       "path": "reproducibility/firmware_environment.json",
@@ -54,11 +54,11 @@
     },
     {
       "path": "reproducibility/integrated_smoke.json",
-      "sha256": "bcdbcacb0b481f160e6e714f9c2d1417b8bcb44c4f6c82a2a12164c15068a944"
+      "sha256": "3023e1555032800adef849b0c479cc821b757b7ccbd4446c4145234ae37a4434"
     },
     {
       "path": "reproducibility/limitations.json",
-      "sha256": "bdbaf3f2b88df22bffb59b4e036ec3f70e9a2d126729f37d7c1b849c3d22a423"
+      "sha256": "33f231864da78bc0a5d8ca4b7eaf2fc024b22f0f18f1bbcef6fc5e86af3715eb"
     },
     {
       "path": "reproducibility/node_environment.json",
@@ -66,15 +66,15 @@
     },
     {
       "path": "reproducibility/python_environment.json",
-      "sha256": "f8c974da13c43beb735883eb3801ec74c41ca1082438c708c4830e49ae353057"
+      "sha256": "d4d0fab6de7b5ba92e5410c90d741be379b8abe3e1167a3062e94a07432be521"
     },
     {
       "path": "reproducibility/red_team_report.md",
-      "sha256": "b401e4b8ab1bfb3d9910fcaa7d010586e25723cba593140f6ddaf691843d324d"
+      "sha256": "bfcb4408bbc6e1f03a95bbd7cf792b724d93019102795ba24c9e02fefec6fde2"
     },
     {
       "path": "reproducibility/solidity_environment.json",
-      "sha256": "8ccb48814baeb6113176f60f64f982aa6ebf93f2f4b9e937ae88f4209f66bcab"
+      "sha256": "5eca98a84ee949ecc854eee1ec74cec2f98e832e96f04d33d1d2183bdbff2905"
     }
   ],
   "mission": "SC-3 Reproducible Environment & Clean-Room Build",
@@ -83,5 +83,5 @@
   "schema_version": 1,
   "secrets_included": false,
   "self_hash_excluded": true,
-  "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
+  "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7"
 }

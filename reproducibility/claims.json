@@ -1,36 +1,62 @@
 {
-  "schema_version": 1,
   "claims": [
     {
       "claim": "WORKS_ON_CURRENT_MACHINE",
-      "scope": "Host CMake/CTest, core/dev/Solana Python tests, Python packaging, and mock integrated smoke in the SC-3 checkout.",
-      "status": "SUPPORTED_WITH_LIMITATIONS",
-      "evidence": ["firmware_environment.json", "python_environment.json", "artifact_comparison.json", "integrated_smoke.json"]
+      "evidence": [
+        "firmware_environment.json",
+        "python_environment.json",
+        "artifact_comparison.json",
+        "integrated_smoke.json"
+      ],
+      "scope": "Host CMake/CTest, core/dev/Solana Python tests, package builds from clean source worktrees, doctor checks, and mock integrated smoke.",
+      "status": "SUPPORTED_WITH_LIMITATIONS"
     },
     {
       "claim": "CACHED_REPRODUCTION",
-      "scope": "Core/dev/Solana Python environment and tests excluding two EVM test modules, plus wheel/sdist and CTest outputs.",
-      "status": "SUPPORTED",
-      "evidence": ["cache_dependency_report.json", "python_environment.json", "clean_room_run_1.json", "artifact_comparison.json"]
+      "evidence": [
+        "cache_dependency_report.json",
+        "python_environment.json",
+        "clean_room_run_1.json",
+        "artifact_comparison.json"
+      ],
+      "scope": "Core/dev/Solana Python environment and non-EVM tests, plus CTest and package artifacts from two clean worktrees using the recorded cached builder.",
+      "status": "SUPPORTED"
     },
     {
       "claim": "CLEAN_ROOM_REPRODUCTION",
+      "evidence": [
+        "bootstrap_report.json",
+        "node_environment.json",
+        "limitations.json"
+      ],
       "scope": "Complete project dependency and regression set.",
-      "status": "NOT_ACHIEVED",
-      "evidence": ["bootstrap_report.json", "node_environment.json", "limitations.json"]
+      "status": "NOT_ACHIEVED"
     },
     {
       "claim": "SEMANTIC_REPRODUCIBILITY",
+      "evidence": [
+        "clean_room_run_1.json",
+        "clean_room_run_2.json",
+        "artifact_comparison.json"
+      ],
       "scope": "Repeated host CTest and synthetic mock publication state transitions.",
-      "status": "SUPPORTED_FOR_LISTED_COMPONENTS",
-      "evidence": ["clean_room_run_1.json", "clean_room_run_2.json", "artifact_comparison.json"]
+      "status": "SUPPORTED_FOR_LISTED_COMPONENTS"
     },
     {
       "claim": "BITWISE_REPRODUCIBILITY",
-      "scope": "Five generated CTest trace JSONL files and the Python wheel/sdist listed in artifact_comparison.json.",
-      "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY",
-      "evidence": ["artifact_comparison.json"]
+      "evidence": [
+        "artifact_comparison.json"
+      ],
+      "scope": "Five CTest traces from source 04dd457 and the wheel/sdist from two clean worktrees at source 97aee, using the observed versions listed in artifact_comparison.json.",
+      "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY"
     }
   ],
-  "not_claimed": ["FULLY_REPRODUCIBLE", "PUBLIC_VALIDATED", "REAL_ON_CHAIN", "physical-device validated", "repository-wide bitwise build"]
+  "not_claimed": [
+    "FULLY_REPRODUCIBLE",
+    "PUBLIC_VALIDATED",
+    "REAL_ON_CHAIN",
+    "physical-device validated",
+    "repository-wide bitwise build"
+  ],
+  "schema_version": 1
 }

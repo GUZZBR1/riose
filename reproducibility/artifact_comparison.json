@@ -1,27 +1,64 @@
 {
-  "schema_version": 1,
-  "status": "BITWISE_MATCH_FOR_TESTED_ARTIFACTS",
+  "claims": [
+    "The listed CTest traces matched across two fresh build directories.",
+    "Wheel and sdist matched across two clean detached worktrees at source commit ada955d using the observed cached PEP 517 build environment.",
+    "No repository-wide or fresh-network bitwise build claim is made."
+  ],
   "firmware_trace_artifacts": {
-    "run_1": "/tmp/riose-sc3-run1-cmake",
-    "run_2": "/tmp/riose-sc3-run2-cmake",
-    "comparison": "SHA-256 matched byte-for-byte for all five generated trace files across two fresh CMake build directories.",
+    "comparison": "SHA-256 matched across two clean CMake build directories; CMake 3.28.3 and GNU cc 13.3.0.",
     "files": {
-      "firmware-trace.jsonl": "91b86a611df7f22037ce9b674dc96f15ca256cdf87ca7b5306890238f539f40d",
-      "normal-trace.jsonl": "91b86a611df7f22037ce9b674dc96f15ca256cdf87ca7b5306890238f539f40d",
       "active-trace.jsonl": "34d5c52af72f9b40127271dc20f616dc3d3a175a0890a5c965c3581b37215887",
       "alert-trace.jsonl": "35df82d70821708405f02ac3e5a5d9cd084bb7276b115a8e3cb8ef062a87ea7e",
+      "firmware-trace.jsonl": "91b86a611df7f22037ce9b674dc96f15ca256cdf87ca7b5306890238f539f40d",
+      "normal-trace.jsonl": "91b86a611df7f22037ce9b674dc96f15ca256cdf87ca7b5306890238f539f40d",
       "worst_reasonable_case-trace.jsonl": "4cf6de31c70d9375dc9280983c420c608b8efc4d9663cc50f3cec766dd3c7a21"
-    }
+    },
+    "run_1": "/tmp/riose-sc3-run1-cmake",
+    "run_2": "/tmp/riose-sc3-run2-cmake",
+    "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94",
+    "source_tree_sha": "ab45d2250df9c2e215f072ffb17a564074bca2a4"
   },
-  "python_wheel_sdist": "PASS: both artifacts built successfully offline in two output directories.",
+  "integrated_smoke": "Semantic state transitions passed with the simulated event and local mock receipt; no bytewise identity claim for timestamps/random IDs.",
   "python_package_artifacts": {
+    "build_toolchain": {
+      "backend_transitives": {
+        "packaging": "26.3",
+        "pathspec": "1.1.1",
+        "pluggy": "1.6.0",
+        "tomlkit": "0.15.1",
+        "trove-classifiers": "2026.9.21.13"
+      },
+      "build_backend": "hatchling 1.32.4",
+      "build_isolation": "PEP 517 isolated; resolved offline from the existing uv cache",
+      "lock_limitation": "pyproject.toml declares hatchling without a version bound and uv.lock does not capture the isolated build environment; this is documented and limits fresh-network build reproducibility claims.",
+      "python": "3.12.3",
+      "uv": "0.11.26"
+    },
     "built_twice": true,
-    "output_directories": ["/tmp/riose-sc3-packages", "/tmp/riose-sc3-packages-repeat"],
-    "wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c",
-    "sdist_sha256": "497842b889d017b823451685d264a768ffcf7690181913f6da3d2fb42ced3391",
-    "wheel_import_provenance": "PASS: installed with --no-deps into a new temporary virtualenv; riose module resolved from that venv's site-packages."
+    "output_directories": [
+      "/tmp/riose-sc3-final-clean-artifacts1",
+      "/tmp/riose-sc3-final-clean-artifacts2"
+    ],
+    "sdist_contents_note": "The source commit includes the tracked evidence snapshot from commit ada955d; its exact Git tree SHA and commit bind the artifact input.",
+    "sdist_sha256": "a8cd8d3f575e6480864b3fef1ea84984615e074a94ff86f8acec93e4254f762b",
+    "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+    "source_tree_sha": "c973a8bd7b4cebd8f257f4fe2f002d9da76d81bc",
+    "source_worktrees": [
+      "/tmp/riose-sc3-final-check",
+      "/tmp/riose-sc3-final-check2"
+    ],
+    "source_worktrees_clean_before_build": true,
+    "status": "PASS_CACHED_BUILDER",
+    "wheel_import_provenance": "PASS: installed --no-deps into a fresh temporary virtualenv; riose imported from that venv site-packages.",
+    "wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c"
   },
+  "schema_version": 1,
   "solidity_artifacts": "NOT_BUILT: npm ci could not fetch locked packages.",
-  "integrated_smoke": "Semantic transitions matched across runs; Commitment V1 uses a random subject reference, so bitwise output identity is not asserted.",
-  "claims": ["Listed CTest trace JSONL files and the Python wheel/sdist are BITWISE_REPRODUCIBLE across the two observed builds.", "No repository-wide bitwise build claim is made."]
+  "status": "BITWISE_MATCH_FOR_LISTED_OUTPUTS",
+  "superseded_dirty_snapshot": {
+    "old_sdist_sha256": "497842b889d017b823451685d264a768ffcf7690181913f6da3d2fb42ced3391",
+    "old_wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c",
+    "source": "Earlier outputs were built while reproducibility/ contained untracked, pre-commit evidence.",
+    "status": "NOT_USED_AS_CLEAN_SOURCE_EVIDENCE"
+  }
 }

@@ -1,24 +1,31 @@
 {
-  "schema_version": 1,
-  "status": "PARTIALLY_CACHED",
-  "global_caches_deleted": false,
-  "python": {
-    "empty_isolated_cache": "/tmp/riose-sc3-empty-uv-cache",
-    "result": "BLOCKED_OFFLINE",
-    "missing": "watchfiles 1.3.0 wheel",
-    "default_cache_attempt": "Core/dev install passed offline from existing cache; adding Solana passed offline; a second fresh venv reproduced the install and suite; full EVM extra failed because cytoolz 1.1.0 and ckzg 2.1.8 were absent."
-  },
-  "npm": {
-    "empty_isolated_cache": "/tmp/riose-sc3-empty-npm-cache",
-    "result": "BLOCKED_OFFLINE",
-    "missing": "Ganache 7.9.2 tarball",
-    "default_cache": "Offline npm ci also returned ENOTCACHED for the Ganache tarball"
-  },
   "classification": {
-    "fresh": "Not achieved for dependencies",
     "cached": "Core/dev/Solana Python environment and its non-EVM tests reproduced in two venvs from cache; full EVM and npm installs did not",
+    "fresh": "Not achieved for dependencies",
     "partially_cached": "The full dependency set is only partially available because ckzg and Ganache tarballs are missing",
     "unknown": "Whether an alternate machine or remote registry currently has the missing packages"
   },
-  "safety": "Only isolated temporary cache directories were created. Existing user caches were not cleared."
+  "global_caches_deleted": false,
+  "npm": {
+    "default_cache": "Offline npm ci also returned ENOTCACHED for the Ganache tarball",
+    "empty_isolated_cache": "/tmp/riose-sc3-empty-npm-cache",
+    "missing": "Ganache 7.9.2 tarball",
+    "result": "BLOCKED_OFFLINE"
+  },
+  "package_build": {
+    "command": "UV_CACHE_DIR=/tmp/riose-sc3-empty-hatchling-cache-20261008 UV_OFFLINE=1 uv build --offline",
+    "empty_isolated_cache": "/tmp/riose-sc3-empty-hatchling-cache-20261008",
+    "existing_cache_result": "Two clean-source offline builds succeeded with hatchling 1.32.4 and matching hashes.",
+    "missing": "hatchling build backend",
+    "result": "BLOCKED_OFFLINE"
+  },
+  "python": {
+    "default_cache_attempt": "Core/dev install passed offline from existing cache; adding Solana passed offline; a second fresh venv reproduced the install and suite; full EVM extra failed because cytoolz 1.1.0 and ckzg 2.1.8 were absent.",
+    "empty_isolated_cache": "/tmp/riose-sc3-empty-uv-cache",
+    "missing": "watchfiles 1.3.0 wheel",
+    "result": "BLOCKED_OFFLINE"
+  },
+  "safety": "Only isolated temporary cache directories were created. Existing user caches were not cleared.",
+  "schema_version": 1,
+  "status": "PARTIALLY_CACHED"
 }

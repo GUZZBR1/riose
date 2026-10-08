@@ -35,7 +35,7 @@
   "python_full_regression": "PARTIAL: 851 passed, 7 skipped with the two EVM modules explicitly excluded; without exclusion, collection stops on missing eth_account in those modules.",
   "run": 1,
   "schema_version": 1,
-  "solana_local": "NOT_RUN: Python extras not installed",
+  "solana_local": "NOT_RUN: Solana extra (solders 0.29.0) was installed offline, but no local validator/test runner was configured; no public network was used.",
   "solidity": "BLOCKED: solc module absent; compile command could not start",
   "tested_source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
 }
