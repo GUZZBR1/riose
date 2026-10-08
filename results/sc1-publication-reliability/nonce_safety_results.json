@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "architecture": "One EVMNonceCoordinator shared by the existing EVMRegistryAdapter for Base and Arbitrum.",
+  "change": "All EVM submissions now use the durable sender ordering lease, not only chain id 421614 (Arbitrum). Chain/sender nonce scope remains persisted and shared across deployments on the same chain.",
+  "verified": [
+    "Distinct nonce reservations across concurrent Store connections and processes.",
+    "Same-chain distinct contract targets share the chain nonce scope.",
+    "Lower reserved nonce must submit before a higher nonce; lease serializes concurrent senders.",
+    "Coordinator ordering cases are parameterized for Base Sepolia 84532 and Arbitrum Sepolia 421614."
+  ],
+  "not_verified": [
+    "New EVMRegistryAdapter Base submit integration test is present but could not be collected because eth_account/eth-utils/hexbytes are not installed and package network access failed.",
+    "No public Base or Arbitrum transaction was sent."
+  ],
+  "evidence": "tests/livestock_tracking/test_evm_nonce.py; tests/livestock_tracking/test_evm_registry.py::test_base_submission_uses_shared_durable_nonce_ordering"
+}

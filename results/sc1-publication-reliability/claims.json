@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {"claim": "The existing SQLite outbox persists publication attempts, retry schedules, and receipts across process restart.", "status": "SUPPORTED_LOCAL", "evidence": "Focused tests and seven-stage hard-crash subprocess matrix."},
+    {"claim": "Publication processing is at-least-once at the worker boundary with duplicate request suppression and exact signed payload replay for ambiguous attempts.", "status": "SUPPORTED_LOCAL", "limits": "Does not establish exactly-once chain execution or universal effective-once anchoring."},
+    {"claim": "UNKNOWN remains distinct from REJECTED/PERMANENT_FAILURE; SUBMITTED/RPC_ACCEPTED and CONFIRMED remain distinct from VERIFIED.", "status": "SUPPORTED_LOCAL", "evidence": "State transitions, receipts, retry tests, CLI verification tests."},
+    {"claim": "Base and Arbitrum now share the durable EVM sender ordering path.", "status": "IMPLEMENTED_PARTIALLY_VERIFIED", "limits": "Coordinator tests pass; Base adapter integration test could not be collected due missing optional EVM dependencies."},
+    {"claim": "Solana recovery reuses signed bytes until blockhash expiry; after expiry without a receipt it stops for manual intervention.", "status": "SUPPORTED_WITH_SIMULATION", "limits": "Block height and receipt are fake-client observations."},
+    {"claim": "REAL_ON_CHAIN", "status": "UNVERIFIED", "evidence": "No public chain transaction was sent and no independent public evidence was queried."},
+    {"claim": "SEC-SOLANA-001 current loader behavior", "status": "OBSERVED_FOR_SC2", "evidence": "load_keypair remains a JSON keypair loader without explicit no-follow or restrictive permission enforcement; unchanged by SC-1."}
+  ],
+  "prohibited_promotions": ["SIMULATED to VALIDATED", "LOCAL to PUBLIC", "MOCKED to REAL_ON_CHAIN", "SUBMITTED to VERIFIED", "exactly-once without independent proof"]
+}

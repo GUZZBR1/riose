@@ -161,7 +161,7 @@ class EVMNonceCoordinator:
         *,
         lease_seconds: float = 130.0,
     ) -> object:
-        """Serialize one sender's Arbitrum sends and require the current nonce.
+        """Serialize one sender's EVM sends and require the current nonce.
 
         A short SQLite lease is shared across Store connections and processes.
         The RPC calls happen outside the database transaction while the lease
@@ -198,7 +198,7 @@ class EVMNonceCoordinator:
                     (reservation["network"], reservation["sender"]),
                 ).fetchone()
                 if active is not None and float(active["expires_at"]) > now:
-                    raise RuntimeError("another Arbitrum sender submission is in progress")
+                    raise RuntimeError("another EVM sender submission is in progress")
                 con.execute(
                     "DELETE FROM evm_nonce_submission_locks WHERE network=? AND sender=?",
                     (reservation["network"], reservation["sender"]),
@@ -231,7 +231,7 @@ class EVMNonceCoordinator:
                         (reservation["network"], reservation["sender"], lock_token),
                     ).fetchone()
                     if lock is None or float(lock["expires_at"]) <= time.time():
-                        raise RuntimeError("Arbitrum sender submission lease expired before send")
+                        raise RuntimeError("EVM sender submission lease expired before send")
                     con.execute(
                         "UPDATE evm_nonce_submission_locks SET expires_at=? "
                         "WHERE network=? AND sender=? AND token=?",

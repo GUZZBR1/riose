@@ -132,6 +132,13 @@ class SolanaMemoClient:
             raise SolanaRpcError("RPC response did not match the persisted transaction signature")
         return response
 
+    def current_block_height(self) -> int:
+        """Read the cluster's current height before deciding whether saved wire is reusable."""
+        result = self.rpc("getBlockHeight", [{"commitment": "confirmed"}])
+        if type(result) is not int or result < 0:
+            raise SolanaRpcError("RPC returned an invalid block height")
+        return result
+
     def verify(self, signature: str, envelope: PublicCommitmentEnvelope) -> tuple[bool | None, int | None]:
         """Return None for absent, False for execution errors, True for an exact Memo."""
         if type(signature) is not str or _SIGNATURE58.fullmatch(signature) is None:
@@ -249,6 +256,14 @@ class SolanaMemoAdapter:
             raise ValueError("prepared Solana publication is missing its expiry metadata")
         self.client.ensure_expected_cluster()
         return self.client.submit(prepared.payload, prepared.transaction_id)
+
+    def can_replay(self, prepared: PreparedPublication) -> bool:
+        """Only replay saved signed bytes while their recent blockhash remains valid."""
+        height = prepared.metadata.get("last_valid_block_height")
+        if type(height) is not int or height < 0:
+            raise ValueError("prepared Solana publication is missing its expiry metadata")
+        self.client.ensure_expected_cluster()
+        return self.client.current_block_height() <= height
 
     def get_receipt(
         self, transaction_id: str, commitment: PublicCommitmentEnvelope

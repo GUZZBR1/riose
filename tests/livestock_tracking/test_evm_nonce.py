@@ -117,13 +117,16 @@ def test_two_contract_targets_share_chain_nonce_scope(tmp_path):
         store.close()
 
 
-def test_arbitrum_submission_waits_for_lower_reserved_nonce(tmp_path):
-    path = tmp_path / "arbitrum-order.sqlite3"
+@pytest.mark.parametrize("nonce_scope", [
+    "evm-chain-421614-" + ("3" * 64),
+    "evm-chain-84532-" + ("3" * 64),
+])
+def test_evm_submission_waits_for_lower_reserved_nonce(tmp_path, nonce_scope):
+    path = tmp_path / "evm-order.sqlite3"
     first_id, second_id = _requests(path, count=2)[:2]
     store = Store(path)
     outbox = SQLitePublicationOutbox(store)
     coordinator = EVMNonceCoordinator(store)
-    nonce_scope = "evm-chain-421614-" + ("3" * 64)
     network = NETWORK
     try:
         assert outbox.claim_processing(first_id)
@@ -210,7 +213,7 @@ def test_arbitrum_submission_lease_serializes_store_connections(tmp_path):
                 lambda: sent.append(0),
             )
             assert entered.wait(timeout=5)
-            with pytest.raises(RuntimeError, match="another Arbitrum sender submission"):
+            with pytest.raises(RuntimeError, match="another EVM sender submission"):
                 other_coordinator.submit_in_nonce_order(
                     second_id, second_nonce, second_token, lambda: 0,
                     lambda: sent.append(1),
@@ -227,6 +230,34 @@ def test_arbitrum_submission_lease_serializes_store_connections(tmp_path):
     finally:
         store.close()
         other_store.close()
+
+
+def test_base_and_arbitrum_nonce_scopes_do_not_collide(tmp_path):
+    path = tmp_path / "cross-chain-nonces.sqlite3"
+    store = Store(path)
+    try:
+        store.create_animal("cow", "tag", "secret")
+        event = store.append_animal_event("cow", "WEIGHT_RECORDED", {"weight_kg": 420}, 1)
+        outbox = SQLitePublicationOutbox(store)
+        base_network = "base-test-network"
+        arbitrum_network = "arbitrum-test-network"
+        base = outbox.enqueue_event(event.event_id, chain="base", destination="evm-registry", network=base_network)
+        arbitrum = outbox.enqueue_event(event.event_id, chain="arbitrum", destination="evm-registry", network=arbitrum_network)
+        assert outbox.claim_processing(base["publication_id"])
+        assert outbox.claim_processing(arbitrum["publication_id"])
+        coordinator = EVMNonceCoordinator(store)
+        base_nonce, _ = coordinator.reserve(
+            base["publication_id"], base_network, SENDER, 0,
+            nonce_scope="evm-chain-84532-" + ("a" * 64),
+        )
+        arbitrum_nonce, _ = coordinator.reserve(
+            arbitrum["publication_id"], arbitrum_network, SENDER, 0,
+            nonce_scope="evm-chain-421614-" + ("a" * 64),
+        )
+        assert (base_nonce, arbitrum_nonce) == (0, 0)
+        assert base["commitment"] == arbitrum["commitment"]
+    finally:
+        store.close()
 
 
 def test_expired_arbitrum_submission_lease_blocks_send(tmp_path):

@@ -144,6 +144,43 @@ def test_evm_serialization_is_canonical_bytes32_and_private_fields_stay_local(pr
     assert outbox.get(request["publication_id"])["commitment"] == request["commitment"]
 
 
+def test_base_submission_uses_shared_durable_nonce_ordering(prepared_target):
+    store, outbox, original, _, _ = prepared_target
+    signer = Account.create()
+    config = replace(
+        _config(signer.address), chain="base-sepolia", chain_id=84532,
+        rpc_url="https://sepolia.base.org",
+    )
+    request = outbox.enqueue_event(
+        original["event_id"], destination="evm-registry", chain=config.chain,
+        network=config.network_id,
+    )
+    coordinator = EVMNonceCoordinator(store)
+
+    class SpyCoordinator:
+        def __init__(self):
+            self.ordered_submissions = 0
+
+        def reserve(self, *args, **kwargs):
+            return coordinator.reserve(*args, **kwargs)
+
+        def submit_in_nonce_order(self, *args, **kwargs):
+            self.ordered_submissions += 1
+            return coordinator.submit_in_nonce_order(*args, **kwargs)
+
+    spy = SpyCoordinator()
+    client = FakeRPC(config)
+    adapter = EVMRegistryAdapter(
+        config, client=client, signer=signer, nonce_coordinator=spy,
+        publication_id=request["publication_id"],
+    )
+    envelope = build_public_envelope(request["commitment"])
+    prepared = adapter.prepare(envelope)
+    assert adapter.submit(prepared) == prepared.transaction_id
+    assert spy.ordered_submissions == 1
+    assert len(client.sends) == 1
+
+
 @pytest.mark.parametrize("failed_targets", [
     (), ("solana",), ("base",), ("arbitrum",),
     ("solana", "base"), ("solana", "arbitrum"), ("base", "arbitrum"),

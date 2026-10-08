@@ -269,24 +269,22 @@ class EVMRegistryAdapter:
                 raise EVMRpcError("EVM RPC returned a mismatched transaction hash")
             return prepared.transaction_id
 
-        if self.config.chain_id == 421614:
-            if self.nonce_coordinator is None or self.publication_id is None:
-                raise EVMRpcError("Arbitrum nonce ordering requires the durable coordinator")
-            nonce = prepared.metadata.get("nonce")
-            token = prepared.metadata.get("nonce_reservation_token")
-            try:
-                return self.nonce_coordinator.submit_in_nonce_order(
-                    self.publication_id, nonce, token,
-                    lambda: _quantity(self.client.rpc(
-                        "eth_getTransactionCount",
-                        [self.config.publisher_address, "pending"],
-                    ), "pending nonce"),
-                    send,
-                    lease_seconds=(2 * self.config.timeout_s) + 15,
-                )
-            except RuntimeError as exc:
-                raise EVMRpcError(str(exc)) from exc
-        return send()
+        if self.nonce_coordinator is None or self.publication_id is None:
+            raise EVMRpcError("EVM nonce ordering requires the durable coordinator")
+        nonce = prepared.metadata.get("nonce")
+        token = prepared.metadata.get("nonce_reservation_token")
+        try:
+            return self.nonce_coordinator.submit_in_nonce_order(
+                self.publication_id, nonce, token,
+                lambda: _quantity(self.client.rpc(
+                    "eth_getTransactionCount",
+                    [self.config.publisher_address, "pending"],
+                ), "pending nonce"),
+                send,
+                lease_seconds=(2 * self.config.timeout_s) + 15,
+            )
+        except RuntimeError as exc:
+            raise EVMRpcError(str(exc)) from exc
 
     def get_receipt(
         self, transaction_id: str, commitment: PublicCommitmentEnvelope

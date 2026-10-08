@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "captured_at_utc": "2026-10-08T12:26:17Z",
+  "platform": "Ubuntu on WSL2, accessed from Codex desktop",
+  "tools": {
+    "python": "3.12.3",
+    "uv": "0.11.26",
+    "pytest": "8.4.2",
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "cmake": "3.28.3",
+    "ctest": "3.28.3",
+    "gcc": "13.3.0"
+  },
+  "available_extras": ["dev", "solana"],
+  "unavailable_dependencies": ["eth_account", "eth_utils", "hexbytes", "Ganache 7.9.2 tarball"],
+  "external_blockers": [
+    "GitHub DNS lookup failed during fetch and PR discovery; remote freshness is UNVERIFIED.",
+    "Python package index DNS/network failure prevented installation of EVM dependencies.",
+    "npm offline cache did not contain the Ganache tarball, preventing Solidity/local-EVM package checks."
+  ],
+  "network_safety": "No public-chain RPC submission, wallet funding, push, or upstream mutation was performed."
+}

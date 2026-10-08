@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "test": "tests/livestock_tracking/test_publication_crash_windows.py::test_process_crashes_at_publication_side_effect_boundaries_and_recovers",
+  "injection": "Spawned subprocesses terminate with os._exit at each stage; each scenario reopens the SQLite database before recovery.",
+  "evidence_status": "SIMULATED",
+  "stages": [
+    {"stage": "A", "window": "before durable attempt insert", "recovery": "QUEUED; same request later prepares and sends once", "result": "PASS"},
+    {"stage": "B", "window": "after durable attempt insert, before send", "recovery": "reuses attempt 1 and saved bytes", "result": "PASS"},
+    {"stage": "C", "window": "during submit before acceptance is known", "recovery": "UNKNOWN; replays exact persisted signed bytes; attempt number remains 1", "result": "PASS"},
+    {"stage": "D", "window": "after possible remote acceptance before response", "recovery": "receipt observation verifies without duplicate send", "result": "PASS"},
+    {"stage": "E", "window": "receipt observed by adapter before local receipt persistence", "recovery": "re-observes receipt and reaches VERIFIED", "result": "PASS"},
+    {"stage": "F", "window": "CONFIRMED receipt durably persisted before VERIFIED", "recovery": "hard process exit, reopen, reconcile to VERIFIED", "result": "PASS"},
+    {"stage": "G", "window": "during restart/reconciliation receipt observation", "recovery": "worker exits; reopened target retains one attempt and can reconcile", "result": "PASS"}
+  ],
+  "limits": "Fake adapter and local marker files model remote acceptance. This proves local recovery paths only; no claim of public chain acceptance or exactly-once execution."
+}

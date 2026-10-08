@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "captured_at_utc": "2026-10-08T12:26:17Z",
+  "commands": [
+    {
+      "name": "focused_publication_reliability",
+      "command": "uv run --frozen --offline --extra dev --extra solana pytest tests/livestock_tracking/test_publication_retry.py tests/livestock_tracking/test_publication_crash_windows.py tests/livestock_tracking/test_publication_dispatcher.py tests/livestock_tracking/test_publication_outbox.py tests/livestock_tracking/test_publication_cli.py tests/livestock_tracking/test_solana_memo.py tests/livestock_tracking/test_evm_nonce.py tests/livestock_tracking/test_commitment_privacy.py",
+      "result": "PASS",
+      "summary": "91 passed in 8.67s"
+    },
+    {
+      "name": "full_python_without_unavailable_evm_modules",
+      "command": "uv run --frozen --offline --extra dev --extra solana pytest tests --ignore=tests/livestock_tracking/test_evm_local.py --ignore=tests/livestock_tracking/test_evm_registry.py",
+      "result": "PASS_WITH_EXTERNAL_BLOCKER",
+      "summary": "623 passed, one StarletteDeprecationWarning in 77.45s",
+      "excluded": ["test_evm_local.py", "test_evm_registry.py"],
+      "reason": "The optional eth_account dependency is unavailable in the offline environment; network access to package indexes failed."
+    },
+    {
+      "name": "full_python_unexcluded_collection",
+      "command": "uv run --frozen --offline --extra dev --extra solana pytest tests",
+      "result": "BLOCKED_AT_COLLECTION",
+      "summary": "623 items, 2 collection errors: ModuleNotFoundError: eth_account in test_evm_local.py and test_evm_registry.py."
+    },
+    {
+      "name": "crash_windows",
+      "result": "PASS",
+      "summary": "Seven hard process exits, including forced exit after CONFIRMED persistence and before VERIFIED. Included in focused suite."
+    },
+    {
+      "name": "compileall",
+      "command": "uv run --frozen --offline --extra dev --extra solana python -m compileall -q src tests",
+      "result": "PASS"
+    },
+    {
+      "name": "dependency_lock_consistency",
+      "command": "uv lock --check --offline",
+      "result": "PASS"
+    },
+    {
+      "name": "python_package_build",
+      "command": "uv build --offline --out-dir /tmp/riose-sc1-dist",
+      "result": "PASS",
+      "summary": "Source distribution and wheel built."
+    },
+    {
+      "name": "hardware_ctest",
+      "command": "cmake -S hardware/tests -B /tmp/riose-sc1-ctest-20261008; cmake --build ...; ctest --test-dir ... --output-on-failure",
+      "result": "PASS",
+      "summary": "Build succeeded; 39/39 tests passed."
+    },
+    {
+      "name": "evm_modules",
+      "result": "NOT_RUN",
+      "summary": "EVM adapter/local-EVM tests could not collect because eth_account is missing. No Ganache or public EVM transaction was run."
+    },
+    {
+      "name": "solidity_compile_tests",
+      "result": "NOT_RUN",
+      "summary": "npm ci --offline failed: Ganache 7.9.2 tarball is not cached. Solidity test dependencies unavailable."
+    },
+    {
+      "name": "diff_whitespace",
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "warning": "Starlette reports that httpx with starlette.testclient is deprecated; unrelated to this mission."
+}

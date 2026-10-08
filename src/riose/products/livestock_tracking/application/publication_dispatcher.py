@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from contextvars import ContextVar
 import re
 from threading import Event, Thread
+import time
 
 from ..domain.privacy import parse_public_envelope_json
 from ..domain.publication import ChainAdapter, ChainReceipt, PreparedPublication
@@ -34,10 +35,7 @@ class PublicationDispatcher:
         request = self.outbox.get(publication_id)
         if request is None:
             raise ValueError("publication request was not found")
-        adapter = self._adapter(request)
-        if not self.outbox.verify_local_binding(publication_id):
-            raise ValueError("local event prefix or commitment binding failed verification")
-        token = self.outbox.claim_processing(publication_id)
+        token = self.outbox.claim_processing(publication_id, force=not prepare_new)
         if token is None:
             return self.outbox.get(publication_id)
         stopped = Event()
@@ -59,17 +57,61 @@ class PublicationDispatcher:
         try:
             request = self.outbox.get(publication_id)
             state = PublicationState(request["status"])
-            if state in {PublicationState.VERIFIED, PublicationState.REJECTED}:
+            retry_due = float(request["available_at"]) <= time.time()
+            if state in {
+                PublicationState.VERIFIED,
+                PublicationState.REJECTED,
+                PublicationState.PERMANENT_FAILURE,
+                PublicationState.MANUAL_INTERVENTION,
+            }:
                 return request
+            if prepare_new and request["retry_count"] >= self.outbox.retry_policy.max_retries:
+                return self.outbox.require_manual_intervention(
+                    publication_id, claim_token=token
+                )
+            try:
+                adapter = self._adapter(request)
+            except ValueError:
+                return self._terminal_local_failure(
+                    publication_id, "ADAPTER_UNAVAILABLE", token
+                )
+            if not self.outbox.verify_local_binding(publication_id):
+                return self._terminal_local_failure(
+                    publication_id, "LOCAL_BINDING_INVALID", token
+                )
             envelope = parse_public_envelope_json(request["envelope"])
             if state in {PublicationState.QUEUED, PublicationState.RETRYABLE}:
                 if not prepare_new:
                     return request
-                if not adapter.healthcheck():
-                    raise ValueError("publication adapter is unavailable")
-                prepared = adapter.prepare(envelope)
-                self._check_prepared(prepared)
-                adapter.validate_prepared(prepared, envelope)
+                try:
+                    if not adapter.healthcheck():
+                        return self._defer_retry(
+                            publication_id, token, "TARGET_UNAVAILABLE",
+                            "TRANSIENT_PRE_SUBMISSION",
+                        )
+                except Exception:
+                    return self._defer_retry(
+                        publication_id, token, "HEALTHCHECK_UNAVAILABLE",
+                        "TRANSIENT_PRE_SUBMISSION",
+                    )
+                try:
+                    prepared = adapter.prepare(envelope)
+                except ValueError:
+                    return self.outbox.fail_permanently(
+                        publication_id, reason_code="PREPARATION_REJECTED", claim_token=token
+                    )
+                except Exception:
+                    return self._defer_retry(
+                        publication_id, token, "PREPARATION_UNAVAILABLE",
+                        "TRANSIENT_PRE_SUBMISSION",
+                    )
+                try:
+                    self._check_prepared(prepared)
+                    adapter.validate_prepared(prepared, envelope)
+                except Exception:
+                    return self.outbox.fail_permanently(
+                        publication_id, reason_code="PREPARED_PAYLOAD_INVALID", claim_token=token
+                    )
                 self._ensure_claim(publication_id)
                 attempt = self.outbox.prepare_publication_attempt(
                     publication_id, adapter_id=adapter.adapter_id,
@@ -81,18 +123,42 @@ class PublicationDispatcher:
             if attempt is None:
                 raise ValueError("publication state has no persisted attempt")
             if attempt["adapter_id"] != adapter.adapter_id:
-                raise ValueError("persisted attempt targets another adapter")
+                return self.outbox.require_manual_intervention(
+                    publication_id, reason_code="PERSISTED_ADAPTER_MISMATCH",
+                    claim_token=token,
+                )
             prepared = PreparedPublication(attempt["transaction_id"], attempt["payload"], attempt["metadata"])
-            self._check_prepared(prepared)
-            adapter.validate_prepared(prepared, envelope)
+            try:
+                self._check_prepared(prepared)
+                adapter.validate_prepared(prepared, envelope)
+            except Exception:
+                return self._terminal_local_failure(
+                    publication_id, "PERSISTED_PAYLOAD_INVALID", token
+                )
             observed = self._observe(publication_id, attempt, adapter, envelope)
             if observed is not None:
                 return self.outbox.get(publication_id)
             state = PublicationState(self.outbox.get(publication_id)["status"])
             if state in {PublicationState.PREPARED, PublicationState.UNKNOWN}:
+                # Reconciliation may observe at any time, but backoff only allows
+                # the scheduler to replay saved signed bytes once the retry is due.
+                if not retry_due:
+                    return self.outbox.get(publication_id)
+                can_replay = getattr(adapter, "can_replay", None)
+                if callable(can_replay):
+                    try:
+                        replay_allowed = can_replay(prepared)
+                    except Exception:
+                        return self._defer_retry(
+                            publication_id, token, "REPLAY_SAFETY_UNAVAILABLE",
+                            "REPLAY_SAFETY_PENDING",
+                        )
+                    if replay_allowed is not True:
+                        return self.outbox.require_manual_intervention(
+                            publication_id, reason_code="PERSISTED_ATTEMPT_EXPIRED",
+                            claim_token=token,
+                        )
                 return self._submit_and_observe(publication_id, attempt, prepared, adapter, envelope)
-            if state is PublicationState.RPC_ACCEPTED:
-                self._record(publication_id, attempt, adapter, PublicationState.UNKNOWN, reason_code="NOT_OBSERVED")
             return self.outbox.get(publication_id)
         finally:
             stopped.set()
@@ -147,6 +213,10 @@ class PublicationDispatcher:
             self._unknown(publication_id, attempt, adapter, "RECEIPT_UNAVAILABLE")
             return None
         if receipt is None:
+            self._defer_retry(
+                publication_id, self._claim.get()[1], "RECEIPT_PENDING",
+                "RECEIPT_PENDING",
+            )
             return None
         if (
             not isinstance(receipt, ChainReceipt)
@@ -174,6 +244,10 @@ class PublicationDispatcher:
                 return None
             if state in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED, PublicationState.UNKNOWN}:
                 self._record(publication_id, attempt, adapter, PublicationState.RETRYABLE, receipt=receipt)
+                self._defer_retry(
+                    publication_id, self._claim.get()[1], "SAFE_RETRY_CONFIRMED",
+                    "SAFE_RETRY",
+                )
             return receipt
         if receipt.status == "REJECTED":
             if state in {PublicationState.PREPARED, PublicationState.RPC_ACCEPTED, PublicationState.UNKNOWN}:
@@ -185,11 +259,25 @@ class PublicationDispatcher:
             try:
                 verified = adapter.verify(envelope, receipt)
             except Exception:
+                self._defer_retry(
+                    publication_id, self._claim.get()[1], "VERIFICATION_UNAVAILABLE",
+                    "VERIFICATION_PENDING",
+                )
                 return receipt
             if verified is True:
                 self._record(publication_id, attempt, adapter, PublicationState.VERIFIED, receipt=receipt)
+            elif verified is None:
+                self._defer_retry(
+                    publication_id, self._claim.get()[1], "VERIFICATION_PENDING",
+                    "VERIFICATION_PENDING",
+                )
+            else:
+                self.outbox.require_manual_intervention(
+                    publication_id, reason_code="VERIFICATION_CONFLICT",
+                    claim_token=self._claim.get()[1],
+                )
             # A failed second query cannot erase the observed confirmation.
-            # Leave CONFIRMED for a later verification attempt.
+            # A conflicting result is escalated instead of hot-polling forever.
         return receipt
 
     def _unknown(self, publication_id, attempt, adapter, reason_code: str) -> None:
@@ -197,6 +285,28 @@ class PublicationDispatcher:
             PublicationState.PREPARED, PublicationState.RPC_ACCEPTED
         }:
             self._record(publication_id, attempt, adapter, PublicationState.UNKNOWN, reason_code=reason_code)
+        self._defer_retry(
+            publication_id, self._claim.get()[1], reason_code,
+            "AMBIGUOUS_SUBMISSION",
+        )
+
+    def _defer_retry(self, publication_id, token, reason_code, failure_class) -> dict:
+        self._ensure_claim(publication_id)
+        return self.outbox.defer_retry(
+            publication_id,
+            failure_class=failure_class,
+            reason_code=reason_code,
+            claim_token=token,
+        )
+
+    def _terminal_local_failure(self, publication_id: str, reason_code: str, token: str) -> dict:
+        if self.outbox.latest_attempt(publication_id) is not None:
+            return self.outbox.require_manual_intervention(
+                publication_id, reason_code=reason_code, claim_token=token,
+            )
+        return self.outbox.fail_permanently(
+            publication_id, reason_code=reason_code, claim_token=token,
+        )
 
     def _record(self, publication_id, attempt, adapter, state, *, receipt=None, reason_code=None) -> None:
         self._ensure_claim(publication_id)

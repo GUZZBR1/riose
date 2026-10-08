@@ -1,0 +1,4 @@
+fork	https://github.com/GUZZBR1/riose.git (fetch)
+fork	https://github.com/GUZZBR1/riose.git (push)
+origin	https://github.com/santleme/riose.git (fetch)
+origin	https://github.com/santleme/riose.git (push)

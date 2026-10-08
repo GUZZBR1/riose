@@ -144,6 +144,21 @@ def _public_status(request: dict[str, object], outbox: object | None = None) -> 
     if outbox is not None:
         receipts = outbox.receipts(request["publication_id"])
         local_valid = outbox.verify_local_binding(request["publication_id"])
+        if hasattr(outbox, "latest_attempt") and hasattr(outbox, "store"):
+            latest_attempt = outbox.latest_attempt(request["publication_id"])
+            attempt_count = outbox.store.connection.execute(
+                "SELECT COUNT(*) FROM publication_attempts WHERE publication_id=?",
+                (request["publication_id"],),
+            ).fetchone()[0]
+            result.update({
+                "retry_count": request.get("retry_count", 0),
+                "retry_available_at": request.get("available_at"),
+                "last_failure_class": request.get("last_failure_class"),
+                "last_failure_code": request.get("last_failure_code"),
+                "attempt_count": int(attempt_count),
+                "latest_attempt_number": latest_attempt["attempt_number"] if latest_attempt else None,
+                "duplicate_suppressed": bool(request.get("duplicate_suppressed", False)),
+            })
         validated_receipt = lambda item: item["evidence_status"] == "VALIDATED"
         result["verification"] = {
             "LOCAL_HASH_VALID": local_valid,
