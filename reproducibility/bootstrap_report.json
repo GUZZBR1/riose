@@ -1,41 +1,51 @@
 {
-  "schema_version": 1,
-  "status": "PARTIAL_EXTERNAL_BLOCKED",
-  "bootstrap_version": "1.0.0",
-  "canonical_command": "./scripts/bootstrap.sh",
-  "python_lock_check": {
-    "command": "uv lock --check --offline",
-    "status": "PASS",
-    "result": "Resolved 68 packages; lock consistent with pyproject.toml."
-  },
   "attempts": [
     {
       "command": "UV_CACHE_DIR=/tmp/riose-sc3-empty-uv-cache UV_OFFLINE=1 uv sync --locked --extra dev --extra solana --extra evm",
-      "status": "EXTERNAL_BLOCKED",
-      "error": "Empty isolated cache did not contain watchfiles 1.3.0; offline install correctly stopped."
+      "error": "Empty isolated cache did not contain watchfiles 1.3.0; offline install correctly stopped.",
+      "status": "EXTERNAL_BLOCKED"
     },
     {
       "command": "uv sync --locked --extra dev --extra solana --extra evm",
-      "status": "EXTERNAL_BLOCKED",
-      "error": "After 3 retries, DNS lookup for files.pythonhosted.org failed while fetching eth-account 0.14.0."
+      "error": "After 3 retries, DNS lookup for files.pythonhosted.org failed while fetching eth-account 0.14.0.",
+      "status": "EXTERNAL_BLOCKED"
     },
     {
       "command": "uv sync --locked --extra dev",
-      "status": "EXTERNAL_BLOCKED",
-      "error": "After 3 retries, DNS lookup for pypi.org failed while resolving build requirement hatchling."
+      "error": "After 3 retries, DNS lookup for pypi.org failed while resolving build requirement hatchling.",
+      "status": "EXTERNAL_BLOCKED"
     },
     {
       "command": "UV_OFFLINE=1 uv sync --locked --extra dev --extra solana --offline",
-      "status": "PASS",
-      "result": "Installed the project plus 49 locked core/dev/Solana packages from the existing cache."
+      "result": "Installed the project plus 49 locked core/dev/Solana packages from the existing cache.",
+      "status": "PASS"
     },
     {
       "command": "UV_OFFLINE=1 uv sync --locked --extra dev --extra solana --extra evm --offline",
+      "error": "cytoolz 1.1.0 was absent from cache (the EVM dependency graph also requires ckzg 2.1.8).",
+      "status": "EXTERNAL_BLOCKED"
+    },
+    {
+      "command": "./scripts/bootstrap.sh",
+      "error": "Fresh canonical bootstrap retry resolved 68 locked packages, then failed after 3 retries because DNS could not resolve files.pythonhosted.org for ckzg==2.1.8, required through cattle-rf[evm] -> eth-account 0.14.0.",
       "status": "EXTERNAL_BLOCKED",
-      "error": "cytoolz 1.1.0 was absent from cache (the EVM dependency graph also requires ckzg 2.1.8)."
+      "timestamp_utc": "2026-10-08T12:27:29Z"
     }
   ],
+  "bootstrap_version": "1.0.0",
+  "canonical_command": "./scripts/bootstrap.sh",
   "installed": true,
   "installed_scope": "core + dev + Solana extras; EVM extra not installed",
-  "notes": ["The first run used a clean SC-3 checkout and repository-local .venv.", "No global cache was deleted.", "Bootstrap uses locked uv sync and no pip fallback."]
+  "notes": [
+    "The first run used a clean SC-3 checkout and repository-local .venv.",
+    "No global cache was deleted.",
+    "Bootstrap uses locked uv sync and no pip fallback."
+  ],
+  "python_lock_check": {
+    "command": "uv lock --check --offline",
+    "result": "Resolved 68 packages; lock consistent with pyproject.toml.",
+    "status": "PASS"
+  },
+  "schema_version": 1,
+  "status": "PARTIAL_EXTERNAL_BLOCKED"
 }

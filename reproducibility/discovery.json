@@ -37,6 +37,8 @@
     "command": "git fetch fork main",
     "error": "Could not resolve host: github.com",
     "error_class": "DNS_FAILURE",
+    "latest_retry_result": "FAILED: DNS lookup could not resolve github.com; local refs remain unchanged and remote freshness remains UNVERIFIED.",
+    "latest_retry_utc": "2026-10-08T12:27:29Z",
     "result": "FAILED"
   },
   "remote_freshness": "UNVERIFIED",

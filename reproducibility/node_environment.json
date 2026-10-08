@@ -1,22 +1,36 @@
 {
-  "schema_version": 1,
-  "status": "EXTERNAL_BLOCKED",
-  "node": {"version": "v22.22.2", "path": "/usr/bin/node", "pin": ".nvmrc"},
-  "npm": {"version": "10.9.7", "path": "/usr/bin/npm", "pin": "contracts/package.json packageManager"},
-  "package_lock": {
-    "lockfile_version": 3,
-    "root_dependencies_match_package_json": true,
-    "root_engines_match_package_json": true,
-    "locked_package_count": 57,
-    "ganache": "7.9.2",
-    "solc": "0.8.37",
-    "check": "PASS: npm install --package-lock-only --ignore-scripts --offline --prefix contracts"
+  "local_node_modules": "Not created; no sibling worktree or global Ganache used.",
+  "node": {
+    "path": "/usr/bin/node",
+    "pin": ".nvmrc",
+    "version": "v22.22.2"
+  },
+  "npm": {
+    "path": "/usr/bin/npm",
+    "pin": "contracts/package.json packageManager",
+    "version": "10.9.7"
   },
   "npm_ci": {
     "command": "npm ci --prefix contracts",
-    "status": "EXTERNAL_BLOCKED",
-    "error": "EAI_AGAIN resolving registry.npmjs.org; the empty-cache offline attempt also returned ENOTCACHED for Ganache."
+    "error": "EAI_AGAIN resolving registry.npmjs.org; the empty-cache offline attempt also returned ENOTCACHED for Ganache.",
+    "status": "EXTERNAL_BLOCKED"
   },
-  "local_node_modules": "Not created; no sibling worktree or global Ganache used.",
-  "registry_freshness": "UNVERIFIED: npm ci returned EAI_AGAIN for registry.npmjs.org."
+  "package_lock": {
+    "check": "PASS: npm install --package-lock-only --ignore-scripts --offline --prefix contracts",
+    "ganache": "7.9.2",
+    "locked_package_count": 57,
+    "lockfile_version": 3,
+    "root_dependencies_match_package_json": true,
+    "root_engines_match_package_json": true,
+    "solc": "0.8.37"
+  },
+  "registry_check_retry": {
+    "command": "npm view ganache@7.9.2 version --fetch-retries=0 --fetch-timeout=10000",
+    "error": "EAI_AGAIN resolving registry.npmjs.org.",
+    "status": "EXTERNAL_BLOCKED",
+    "timestamp_utc": "2026-10-08T12:27:29Z"
+  },
+  "registry_freshness": "UNVERIFIED: npm ci returned EAI_AGAIN for registry.npmjs.org.",
+  "schema_version": 1,
+  "status": "EXTERNAL_BLOCKED"
 }

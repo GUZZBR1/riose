@@ -1,27 +1,33 @@
 {
-  "schema_version": 1,
-  "reported_status": "PARTIAL_IN_SCOPE",
   "limitations": [
     {
+      "detail": "Latest git fetch retry on 2026-10-08 also could not resolve github.com; local fork/main and upstream/main refs diverge.",
       "id": "REMOTE_FRESHNESS_UNVERIFIED",
-      "detail": "Git fetch could not resolve github.com; local fork/main and upstream/main refs diverge.",
       "impact": "The SC-3 branch is based on the local fork/main ref from 2026-10-07, not a verified live remote HEAD."
     },
     {
+      "detail": "Fresh canonical bootstrap retry could not resolve files.pythonhosted.org while fetching ckzg 2.1.8; npm view and GitHub fetch also failed DNS resolution. Isolated cache checks confirmed missing Python wheels and npm tarballs.",
       "id": "EXTERNAL_NETWORK_BLOCKER",
-      "detail": "DNS failures prevented fetching uncached PyPI and GitHub resources; isolated cache attempts showed missing Python wheels and npm tarballs.",
-      "impact": "Full Python, local EVM, Solidity, package-build, and complete clean-room validation remain incomplete."
+      "impact": "The full Python EVM suite, npm ci, Solidity compile/Ganache tests, and complete fresh-network clean-room validation remain incomplete. Python wheel/sdist builds did pass offline."
     },
     {
-      "id": "OPTIONAL_TOOLCHAINS_NOT_CONFIGURED",
       "detail": "Zephyr/west/SDK, Renode, CadQuery environment, Gazebo/ROS, ngspice, openEMS, and CSXCAD were unavailable on sanitized Linux PATH.",
+      "id": "OPTIONAL_TOOLCHAINS_NOT_CONFIGURED",
       "impact": "Those specific firmware and engineering gates were not run; core host CTest is independent and passed twice."
     },
     {
-      "id": "NO_INDEPENDENT_SUBAGENT_AUDIT",
       "detail": "Native subagent launches failed because the account did not support the role-mapped gpt-5.x models.",
+      "id": "NO_INDEPENDENT_SUBAGENT_AUDIT",
       "impact": "The red-team checklist was executed by the primary agent; independent review remains outstanding."
     }
   ],
-  "not_claimed": ["FULLY_REPRODUCIBLE", "CLEAN_ROOM_REPRODUCTION for all dependencies", "PUBLIC_VALIDATED", "REAL_ON_CHAIN", "physical firmware validation"]
+  "not_claimed": [
+    "FULLY_REPRODUCIBLE",
+    "CLEAN_ROOM_REPRODUCTION for all dependencies",
+    "PUBLIC_VALIDATED",
+    "REAL_ON_CHAIN",
+    "physical firmware validation"
+  ],
+  "reported_status": "PARTIAL_IN_SCOPE",
+  "schema_version": 1
 }
