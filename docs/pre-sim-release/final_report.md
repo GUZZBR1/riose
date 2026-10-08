@@ -20,7 +20,7 @@ The diorama, responsive scene, accessible animal selection, local event readback
 
 ## Publication and cleanup
 
-Initial published main SHA is 0aaa42a173027c0c26a2563c10ee5b45d2562792. A documentation-only closeout update is being fast-forwarded to main after the test, PR, cleanup, and evidence results were recorded; the final verified SHA is reported in the handoff packet. Existing local main at e57b235a was a fast-forward ancestor and was advanced to the published candidate SHA. No force push was used. Local main and remote main matched at publication. Cleanup removed two proven redundant local branches, preserved all worktrees, and retained recovery, archive, upstream, dirty, and unknown refs. All refs/worktrees are inventoried; no unique work was lost.
+Initial published main SHA is 0aaa42a173027c0c26a2563c10ee5b45d2562792. The documentation-only closeout was committed and fast-forwarded to main after test, PR, cleanup, and evidence results were recorded. The final verified main SHA is reported in the handoff packet. Existing local main at e57b235a was a fast-forward ancestor and was advanced to the published candidate SHA. No force push was used. Local main and remote main matched at publication. Cleanup removed two proven redundant local branches, preserved all worktrees, and retained recovery, archive, upstream, dirty, and unknown refs. All refs/worktrees are inventoried; no unique work was lost.
 
 ## Claim limits
 

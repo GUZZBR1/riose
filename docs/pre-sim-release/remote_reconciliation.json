@@ -10,7 +10,7 @@
   "candidate_sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
   "candidate_tree": "38dd6ab0ee5d32571f5e7a625d4d47ff7afbe026",
   "remote_main_new_commits": "Candidate ancestry includes current fork main; no remote-main-only commits observed.",
-  "publication": "PUBLISHED by non-force fast-forward push; a documentation-only closeout commit is now being prepared for a subsequent fast-forward update.",
+  "publication": "PUBLISHED by non-force fast-forward; initial product publication is recorded at initial_publication_sha; final evidence closeout is contained in the commit at current release branch HEAD, whose exact SHA is in the handoff packet.",
   "remote_main_preserved": true,
   "force_push": false,
   "latest_pr_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
@@ -20,5 +20,8 @@
   "pr41_final_state": "CLOSED",
   "pr41_comment_id": 6065411992,
   "pr41_state_at_finalization": "CLOSED",
-  "local_main_was_fast_forwarded": true
+  "local_main_was_fast_forwarded": true,
+  "last_verified_remote_main_sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
+  "evidence_closeout_published": true,
+  "final_sha_in_return_packet": true
 }
