@@ -6,6 +6,7 @@ import sqlite3
 import pytest
 
 from riose.products.livestock_tracking.adapters.persistence import Store
+from riose.products.livestock_tracking.adapters.persistence.publication_outbox import SQLitePublicationOutbox
 from riose.products.livestock_tracking.domain.identity import (
     EVENT_CONTRACT_V1,
     append_event,
@@ -75,6 +76,9 @@ def test_each_hashed_field_is_checked_by_verifier(tmp_path, field, value):
     store.connection.execute(f"UPDATE animal_events SET {field}=? WHERE event_id=?", (value, event.event_id))
     store.connection.commit()
     assert not store.verify_animal_chain("cow-1")
+    outbox = SQLitePublicationOutbox(store)
+    with pytest.raises(ValueError, match="event prefix failed local chain verification"):
+        outbox.enqueue_event(event.event_id, destination="solana-memo", chain="solana", network="test")
     store.close()
 
 
@@ -108,6 +112,20 @@ def test_verifier_rejects_nonstandard_json_constants(tmp_path):
     store = Store(tmp_path / "invalid-json.sqlite3")
     store.create_animal("cow-1", "tag-1", "crypto-1")
     store.connection.execute("UPDATE animal_events SET payload=?", ('{"n":NaN}',))
+    store.connection.commit()
+    assert not store.verify_animal_chain("cow-1")
+    store.close()
+
+
+def test_verifier_rejects_duplicate_keys_even_when_last_value_hash_matches(tmp_path):
+    store = Store(tmp_path / "duplicate-json-key.sqlite3")
+    store.create_animal("cow-1", "tag-1", "crypto-1")
+    event = store.append_animal_event("cow-1", "WEIGHT_RECORDED", {"n": 2}, 1.0)
+    matching_hash = event_digest("cow-1", "WEIGHT_RECORDED", 1.0, {"n": 2}, event.previous_hash)
+    store.connection.execute(
+        "UPDATE animal_events SET payload=?,hash=? WHERE event_id=?",
+        ('{"n":1,"n":2}', matching_hash, event.event_id),
+    )
     store.connection.commit()
     assert not store.verify_animal_chain("cow-1")
     store.close()

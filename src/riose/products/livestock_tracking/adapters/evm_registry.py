@@ -243,6 +243,7 @@ class EVMRegistryAdapter:
                 and 1 <= tx["maxFeePerGas"] <= self.config.max_fee_per_gas_wei
                 and type(tx.get("maxPriorityFeePerGas")) is int
                 and 0 <= tx["maxPriorityFeePerGas"] <= tx["maxFeePerGas"]
+                and tx["maxPriorityFeePerGas"] <= self.config.max_priority_fee_per_gas_wei
                 and recovered.lower() == self.config.publisher_address.lower()
                 and expected_hash.lower() == prepared.transaction_id.lower()
                 and metadata.get("chain_id") == tx["chainId"]
@@ -378,21 +379,28 @@ def load_evm_signer(path: str) -> object:
     """Read a local private key without placing it in logs or persistence."""
     Account, _, _, _, _ = _eth_account()
     try:
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+        flags |= getattr(os, "O_NONBLOCK", 0)
         descriptor = os.open(path, flags)
         try:
-            mode = os.fstat(descriptor).st_mode
-            if not stat.S_ISREG(mode) or stat.S_IMODE(mode) & 0o077:
+            metadata = os.fstat(descriptor)
+            if not stat.S_ISREG(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) & 0o077:
+                raise ValueError
+            if (os.name == "posix" and hasattr(os, "geteuid")
+                    and metadata.st_uid != os.geteuid()):
                 raise ValueError
             with os.fdopen(descriptor, "rb", closefd=False) as stream:
-                raw = stream.read(130).strip()
+                raw = stream.read(129)
         finally:
             os.close(descriptor)
+        if len(raw) > 128:
+            raise ValueError
+        raw = raw.strip()
         if len(raw) not in {64, 66} or not re.fullmatch(rb"(?:0x)?[0-9a-fA-F]{64}", raw):
             raise ValueError
         return Account.from_key(raw.decode("ascii"))
-    except (OSError, TypeError, ValueError) as exc:
-        raise EVMRpcError("EVM signer file is invalid or unreadable") from exc
+    except (OSError, TypeError, ValueError):
+        raise EVMRpcError("EVM signer file is invalid or unreadable") from None
 
 
 def _quantity(value: Any, label: str) -> int:

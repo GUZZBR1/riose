@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, replace
+import os
 import urllib.error
 import pytest
 
@@ -15,6 +16,7 @@ from hexbytes import HexBytes
 from riose.products.livestock_tracking.adapters.evm_config import EVMNetworkConfig
 from riose.products.livestock_tracking.adapters.evm_registry import (
     EVMJsonRpcClient, EVMRegistryAdapter, EVMRpcError, encode_registry_commitment,
+    load_evm_signer,
 )
 from riose.products.livestock_tracking.adapters.persistence import Store
 from riose.products.livestock_tracking.adapters.persistence.evm_nonce import EVMNonceCoordinator
@@ -35,6 +37,52 @@ def _config(sender: str, *, chain_id: int = 31337, address: str = "0x" + "1" * 4
         publisher_address=sender, confirmations=1, gas_limit=150_000,
         max_fee_per_gas_wei=2_000_000_000, max_priority_fee_per_gas_wei=1_000_000_000,
     )
+
+
+def test_evm_signer_loader_accepts_private_regular_key_file(tmp_path):
+    account = Account.create()
+    path = tmp_path / "synthetic-evm-key.txt"
+    path.write_text(account.key.hex(), encoding="ascii")
+    path.chmod(0o600)
+    assert load_evm_signer(str(path)).address == account.address
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX permission checks are platform-specific")
+@pytest.mark.parametrize("mode", [0o640, 0o644, 0o660, 0o666, 0o622])
+def test_evm_signer_loader_rejects_shared_or_writable_key_files(tmp_path, mode):
+    account = Account.create()
+    path = tmp_path / "synthetic-evm-key.txt"
+    path.write_text(account.key.hex(), encoding="ascii")
+    path.chmod(mode)
+    with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+        load_evm_signer(str(path))
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX symlink checks are platform-specific")
+def test_evm_signer_loader_rejects_symlink_directory_fifo_and_trailing_content(tmp_path):
+    account = Account.create()
+    target = tmp_path / "target-key.txt"
+    target.write_text(account.key.hex(), encoding="ascii")
+    target.chmod(0o600)
+    link = tmp_path / "key-link.txt"
+    link.symlink_to(target)
+    with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+        load_evm_signer(str(link))
+    with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+        load_evm_signer(str(tmp_path))
+    if os.name == "posix" and hasattr(os, "mkfifo"):
+        fifo = tmp_path / "key.fifo"
+        os.mkfifo(fifo)
+        with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+            load_evm_signer(str(fifo))
+
+    target.write_text(account.key.hex() + "\n" + (" " * 200), encoding="ascii")
+    target.chmod(0o600)
+    with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+        load_evm_signer(str(target))
+    target.write_text(account.key.hex() + "garbage", encoding="ascii")
+    with pytest.raises(EVMRpcError, match="invalid or unreadable"):
+        load_evm_signer(str(target))
 
 
 class FakeRPC:
@@ -308,6 +356,19 @@ def test_wrong_commitment_or_target_rejects_persisted_signed_wire(prepared_targe
     )
     with pytest.raises(ValueError, match="prepared EVM transaction"):
         other_contract.validate_prepared(prepared, build_public_envelope(request["commitment"]))
+
+
+def test_persisted_signed_wire_cannot_exceed_configured_priority_fee_cap(prepared_target):
+    _, outbox, request, adapter, _ = prepared_target
+    PublicationDispatcher(outbox, [adapter]).process(request["publication_id"])
+    attempt = outbox.latest_attempt(request["publication_id"])
+    tx = TypedTransaction.from_bytes(HexBytes(attempt["payload"])).as_dict()
+    tx["maxPriorityFeePerGas"] = adapter.config.max_priority_fee_per_gas_wei + 1
+    signed = Account.sign_transaction(tx, adapter.signer.key)
+    wire = bytes(signed.raw_transaction)
+    prepared = PreparedPublication("0x" + keccak(wire).hex(), wire, attempt["metadata"])
+    with pytest.raises(ValueError, match="prepared EVM transaction"):
+        adapter.validate_prepared(prepared, build_public_envelope(request["commitment"]))
 
 
 def test_missing_receipt_and_restart_only_replay_same_wire(prepared_target):

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {
+      "claim": "SECURITY_REVIEW_COMPLETED",
+      "status": "SUPPORTED",
+      "evidence": [
+        "security/discovery.json",
+        "security/threat_model.md",
+        "security/trust_boundaries.json",
+        "security/findings.json",
+        "security/adversarial_tests.json",
+        "security/red_team_report.md"
+      ]
+    },
+    {
+      "claim": "KNOWN_CRITICAL_IN_SCOPE_FINDINGS_FIXED",
+      "status": "SUPPORTED_WITH_SCOPE",
+      "evidence": [
+        "security/solana_keypair_security.json",
+        "tests/livestock_tracking/test_solana_memo.py"
+      ],
+      "scope": "SEC-SOLANA-001 was reproduced on baseline and is closed in this branch."
+    },
+    {
+      "claim": "SOLANA_SIGNER_SECURITY_GATE_READY_FOR_CONTROLLED_TESTNET_ATTEMPT",
+      "status": "SUPPORTED_WITH_LIMITS",
+      "evidence": [
+        "security/solana_keypair_security.json",
+        "security/adversarial_tests.json"
+      ],
+      "limits": "Controlled testnet only; does not imply mainnet, production readiness, or funds safety."
+    },
+    {
+      "claim": "NO_VULNERABILITIES",
+      "status": "PROHIBITED_NOT_CLAIMED"
+    },
+    {
+      "claim": "PRODUCTION_SAFE",
+      "status": "PROHIBITED_NOT_CLAIMED"
+    },
+    {
+      "claim": "REAL_ON_CHAIN_EXECUTED",
+      "status": "FALSE"
+    }
+  ]
+}

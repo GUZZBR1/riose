@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "captured_utc": "2026-10-08T12:26:19.650403+00:00",
+  "repository": {
+    "branch": "software-closure/sc2-security-dependencies",
+    "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "remote_freshness": "UNVERIFIED",
+    "platform": "WSL Ubuntu"
+  },
+  "runtime": {
+    "python": "3.12.3",
+    "system": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "node": "v24.14.1 (Windows host)",
+    "npm": "11.11.0 (Windows host)",
+    "cmake": "3.28.3",
+    "ctest": "3.28.3"
+  },
+  "tool_availability": {
+    "gitleaks": "TOOL_UNAVAILABLE",
+    "slither": "TOOL_UNAVAILABLE",
+    "forge": "TOOL_UNAVAILABLE",
+    "solc_cli": "TOOL_UNAVAILABLE",
+    "cadquery": "TOOL_UNAVAILABLE in current environment; dedicated CI CAD job installs it",
+    "uv": "Windows-host uv used for prior lock check; Linux PATH unavailable"
+  },
+  "dependencies": {
+    "contracts_node_modules": "installed with npm ci --ignore-scripts for local-EVM tests; no package lock changes",
+    "python_venv": "existing sibling integration environment used to run tests; no workspace dependency changes"
+  },
+  "network": "Windows host reached npm registry/advisory services; WSL DNS for github.com/advisory endpoints failed; current Git remote refs could not be refreshed.",
+  "build_checks": {
+    "uv_lock_check": "PASS; resolved 68 packages",
+    "uv_build": "PASS; sdist and wheel generated outside worktree under C:/Users/gusta/AppData/Local/Temp/riose-sc2-dist",
+    "compileall": "PASS",
+    "git_diff_check": "PASS before commit"
+  }
+}

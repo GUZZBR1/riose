@@ -1,5 +1,9 @@
 import base64
 from dataclasses import replace
+import json
+import os
+from pathlib import Path
+import traceback
 
 import pytest
 
@@ -12,7 +16,10 @@ from riose.products.livestock_tracking.domain.publication import PreparedPublica
 from riose.products.livestock_tracking.adapters.persistence import Store
 from riose.products.livestock_tracking.adapters.persistence.publication_outbox import SQLitePublicationOutbox
 from riose.products.livestock_tracking.application.publication_dispatcher import PublicationDispatcher
-from riose.products.livestock_tracking.domain.privacy import build_public_envelope
+from riose.products.livestock_tracking.domain.privacy import (
+    build_public_envelope,
+    serialize_public_envelope,
+)
 
 GENESIS = "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC"
 
@@ -95,18 +102,40 @@ def test_confirmation_requires_successful_transaction_and_exact_public_memo():
     envelope = _envelope()
     expected = serialize_public_envelope(envelope)
     instruction = {"programId": MEMO_PROGRAM_ID, "data": _b58encode(expected)}
-    result = {"slot": 9, "meta": {"err": None}, "transaction": {"message": {"instructions": [instruction]}}}
-    client = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed=result)
     signature = _signature()
+    result = {"slot": 9, "meta": {"err": None}, "transaction": {
+        "signatures": [signature], "message": {"instructions": [instruction]},
+    }}
+    client = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed=result)
     assert client.verify(signature, envelope) == (True, 9)
     failed = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "meta": {"err": {"InstructionError": [0, "failed"]}}})
     assert failed.verify(signature, envelope) == (False, 9)
-    mismatch = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "transaction": {"message": {"instructions": [{"programId": MEMO_PROGRAM_ID, "data": _b58encode(b"wrong")}]}}})
+    mismatch = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "transaction": {
+        "signatures": [signature], "message": {"instructions": [{"programId": MEMO_PROGRAM_ID, "data": _b58encode(b"wrong")}]},
+    }})
     with pytest.raises(SolanaRpcError, match="persisted Memo"):
         mismatch.verify(signature, envelope)
-    missing = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "transaction": {"message": {"instructions": []}}})
+    missing = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed={**result, "transaction": {
+        "signatures": [signature], "message": {"instructions": []},
+    }})
     with pytest.raises(SolanaRpcError, match="persisted Memo"):
         missing.verify(signature, envelope)
+
+
+def test_solana_receipt_must_contain_the_requested_transaction_signature():
+    result = {
+        "slot": 9, "meta": {"err": None},
+        "transaction": {
+            "signatures": [_signature()],
+            "message": {"instructions": [{
+                "programId": MEMO_PROGRAM_ID,
+                "data": _b58encode(serialize_public_envelope(_envelope())),
+            }]},
+        },
+    }
+    client = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed=result)
+    with pytest.raises(SolanaRpcError, match="invalid transaction"):
+        client.verify(_signature(), _envelope())
 
 
 @pytest.mark.parametrize("observed", [
@@ -312,3 +341,132 @@ def test_rpc_transport_malformed_response_and_signer_failure_are_sanitized(tmp_p
 
     with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
         solana_memo.load_keypair(str(tmp_path / "missing.json"))
+
+
+def _write_synthetic_keypair(path: Path) -> tuple[Path, str]:
+    from solders.keypair import Keypair
+
+    keypair = Keypair()
+    path.write_text(json.dumps(list(keypair.to_bytes())), encoding="utf-8")
+    path.chmod(0o600)
+    return path, str(keypair.pubkey())
+
+
+def test_keypair_loader_accepts_valid_private_regular_file(tmp_path):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    path, expected_pubkey = _write_synthetic_keypair(tmp_path / "synthetic-keypair.json")
+    assert str(load_keypair(str(path)).pubkey()) == expected_pubkey
+
+
+@pytest.mark.parametrize("mode", [0o640, 0o644, 0o660, 0o666, 0o622])
+@pytest.mark.skipif(os.name != "posix", reason="POSIX file mode checks are platform-specific")
+def test_keypair_loader_rejects_shared_or_writable_permissions(tmp_path, mode):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    path, _ = _write_synthetic_keypair(tmp_path / "synthetic-keypair.json")
+    path.chmod(mode)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(path))
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX symlink behavior is platform-specific")
+@pytest.mark.parametrize("dangling", [False, True])
+def test_keypair_loader_rejects_symlinks(tmp_path, dangling):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    target = tmp_path / "target.json"
+    if not dangling:
+        _write_synthetic_keypair(target)
+    path = tmp_path / "keypair-link.json"
+    path.symlink_to(target)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(path))
+
+
+def test_keypair_loader_rejects_directory_and_fifo(tmp_path):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(tmp_path))
+    if os.name == "posix" and hasattr(os, "mkfifo"):
+        fifo = tmp_path / "keypair.fifo"
+        os.mkfifo(fifo)
+        with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+            load_keypair(str(fifo))
+
+
+@pytest.mark.parametrize("raw", [
+    b"",
+    b"not-json",
+    b"[1, 2, 3",
+    b"[] []",
+    b"{\"keypair\": []}",
+    b"{\"keypair\": [], \"keypair\": []}",
+    b"[" + b"0," * 256 + b"0]",
+    b"\xff\xfe",
+])
+def test_keypair_loader_rejects_empty_malformed_truncated_oversized_and_wrong_encodings(tmp_path, raw):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    path = tmp_path / "bad-keypair.json"
+    path.write_bytes(raw)
+    path.chmod(0o600)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(path))
+
+
+def test_keypair_loader_rejects_valid_prefix_with_trailing_content(tmp_path):
+    from solders.keypair import Keypair
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    path = tmp_path / "trailing-keypair.json"
+    path.write_text(json.dumps(list(Keypair().to_bytes())) + " garbage", encoding="utf-8")
+    path.chmod(0o600)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(path))
+
+
+@pytest.mark.parametrize("length", [32, 63])
+def test_keypair_loader_rejects_wrong_secret_key_lengths(tmp_path, length):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    path = tmp_path / "wrong-length-keypair.json"
+    path.write_text(json.dumps([0] * length), encoding="utf-8")
+    path.chmod(0o600)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(path))
+
+
+def test_keypair_loader_rejects_invalid_input_without_exception_chain(tmp_path):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    secret_like = b"private-material-must-not-survive-in-tracebacks"
+    path = tmp_path / "invalid-keypair.json"
+    path.write_bytes(secret_like)
+    path.chmod(0o600)
+    with pytest.raises(SolanaRpcError) as raised:
+        load_keypair(str(path))
+    rendered = "".join(traceback.format_exception(raised.value))
+    assert secret_like.decode() not in rendered
+    assert raised.value.__cause__ is None
+    assert raised.value.__context__ is None
+
+
+@pytest.mark.skipif(os.name != "posix", reason="descriptor-pinned replacement requires POSIX symlinks")
+def test_keypair_loader_reads_open_descriptor_if_path_is_replaced_after_open(tmp_path, monkeypatch):
+    from riose.products.livestock_tracking.adapters import solana_memo
+
+    path, expected_pubkey = _write_synthetic_keypair(tmp_path / "keypair.json")
+    moved = tmp_path / "original.json"
+    real_open = os.open
+
+    def replace_path_after_open(open_path, flags):
+        descriptor = real_open(open_path, flags)
+        if Path(open_path) == path:
+            os.replace(path, moved)
+            path.symlink_to(moved)
+        return descriptor
+
+    monkeypatch.setattr(solana_memo.os, "open", replace_path_after_open)
+    assert str(solana_memo.load_keypair(str(path)).pubkey()) == expected_pubkey

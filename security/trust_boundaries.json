@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "boundaries": [
+    {
+      "id": "TB-01",
+      "name": "Simulated device/tag to ingestion",
+      "trusted_side": "Backend validation after request parsing",
+      "untrusted_side": "API/CLI caller and simulated device inputs",
+      "data_crossing": "Animal identifier, event type, timestamps, telemetry and identifiers",
+      "authentication_assumptions": "Local API has no application authentication; default loopback bind is a deployment boundary only.",
+      "integrity_assumptions": "Input validation/canonicalization in backend; caller is not a trusted signer.",
+      "confidentiality_requirements": "Animal and movement records should remain local and access-controlled.",
+      "possible_abuse": "Malformed/oversized values, identifier injection, unauthorized writes if network-exposed.",
+      "mitigations": "Typed request validation, domain validation and loopback default.",
+      "residual_risk": "No auth for externally bound API; deployment must restrict access."
+    },
+    {
+      "id": "TB-02",
+      "name": "Backend to SQLite persistence",
+      "trusted_side": "Application repository methods and schema",
+      "untrusted_side": "Caller-provided values and pre-existing/corrupted DB contents",
+      "data_crossing": "Event fields, JSON payload, IDs, paths/config and publication state",
+      "authentication_assumptions": "OS process/user boundary; no DB-level authentication.",
+      "integrity_assumptions": "Parameterized SQL and Event V1 hash verification; hashes are unkeyed.",
+      "confidentiality_requirements": "Filesystem permissions; application encryption absent.",
+      "possible_abuse": "SQL injection, malformed persisted JSON, duplicate keys, direct DB tampering.",
+      "mitigations": "Parameterized queries; strict event payload parser; chain verification and outbox binding.",
+      "residual_risk": "Local DB writer can read data and recompute unkeyed chain hashes."
+    },
+    {
+      "id": "TB-03",
+      "name": "Outbox to local signer file",
+      "trusted_side": "Validated publication workflow and signer library",
+      "untrusted_side": "Filesystem path, file contents and local filesystem actors",
+      "data_crossing": "Private key bytes and unsigned/signed transaction data",
+      "authentication_assumptions": "Local OS identity/permissions; no HSM or key service.",
+      "integrity_assumptions": "File descriptor pinned during read, no-follow when supported, key format validated.",
+      "confidentiality_requirements": "Signer secret must be owner-only/private and never logged or persisted to evidence.",
+      "possible_abuse": "Symlink substitution, permissive mode, special file blocking, malformed/trailing key, path race.",
+      "mitigations": "O_NOFOLLOW/O_NONBLOCK where supported, fstat regular file, POSIX owner/mode check, bounded read, sanitized exceptions.",
+      "residual_risk": "Native Windows ACL enforcement and hostile concurrent filesystem modification not tested."
+    },
+    {
+      "id": "TB-04",
+      "name": "Adapter to RPC provider",
+      "trusted_side": "Local adapter response validation and configured chain/network invariants",
+      "untrusted_side": "RPC transport/provider and returned JSON/receipt data",
+      "data_crossing": "Chain ID, genesis/code, tx identifiers, signed tx, receipts and logs",
+      "authentication_assumptions": "TLS for HTTPS endpoints; local loopback exception for EVM tests.",
+      "integrity_assumptions": "Response structure, chain, contract/code, signature/tx hash and receipt fields are checked.",
+      "confidentiality_requirements": "RPC URLs may contain credentials only where configuration permits; avoid logging values.",
+      "possible_abuse": "Wrong network, malformed/duplicate JSON, forged/stale receipt, target mismatch, replay/duplicate dispatch.",
+      "mitigations": "Fail-closed config validation and strict adapter receipt checks; Solana returned signature bound to request.",
+      "residual_risk": "Provider correctness and TLS trust remain external; no public RPC attack simulation."
+    },
+    {
+      "id": "TB-05",
+      "name": "EVM adapter to smart contract",
+      "trusted_side": "Immutable registry contract logic",
+      "untrusted_side": "Public transaction callers and chain state",
+      "data_crossing": "Fixed-size commitment and publisher address",
+      "authentication_assumptions": "Single configured immutable publisher address.",
+      "integrity_assumptions": "Contract checks publisher, nonzero commitment and duplicate commitment; logs emitted on successful registration.",
+      "confidentiality_requirements": "Commitment only; source records remain off-chain.",
+      "possible_abuse": "Unauthorized caller, duplicate registration, replay, unexpected state mutation or upgrade admin.",
+      "mitigations": "Access control and one-time mapping; no upgrade/admin/external calls in reviewed contract.",
+      "residual_risk": "No Slither/Forge available; reviewed source and tested local EVM only."
+    }
+  ]
+}

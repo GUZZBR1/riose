@@ -1,0 +1,1281 @@
+{
+  "schema_version": "1.0",
+  "repository_head_at_scan": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "severity_counts_include_advisory_matches_not_product_exploits": {
+    "low": 11,
+    "critical": 6,
+    "moderate": 20,
+    "high": 31
+  },
+  "finding_count": 80,
+  "findings": [
+    {
+      "id": "SEC-SOLANA-001",
+      "component": "Solana signer/keypair loader",
+      "finding": "Permissive, symlink, non-regular, malformed and overlong key files could be accepted or followed; key material could be retained in exception chaining.",
+      "severity": "HIGH",
+      "exploitability": "Local filesystem attacker with access to signer path or unsafe key provisioning.",
+      "reachability": "Solana signer loader used by controlled adapter configuration.",
+      "evidence": [
+        "tests/livestock_tracking/test_solana_memo.py",
+        "security/solana_keypair_security.json"
+      ],
+      "action": "Descriptor-based no-follow open, regular-file/owner/private-mode checks, strict 64-byte JSON key, bounded read, sanitized error.",
+      "status": "FIXED",
+      "residual_risk": "Native Windows ACL semantics and hostile concurrent filesystem changes were not tested."
+    },
+    {
+      "id": "SEC-EVENT-001",
+      "component": "Event V1 persistence/outbox",
+      "finding": "Duplicate JSON object keys could create parser disagreement between event-chain verification and publication binding.",
+      "severity": "HIGH",
+      "exploitability": "Attacker able to alter persisted event payload and its unhashed JSON representation.",
+      "reachability": "Persistence verification and outbox enqueue.",
+      "evidence": [
+        "tests/livestock_tracking/test_event_contract.py",
+        "security/adversarial_tests.json"
+      ],
+      "action": "Shared strict JSON parser rejects duplicate keys and non-JSON constants at every nesting level.",
+      "status": "FIXED",
+      "residual_risk": "Local database writer can recompute unkeyed hashes; hash chain is tamper evidence, not an authenticated database."
+    },
+    {
+      "id": "SEC-EVM-SIGNER-001",
+      "component": "EVM signer file loader",
+      "finding": "Signer loader accepted special files and valid-prefix trailing data; exception could retain file error details.",
+      "severity": "HIGH",
+      "exploitability": "Local filesystem attacker controlling configured signer path.",
+      "reachability": "Local EVM adapter signer configuration.",
+      "evidence": [
+        "tests/livestock_tracking/test_evm_registry.py"
+      ],
+      "action": "No-follow descriptor open, regular-file/owner/private-mode validation, bounded exact key format and sanitized errors.",
+      "status": "FIXED",
+      "residual_risk": "Windows ACL behavior and adversarial concurrent path replacement not covered."
+    },
+    {
+      "id": "SEC-EVM-FEE-001",
+      "component": "EVM prepared transaction validation",
+      "finding": "Persisted signed transaction priority fee could exceed configured priority-fee cap while remaining below max fee.",
+      "severity": "MEDIUM",
+      "exploitability": "Tampered or stale prepared transaction accepted by dispatcher.",
+      "reachability": "EVM publication validation.",
+      "evidence": [
+        "tests/livestock_tracking/test_evm_registry.py"
+      ],
+      "action": "Enforce configured priority-fee cap during prepared transaction validation.",
+      "status": "FIXED",
+      "residual_risk": "RPC fee behavior and chain-specific economic policy remain operational configuration concerns."
+    },
+    {
+      "id": "SEC-SOLANA-RPC-001",
+      "component": "Solana RPC response validation",
+      "finding": "Duplicate JSON keys and a transaction response for a different signature could pass response parsing/receipt validation.",
+      "severity": "HIGH",
+      "exploitability": "Malicious or compromised configured RPC endpoint.",
+      "reachability": "Solana getTransaction response parsing.",
+      "evidence": [
+        "tests/livestock_tracking/test_solana_memo.py"
+      ],
+      "action": "Reject duplicate/non-JSON response values and require returned transaction signature to match requested signature.",
+      "status": "FIXED",
+      "residual_risk": "Endpoint authenticity still depends on TLS and configured RPC provider."
+    },
+    {
+      "id": "RISK-API-AUTH-001",
+      "component": "Local API deployment",
+      "finding": "API has no application authentication; default bind is loopback, but host can be configured.",
+      "severity": "MEDIUM",
+      "exploitability": "Network access if deployed on a reachable interface without external access control.",
+      "reachability": "Deployment-dependent; not an issue for loopback-only default.",
+      "evidence": [
+        "source API configuration and CLI host option"
+      ],
+      "action": "Keep loopback default; deployments binding externally must add network authentication/access control.",
+      "status": "OPEN",
+      "residual_risk": "Exposed API can disclose livestock/event data and accept write requests."
+    },
+    {
+      "id": "RISK-DB-PLAINTEXT-001",
+      "component": "SQLite/persistence",
+      "finding": "Database and evidence integrity hashes are local and unkeyed; database is not encrypted by application.",
+      "severity": "MEDIUM",
+      "exploitability": "Local database/file access.",
+      "reachability": "At-rest data and integrity model.",
+      "evidence": [
+        "source persistence and Event V1 hashing"
+      ],
+      "action": "Protect database with host filesystem permissions/backups; do not treat hashes as signatures.",
+      "status": "OPEN",
+      "residual_risk": "Local database writer can read sensitive records and recompute unkeyed digests."
+    },
+    {
+      "id": "DEP-NPM-001",
+      "component": "npm ajv@6.12.6",
+      "finding": "ajv has ReDoS when using `$data` option",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/ajv"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-2g4f-4pwh-qvx6"
+    },
+    {
+      "id": "DEP-NPM-002",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/asn1.js/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-003",
+      "component": "npm bn.js@5.2.1",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-004",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/create-ecdh/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-005",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/diffie-hellman/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-006",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-007",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/miller-rabin/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-008",
+      "component": "npm bn.js@4.12.0",
+      "finding": "bn.js affected by an infinite loop",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-378v-28hj-76wf",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/public-encrypt/node_modules/bn.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-378v-28hj-76wf"
+    },
+    {
+      "id": "DEP-NPM-009",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-3jxr-9vmj-r5cp"
+    },
+    {
+      "id": "DEP-NPM-010",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-6j4f-fj2g-mc7p"
+    },
+    {
+      "id": "DEP-NPM-011",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-f886-m6hf-6m8v"
+    },
+    {
+      "id": "DEP-NPM-012",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-mh99-v99m-4gvg"
+    },
+    {
+      "id": "DEP-NPM-013",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-q2hr-2g5m-vwhr"
+    },
+    {
+      "id": "DEP-NPM-014",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-qhr7-859c-m2p7"
+    },
+    {
+      "id": "DEP-NPM-015",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-rgw5-rvv9-x895"
+    },
+    {
+      "id": "DEP-NPM-016",
+      "component": "npm brace-expansion@1.1.11",
+      "finding": "brace-expansion Regular Expression Denial of Service vulnerability",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-v6h2-p8h4-qcjw",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/brace-expansion"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-v6h2-p8h4-qcjw"
+    },
+    {
+      "id": "DEP-NPM-017",
+      "component": "npm braces@3.0.2",
+      "finding": "Uncontrolled resource consumption in braces",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-grv7-fg5c-xmjg",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/braces"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-grv7-fg5c-xmjg"
+    },
+    {
+      "id": "DEP-NPM-018",
+      "component": "npm braces@3.0.2",
+      "finding": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/braces"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-vfj7-8cjw-p6xm"
+    },
+    {
+      "id": "DEP-NPM-019",
+      "component": "npm browserify-sign@4.2.1",
+      "finding": "browserify-sign upper bound check issue in `dsaVerify` leads to a signature forgery attack",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-x9w5-v3q2-3rhw",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/browserify-sign"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-x9w5-v3q2-3rhw"
+    },
+    {
+      "id": "DEP-NPM-020",
+      "component": "npm browserslist@4.21.4",
+      "finding": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/browserslist"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-73wf-gq98-2v4g"
+    },
+    {
+      "id": "DEP-NPM-021",
+      "component": "npm browserslist@4.21.4",
+      "finding": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/browserslist"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-c83g-rgw3-j3cx"
+    },
+    {
+      "id": "DEP-NPM-022",
+      "component": "npm cipher-base@1.0.4",
+      "finding": "cipher-base is missing type checks, leading to hash rewind and passing on crafted data",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-cpq7-6gpm-g9rc",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/cipher-base"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-cpq7-6gpm-g9rc"
+    },
+    {
+      "id": "DEP-NPM-023",
+      "component": "npm cross-spawn@7.0.3",
+      "finding": "Regular Expression Denial of Service (ReDoS) in cross-spawn",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-3xgq-45jj-v275",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/cross-spawn"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-3xgq-45jj-v275"
+    },
+    {
+      "id": "DEP-NPM-024",
+      "component": "npm diff@5.0.0",
+      "finding": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-73rr-hh4g-fpgx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/diff"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-73rr-hh4g-fpgx"
+    },
+    {
+      "id": "DEP-NPM-025",
+      "component": "npm diff@4.0.2",
+      "finding": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-73rr-hh4g-fpgx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/ts-node/node_modules/diff"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-73rr-hh4g-fpgx"
+    },
+    {
+      "id": "DEP-NPM-026",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic's verify function omits uniqueness validation",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-434g-2637-qmqr",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-434g-2637-qmqr"
+    },
+    {
+      "id": "DEP-NPM-027",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic allows BER-encoded signatures",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-49q7-c7j4-3p7m",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-49q7-c7j4-3p7m"
+    },
+    {
+      "id": "DEP-NPM-028",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic Uses a Cryptographic Primitive with a Risky Implementation",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-848j-6mx2-7j84",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-848j-6mx2-7j84"
+    },
+    {
+      "id": "DEP-NPM-029",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic's ECDSA missing check for whether leading bit of r and s is zero",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-977x-g7h5-7qgw",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-977x-g7h5-7qgw"
+    },
+    {
+      "id": "DEP-NPM-030",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic's EDDSA missing signature length check",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-f7q4-pwc6-w24p",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-f7q4-pwc6-w24p"
+    },
+    {
+      "id": "DEP-NPM-031",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Valid ECDSA signatures erroneously rejected in Elliptic",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-fc9h-whq2-v747",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-fc9h-whq2-v747"
+    },
+    {
+      "id": "DEP-NPM-032",
+      "component": "npm elliptic@6.5.4",
+      "finding": "Elliptic's private key extraction in ECDSA upon signing a malformed input (e.g. a string)",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-vjh7-7g9h-fjfh",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/elliptic"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-vjh7-7g9h-fjfh"
+    },
+    {
+      "id": "DEP-NPM-033",
+      "component": "npm js-yaml@4.1.0",
+      "finding": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/js-yaml"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-2883-xcg3-v3hh"
+    },
+    {
+      "id": "DEP-NPM-034",
+      "component": "npm js-yaml@4.1.0",
+      "finding": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/js-yaml"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-52cp-r559-cp3m"
+    },
+    {
+      "id": "DEP-NPM-035",
+      "component": "npm js-yaml@4.1.0",
+      "finding": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/js-yaml"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-5p4m-2wfm-xmqj"
+    },
+    {
+      "id": "DEP-NPM-036",
+      "component": "npm js-yaml@4.1.0",
+      "finding": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/js-yaml"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-h67p-54hq-rp68"
+    },
+    {
+      "id": "DEP-NPM-037",
+      "component": "npm js-yaml@4.1.0",
+      "finding": "js-yaml has prototype pollution in merge (<<)",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-mh29-5h37-fv8m",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/js-yaml"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-mh29-5h37-fv8m"
+    },
+    {
+      "id": "DEP-NPM-038",
+      "component": "npm json5@2.2.1",
+      "finding": "Prototype Pollution in JSON5 via Parse Method",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-9c47-m6qq-7p4h",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/json5"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-9c47-m6qq-7p4h"
+    },
+    {
+      "id": "DEP-NPM-039",
+      "component": "npm lodash@4.17.21",
+      "finding": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/lodash"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-f23m-r3pf-42rh"
+    },
+    {
+      "id": "DEP-NPM-040",
+      "component": "npm lodash@4.17.21",
+      "finding": "lodash vulnerable to Code Injection via `_.template` imports key names",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/lodash"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-r5fr-rjxr-66jc"
+    },
+    {
+      "id": "DEP-NPM-041",
+      "component": "npm lodash@4.17.21",
+      "finding": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/lodash"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-xxjr-mmjv-4gpg"
+    },
+    {
+      "id": "DEP-NPM-042",
+      "component": "npm micromatch@4.0.5",
+      "finding": "Regular Expression Denial of Service (ReDoS) in micromatch",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-952p-6rrq-rcjv",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/micromatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-952p-6rrq-rcjv"
+    },
+    {
+      "id": "DEP-NPM-043",
+      "component": "npm minimatch@3.0.4",
+      "finding": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-23c5-xmqv-rm74",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/minimatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-23c5-xmqv-rm74"
+    },
+    {
+      "id": "DEP-NPM-044",
+      "component": "npm minimatch@3.0.4",
+      "finding": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-3ppc-4f35-3m26",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/minimatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-3ppc-4f35-3m26"
+    },
+    {
+      "id": "DEP-NPM-045",
+      "component": "npm minimatch@3.0.4",
+      "finding": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-7r86-cg39-jmmj",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/minimatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-7r86-cg39-jmmj"
+    },
+    {
+      "id": "DEP-NPM-046",
+      "component": "npm minimatch@3.0.4",
+      "finding": "minimatch ReDoS vulnerability",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-f8q6-p94x-37v3",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/minimatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-f8q6-p94x-37v3"
+    },
+    {
+      "id": "DEP-NPM-047",
+      "component": "npm nanoid@3.1.25",
+      "finding": "nanoid: non-secure generators can loop indefinitely with negative size",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/nanoid"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-28wg-ghj8-5hjv"
+    },
+    {
+      "id": "DEP-NPM-048",
+      "component": "npm nanoid@3.1.25",
+      "finding": "nanoid: custom generators can loop indefinitely when size is zero",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/nanoid"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-2v37-7h3g-55p8"
+    },
+    {
+      "id": "DEP-NPM-049",
+      "component": "npm nanoid@3.1.25",
+      "finding": "Predictable results in nanoid generation when given non-integer values",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-mwcw-c2x4-8c55",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/nanoid"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-mwcw-c2x4-8c55"
+    },
+    {
+      "id": "DEP-NPM-050",
+      "component": "npm nanoid@3.1.25",
+      "finding": "Exposure of Sensitive Information to an Unauthorized Actor in nanoid",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-qrpm-p2h7-hrv2",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/nanoid"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-qrpm-p2h7-hrv2"
+    },
+    {
+      "id": "DEP-NPM-051",
+      "component": "npm nanoid@3.1.25",
+      "finding": "nanoid: Integer Overflow or Wraparound",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-xwg4-73v4-xw9w",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/nanoid"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-xwg4-73v4-xw9w"
+    },
+    {
+      "id": "DEP-NPM-052",
+      "component": "npm pbkdf2@3.1.2",
+      "finding": "pbkdf2 rehashes long passwords on every iteration, enabling denial of service",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-477h-4r7f-fvrx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/pbkdf2"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-477h-4r7f-fvrx"
+    },
+    {
+      "id": "DEP-NPM-053",
+      "component": "npm pbkdf2@3.1.2",
+      "finding": "pbkdf2 returns predictable uninitialized/zero-filled memory for non-normalized or unimplemented algos",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-h7cp-r72f-jxh6",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/pbkdf2"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-h7cp-r72f-jxh6"
+    },
+    {
+      "id": "DEP-NPM-054",
+      "component": "npm pbkdf2@3.1.2",
+      "finding": "pbkdf2 silently disregards Uint8Array input, returning static keys",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-v62p-rq8g-8h59",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/pbkdf2"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-v62p-rq8g-8h59"
+    },
+    {
+      "id": "DEP-NPM-055",
+      "component": "npm picomatch@2.3.1",
+      "finding": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/picomatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-3v7f-55p6-f55p"
+    },
+    {
+      "id": "DEP-NPM-056",
+      "component": "npm picomatch@2.3.1",
+      "finding": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/picomatch"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-c2c7-rcm5-vvqj"
+    },
+    {
+      "id": "DEP-NPM-057",
+      "component": "npm secp256k1@4.0.3",
+      "finding": "secp256k1-node allows private key extraction over ECDH",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-584q-6j8j-r5pm",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/secp256k1"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-584q-6j8j-r5pm"
+    },
+    {
+      "id": "DEP-NPM-058",
+      "component": "npm semver@7.3.8",
+      "finding": "semver vulnerable to Regular Expression Denial of Service",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-c2qf-rxjj-qqgw",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/semver"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-c2qf-rxjj-qqgw"
+    },
+    {
+      "id": "DEP-NPM-059",
+      "component": "npm serialize-javascript@6.0.0",
+      "finding": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-5c6j-r48x-rmvq",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/serialize-javascript"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-5c6j-r48x-rmvq"
+    },
+    {
+      "id": "DEP-NPM-060",
+      "component": "npm serialize-javascript@6.0.0",
+      "finding": "Cross-site Scripting (XSS) in serialize-javascript",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-76p7-773f-r4q5",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/serialize-javascript"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-76p7-773f-r4q5"
+    },
+    {
+      "id": "DEP-NPM-061",
+      "component": "npm serialize-javascript@6.0.0",
+      "finding": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/serialize-javascript"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-qj8w-gfj5-8c6v"
+    },
+    {
+      "id": "DEP-NPM-062",
+      "component": "npm sha.js@2.4.11",
+      "finding": "sha.js is missing type checks leading to hash rewind and passing on crafted data",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-95m3-7q98-8xr5",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/sha.js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-95m3-7q98-8xr5"
+    },
+    {
+      "id": "DEP-NPM-063",
+      "component": "npm sprintf-js@1.0.3",
+      "finding": "sprintf-js vulnerable to denial of service through unbounded precision specifiers",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-hp3w-g68c-fv3c",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/sprintf-js"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-hp3w-g68c-fv3c"
+    },
+    {
+      "id": "DEP-NPM-064",
+      "component": "npm tmp@0.2.6",
+      "finding": "tmp: Type-confusion bypass of _assertPath allows path traversal via non-string prefix/postfix/template",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "BUILD_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-7c78-jf6q-g5cm",
+        "contracts/package-lock.json",
+        "node_modules/tmp"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: BUILD_ONLY; compiler_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-7c78-jf6q-g5cm"
+    },
+    {
+      "id": "DEP-NPM-065",
+      "component": "npm validator@13.7.0",
+      "finding": "validator.js has a URL validation bypass vulnerability in its isURL function",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-9965-vmph-33xx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/validator"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-9965-vmph-33xx"
+    },
+    {
+      "id": "DEP-NPM-066",
+      "component": "npm validator@13.7.0",
+      "finding": "Validator is Vulnerable to Incomplete Filtering of One or More Instances of Special Elements",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-vghf-hv5q-vc2g",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/validator"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-vghf-hv5q-vc2g"
+    },
+    {
+      "id": "DEP-NPM-067",
+      "component": "npm webpack@5.65.0",
+      "finding": "webpack buildHttp HttpUriPlugin allowedUris bypass via HTTP redirects → SSRF + cache persistence",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-38r7-794h-5758",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/webpack"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-38r7-794h-5758"
+    },
+    {
+      "id": "DEP-NPM-068",
+      "component": "npm webpack@5.65.0",
+      "finding": "Webpack's AutoPublicPathRuntimeModule has a DOM Clobbering Gadget that leads to XSS",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-4vvj-4cpr-p986",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/webpack"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-4vvj-4cpr-p986"
+    },
+    {
+      "id": "DEP-NPM-069",
+      "component": "npm webpack@5.65.0",
+      "finding": "webpack buildHttp: allowedUris allow-list bypass via URL userinfo (@) leading to build-time SSRF behavior",
+      "severity": "LOW",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-8fgc-7cc6-rx7x",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/webpack"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-8fgc-7cc6-rx7x"
+    },
+    {
+      "id": "DEP-NPM-070",
+      "component": "npm webpack@5.65.0",
+      "finding": "Cross-realm object access in Webpack 5",
+      "severity": "CRITICAL",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "UNREACHABLE",
+      "evidence": [
+        "https://github.com/advisories/GHSA-hc6q-2mpp-qw7j",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/webpack"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: UNREACHABLE; extraneous_lock_entry_vulnerable_api_unverified. Advisory=GHSA-hc6q-2mpp-qw7j"
+    },
+    {
+      "id": "DEP-NPM-071",
+      "component": "npm ws@8.13.0",
+      "finding": "ws affected by a DoS when handling a request with many HTTP headers",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-3h5v-q93c-6h6q",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/@trufflesuite/uws-js-unofficial/node_modules/ws"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-3h5v-q93c-6h6q"
+    },
+    {
+      "id": "DEP-NPM-072",
+      "component": "npm ws@8.13.0",
+      "finding": "ws: Uninitialized memory disclosure",
+      "severity": "MODERATE",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/@trufflesuite/uws-js-unofficial/node_modules/ws"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-58qx-3vcg-4xpx"
+    },
+    {
+      "id": "DEP-NPM-073",
+      "component": "npm ws@8.13.0",
+      "finding": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+      "severity": "HIGH",
+      "exploitability": "Advisory match; project exploit path not reproduced.",
+      "reachability": "TEST_ONLY",
+      "evidence": [
+        "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+        "contracts/package-lock.json",
+        "node_modules/ganache/node_modules/@trufflesuite/uws-js-unofficial/node_modules/ws"
+      ],
+      "action": "Do not force-upgrade. Assess compatible minimal remediation in the isolated local-EVM/compiler toolchain; package path and API reachability require validation.",
+      "status": "OPEN",
+      "residual_risk": "Dependency audit classification: TEST_ONLY; test_dependency_statically_reachable_vulnerable_api_unverified. Advisory=GHSA-96hv-2xvq-fx4p"
+    }
+  ]
+}

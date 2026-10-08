@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
+import stat
 import time
 import urllib.error
 import urllib.request
@@ -24,6 +26,15 @@ _ALLOWED_GENESIS = {
     "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG": "devnet",
     "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3zQawwpjk2NsNY": "testnet",
 }
+
+
+def _json_object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON object key")
+        result[key] = value
+    return result
 
 
 class SolanaRpcError(RuntimeError):
@@ -77,9 +88,13 @@ class SolanaMemoClient:
         if len(body) > MAX_RESPONSE_BYTES:
             raise SolanaRpcError("RPC response exceeded the size limit")
         try:
-            data = json.loads(body)
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise SolanaRpcError("RPC response was invalid") from exc
+            data = json.loads(
+                body,
+                object_pairs_hook=_json_object_without_duplicate_keys,
+                parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)),
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError, RecursionError):
+            raise SolanaRpcError("RPC response was invalid") from None
         if type(data) is not dict or data.get("jsonrpc") != "2.0" or data.get("id") != request_id or "error" in data or "result" not in data:
             raise SolanaRpcError("RPC request failed")
         return data["result"]
@@ -117,7 +132,7 @@ class SolanaMemoClient:
             )
             transaction = VersionedTransaction(message, [keypair])
         except Exception as exc:
-            raise SolanaRpcError("could not build the signed Memo transaction") from exc
+            raise SolanaRpcError("could not build the signed Memo transaction") from None
         wire = bytes(transaction)
         if len(wire) > 1232:
             raise SolanaRpcError("signed transaction exceeds Solana packet size")
@@ -158,9 +173,11 @@ class SolanaMemoClient:
             raise SolanaRpcError("RPC returned an invalid transaction")
         meta = result.get("meta")
         tx = result.get("transaction")
+        signatures = tx.get("signatures") if type(tx) is dict else None
         msg = tx.get("message") if type(tx) is dict else None
         instructions = msg.get("instructions") if type(msg) is dict else None
-        if (type(meta) is not dict or "err" not in meta or type(instructions) is not list
+        if (type(signatures) is not list or not signatures or signatures[0] != signature
+                or type(meta) is not dict or "err" not in meta or type(instructions) is not list
                 or any(type(item) is not dict or type(item.get("programId")) is not str for item in instructions)):
             raise SolanaRpcError("RPC returned an invalid transaction")
         if meta["err"] is not None:
@@ -303,15 +320,43 @@ def load_keypair(path: str):
     """Load a Solana CLI JSON keypair file without echoing or retaining its secret."""
     try:
         from solders.keypair import Keypair
-        with open(path, "rb") as stream:
-            document = json.loads(stream.read(4096))
-        if type(document) is not list or len(document) not in {32, 64} or any(type(byte) is not int or not 0 <= byte <= 255 for byte in document):
-            raise ValueError
-        return Keypair.from_bytes(bytes(document))
     except ImportError as exc:
         raise SolanaRpcError("install the optional solana extra to use the Solana adapter") from exc
-    except Exception as exc:
-        raise SolanaRpcError("keypair file is invalid or unreadable") from exc
+    try:
+        return _read_keypair(path, Keypair)
+    except Exception:
+        # Raise after leaving the except block so the underlying exception (which
+        # may retain secret input bytes) is not attached to the sanitized error.
+        pass
+    raise SolanaRpcError("keypair file is invalid or unreadable")
+
+
+def _read_keypair(path: str, keypair_type: type):
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+    # Avoid blocking forever if an attacker supplies a FIFO or another special file.
+    flags |= getattr(os, "O_NONBLOCK", 0)
+    descriptor = os.open(path, flags)
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValueError
+        if os.name == "posix":
+            if stat.S_IMODE(metadata.st_mode) & 0o077:
+                raise ValueError
+            if hasattr(os, "geteuid") and metadata.st_uid != os.geteuid():
+                raise ValueError
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            raw = stream.read(513)
+    finally:
+        os.close(descriptor)
+
+    if not raw or len(raw) > 512:
+        raise ValueError
+    document = json.loads(raw.decode("utf-8", errors="strict"))
+    if (type(document) is not list or len(document) != 64
+            or any(type(byte) is not int or not 0 <= byte <= 255 for byte in document)):
+        raise ValueError
+    return keypair_type.from_bytes(bytes(document))
 
 
 def _b58decode(value: str) -> bytes:
