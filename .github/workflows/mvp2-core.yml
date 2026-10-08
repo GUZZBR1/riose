@@ -47,7 +47,7 @@ jobs:
       - name: Install locked local EVM dependencies
         run: npm ci --prefix contracts
       - name: Compile local EVM registry
-        run: node contracts/test/compile_registry.cjs
+        run: node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol
       - name: Validate hardware spec provenance
         run: uv run --locked python -m riose.products.ear_tag.digital_twin validate-spec
       - name: Probe optional headless tools

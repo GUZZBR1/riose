@@ -130,6 +130,30 @@ def import_origin(name: str) -> str | None:
     return spec.origin or (str(spec.submodule_search_locations[0]) if spec.submodule_search_locations else None)
 
 
+def local_evm_check(root: Path, package_lock: dict[str, Any], compiler_version: str | None) -> tuple[str, dict[str, Any]]:
+    locked_packages = package_lock.get("packages", {})
+    versions: dict[str, dict[str, str | None]] = {}
+    missing: list[str] = []
+    mismatched: list[str] = []
+    for name in ("ganache", "solc"):
+        package_path = root / "contracts" / "node_modules" / name / "package.json"
+        expected_version = locked_packages.get(f"node_modules/{name}", {}).get("version")
+        if not package_path.is_file():
+            missing.append(name)
+            versions[name] = {"expected": expected_version, "actual": None}
+            continue
+        actual_version = json.loads(package_path.read_text()).get("version")
+        versions[name] = {"expected": expected_version, "actual": actual_version}
+        if actual_version != expected_version:
+            mismatched.append(name)
+    if versions["solc"]["actual"] is not None and compiler_version:
+        versions["solc"]["compiler_version"] = compiler_version
+        if compiler_version.split("+", 1)[0] != versions["solc"]["expected"]:
+            mismatched.append("solc compiler")
+    status = "OPTIONAL_MISSING" if missing else "INCOMPATIBLE" if mismatched else "READY"
+    return status, {"packages": versions, "missing": missing, "mismatched": mismatched}
+
+
 def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
     tools = tool_versions()
     checks: list[dict[str, Any]] = []
@@ -177,24 +201,29 @@ def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
         available = bool(tools[name]["path"] and tools[name]["version"])
         add(name, "READY" if available else "OPTIONAL_MISSING", "Required for the host CMake/CTest gate.", tools[name])
     cmake_text = tools["cmake"]["version"] or ""
-    try:
-        cmake_ok = tuple(int(part) for part in cmake_text.split()[-1].split(".")[:2]) >= (3, 16)
-    except ValueError:
-        cmake_ok = False
-    add("cmake_version", "READY" if cmake_ok else "INCOMPATIBLE", "Hardware CMake project requires CMake >=3.16.", cmake_text or None)
+    if not tools["cmake"]["path"] or not cmake_text:
+        cmake_status = "OPTIONAL_MISSING"
+    else:
+        try:
+            cmake_ok = tuple(int(part) for part in cmake_text.split()[-1].split(".")[:2]) >= (3, 16)
+        except ValueError:
+            cmake_ok = False
+        cmake_status = "READY" if cmake_ok else "INCOMPATIBLE"
+    add("cmake_version", cmake_status, "Hardware CMake project requires CMake >=3.16 for its specific gate.", cmake_text or None)
 
     node_file = (ROOT / ".nvmrc").read_text().strip() if (ROOT / ".nvmrc").is_file() else None
     node_version = (tools["node"]["version"] or "").lstrip("v")
     node_ok = bool(node_file and node_version == node_file)
-    add("node_version", "READY" if node_ok else "INCOMPATIBLE", "Local EVM validation uses the exact Node version in .nvmrc.", {"expected": node_file, "actual": tools["node"]["version"]})
+    node_status = "OPTIONAL_MISSING" if not tools["node"]["path"] or not tools["node"]["version"] else "READY" if node_ok else "INCOMPATIBLE"
+    add("node_version", node_status, "Local EVM validation uses the exact Node version in .nvmrc.", {"expected": node_file, "actual": tools["node"]["version"]})
     package_manager = package_json.get("packageManager", "")
     npm_expected = package_manager.split("@", 1)[1] if "@" in package_manager else None
     npm_ok = bool(npm_expected and tools["npm"]["version"] == npm_expected)
-    add("npm_version", "READY" if npm_ok else "INCOMPATIBLE", "Local EVM validation uses the npm version recorded in package.json.", {"expected": npm_expected, "actual": tools["npm"]["version"]})
+    npm_status = "OPTIONAL_MISSING" if not tools["npm"]["path"] or not tools["npm"]["version"] else "READY" if npm_ok else "INCOMPATIBLE"
+    add("npm_version", npm_status, "Local EVM validation uses the npm version recorded in package.json.", {"expected": npm_expected, "actual": tools["npm"]["version"]})
 
-    evm_modules = [ROOT / "contracts" / "node_modules" / name / "package.json" for name in ("ganache", "solc")]
-    evm_missing = [path.parent.name for path in evm_modules if not path.is_file()]
-    add("local_evm_dependencies", "READY" if not evm_missing else "OPTIONAL_MISSING", "Ganache and solc are required only for the local EVM gate; install with npm ci --prefix contracts.", {"missing": evm_missing})
+    evm_status, evm_evidence = local_evm_check(ROOT, package_lock, tools["solc"]["version"])
+    add("local_evm_dependencies", evm_status, "Local Ganache and solc package/compiler versions must match package-lock.json for the EVM gate.", evm_evidence)
 
     expected_env = {
         "PYTHONPATH": os.environ.get("PYTHONPATH"),
@@ -222,6 +251,8 @@ def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
     }
     origins = {"riose": import_origin("riose"), **{name: import_origin(name) for name in imports}}
     riose_origin = origins["riose"]
+    missing_project_import = riose_origin is None
+    unexpected_project_import = bool(riose_origin and not Path(riose_origin).resolve().is_relative_to((ROOT / "src").resolve()))
     unexpected_imports = []
     missing_required_imports = []
     missing_optional_imports = []
@@ -231,10 +262,12 @@ def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
             (missing_required_imports if requiredness == "required" else missing_optional_imports).append(name)
         elif not Path(origin).resolve().is_relative_to(expected_root):
             unexpected_imports.append(name)
-    source_ok = bool(riose_origin and Path(riose_origin).resolve().is_relative_to(ROOT / "src"))
+    source_ok = bool(riose_origin and Path(riose_origin).resolve().is_relative_to((ROOT / "src").resolve()))
     source_present = (ROOT / "src" / "riose" / "__init__.py").is_file()
     imports_ok = not unexpected_imports and not missing_required_imports and source_ok
-    if imports_ok:
+    if unexpected_project_import or missing_project_import or not source_present:
+        import_status = "INCOMPATIBLE"
+    elif imports_ok:
         import_status = "READY"
     elif unexpected_imports:
         import_status = "INCOMPATIBLE"
@@ -244,7 +277,7 @@ def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
         import_status = "INCOMPATIBLE"
     else:
         import_status = "OPTIONAL_MISSING"
-    add("import_provenance", import_status, "RIOSE must import from this checkout and Python dependencies from the repository-local .venv.", {"sys_prefix": sys.prefix, "expected_riose_source": str(ROOT / "src" / "riose"), "source_present": source_present, "origins": origins, "unexpected_imports": unexpected_imports, "missing_required_imports": missing_required_imports, "missing_optional_imports": missing_optional_imports})
+    add("import_provenance", import_status, "RIOSE must import from this checkout and Python dependencies from the repository-local .venv.", {"sys_prefix": sys.prefix, "expected_riose_source": str(ROOT / "src" / "riose"), "source_present": source_present, "missing_project_import": missing_project_import, "unexpected_project_import": unexpected_project_import, "origins": origins, "unexpected_imports": unexpected_imports, "missing_required_imports": missing_required_imports, "missing_optional_imports": missing_optional_imports})
 
     add("first_install_network", "EXTERNAL_BLOCKED" if external_network_blocked else "NOT_CONFIGURED", "Network is needed only for dependencies absent from local package caches; the doctor does not contact registries.", {"network_probe_performed": False})
 
