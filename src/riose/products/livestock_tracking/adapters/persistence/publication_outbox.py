@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import hashlib
 import math
+import random
 import re
 import secrets
 import sqlite3
@@ -15,6 +16,7 @@ from ...domain.commitment import create_commitment_v1, new_subject_ref, public_e
 from ...domain.identity import GENESIS_HASH, EVENT_CONTRACT_V1, append_event, event_digest
 from ...domain.privacy import serialize_public_envelope
 from ...domain.publication_state import PublicationState, require_transition
+from ...domain.publication_retry import PublicationRetryPolicy
 
 if TYPE_CHECKING:
     from .sqlite_store import Store
@@ -44,7 +46,10 @@ CREATE TABLE IF NOT EXISTS publication_requests (
 CREATE TABLE IF NOT EXISTS publication_outbox (
   publication_id TEXT PRIMARY KEY REFERENCES publication_requests(publication_id),
   available_at REAL NOT NULL,
-  completed_at REAL
+  completed_at REAL,
+  retry_count INTEGER NOT NULL DEFAULT 0 CHECK(retry_count >= 0),
+  last_failure_class TEXT,
+  last_failure_code TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_publication_outbox_due
   ON publication_outbox(available_at,publication_id) WHERE completed_at IS NULL;
@@ -161,26 +166,56 @@ CREATE TABLE publication_receipts (
 class SQLitePublicationOutbox:
     """Publication persistence using the existing Store connection and lock."""
 
-    def __init__(self, store: Store) -> None:
+    def __init__(
+        self,
+        store: Store,
+        *,
+        retry_policy: PublicationRetryPolicy | None = None,
+        jitter_source: Any | None = None,
+    ) -> None:
         self.store = store
+        self.retry_policy = retry_policy or PublicationRetryPolicy()
+        self._jitter_source = jitter_source or random.random
         with store._lock:
             store.connection.executescript(_SCHEMA)
             self._upgrade_legacy_schema(store.connection)
             store.connection.commit()
 
-    def claim_processing(self, publication_id: str, *, lease_seconds: float = 120.0) -> str | None:
+    def claim_processing(
+        self,
+        publication_id: str,
+        *,
+        lease_seconds: float = 120.0,
+        force: bool = False,
+        now: float | None = None,
+    ) -> str | None:
         """Claim one target across Store connections; stale claims can be recovered."""
         _identifier(publication_id, "publication_id")
         if not 1 <= lease_seconds <= 3600:
             raise ValueError("lease_seconds must be between 1 and 3600")
         token = secrets.token_hex(16)
-        now = time.time()
+        now = time.time() if now is None else _timestamp(now, "now")
         with self.store._lock:
             con = self.store.connection
             con.execute("BEGIN IMMEDIATE")
             try:
-                if con.execute("SELECT 1 FROM publication_requests WHERE publication_id=?", (publication_id,)).fetchone() is None:
+                request = con.execute(
+                    "SELECT r.status,o.available_at,o.completed_at FROM publication_requests r "
+                    "JOIN publication_outbox o USING(publication_id) WHERE r.publication_id=?",
+                    (publication_id,),
+                ).fetchone()
+                if request is None:
                     raise ValueError("publication request was not found")
+                if (request["completed_at"] is not None
+                        or (not force and float(request["available_at"]) > now)
+                        or PublicationState(request["status"]) in {
+                            PublicationState.VERIFIED,
+                            PublicationState.REJECTED,
+                            PublicationState.PERMANENT_FAILURE,
+                            PublicationState.MANUAL_INTERVENTION,
+                        }):
+                    con.commit()
+                    return None
                 con.execute("DELETE FROM publication_processing_claims WHERE publication_id=? AND expires_at<=?", (publication_id, now))
                 if con.execute("SELECT 1 FROM publication_processing_claims WHERE publication_id=?", (publication_id,)).fetchone():
                     con.commit()
@@ -261,6 +296,17 @@ class SQLitePublicationOutbox:
             if "adapter_id" not in request_columns:
                 con.execute("ALTER TABLE publication_requests ADD COLUMN adapter_id TEXT NOT NULL DEFAULT ''")
             con.execute("UPDATE publication_requests SET adapter_id=destination WHERE adapter_id=''")
+            if con.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='publication_outbox'"
+            ).fetchone() is not None:
+                outbox_columns = {row[1] for row in con.execute("PRAGMA table_info(publication_outbox)")}
+                for name, declaration in {
+                    "retry_count": "INTEGER NOT NULL DEFAULT 0 CHECK(retry_count >= 0)",
+                    "last_failure_class": "TEXT",
+                    "last_failure_code": "TEXT",
+                }.items():
+                    if name not in outbox_columns:
+                        con.execute(f"ALTER TABLE publication_outbox ADD COLUMN {name} {declaration}")
             receipt_columns = {row[1] for row in con.execute("PRAGMA table_info(publication_receipts)")}
             existing_receipt_columns = set(receipt_columns)
             additions = {
@@ -423,7 +469,9 @@ class SQLitePublicationOutbox:
                     if existing["chain"] != chain:
                         raise ValueError("publication target already exists for a different chain")
                     con.commit()
-                    return _request_dict(existing)
+                    result = _request_dict(existing)
+                    result["duplicate_suppressed"] = True
+                    return result
                 event = _verified_event_prefix(con, event_id)
                 canonical = _canonical_for_event(con, event, created_at)
                 publication_id = secrets.token_hex(16)
@@ -492,6 +540,7 @@ class SQLitePublicationOutbox:
                         raise ValueError("idempotency key already identifies a different publication request")
                     con.commit()
                     result = _request_dict(existing)
+                    result["duplicate_suppressed"] = True
                     for private_field in ("animal_id", "event_type", "timestamp", "event_payload"):
                         result.pop(private_field, None)
                     return result
@@ -522,7 +571,7 @@ class SQLitePublicationOutbox:
         _identifier(publication_id, "publication_id")
         with self.store._lock:
             row = self.store.connection.execute(
-                "SELECT r.*,o.available_at,o.completed_at FROM publication_requests r "
+                "SELECT r.*,o.available_at,o.completed_at,o.retry_count,o.last_failure_class,o.last_failure_code FROM publication_requests r "
                 "LEFT JOIN publication_outbox o USING(publication_id) WHERE publication_id=?",
                 (publication_id,),
             ).fetchone()
@@ -533,10 +582,11 @@ class SQLitePublicationOutbox:
             raise ValueError("limit must be between 1 and 1000")
         with self.store._lock:
             rows = self.store.connection.execute(
-                "SELECT r.*,o.available_at,o.completed_at FROM publication_requests r "
+                "SELECT r.*,o.available_at,o.completed_at,o.retry_count,o.last_failure_class,o.last_failure_code FROM publication_requests r "
                 "JOIN publication_outbox o USING(publication_id) "
-                "WHERE o.completed_at IS NULL ORDER BY o.available_at,r.publication_id LIMIT ?",
-                (limit,),
+                "WHERE o.completed_at IS NULL AND o.available_at<=? "
+                "ORDER BY o.available_at,r.publication_id LIMIT ?",
+                (time.time(), limit),
             ).fetchall()
         return [_request_dict(row) for row in rows]
 
@@ -663,6 +713,171 @@ class SQLitePublicationOutbox:
                 (publication_id,),
             ).fetchone()
         return _attempt_dict(row) if row is not None else None
+
+    def defer_retry(
+        self,
+        publication_id: str,
+        *,
+        failure_class: str,
+        reason_code: str,
+        claim_token: str | None = None,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        """Persist a bounded retry schedule without changing the evidence state."""
+        _identifier(publication_id, "publication_id")
+        if (type(failure_class) is not str
+                or failure_class not in {
+                    "TRANSIENT_PRE_SUBMISSION",
+                    "SAFE_RETRY",
+                    "AMBIGUOUS_SUBMISSION",
+                    "RECEIPT_PENDING",
+                    "REPLAY_SAFETY_PENDING",
+                    "VERIFICATION_PENDING",
+                }):
+            raise ValueError("failure_class is not an allowed retry class")
+        if type(reason_code) is not str or _RECEIPT_REASON.fullmatch(reason_code) is None:
+            raise ValueError("reason_code must be an allowlisted reason identifier")
+        timestamp = time.time() if now is None else _timestamp(now, "now")
+        with self.store._lock:
+            con = self.store.connection
+            con.execute("BEGIN IMMEDIATE")
+            try:
+                if claim_token is not None:
+                    self._require_live_claim(con, publication_id, claim_token)
+                request = con.execute(
+                    "SELECT r.status,o.retry_count,o.completed_at FROM publication_requests r "
+                    "JOIN publication_outbox o USING(publication_id) WHERE r.publication_id=?",
+                    (publication_id,),
+                ).fetchone()
+                if request is None:
+                    raise ValueError("publication request was not found")
+                state = PublicationState(request["status"])
+                if request["completed_at"] is not None or state in {
+                    PublicationState.VERIFIED,
+                    PublicationState.REJECTED,
+                    PublicationState.PERMANENT_FAILURE,
+                    PublicationState.MANUAL_INTERVENTION,
+                }:
+                    con.commit()
+                    return self.get(publication_id) or {}
+                retry_count = int(request["retry_count"])
+                if retry_count >= self.retry_policy.max_retries:
+                    self._finish_without_receipt(
+                        con, publication_id, PublicationState.MANUAL_INTERVENTION,
+                        "RETRY_LIMIT_REACHED", timestamp,
+                    )
+                else:
+                    next_retry = retry_count + 1
+                    available_at = timestamp + self.retry_policy.delay(
+                        next_retry, float(self._jitter_source())
+                    )
+                    con.execute(
+                        "UPDATE publication_outbox SET retry_count=?,available_at=?,"
+                        "last_failure_class=?,last_failure_code=? WHERE publication_id=?",
+                        (next_retry, available_at, failure_class, reason_code, publication_id),
+                    )
+                con.commit()
+            except Exception:
+                con.rollback()
+                raise
+        return self.get(publication_id) or {}
+
+    def fail_permanently(
+        self,
+        publication_id: str,
+        *,
+        reason_code: str,
+        claim_token: str | None = None,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        """Persist a definitive local/configuration failure as terminal."""
+        return self._finish_request(
+            publication_id,
+            PublicationState.PERMANENT_FAILURE,
+            reason_code,
+            claim_token=claim_token,
+            now=now,
+        )
+
+    def require_manual_intervention(
+        self,
+        publication_id: str,
+        *,
+        reason_code: str = "RETRY_LIMIT_REACHED",
+        claim_token: str | None = None,
+        now: float | None = None,
+    ) -> dict[str, Any]:
+        """Stop automatic work while preserving an unresolved chain outcome."""
+        return self._finish_request(
+            publication_id,
+            PublicationState.MANUAL_INTERVENTION,
+            reason_code,
+            claim_token=claim_token,
+            now=now,
+        )
+
+    def _finish_request(
+        self,
+        publication_id: str,
+        state: PublicationState,
+        reason_code: str,
+        *,
+        claim_token: str | None,
+        now: float | None,
+    ) -> dict[str, Any]:
+        _identifier(publication_id, "publication_id")
+        if type(reason_code) is not str or _RECEIPT_REASON.fullmatch(reason_code) is None:
+            raise ValueError("reason_code must be an allowlisted reason identifier")
+        timestamp = time.time() if now is None else _timestamp(now, "now")
+        with self.store._lock:
+            con = self.store.connection
+            con.execute("BEGIN IMMEDIATE")
+            try:
+                if claim_token is not None:
+                    self._require_live_claim(con, publication_id, claim_token)
+                request = con.execute(
+                    "SELECT status FROM publication_requests WHERE publication_id=?",
+                    (publication_id,),
+                ).fetchone()
+                if request is None:
+                    raise ValueError("publication request was not found")
+                current = PublicationState(request["status"])
+                if current not in {
+                    PublicationState.VERIFIED,
+                    PublicationState.REJECTED,
+                    PublicationState.PERMANENT_FAILURE,
+                    PublicationState.MANUAL_INTERVENTION,
+                }:
+                    require_transition(current, state)
+                    self._finish_without_receipt(con, publication_id, state, reason_code, timestamp)
+                con.commit()
+            except Exception:
+                con.rollback()
+                raise
+        return self.get(publication_id) or {}
+
+    @staticmethod
+    def _finish_without_receipt(
+        con: sqlite3.Connection,
+        publication_id: str,
+        state: PublicationState,
+        reason_code: str,
+        timestamp: float,
+    ) -> None:
+        con.execute(
+            "UPDATE publication_requests SET status=? WHERE publication_id=?",
+            (state.value, publication_id),
+        )
+        con.execute(
+            "UPDATE publication_attempts SET status=? WHERE publication_id=? "
+            "AND attempt_number=(SELECT MAX(attempt_number) FROM publication_attempts WHERE publication_id=?)",
+            (state.value, publication_id, publication_id),
+        )
+        con.execute(
+            "UPDATE publication_outbox SET completed_at=?,last_failure_class=?,last_failure_code=? "
+            "WHERE publication_id=?",
+            (timestamp, state.value, reason_code, publication_id),
+        )
 
     def verify_local_binding(self, publication_id: str) -> bool:
         request = self.get(publication_id)

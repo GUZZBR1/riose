@@ -23,6 +23,7 @@ def test_queue_is_atomic_minimal_and_idempotent_across_restart(tmp_path):
     first = outbox.enqueue_event(event.event_id, destination="solana-memo", network="solana-devnet:genesis", now=12)
     again = outbox.enqueue_event(event.event_id, destination="solana-memo", network="solana-devnet:genesis", now=99)
     assert first["publication_id"] == again["publication_id"]
+    assert again["duplicate_suppressed"] is True
     assert first["subject_ref"] == again["subject_ref"]
     assert first["status"] == "QUEUED"
     assert outbox.verify_local_binding(first["publication_id"])

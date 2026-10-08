@@ -5,6 +5,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from threading import Event
+import time
 
 import pytest
 
@@ -173,6 +174,20 @@ def test_confirmed_state_is_retained_if_receipt_disappears_before_verified(publi
     assert outbox.get(request["publication_id"])["status"] == "CONFIRMED"
 
 
+def test_conflicting_verification_stops_for_manual_review(publication):
+    _store, outbox, _event, request = publication
+    adapter = FakeAdapter(verification=False)
+    adapter.receipt = _receipt(adapter)
+    result = _dispatcher(outbox, adapter, request["publication_id"]).process(
+        request["publication_id"],
+    )
+
+    assert result["status"] == "MANUAL_INTERVENTION"
+    assert result["last_failure_code"] == "VERIFICATION_CONFLICT"
+    assert any(row["state"] == "CONFIRMED" for row in outbox.receipts(request["publication_id"]))
+    assert not any(row["state"] == "VERIFIED" for row in outbox.receipts(request["publication_id"]))
+
+
 def test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty(publication):
     _store, outbox, _event, request = publication
     adapter = FakeAdapter()
@@ -183,6 +198,42 @@ def test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty(p
 
     assert outbox.get(request["publication_id"])["status"] in {"UNKNOWN", "RPC_ACCEPTED", "PREPARED"}
     assert outbox.latest_attempt(request["publication_id"])["attempt_number"] == 1
+
+
+def test_forced_reconcile_observes_but_does_not_replay_before_backoff(publication):
+    store, outbox, _event, request = publication
+    adapter = FakeAdapter(submit_error=RuntimeError("simulated transport timeout"))
+    dispatcher = _dispatcher(outbox, adapter, request["publication_id"])
+    first = dispatcher.process(request["publication_id"])
+    assert first["status"] == "UNKNOWN"
+    store.connection.execute(
+        "UPDATE publication_outbox SET available_at=? WHERE publication_id=?",
+        (time.time() + 60, request["publication_id"]),
+    )
+    store.connection.commit()
+    adapter.calls.clear()
+
+    result = dispatcher.reconcile(request["publication_id"])
+
+    assert result["status"] == "UNKNOWN"
+    assert not any(call[0] == "submit" for call in adapter.calls)
+
+
+def test_missing_adapter_after_ambiguous_submit_requires_manual_intervention(publication):
+    store, outbox, _event, request = publication
+    adapter = FakeAdapter(submit_error=RuntimeError("simulated transport timeout"))
+    _dispatcher(outbox, adapter, request["publication_id"]).process(request["publication_id"])
+    store.connection.execute(
+        "UPDATE publication_outbox SET available_at=0 WHERE publication_id=?",
+        (request["publication_id"],),
+    )
+    store.connection.commit()
+
+    result = PublicationDispatcher(outbox, []).process(request["publication_id"])
+
+    assert result["status"] == "MANUAL_INTERVENTION"
+    assert result["last_failure_code"] == "ADAPTER_UNAVAILABLE"
+    assert outbox.latest_attempt(request["publication_id"]) is not None
     assert [call[0] for call in adapter.calls].count("prepare") == 1
 
 
@@ -263,23 +314,22 @@ def test_reconcile_prepared_after_restart_never_prepares_new_payload(publication
         reopened.close()
 
 
-def test_missing_adapter_leaves_request_queued_without_attempt(publication):
+def test_missing_adapter_is_recorded_as_permanent_failure(publication):
     _store, outbox, _event, request = publication
     dispatcher = PublicationDispatcher(outbox, [])
 
-    with pytest.raises((LookupError, ValueError)):
-        dispatcher.process(request["publication_id"])
+    result = dispatcher.process(request["publication_id"])
 
-    assert outbox.get(request["publication_id"])["status"] == "QUEUED"
+    assert result["status"] == "PERMANENT_FAILURE"
+    assert result["last_failure_code"] == "ADAPTER_UNAVAILABLE"
     assert outbox.latest_attempt(request["publication_id"]) is None
 
 
 def test_adapter_for_wrong_chain_or_network_cannot_publish(publication):
     _store, outbox, _event, request = publication
     for adapter in (FakeAdapter(chain="solana"), FakeAdapter(network="wrong-network")):
-        with pytest.raises((LookupError, ValueError)):
-            _dispatcher(outbox, adapter, request["publication_id"]).process(request["publication_id"])
-    assert outbox.get(request["publication_id"])["status"] == "QUEUED"
+        result = _dispatcher(outbox, adapter, request["publication_id"]).process(request["publication_id"])
+        assert result["status"] == "PERMANENT_FAILURE"
     assert outbox.latest_attempt(request["publication_id"]) is None
 
 
@@ -293,10 +343,11 @@ def test_prepare_failure_leaves_request_queued_and_does_not_submit(publication):
 
     adapter = FailingPrepare()
     dispatcher = _dispatcher(outbox, adapter, request["publication_id"])
-    with pytest.raises(RuntimeError, match="signer unavailable"):
-        dispatcher.process(request["publication_id"])
+    result = dispatcher.process(request["publication_id"])
 
-    assert outbox.get(request["publication_id"])["status"] == "QUEUED"
+    assert result["status"] == "QUEUED"
+    assert result["retry_count"] == 1
+    assert result["last_failure_code"] == "PREPARATION_UNAVAILABLE"
     assert outbox.latest_attempt(request["publication_id"]) is None
     assert not any(call[0] == "submit" for call in adapter.calls)
 
@@ -310,10 +361,10 @@ def test_invalid_prepared_response_never_reaches_persistence_or_network(publicat
             return object()
 
     adapter = InvalidPrepare()
-    with pytest.raises(ValueError, match="invalid prepared"):
-        _dispatcher(outbox, adapter, request["publication_id"]).process(request["publication_id"])
+    result = _dispatcher(outbox, adapter, request["publication_id"]).process(request["publication_id"])
 
-    assert outbox.get(request["publication_id"])["status"] == "QUEUED"
+    assert result["status"] == "PERMANENT_FAILURE"
+    assert result["last_failure_code"] == "PREPARED_PAYLOAD_INVALID"
     assert outbox.latest_attempt(request["publication_id"]) is None
     assert not any(call[0] == "submit" for call in adapter.calls)
 
@@ -413,6 +464,11 @@ def test_proven_retryable_creates_one_new_attempt_on_next_process(publication):
     adapter.transaction_id = "0x" + "cd" * 32
     adapter.payload = b"second-prepared-publication"
     adapter.receipt = None
+    outbox.store.connection.execute(
+        "UPDATE publication_outbox SET available_at=0 WHERE publication_id=?",
+        (request["publication_id"],),
+    )
+    outbox.store.connection.commit()
     dispatcher.process(request["publication_id"])
 
     second = outbox.latest_attempt(request["publication_id"])
@@ -499,7 +555,7 @@ def test_expired_processing_claim_can_be_recovered_without_new_attempt(publicati
         assert [call[0] for call in adapter.calls].count("prepare") == 0
         assert [call[0] for call in adapter.calls].count("submit") == 1
         # The stale owner may finish late; token matching must preserve a new claim.
-        fresh_token = recovered_outbox.claim_processing(publication_id)
+        fresh_token = recovered_outbox.claim_processing(publication_id, force=True)
         assert fresh_token is not None
         outbox.release_processing(publication_id, stale_token)
         assert recovered_outbox.claim_processing(publication_id) is None

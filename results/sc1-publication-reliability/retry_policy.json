@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "implementation": "Existing SQLite publication outbox and chain-neutral dispatcher",
+  "default": {
+    "max_retries": 5,
+    "initial_delay_seconds": 2,
+    "maximum_delay_seconds": 300,
+    "jitter": "symmetric uniform factor in [0.8, 1.2]"
+  },
+  "schedule": "min(max_delay, initial_delay * 2^(retry_number-1)) times bounded jitter; final delay capped at max_delay",
+  "persistence": "retry_count, available_at, last_failure_class and last_failure_code are stored with the existing outbox row and survive SQLite reopen.",
+  "classification": {
+    "transient_pre_submission": "healthcheck or preparation is unavailable; keep queued/retryable and schedule a bounded retry",
+    "safe_retry": "new signed attempt only after an adapter explicitly proves safe_to_retry",
+    "ambiguous_submission": "preserve UNKNOWN and the exact persisted signed attempt; do not call it failed",
+    "receipt_pending": "retain unresolved evidence; schedule another observation",
+    "verification_pending": "retain CONFIRMED and retry verification",
+    "permanent_failure": "terminal local/configuration/payload failure only when no persisted attempt exists",
+    "manual_intervention": "retry limit, expired Solana blockhash, conflicting verification, or local error after an attempt; preserve uncertainty/receipts"
+  },
+  "reconciliation": "Reconciliation can observe during backoff, but signed payload replay is gated by the persisted available_at due time.",
+  "evidence": "tests/livestock_tracking/test_publication_retry.py; tests/livestock_tracking/test_publication_dispatcher.py"
+}

@@ -1,0 +1,370 @@
+worktree /home/gusta/projetos/RIOSE/riose
+HEAD e57b235a452c6e8d258d1708d5fd53ce56cecfb3
+branch refs/heads/codex/issue-10-antenna-convergence
+
+worktree //wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-embedded-physical-digital-mvp
+HEAD 10a7b3215c3f87b3893cbfcc790c58cb5cdccd72
+branch refs/heads/integration/embedded-physical-digital-mvp
+prunable gitdir file points to non-existent location
+
+worktree //wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-clean-check
+HEAD b2de3a9a58f911e24dc9a8395717f520542282b3
+detached
+prunable gitdir file points to non-existent location
+
+worktree //wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-final
+HEAD b2de3a9a58f911e24dc9a8395717f520542282b3
+branch refs/heads/integration/integrated-beta-final
+prunable gitdir file points to non-existent location
+
+worktree //wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-movement-intelligence-e2e
+HEAD 72ad69551b54eb069bb1c5f863dfff4066786965
+branch refs/heads/research/movement-intelligence-e2e
+prunable gitdir file points to non-existent location
+
+worktree //wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-validation-mvp4-offline-multichain
+HEAD 4e38b5a83d65ff30f7069dd0078c7fe93c1a6446
+branch refs/heads/validation/mvp4-offline-multichain
+prunable gitdir file points to non-existent location
+
+worktree /home/gusta/projetos/RIOSE/riose-beta-final
+HEAD bfc6e86c189863e538aa7ba2aecce1d882d9cbe4
+branch refs/heads/research/riose-beta-final
+
+worktree /home/gusta/projetos/RIOSE/riose-blockchain-hackathon-demo
+HEAD 3bdb712dbfbe10d9130a9d49831b7476c79534dc
+branch refs/heads/research/blockchain-hackathon-demo
+
+worktree /home/gusta/projetos/RIOSE/riose-core-product-mvp
+HEAD 84ae34f2f8e54aabed3ac1be70338023d981d566
+branch refs/heads/integration/core-product-mvp
+
+worktree /home/gusta/projetos/RIOSE/riose-final-integration-audit
+HEAD 7d75ae22778a098855c7ad6a04672fdcdf46bbde
+branch refs/heads/audit/final-integration-authority
+
+worktree /home/gusta/projetos/RIOSE/riose-hackathon-web3-readme
+HEAD 996a659facfbb855c7b1297ae61f302a0b289bc2
+branch refs/heads/docs/hackathon-web3-readme
+
+worktree /home/gusta/projetos/RIOSE/riose-integration-candidate
+HEAD 7adec506a56f23d909d12aca8e8bc091909dee18
+branch refs/heads/integration/riose-candidate
+
+worktree /home/gusta/projetos/RIOSE/riose-intelligence-research-mvp
+HEAD 7581f1188f0801543ce38a1496eb955c7aac4e9d
+branch refs/heads/integration/intelligence-research-mvp
+
+worktree /home/gusta/projetos/RIOSE/riose-issue22
+HEAD 866d9854e5f75fc065b4a566149fa93c493de13b
+branch refs/heads/codex/issue-22-signal-engine
+
+worktree /home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-publication
+HEAD 3bdb712dbfbe10d9130a9d49831b7476c79534dc
+branch refs/heads/codex/pr44-publication
+
+worktree /home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-signal
+HEAD c4f60d07208625fcb574adca30df829f72cd6f7e
+branch refs/heads/codex/pr44-signal-engine
+
+worktree /home/gusta/projetos/RIOSE/riose-issue23
+HEAD 6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade
+branch refs/heads/codex/issue-23-behavior-ml
+
+worktree /home/gusta/projetos/RIOSE/riose-issue25
+HEAD fe4b841e913843964c847af220ef31c477c81e4c
+branch refs/heads/codex/issue-25-biosignature
+
+worktree /home/gusta/projetos/RIOSE/riose-issue26-live
+HEAD ac6844352d4c6eecc50093adf26184be2c731a8b
+branch refs/heads/codex/issue-26-reproduction-intelligence
+
+worktree /home/gusta/projetos/RIOSE/riose-issue27
+HEAD b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30
+branch refs/heads/codex/issue-27-health-anomaly
+
+worktree /home/gusta/projetos/RIOSE/riose-issue28
+HEAD 044b90b3b487cfc56e2cd2feae0b926dde2e491b
+branch refs/heads/codex/issue-28-movement-rf-context
+
+worktree /home/gusta/projetos/RIOSE/riose-main-promotion-postcheck
+HEAD d3bb56e4745593dc96c61d4779416087d3f8e3f7
+branch refs/heads/docs/final-competition-readme
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp-blockchain-publication
+HEAD 0c482054a7a0b37c9c2d59a3d97641a0c57837d7
+branch refs/heads/mini-mvp/blockchain-publication
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp-firmware-digital-twin
+HEAD 15f63a4bef31f4985ffc0c911785b1043e656eae
+branch refs/heads/mini-mvp/firmware-digital-twin
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization
+HEAD 078fca6fe06a92bd55c5fc279918a3c840de8f33
+branch refs/heads/validation/mvp2-rf-localization-campaign
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp4-clean
+HEAD a6d3b49397344a60cdd1618d8f94e7e0ba95a2f8
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp4-commit-check
+HEAD cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp4-intelligence
+HEAD cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48
+branch refs/heads/mini-mvp/intelligence-behavior
+
+worktree /home/gusta/projetos/RIOSE/riose-mini-mvp5-persistence-reliability
+HEAD e0efe781c7109fd8c0ea3044654eed9175f4954b
+branch refs/heads/mini-mvp/persistence-reliability
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-final-integration
+HEAD a45908b6eecb347fb5e2f6bf1e111f10885a4647
+branch refs/heads/multichain/final-integration
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation
+HEAD 6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f
+branch refs/heads/multichain/main-reconciliation
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation-clean
+HEAD 6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp1
+HEAD fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2
+branch refs/heads/multichain/mvp1-core-migration
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp1-clean
+HEAD fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp2
+HEAD 977be7b2c2aeb13b1bb378c0f9a3c753c8436701
+branch refs/heads/multichain/mvp2-solana-reconciliation
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp2-clean
+HEAD 977be7b2c2aeb13b1bb378c0f9a3c753c8436701
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp3
+HEAD 60bbb7f29bc98cf5c69caf798276929c859c8d2f
+branch refs/heads/multichain/mvp3-evm-core
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp3-clean
+HEAD 60bbb7f29bc98cf5c69caf798276929c859c8d2f
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp4-arbitrum
+HEAD 65a70357513d137390a6e97a95a75e966a870c73
+branch refs/heads/multichain/mvp4-arbitrum
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp4-base
+HEAD df9d281dffb56b33047dd56837acb320fd58cef8
+branch refs/heads/multichain/mvp4-base
+
+worktree /home/gusta/projetos/RIOSE/riose-multichain-mvp4-base-clean
+HEAD df9d281dffb56b33047dd56837acb320fd58cef8
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-mvp1-e2e
+HEAD ed575e57d36f80d815bd43396a3cb36ae021ac99
+branch refs/heads/validation/mvp1-e2e-digital-farm
+
+worktree /home/gusta/projetos/RIOSE/riose-mvp1-e2e-clean
+HEAD b03a09bf8245ccd9cd80f970fc50bb21eae340d2
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-mvp1-e2e-verify
+HEAD d448e4b7e130c65f0080e13b154ac716dcb5f370
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-mvp3-failure-scale
+HEAD 1ea546c38870bedd71b162a38b4a8f3e1c9f0758
+branch refs/heads/validation/mvp3-failure-scale
+
+worktree /home/gusta/projetos/RIOSE/riose-network-contention-capacity-closure
+HEAD 4152f8a92f59510957bf24e675adce29853a29f7
+branch refs/heads/research/network-contention-capacity-closure
+
+worktree /home/gusta/projetos/RIOSE/riose-network-scale-capacity
+HEAD a3e8f1b8227b57a13d1caec79f696aee3da17887
+branch refs/heads/research/network-scale-capacity
+
+worktree /home/gusta/projetos/RIOSE/riose-post-promotion-remote-clean
+HEAD b2de3a9a58f911e24dc9a8395717f520542282b3
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-pr-issue-10
+HEAD 0b5bd21256c0ad180fa1050735346df4e3c5d327
+branch refs/heads/codex/issue-10-antenna-followup
+
+worktree /home/gusta/projetos/RIOSE/riose-pr-issue-12
+HEAD 9120adb7312c9af088b19255c9ad7cf7f770135b
+branch refs/heads/codex/issue-12-integration-followup
+
+worktree /home/gusta/projetos/RIOSE/riose-pr-issue-5
+HEAD 3111a381d750f48eb337fdcd0925bc0f90cbd802
+branch refs/heads/codex/issue-5-spi-timeout-followup
+
+worktree /home/gusta/projetos/RIOSE/riose-pr-issue-6
+HEAD 7f9b4b74caf849c562fe6a1a8ca767e5c80381be
+branch refs/heads/codex/issue-6-resd-propagation-followup
+
+worktree /home/gusta/projetos/RIOSE/riose-pr-issue-8
+HEAD a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a
+branch refs/heads/codex/issue-8-temperature-axis-followup
+
+worktree /home/gusta/projetos/RIOSE/riose-pre-blockchain-baseline
+HEAD c2a76712cb57ef354682f51cdbf6d3b1386f6aab
+branch refs/heads/integration/pre-blockchain-baseline
+
+worktree /home/gusta/projetos/RIOSE/riose-promotion-bridge
+HEAD 3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed
+branch refs/heads/integration/riose-promotion-bridge
+
+worktree /home/gusta/projetos/RIOSE/riose-promotion-bridge-clean
+HEAD 3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-repository-audit
+HEAD 2a0dd05dd5d441bbf081da242f9a63de76af71b7
+branch refs/heads/research/repository-audit
+
+worktree /home/gusta/projetos/RIOSE/riose-rf-realism-campaign
+HEAD cecda8d9145b169299d4fc077e800de9d8c4811c
+branch refs/heads/research/rf-realism-campaign
+
+worktree /home/gusta/projetos/RIOSE/riose-rf-realism-gap-closure
+HEAD 44216b30cfaba4721329125dc5f527deafcb6947
+branch refs/heads/research/rf-realism-gap-closure
+
+worktree /home/gusta/projetos/RIOSE/riose-sc1-publication-reliability
+HEAD b2ddf11098ecd87b954bf97af26f8ecb8862b58a
+branch refs/heads/software-closure/sc1-publication-reliability
+
+worktree /home/gusta/projetos/RIOSE/riose-sc2-security-dependencies
+HEAD b2ddf11098ecd87b954bf97af26f8ecb8862b58a
+branch refs/heads/software-closure/sc2-security-dependencies
+
+worktree /home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment
+HEAD b2ddf11098ecd87b954bf97af26f8ecb8862b58a
+branch refs/heads/software-closure/sc3-reproducible-environment
+
+worktree /home/gusta/projetos/RIOSE/riose-simulation-lab
+HEAD 2c9c477321505ba7983acf63d1f07c634cf7002a
+branch refs/heads/research/simulation-lab
+
+worktree /home/gusta/projetos/RIOSE/riose-tag-simulation-closure
+HEAD 72ad69551b54eb069bb1c5f863dfff4066786965
+branch refs/heads/research/tag-simulation-closure
+
+worktree /home/gusta/projetos/RIOSE/riose-upstream-baseline-audit
+HEAD 5b17771f0f86b0bb0cdb526485e8e2f50e78fdea
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-validation-mvp5-real-on-chain
+HEAD df4ef334729c1e4bfb5e02a21d8f8020330a1d87
+branch refs/heads/validation/mvp5-real-on-chain
+
+worktree /home/gusta/projetos/RIOSE/riose-validation-mvp6
+HEAD cac2b3876cf3bd2c298bc7d923296dcb39add93e
+branch refs/heads/validation/mvp6-final-gate
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-01
+HEAD 1d960a919a4dc683249b87015b20a616cd6f4b36
+branch refs/heads/codex/issue-01-event-contract-v1
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-02
+HEAD 2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d
+branch refs/heads/codex/issue-02-evidence-bridge
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-03
+HEAD 9de73f99ef7602ccc06c1a37aa393c614379d946
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-03-commitment-v1
+HEAD 2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d
+branch refs/heads/codex/issue-03-commitment-v1
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-04
+HEAD db00cca2d7248dd0adfc965d9aa2652e14f235ce
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-05
+HEAD ad6823d1788c1c0f0d457f04a702a4fcccbddd8e
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-06
+HEAD 84e66fa4fa497f3a9f3b478f10dfa8eb0ac7011e
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-07
+HEAD be156e2c47eec2082596b439d78605aa9e61fe08
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-08
+HEAD 8f06ff72c79c02bfefacb2eebc76b1976f308016
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-09
+HEAD e50f8609e822c72f8325c5ef547c51eb65c887c4
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-10
+HEAD a9d12c2769ec90f9466d9fb81a1b0d4bd4541a32
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-11
+HEAD 279617a3b1bcbe57a39a79947cfcb5488953850d
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-12
+HEAD e25b6417a0c98a632ed9a8dc05451f151df930bc
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-13
+HEAD b5b005ce0a7b9e3ea7c59e6162f79ba57f0be794
+detached
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-21
+HEAD 816049f9f01d3e74af8a45f7aa57d3664e586689
+branch refs/heads/codex/issue-21-dataset-foundation
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue-24
+HEAD 55b10acca7b25fe9269582b7b5156ae7c66d7667
+branch refs/heads/codex/issue-24-behavior-persistence
+
+worktree /home/gusta/projetos/RIOSE/riose-wt-issue10-upstream
+HEAD 6619fb4d4f765d1351138a38af5858aa2689a46c
+branch refs/heads/codex/issue-10-antenna-convergence-upstream
+
+worktree /tmp/riose-beta-dynamic-replay
+HEAD a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6
+detached
+prunable gitdir file points to non-existent location
+
+worktree /tmp/riose-beta-dynamic-replay-clean
+HEAD a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6
+detached
+prunable gitdir file points to non-existent location
+
+worktree /tmp/riose-mini-mvp-clean
+HEAD 3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed
+detached
+prunable gitdir file points to non-existent location
+
+worktree /tmp/riose-mini-mvp-clean-final
+HEAD 3c694b25132f0ae65c57b88ce37939e854ddbb07
+detached
+prunable gitdir file points to non-existent location
+
+worktree /tmp/riose-mini-mvp-clean-repro
+HEAD 5a6e09bcfe1de757e023f59459c9a6114bca292c
+detached
+prunable gitdir file points to non-existent location
+
+worktree /tmp/riose-mvp4-arbitrum-final
+HEAD 65a70357513d137390a6e97a95a75e966a870c73
+detached
+prunable gitdir file points to non-existent location

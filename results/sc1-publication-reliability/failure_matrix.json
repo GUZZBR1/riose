@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "scope": "Offline/local failure injection only; no public-chain transaction was sent.",
+  "cases": [
+    {"case": "rpc_transport_unavailable", "evidence": "test_solana_memo.py::test_rpc_transport_malformed_response_and_signer_failure_are_sanitized; test_publication_dispatcher.py::test_receipt_rpc_timeout_preserves_prepared_transaction", "result": "PASS", "limits": "Transport failure is monkeypatched; no live DNS or RPC fault."},
+    {"case": "connection_refused_or_dns", "evidence": "No dedicated connection-refused/DNS test", "result": "NOT_EXERCISED", "limits": "Generic URLError/transport failure is covered; exact OS resolver/refusal path is not."},
+    {"case": "timeout_before_submit", "evidence": "test_publication_dispatcher.py::test_prepare_failure_leaves_request_queued_and_does_not_submit", "result": "PASS", "limits": "Simulated adapter preparation failure."},
+    {"case": "timeout_after_possible_submit", "evidence": "test_publication_dispatcher.py::test_submit_timeout_is_recoverable_with_exact_persisted_transaction; test_publication_crash_windows.py stages C-D", "result": "PASS", "limits": "Adapter/process simulation, not external chain evidence."},
+    {"case": "malformed_rpc_response", "evidence": "test_solana_memo.py::test_malformed_transaction_response_is_unknown_not_rejected; parametrized malformed RPC bodies", "result": "PASS", "limits": "Solana fake client."},
+    {"case": "delayed_or_missing_receipt", "evidence": "test_publication_dispatcher.py::test_reconcile_without_receipt_keeps_same_attempt_and_explicit_uncertainty; test_confirmed_survives_later_receipt_rpc_failures_without_resubmit", "result": "PASS", "limits": "Local adapter receipts."},
+    {"case": "permanent_rejection", "evidence": "test_publication_dispatcher.py::test_rejected_target_cannot_later_become_verified", "result": "PASS", "limits": "Adapter-provided rejection."},
+    {"case": "retryable_rejection", "evidence": "test_publication_dispatcher.py::test_retryable_requires_explicit_safe_to_retry_evidence; test_proven_retryable_creates_one_new_attempt_on_next_process", "result": "PASS", "limits": "Safe retry requires explicit adapter evidence."},
+    {"case": "worker_crash_and_restart", "evidence": "test_publication_crash_windows.py::test_process_crashes_at_publication_side_effect_boundaries_and_recovers; test_publication_cli.py::test_reconcile_completes_confirmed_request_after_crash_before_verified", "result": "PASS", "limits": "Hard os._exit subprocess crashes with simulated receipt evidence."},
+    {"case": "duplicate_dispatch_and_concurrent_workers", "evidence": "test_publication_dispatcher.py::test_repeated_process_does_not_prepare_a_second_transaction; test_two_store_connections_cannot_prepare_same_target_concurrently; test_expired_processing_claim_can_be_recovered_without_new_attempt", "result": "PASS", "limits": "SQLite and local test adapters."},
+    {"case": "stale_or_expired_attempt", "evidence": "test_solana_memo.py::test_expired_ambiguous_solana_attempt_stops_replay_and_requires_manual_review", "result": "PASS", "limits": "Fake Solana block-height observation."},
+    {"case": "base_only_arbitrum_only_solana_only_and_partial_fanout", "evidence": "test_evm_registry.py::test_one_event_fans_out_to_three_independent_targets (8 failure combinations)", "result": "NOT_RUN", "limits": "Module collection blocked by missing eth_account; equivalent target isolation is exercised in publication dispatcher/outbox tests."},
+    {"case": "base_nonce_ordering", "evidence": "test_evm_registry.py::test_base_submission_uses_shared_durable_nonce_ordering", "result": "NOT_RUN", "limits": "Added regression test; EVM module blocked from collection by missing eth_account."},
+    {"case": "arbitrum_nonce_coordinator_ordering", "evidence": "test_evm_nonce.py::test_evm_submission_waits_for_lower_reserved_nonce parametrized for Base 84532 and Arbitrum 421614; test_arbitrum_submission_lease_serializes_store_connections", "result": "PASS", "limits": "Coordinator-level offline tests; adapter integration for Base remains externally blocked."}
+  ]
+}

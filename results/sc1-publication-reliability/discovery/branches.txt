@@ -1,0 +1,97 @@
+  archive/pre-promotion-main-2026-10-06                              72ad695 Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml
++ audit/final-integration-authority                                  7d75ae2 (/home/gusta/projetos/RIOSE/riose-final-integration-audit) Remove report formatting whitespace
+  codex/autonomous-recovery-protocol                                 b442787 [origin/main: behind 24] Merge pull request #29 from santleme/codex/mvp2-close-open-issues
++ codex/issue-01-event-contract-v1                                   1d960a9 (/home/gusta/projetos/RIOSE/riose-wt-issue-01) [fork/codex/issue-01-event-contract-v1] Keep historical livestock event hashes verifiable
++ codex/issue-02-evidence-bridge                                     2214df0 (/home/gusta/projetos/RIOSE/riose-wt-issue-02) [fork/main: behind 102] Prevent incomplete antenna sensitivity evidence from reaching prototype readiness (#32)
++ codex/issue-03-commitment-v1                                       2214df0 (/home/gusta/projetos/RIOSE/riose-wt-issue-03-commitment-v1) [fork/main: behind 102] Prevent incomplete antenna sensitivity evidence from reaching prototype readiness (#32)
+* codex/issue-10-antenna-convergence                                 e57b235 [origin/main: behind 14] Merge pull request #35 from santleme/codex/mvp2-runner-robustness
++ codex/issue-10-antenna-convergence-upstream                        6619fb4 (/home/gusta/projetos/RIOSE/riose-wt-issue10-upstream) [fork/codex/issue-10-antenna-convergence-upstream] Require refinement proof for accepted antenna metrics
++ codex/issue-10-antenna-followup                                    0b5bd21 (/home/gusta/projetos/RIOSE/riose-pr-issue-10) [fork/codex/issue-10-antenna-followup: gone] Keep antenna guidance aligned with current modeled geometry
++ codex/issue-12-integration-followup                                9120adb (/home/gusta/projetos/RIOSE/riose-pr-issue-12) [fork/codex/issue-12-integration-followup: gone] Prevent incomplete antenna sensitivity evidence from reaching prototype readiness
++ codex/issue-21-dataset-foundation                                  816049f (/home/gusta/projetos/RIOSE/riose-wt-issue-21) [fork/codex/issue-21-dataset-foundation: gone] Make movement dataset evidence reproducible
++ codex/issue-22-signal-engine                                       866d985 (/home/gusta/projetos/RIOSE/riose-issue22) [fork/codex/issue-22-signal-engine: gone] Record scientific libraries in the workstation benchmark
++ codex/issue-23-behavior-ml                                         6fdc34a (/home/gusta/projetos/RIOSE/riose-issue23) [fork/codex/issue-23-behavior-ml: gone] Keep behavior estimates honest until labeled movement evidence exists
++ codex/issue-24-behavior-persistence                                55b10ac (/home/gusta/projetos/RIOSE/riose-wt-issue-24) [fork/codex/issue-24-behavior-persistence: gone] Preserve behavior provenance across local restarts
++ codex/issue-25-biosignature                                        fe4b841 (/home/gusta/projetos/RIOSE/riose-issue25) [fork/codex/issue-25-biosignature: gone] Make individual behavior changes reproducible and auditable
++ codex/issue-26-reproduction-intelligence                           ac68443 (/home/gusta/projetos/RIOSE/riose-issue26-live) [fork/codex/issue-26-reproduction-intelligence: gone] Keep evidence fixtures byte-stable across checkout platforms
++ codex/issue-27-health-anomaly                                      b79ee4e (/home/gusta/projetos/RIOSE/riose-issue27) [fork/codex/issue-27-health-anomaly: gone] Keep movement deviations at an investigation-only evidence boundary
++ codex/issue-28-movement-rf-context                                 044b90b (/home/gusta/projetos/RIOSE/riose-issue28) [fork/main: behind 84] Document Issue 28 red-team outcomes and verification scope
++ codex/issue-5-spi-timeout-followup                                 3111a38 (/home/gusta/projetos/RIOSE/riose-pr-issue-5) [fork/codex/issue-5-spi-timeout-followup: gone] Prevent instantaneous dropped SPI bytes from masquerading as timed transfer faults
++ codex/issue-6-resd-propagation-followup                            7f9b4b7 (/home/gusta/projetos/RIOSE/riose-pr-issue-6) [fork/codex/issue-6-resd-propagation-followup] Prevent spurious wake edges when native sensor interrupts update
++ codex/issue-8-temperature-axis-followup                            a55ea07 (/home/gusta/projetos/RIOSE/riose-pr-issue-8) [fork/codex/issue-8-temperature-axis-followup] Enable declared temperature sensitivity without inventing component data
++ codex/pr44-publication                                             3bdb712 (/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-publication) [origin/main: ahead 12, behind 9] Implement evidence bridge and commitment v1
++ codex/pr44-signal-engine                                           c4f60d0 (/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-signal) [origin/main: ahead 2, behind 9] Record scientific libraries in the workstation benchmark
++ docs/final-competition-readme                                      d3bb56e (/home/gusta/projetos/RIOSE/riose-main-promotion-postcheck) Clarify RIOSE's product and evidence boundaries for competition review
++ docs/hackathon-web3-readme                                         996a659 (/home/gusta/projetos/RIOSE/riose-hackathon-web3-readme) [fork/main: ahead 1, behind 1] Make RIOSE Web3 positioning clearer without overstating validation
++ integration/core-product-mvp                                       84ae34f (/home/gusta/projetos/RIOSE/riose-core-product-mvp) Document the Core and Product integration evidence
++ integration/embedded-physical-digital-mvp                          10a7b32 (//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-embedded-physical-digital-mvp) Keep integration report free of trailing whitespace
++ integration/integrated-beta-final                                  b2de3a9 (//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-final) Record clean checkout verification
++ integration/intelligence-research-mvp                              7581f11 (/home/gusta/projetos/RIOSE/riose-intelligence-research-mvp) Record exact integration evidence for the Gate beta audit
++ integration/pre-blockchain-baseline                                c2a7671 (/home/gusta/projetos/RIOSE/riose-pre-blockchain-baseline) [fork/main: ahead 4, behind 26] Record published tag trace closure before Web3 work
++ integration/riose-candidate                                        7adec50 (/home/gusta/projetos/RIOSE/riose-integration-candidate) Keep the candidate auditable for final integration authority
++ integration/riose-promotion-bridge                                 3b5aaa6 (/home/gusta/projetos/RIOSE/riose-promotion-bridge) Preserve both approved and GUZZ history without changing product contents
+  main                                                               e57b235 [origin/main: behind 14] Merge pull request #35 from santleme/codex/mvp2-runner-robustness
++ mini-mvp/blockchain-publication                                    0c48205 (/home/gusta/projetos/RIOSE/riose-mini-mvp-blockchain-publication) Keep publication evidence optional and recoverable
++ mini-mvp/firmware-digital-twin                                     15f63a4 (/home/gusta/projetos/RIOSE/riose-mini-mvp-firmware-digital-twin) Make the simulated completion gate auditable from preserved evidence
++ mini-mvp/intelligence-behavior                                     cb912a4 (/home/gusta/projetos/RIOSE/riose-mini-mvp4-intelligence) Preserve animal behavior evaluation as an auditable research baseline
++ mini-mvp/persistence-reliability                                   e0efe78 (/home/gusta/projetos/RIOSE/riose-mini-mvp5-persistence-reliability) Record bounded evidence for local SQLite reliability
+  mini-mvp/simulation-localization                                   d11d883 Make simulated localization evidence auditable
++ multichain/final-integration                                       a45908b (/home/gusta/projetos/RIOSE/riose-multichain-final-integration) Prevent malformed EVM receipt logs from proving publication
++ multichain/main-reconciliation                                     6367bd5 (/home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation) [fork/main: behind 2] Preserve current main behaviors alongside approved multichain
++ multichain/mvp1-core-migration                                     fedc1bb (/home/gusta/projetos/RIOSE/riose-multichain-mvp1) Make the migration handoff reproducible and reviewable
++ multichain/mvp2-solana-reconciliation                              977be7b (/home/gusta/projetos/RIOSE/riose-multichain-mvp2) Record clean-checkout evidence for publication reconciliation
++ multichain/mvp3-evm-core                                           60bbb7f (/home/gusta/projetos/RIOSE/riose-multichain-mvp3) Keep the EVM verification record reproducible
++ multichain/mvp4-arbitrum                                           65a7035 (/home/gusta/projetos/RIOSE/riose-multichain-mvp4-arbitrum) Keep Arbitrum publication claims bounded by available evidence
++ multichain/mvp4-base                                               df9d281 (/home/gusta/projetos/RIOSE/riose-multichain-mvp4-base) Record Base candidate verification evidence
+  recovery/main-pre-multichain-reconciliation-2026-10-07             a974a4e Record published tag trace closure before Web3 work
+  recovery/mini-mvp-firmware-digital-twin-pre-reconcile              3b5aaa6 Preserve both approved and GUZZ history without changing product contents
+  recovery/mini-mvp-simulation-localization-pre-reconcile            5a6e09b Preserve the in-flight simulation boundary for reconciliation
+  recovery/multichain-final-preintegration                           60bbb7f Keep the EVM verification record reproducible
+  recovery/multichain-mvp1-pre-migration                             9bc8e97 Keep mesh convergence evidence physically meaningful
+  recovery/multichain-mvp2-pre-reconciliation                        fedc1bb Make the migration handoff reproducible and reviewable
+  recovery/multichain-mvp3-pre-evm-core                              977be7b Record clean-checkout evidence for publication reconciliation
+  recovery/pre-final-main-promotion-2026-10-07                       a974a4e Record published tag trace closure before Web3 work
++ research/blockchain-hackathon-demo                                 3bdb712 (/home/gusta/projetos/RIOSE/riose-blockchain-hackathon-demo) [origin/main: ahead 12, behind 9] Implement evidence bridge and commitment v1
++ research/movement-intelligence-e2e                                 72ad695 (//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-movement-intelligence-e2e) [fork/main: behind 67] Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml
++ research/network-contention-capacity-closure                       4152f8a (/home/gusta/projetos/RIOSE/riose-network-contention-capacity-closure) Close the simulated contention evidence with explicit limits
++ research/network-scale-capacity                                    a3e8f1b (/home/gusta/projetos/RIOSE/riose-network-scale-capacity) Preserve reproducible network capacity evidence
++ research/repository-audit                                          2a0dd05 (/home/gusta/projetos/RIOSE/riose-repository-audit) [origin/main: ahead 3, behind 9] Preserve repository state before uncertain work can be lost
++ research/rf-realism-campaign                                       cecda8d (/home/gusta/projetos/RIOSE/riose-rf-realism-campaign) Clarify blocked-link counts in the robustness map
++ research/rf-realism-gap-closure                                    44216b3 (/home/gusta/projetos/RIOSE/riose-rf-realism-gap-closure) Bind RF closure report to clean final simulation run
++ research/riose-beta-final                                          bfc6e86 (/home/gusta/projetos/RIOSE/riose-beta-final) [fork/main: ahead 12, behind 67] Mark H integration ready for the next Beta gate review
++ research/simulation-lab                                            2c9c477 (/home/gusta/projetos/RIOSE/riose-simulation-lab) [origin/main: ahead 12, behind 9] Record runtime-attested Cycle 6 campaign evidence
++ research/tag-simulation-closure                                    72ad695 (/home/gusta/projetos/RIOSE/riose-tag-simulation-closure) [fork/main: behind 67] Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml
+  riose/hackaton                                                     b442787 Merge pull request #29 from santleme/codex/mvp2-close-open-issues
++ software-closure/sc1-publication-reliability                       b2ddf11 (/home/gusta/projetos/RIOSE/riose-sc1-publication-reliability) [fork/main] Clarify RIOSE’s offline-first Web3 product story (#42)
++ software-closure/sc2-security-dependencies                         b2ddf11 (/home/gusta/projetos/RIOSE/riose-sc2-security-dependencies) [fork/main] Clarify RIOSE’s offline-first Web3 product story (#42)
++ software-closure/sc3-reproducible-environment                      b2ddf11 (/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment) [fork/main] Clarify RIOSE’s offline-first Web3 product story (#42)
++ validation/mvp1-e2e-digital-farm                                   ed575e5 (/home/gusta/projetos/RIOSE/riose-mvp1-e2e) [fork/main: ahead 6] Preserve the causal digital-farm validation evidence
++ validation/mvp2-rf-localization-campaign                           078fca6 (/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization) Make RF localization failures reviewable from reproducible evidence
++ validation/mvp3-failure-scale                                      1ea546c (/home/gusta/projetos/RIOSE/riose-mvp3-failure-scale) [fork/main: ahead 2] Bind the return packet to reproducible campaign evidence
++ validation/mvp4-offline-multichain                                 4e38b5a (//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-validation-mvp4-offline-multichain) [fork/validation/mvp4-offline-multichain] Preserve bounded proof for offline multichain recovery
++ validation/mvp5-real-on-chain                                      df4ef33 (/home/gusta/projetos/RIOSE/riose-validation-mvp5-real-on-chain) [fork/main: ahead 1] Preserve truthful public-chain claims when external gates are unavailable
++ validation/mvp6-final-gate                                         cac2b38 (/home/gusta/projetos/RIOSE/riose-validation-mvp6) [fork/main: ahead 2] Keep the independent audit grounded in current reproducible evidence
+  remotes/fork/HEAD                                                  -> fork/main
+  remotes/fork/codex/issue-01-event-contract-v1                      1d960a9 Keep historical livestock event hashes verifiable
+  remotes/fork/codex/issue-10-antenna-convergence-upstream           6619fb4 Require refinement proof for accepted antenna metrics
+  remotes/fork/codex/issue-11-sionna-rt                              279617a Make the orientation scenario test a real antenna change
+  remotes/fork/codex/issue-6-resd-propagation-followup               7f9b4b7 Prevent spurious wake edges when native sensor interrupts update
+  remotes/fork/codex/issue-8-temperature-axis-followup               a55ea07 Enable declared temperature sensitivity without inventing component data
+  remotes/fork/codex/pr44-publication                                3bdb712 Implement evidence bridge and commitment v1
+  remotes/fork/codex/pr44-signal-engine                              c4f60d0 Record scientific libraries in the workstation benchmark
+  remotes/fork/docs/hackathon-web3-readme                            996a659 Make RIOSE Web3 positioning clearer without overstating validation
+  remotes/fork/main                                                  b2ddf11 Clarify RIOSE’s offline-first Web3 product story (#42)
+  remotes/fork/recovery/rollback-main-pre-integrated-beta-2026-10-06 3b5aaa6 Preserve both approved and GUZZ history without changing product contents
+  remotes/fork/research/network-contention-capacity-closure          4152f8a Close the simulated contention evidence with explicit limits
+  remotes/fork/research/rf-realism-gap-closure                       44216b3 Bind RF closure report to clean final simulation run
+  remotes/fork/research/riose-beta-final                             bfc6e86 Mark H integration ready for the next Beta gate review
+  remotes/fork/validation/mvp4-offline-multichain                    4e38b5a Preserve bounded proof for offline multichain recovery
+  remotes/origin/HEAD                                                -> origin/main
+  remotes/origin/codex/issue-4-privacy-guard                         c5c5219 feat: define external anchoring signer contract
+  remotes/origin/codex/issues-02-03-evidence-commitment              04e0070 Implement evidence bridge and commitment v1
+  remotes/origin/codex/issues-10-16-publication-followups            40d3a1f feat: add publication issues 12-16
+  remotes/origin/codex/mvp2-wsl-toolchain                            bc315ff fix: bound simulation API workload
+  remotes/origin/codex/mvp3-visual-digital-twin                      64a873c feat(mvp3): add visual digital twin and cinematic replay
+  remotes/origin/codex/mvp3-visual-production-pass                   ee3b61d feat(mvp3): add Gazebo visual production pass
+  remotes/origin/codex/tokenized-animal-demo                         b2358d0 fix(demo): keep cattle sprites fully still
+  remotes/origin/main                                                c85c5f9 docs: reconcile MVP3 evidence references (#55)

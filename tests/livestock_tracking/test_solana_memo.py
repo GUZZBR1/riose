@@ -29,12 +29,13 @@ def _b58encode(raw):
 
 
 class FakeClient(SolanaMemoClient):
-    def __init__(self, config, *, genesis=GENESIS, observed=None):
+    def __init__(self, config, *, genesis=GENESIS, observed=None, block_height=90):
         super().__init__(config)
         from solders.hash import Hash
         self.genesis = genesis
         self.blockhash = str(Hash.default())
         self.observed = observed
+        self.block_height = block_height
         self.calls = []
 
     def rpc(self, method, params):
@@ -45,6 +46,8 @@ class FakeClient(SolanaMemoClient):
             return {"value": {"blockhash": self.blockhash, "lastValidBlockHeight": 100}}
         if method == "getTransaction":
             return self.observed
+        if method == "getBlockHeight":
+            return self.block_height
         if method == "sendTransaction":
             from solders.transaction import VersionedTransaction
             return str(VersionedTransaction.from_bytes(base64.b64decode(params[0])).signatures[0])
@@ -222,6 +225,44 @@ def test_prepared_solana_attempt_recovers_after_restart_without_repreparing(tmp_
         assert base64.b64decode(sent[0][0]) == saved_wire
         assert not any(method == "getLatestBlockhash" for method, _ in recovery_client.calls)
         assert recovered_outbox.latest_attempt(request["publication_id"])["attempt_id"] == attempt["attempt_id"]
+    finally:
+        reopened.close()
+
+
+def test_expired_ambiguous_solana_attempt_stops_replay_and_requires_manual_review(tmp_path):
+    from solders.keypair import Keypair
+
+    db_path = tmp_path / "solana-expiry.sqlite3"
+    store = Store(db_path)
+    store.create_animal("private-cow", "private-tag", "private-secret")
+    event = store.append_animal_event("private-cow", "WEIGHT_RECORDED", {"weight": 425}, 1)
+    outbox = SQLitePublicationOutbox(store)
+    config = SolanaMemoConfig("https://rpc.example", GENESIS)
+    request = outbox.enqueue_event(
+        event.event_id, destination="solana-memo", chain="solana", network=config.network_id,
+    )
+    signer = Keypair()
+    initial = SolanaMemoAdapter(FakeClient(config), signer)
+    prepared = initial.prepare(build_public_envelope(request["commitment"]))
+    attempt = outbox.prepare_publication_attempt(
+        request["publication_id"], adapter_id=initial.adapter_id,
+        transaction_id=prepared.transaction_id, payload=prepared.payload,
+        metadata=prepared.metadata,
+    )
+    store.close()
+
+    reopened = Store(db_path)
+    try:
+        client = FakeClient(config, observed=None, block_height=101)
+        adapter = SolanaMemoAdapter(client, signer)
+        result = PublicationDispatcher(SQLitePublicationOutbox(reopened), [adapter]).reconcile(
+            request["publication_id"],
+        )
+        assert result["status"] == "MANUAL_INTERVENTION"
+        assert result["last_failure_code"] == "PERSISTED_ATTEMPT_EXPIRED"
+        assert not any(method == "sendTransaction" for method, _ in client.calls)
+        assert not any(method == "getLatestBlockhash" for method, _ in client.calls)
+        assert SQLitePublicationOutbox(reopened).latest_attempt(request["publication_id"])["attempt_id"] == attempt["attempt_id"]
     finally:
         reopened.close()
 

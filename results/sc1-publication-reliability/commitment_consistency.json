@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "contract": "One canonical Commitment V1 per Event V1, reused for target-specific publication requests. Recovery reuses the persisted envelope and attempt payload; it does not recompute or replace the commitment.",
+  "evidence": [
+    {"check": "same commitment across selected targets", "test": "test_publication_outbox.py::test_one_event_commitment_is_reused_for_multiple_chain_targets", "result": "PASS"},
+    {"check": "same commitment after SQLite reopen and duplicate enqueue", "test": "test_publication_outbox.py::test_queue_is_atomic_minimal_and_idempotent_across_restart", "result": "PASS"},
+    {"check": "same commitment after process crash/reconciliation", "test": "test_publication_crash_windows.py::test_process_crashes_at_publication_side_effect_boundaries_and_recovers", "result": "PASS"},
+    {"check": "same signed attempt identity after Solana restart", "test": "test_solana_memo.py::test_prepared_solana_attempt_recovers_after_restart_without_repreparing", "result": "PASS"}
+  ],
+  "limit": "Local deterministic persistence evidence; not an external chain observation."
+}
