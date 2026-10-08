@@ -52,7 +52,19 @@ def test_absent_optional_tools_do_not_make_python_doctor_incompatible(monkeypatc
 
     for name in ("node", "npm", "cmake", "cmake_version", "node_version", "npm_version"):
         assert checks[name]["status"] == "OPTIONAL_MISSING"
+    assert checks["required_files"]["status"] == "READY"
+    assert "build-constraints.txt" not in checks["required_files"]["evidence"]["missing"]
     assert report["overall_status"] == "OPTIONAL_MISSING"
+
+
+def test_manifest_hashes_build_constraints() -> None:
+    root = Path(reproducibility.__file__).resolve().parents[1]
+
+    report = reproducibility.manifest()
+
+    assert report["config_hash_sha256"]["build-constraints.txt"] == reproducibility.sha256(
+        root / "build-constraints.txt"
+    )
 
 
 def test_riose_import_from_another_checkout_is_incompatible(monkeypatch, tmp_path: Path) -> None:

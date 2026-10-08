@@ -178,7 +178,7 @@ def doctor(*, external_network_blocked: bool = False) -> dict[str, Any]:
         uv_ok = False
     add("uv", "READY" if uv_ok else "INCOMPATIBLE", "uv >=0.11.7 is expected; CI pins 0.11.7.", tools["uv"])
 
-    required_files = ["pyproject.toml", "uv.lock", "contracts/package.json", "contracts/package-lock.json", "hardware/tests/CMakeLists.txt"]
+    required_files = ["pyproject.toml", "uv.lock", "build-constraints.txt", "contracts/package.json", "contracts/package-lock.json", "hardware/tests/CMakeLists.txt"]
     absent = [name for name in required_files if not (ROOT / name).is_file()]
     add("required_files", "READY" if not absent else "INCOMPATIBLE", "Required source and lock files.", {"missing": absent})
 
@@ -304,7 +304,7 @@ def manifest() -> dict[str, Any]:
     tracked_tree = git_value("rev-parse", "HEAD^{tree}")
     git_status = git_value("status", "--porcelain=v1") or ""
     lockfiles = ["uv.lock", "contracts/package-lock.json"]
-    config_files = ["pyproject.toml", "contracts/package.json", "hardware/toolchain.json", "Makefile"]
+    config_files = ["pyproject.toml", "build-constraints.txt", "contracts/package.json", "hardware/toolchain.json", "Makefile"]
     tools = tool_versions()
     return {
         "schema_version": 1,
