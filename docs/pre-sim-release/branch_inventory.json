@@ -1,10 +1,10 @@
 {
-  "captured_at_utc": "2026-10-08T16:29:05.066991+00:00",
+  "captured_at_utc": "2026-10-08T17:24:35.635074+00:00",
   "repo": "GUZZBR1/riose",
   "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
   "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
   "ref_count": 105,
-  "worktree_count": 106,
+  "worktree_count": 107,
   "branches": [
     {
       "name": "heads/archive/pre-promotion-main-2026-10-06",
@@ -279,49 +279,49 @@
     {
       "name": "recovery/main-pre-multichain-reconciliation-2026-10-07",
       "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/mini-mvp-firmware-digital-twin-pre-reconcile",
       "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/mini-mvp-simulation-localization-pre-reconcile",
       "sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/multichain-final-preintegration",
       "sha": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/multichain-mvp1-pre-migration",
       "sha": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
-      "classification": "UNKNOWN_PRESERVE",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/multichain-mvp2-pre-reconciliation",
       "sha": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/multichain-mvp3-pre-evm-core",
       "sha": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "recovery/pre-final-main-promotion-2026-10-07",
       "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
@@ -339,12 +339,12 @@
     {
       "name": "recovery/pre-software-closure-integration-2026-10-08",
       "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
-      "classification": "INTEGRATED",
+      "classification": "RECOVERY_PRESERVE",
       "deleted": false
     },
     {
       "name": "release/pre-sim-canonical",
-      "sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+      "sha": "572ccfbacb5023a2dbccc13e069c991d5de81a53",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -626,7 +626,7 @@
     },
     {
       "name": "origin/codex/tokenized-animal-demo",
-      "sha": "c8f4c62cf603dac04623f6f54dbb250784d5752f",
+      "sha": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
       "classification": "OPEN_PR_PRESERVE",
       "deleted": false
     },
@@ -1071,6 +1071,14 @@
       "removed": false
     },
     {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr41-head-review",
+      "branch": "DETACHED",
+      "head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+      "dirty": true,
+      "classification": "PR_REVIEW_PRESERVE",
+      "removed": false
+    },
+    {
       "path": "/home/gusta/projetos/RIOSE/riose-pr41-review",
       "branch": "DETACHED",
       "head": "129f19a55e7b29c9e70e1cb9cea78ab3f14d9bc0",
@@ -1089,7 +1097,7 @@
     {
       "path": "/home/gusta/projetos/RIOSE/riose-pre-sim-canonical",
       "branch": "release/pre-sim-canonical",
-      "head": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+      "head": "572ccfbacb5023a2dbccc13e069c991d5de81a53",
       "dirty": true,
       "classification": "CURRENT_CANDIDATE_PRESERVE",
       "removed": false
@@ -1489,5 +1497,6 @@
   ],
   "cleanup_policy": "No branches or worktrees deleted; ambiguous, dirty, recovery, and open-PR work preserved.",
   "candidate_recovery_ref": "recovery/pre-sim-publication-final-2026-10-08",
-  "candidate_recovery_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929"
+  "candidate_recovery_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "remote_pr_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec"
 }

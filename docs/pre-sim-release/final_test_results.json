@@ -22,5 +22,13 @@
   "checks_not_observed_or_limited": [
     "remote GitHub CI for candidate: not published, therefore UNVERIFIED",
     "frontend E2E was run on the reconciled candidate before code commit; commit afterward changed documentation/evidence and test route assertions; 100-animal responsive browser coverage passed."
-  ]
+  ],
+  "pr41_latest_head_isolated": {
+    "head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+    "farm_demo": "npm ci PASS (0 vulnerabilities); npm test 22/22 incl typecheck/build PASS",
+    "web3_demo": "npm ci PASS; npm run build PASS; 12 moderate advisories",
+    "api_and_integration": "29 passed, 1 warning",
+    "security_subset": "90 passed, 1 warning",
+    "e2e": "FAIL: assertFarmStageStaysStable timeout at 2500ms during map-click selection; reconciled candidate extends sample window and timeout and its E2E passed."
+  }
 }

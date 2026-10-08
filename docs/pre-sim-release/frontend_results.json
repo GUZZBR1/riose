@@ -8,5 +8,7 @@
   "limitations": [
     "No physical-device testing",
     "Guided wallet flow in latest PR head excluded"
-  ]
+  ],
+  "pr41_current_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+  "pr41_isolated_e2e": "FAIL on original current PR head: 2500ms stability wait timed out at assertFarmStageStaysStable; the reconciled candidate fixes its sampling window and passed."
 }

@@ -25,5 +25,9 @@
       "finding": "Latest head promotes a record digest read from mutable HTTP metadata as Devnet anchoring proof without comparing it to an immutable reserved/minted value; verification can remain VALIDATED_ON_DEVNET after metadata changes. Excluded with the entire tokenization path."
     }
   ],
-  "dependency_residual": "9 advisories in inherited local Ganache/solc test toolchain; no dependency change."
+  "dependency_residual": "9 advisories in inherited local Ganache/solc test toolchain; no dependency change.",
+  "pr_current_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+  "pr_current_state": "OPEN, not draft; mergeable clean at refresh; core and cad-export checks success",
+  "pr_current_commits": 33,
+  "pr_final_delta_finding": "P2: latest head adds identity preview UX and identity badge animations. Its fallback preview is visibly simulated, but tokenization and mutable-digest anchoring remain excluded."
 }

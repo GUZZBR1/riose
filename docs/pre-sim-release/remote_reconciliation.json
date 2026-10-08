@@ -10,7 +10,9 @@
   "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
   "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
   "remote_main_new_commits": "Candidate ancestry includes current fork main; no remote-main-only commits observed.",
-  "publication": "Write credential invalid; publication attempt pending after evidence finalization.",
+  "publication": "Still not attempted; the configured GitHub auth credential is invalid. A non-force push will be attempted after this final refresh.",
   "remote_main_preserved": true,
-  "force_push": false
+  "force_push": false,
+  "latest_pr_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+  "pr_number": 41
 }

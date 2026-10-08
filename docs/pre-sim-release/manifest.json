@@ -4,17 +4,17 @@
   "created_at_utc": "2026-10-08T16:29:05.066991+00:00",
   "hash_algorithm": "sha256",
   "files": {
-    "branch_inventory.json": "93728532f7a2425d05c951f64c4ce77a611f03a4f655116a8ed62688ca8f2ee1",
+    "branch_inventory.json": "6a53f6ba57ad11498da64748101f6b3e634d6371e2942730d45ed02b2a411a91",
     "claim_registry.json": "6982e887b69fe5d733ac0eb92dfe1076cd1c8df684ca314a0afa6cf978cf4312",
     "cleanup_manifest.json": "1008c74ce38709f84b3e7aae07e5dab8ad0d4fa2d2ce4db3bd50114c0e62e864",
-    "final_report.md": "6a13de46e29da75adf05c6a0db770d8eb08ff9adefb128cbbfb9164c05b30236",
-    "final_test_results.json": "fe9fc5f3971e17d99844b5216f6b1c06aa2461906df732e9ceca3ab7d46b9bf2",
-    "frontend_results.json": "27295661635216d0cc4d68d9f533dbd400ed04d0bf615dabb62d0865f7ae118c",
-    "pr41_component_matrix.json": "22080f266fb8af41d20447e7b375b179facceeb969fdc61f72a7cdddd7cdf7e0",
-    "pr41_review.md": "300e8b775f0d855afb0f64ca187ba1f0531611318d89e6a4aacb2b17e616bde3",
+    "final_report.md": "b519f065521f474839ac70be22417ac11d8b444c40dd35e180093e4a085bb427",
+    "final_test_results.json": "738367b893fd2f042e0483eb5bbe14557050f5ad1a90173a507eaa2d4021ca47",
+    "frontend_results.json": "5de394f3f55ce9d0aaf7304b7824877d85db0d35ae9eb7323554d0cefbe0614d",
+    "pr41_component_matrix.json": "46c9216beb75bf9b07de28681226556e4c22e38874cdec8d26327a0780c01419",
+    "pr41_review.md": "36a1a8da2894c449b24877b08b1fc97e557e2da8c3885368ad499dc0af6e307e",
     "red_team_report.md": "adcb7810a8ecd57330048f11bd32373e25df9e6f695191e59a8edf72a6ad90d4",
-    "remote_reconciliation.json": "50f958c35c1991354bd404cdc9ba2d68f4384e58d3c387f7a38c4a96252c5fa2",
+    "remote_reconciliation.json": "03dd69a6eb8df561e0b55de41fd572da481861c1b8568d2400e1cd483f9e46c4",
     "scientific_results.json": "1444d84439a830bd2d7262938476e4cb25adfd39238ca0d462e94fadf1558a5a",
-    "security_results.json": "400f49b6283d080e810f3a72c0a699bb6269ebbf61a3d637fbef4a18577fc5f6"
+    "security_results.json": "e7ab27f346164e67dbf22107f0423fbe7d01e9c403c05c934920a3f99a75cc35"
   }
 }

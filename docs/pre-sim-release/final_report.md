@@ -4,9 +4,9 @@ Candidate 64846b0b6182cc0b248fe453dd875e0170c5a929 (tree 14bfa86aa1d1b38fc8c2c20
 
 ## Verdict
 
-LOCAL_RELEASE_READY_PUBLICATION_BLOCKED pending valid GitHub write credentials; final read-only review found no P0/P1 in the candidate, while PR tokenization P1/P2 findings remain excluded. PR #41 verdict: PARTIALLY_INTEGRATE. No direct merge, push, PR close, branch deletion, or worktree deletion has occurred.
+LOCAL_RELEASE_READY_PUBLICATION_BLOCKED pending valid GitHub write credentials; final read-only self-audit found no P0/P1 in the candidate, while PR tokenization P1/P2 findings remain excluded; delegated final reviewer calls were unavailable because of account model limits. PR #41 verdict: PARTIALLY_INTEGRATE. No direct merge, push, PR close, branch deletion, or worktree deletion has occurred.
 
-GitHub fetch and REST reads succeeded. PR #41 is open, not draft, and mergeable at refresh, at head c8f4c62cf603dac04623f6f54dbb250784d5752f. Configured gh authentication is invalid, so write operations are blocked. Candidate remote CI is UNVERIFIED because it is not published.
+GitHub fetch and REST reads succeeded. PR #41 is open, not draft, and mergeable at refresh, at head 79af412aff8a63e7b563d49f3e03f4d8c07c40ec. The PR has 33 commits and 116 changed files. Latest-head isolated tests: farm 22/22; API/integration 29; security subset 90; web3 build passed with 12 moderate advisories; PR E2E failed its 2.5-second stability wait, which was repaired in the candidate. Configured gh authentication is invalid, so write operations are blocked. Candidate remote CI is UNVERIFIED because it is not published.
 
 ## Validation
 
