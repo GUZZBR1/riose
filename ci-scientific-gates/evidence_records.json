@@ -1,4 +1,29 @@
 {
   "schema_version": "riose.sc4-evidence-records/v1",
-  "records": []
+  "records": [
+    {
+      "evidence_id": "SC4-LOCAL-GATES-5881305",
+      "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "source_tree": "2ee3930e5ae6b96cef6134840151c17f7c85f0e4",
+      "tested_sha": "588130561123203c3d270208d7c31927b8520702",
+      "tested_tree": "f6092ce371b1d3abd82ba839fa0c8940ab6f4ddb",
+      "patch_sha256": "60a0baee2309421526cf3dce6ee5306de8596260d4e96f126f1ca2896788c5dc",
+      "config_path": "uv.lock",
+      "config_sha256": "2db7575b0385c45d6cc95ea108c8f4c04bd0802c41b0c8eb3485f2999c4e76bf",
+      "seed": "not_applicable",
+      "environment": {
+        "platform": "Ubuntu 24.04 WSL2 x86_64",
+        "python": "3.12.3",
+        "uv": "0.11.26",
+        "node": "v22.22.2",
+        "npm": "10.9.7",
+        "classification_scope": "local host and mock EVM tests only"
+      },
+      "artifact_path": "ci-scientific-gates/local_ci_evidence.log",
+      "artifact_sha256": "d51302120bf725e8f190a235ae68524daffd62ec187aef1abb7fec244d6defa5",
+      "scenario": "SC4_LOCAL_GATE_VALIDATION",
+      "backend": "local-host-and-mock-EVM",
+      "evidence_classification": "SIMULATED"
+    }
+  ]
 }

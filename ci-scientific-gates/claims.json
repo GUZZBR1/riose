@@ -1,5 +1,30 @@
 {
   "schema_version": "riose.sc4-claims/v1",
   "claim_basis": "Local gate implementation and results recorded in evidence_records.json; remote CI and physical claims are excluded.",
-  "claims": []
+  "claims": [
+    {
+      "claim_id": "SC4_CI_GATES_IMPLEMENTED",
+      "statement": "Named PR fast, scientific, main regression, CAD export, and request-only heavy gates are wired to local and GitHub Actions entry points.",
+      "evidence_classification": "SIMULATED",
+      "evidence_ids": [
+        "SC4-LOCAL-GATES-5881305"
+      ]
+    },
+    {
+      "claim_id": "SCIENTIFIC_INVARIANTS_AUTOMATED",
+      "statement": "Existing scientific contract regressions and fail-closed evidence and skip policy checks are included in the gates.",
+      "evidence_classification": "SIMULATED",
+      "evidence_ids": [
+        "SC4-LOCAL-GATES-5881305"
+      ]
+    },
+    {
+      "claim_id": "LOCAL_CI_VALIDATED",
+      "statement": "Recorded local fast, scientific, full Python, CAD, host C, Solidity, package, and local EVM checks passed within the stated limits.",
+      "evidence_classification": "SIMULATED",
+      "evidence_ids": [
+        "SC4-LOCAL-GATES-5881305"
+      ]
+    }
+  ]
 }
