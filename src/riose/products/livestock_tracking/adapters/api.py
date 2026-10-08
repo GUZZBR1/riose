@@ -234,6 +234,11 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     def dashboard() -> str:
         return (static_dir / "index.html").read_text(encoding="utf-8")
 
+    @app.get("/simulator", response_class=HTMLResponse)
+    def simulator() -> str:
+        """Keep the interactive RF controls available beside the illustrative farm demo."""
+        return (static_dir / "simulator.html").read_text(encoding="utf-8")
+
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "evidence": "SIMULATED"}

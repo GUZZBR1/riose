@@ -109,7 +109,7 @@
       if (!entry.isIntersecting) return;
       const sceneScript = document.createElement('script');
       sceneScript.type = 'module';
-      sceneScript.src = '/assets/product-scene.js?v=20261005-1';
+      sceneScript.src = '/assets/product-scene.js?v=20261007-8';
       sceneScript.onerror = () => {
         sceneWrap.classList.add('is-error');
         document.getElementById('scene-status').textContent = 'The 3D model could not be loaded. Enable WebGL and reload the page.';

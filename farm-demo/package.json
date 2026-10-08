@@ -1,0 +1,21 @@
+{
+  "name": "riose-farm-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local TypeScript and Phaser source for the RIOSE farm demo scene",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node build.mjs",
+    "test:e2e": "node tools/e2e-and-capture.mjs",
+    "test": "npm run typecheck && npm run build && node tests/build-tests.mjs && node --test .test-build/*.test.mjs"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0",
+    "playwright": "1.63.0",
+    "typescript": "7.0.2"
+  }
+}

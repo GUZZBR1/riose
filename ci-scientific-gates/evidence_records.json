@@ -9,7 +9,7 @@
       "tested_tree": "f6092ce371b1d3abd82ba839fa0c8940ab6f4ddb",
       "patch_sha256": "60a0baee2309421526cf3dce6ee5306de8596260d4e96f126f1ca2896788c5dc",
       "config_path": "uv.lock",
-      "config_sha256": "2db7575b0385c45d6cc95ea108c8f4c04bd0802c41b0c8eb3485f2999c4e76bf",
+      "config_sha256": "52106fa45a2abab8acae72d657ba236f7b6611049b6cb40caab4be79b82f7d98",
       "seed": "not_applicable",
       "environment": {
         "platform": "Ubuntu 24.04 WSL2 x86_64",

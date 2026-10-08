@@ -16,7 +16,7 @@ from cattle_rf.api import (
 def test_dashboard_explicit_anchors_and_debug_only_truth(tmp_path):
     app = create_app(tmp_path / "dashboard.sqlite3")
     client = TestClient(app)
-    page = client.get("/demo")
+    page = client.get("/simulator")
     assert page.status_code == 200
     assert "Cattle RF" in page.text
     anchors = [
@@ -67,7 +67,7 @@ def test_dashboard_restores_anchors_and_lists_animals_without_accepted_positions
          "kind":"simulated", "enabled":True}
     ]
     assert client.get("/api/animals").json()[0]["hardware_id"] == "tag-no-fix"
-    page = client.get("/demo")
+    page = client.get("/simulator")
     assert page.status_code == 200
     assert "sem posição aceite" in page.text
     client.close()
@@ -104,7 +104,7 @@ def test_dashboard_rerun_replaces_duplicate_visible_samples_and_keeps_latest_pag
 
 def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
     client = TestClient(create_app(tmp_path / "virtual-fence-ui.sqlite3"))
-    page = client.get("/demo")
+    page = client.get("/simulator")
 
     assert page.status_code == 200
     assert 'id="runFence"' in page.text
@@ -112,6 +112,17 @@ def test_dashboard_exposes_simulation_only_virtual_fence_action(tmp_path):
     assert "api/experiments/virtual-fence" in page.text
     assert "zona-central-demo" in page.text
     assert "Nenhum estímulo físico ou elétrico é produzido" in page.text
+
+
+def test_farm_demo_is_illustrative_and_has_no_wallet_or_asset_action(tmp_path):
+    client = TestClient(create_app(tmp_path / "farm-demo.sqlite3"))
+    page = client.get("/demo")
+
+    assert page.status_code == 200
+    assert page.text.count("animal movement and location are simulated") == 2
+    assert "Preview only · no blockchain transaction." in page.text
+    assert "Create asset" not in page.text
+    assert "asset-tokenization.bundle.js" not in page.text
 
 
 def test_landing_page_and_static_product_assets(tmp_path):

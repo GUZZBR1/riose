@@ -75,7 +75,8 @@ def test_upstream_site_and_mvp3_dashboard_routes_remain_available(tmp_path):
     with TestClient(create_app(tmp_path / "site.sqlite3")) as client:
         landing = client.get("/", headers={"accept-encoding": "gzip"})
         manifesto = client.get("/manifesto")
-        dashboard = client.get("/demo")
+        dashboard = client.get("/simulator")
+        farm_demo = client.get("/demo")
         asset = client.get("/assets/landing.css")
 
     assert landing.status_code == 200
@@ -85,5 +86,7 @@ def test_upstream_site_and_mvp3_dashboard_routes_remain_available(tmp_path):
     assert "RIOSE" in manifesto.text
     assert dashboard.status_code == 200
     assert "Executar simulação" in dashboard.text
+    assert farm_demo.status_code == 200
+    assert "animal movement and location are simulated" in farm_demo.text
     assert asset.status_code == 200
     assert "--" in asset.text
