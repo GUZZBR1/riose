@@ -44,7 +44,15 @@ export const FARM_DEFINITIONS: Record<FarmId, FarmDefinition> = {
     navigation: FARM02_NAVIGATION,
     pastureForAnimal: farm02PastureForAnimal,
     cattle: 'nelore',
-    behavior: { minimumTripDistance: 170, walkSpeedMin: 17, walkSpeedMax: 22, interactionChance: 0.15 },
+    behavior: {
+      minimumTripDistance: 170,
+      walkSpeedMin: 13,
+      walkSpeedMax: 18,
+      interactionChance: 0.2,
+      interactionRoles: { 0: 'drink', 12: 'drink', 4: 'shade', 10: 'shade', 16: 'shade', 22: 'shade' },
+      interactionDwellMin: 18,
+      interactionDwellMax: 30,
+    },
   },
 };
 

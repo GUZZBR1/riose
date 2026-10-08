@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261008-01">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261008-03">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -50,7 +50,7 @@
             </div>
             <button type="button" class="farm-card-close" id="close-animal-panel" aria-label="Close animal details">×</button>
           </header>
-          <div class="animal-panel-body">
+          <div class="animal-panel-body" id="animal-panel-body">
             <img class="record-portrait" id="record-portrait" src="/assets/demo/animal-0.webp" alt="Animal 0, cattle portrait" width="380" height="380">
             <div class="animal-record-copy">
               <p class="animal-status-line"><span id="selected-animal-status">Grazing</span><span aria-hidden="true"> · </span><span id="selected-animal-zone">Willow meadow</span></p>
@@ -61,16 +61,21 @@
                 </div>
                 <ol class="journey-list" id="journey-list" aria-live="polite"></ol>
               </section>
-              <section class="cerrado-profile" id="cerrado-profile" aria-label="Illustrative ranch profile" hidden>
-                <p class="profile-provenance">Illustrative profile</p>
+              <section class="cerrado-profile" id="cerrado-profile" aria-label="Cerrado animal profile" hidden>
                 <dl class="cerrado-profile-grid" id="cerrado-profile-grid">
                   <div><dt>Health</dt><dd data-cerrado="health"></dd></div>
-                  <div><dt>Activity</dt><dd data-cerrado="activity"></dd></div>
                   <div class="reproductive-field"><dt>Reproductive status</dt><dd data-cerrado="reproductive"></dd></div>
                   <div><dt>Estimated location</dt><dd data-cerrado="location"></dd></div>
                   <div><dt>Last signal</dt><dd data-cerrado="signal"></dd></div>
-                  <div><dt>Body condition</dt><dd data-cerrado="condition"></dd></div>
                 </dl>
+                <details class="profile-details">
+                  <summary>More animal details</summary>
+                  <dl>
+                    <div><dt>Riose tag</dt><dd data-cerrado="tag"></dd></div>
+                    <div><dt>Body condition</dt><dd data-cerrado="condition"></dd></div>
+                  </dl>
+                  <p>Illustrative demo profile. It is not a veterinary assessment.</p>
+                </details>
               </section>
               <div class="record-integrity" id="record-verification" role="status" aria-live="polite" data-state="pending">
                 <span class="integrity-dot" aria-hidden="true"></span><span>Checking record integrity…</span>
@@ -78,39 +83,42 @@
               <p class="quiet-status api-state" id="api-state" role="status" aria-live="polite" hidden></p>
             </div>
           </div>
-          <button class="identity-toggle" id="continue-solana" type="button" aria-expanded="false" aria-controls="solana-screen">Create digital identity <span aria-hidden="true">↗</span></button>
+          <button class="identity-toggle" id="continue-solana" type="button" aria-expanded="false" aria-controls="solana-screen">Digital identity <span aria-hidden="true">↗</span></button>
         </section>
 
         <section class="context-card solana-panel" id="solana-screen" aria-labelledby="solana-title" aria-hidden="true" inert>
           <header class="solana-panel-heading">
             <div>
-              <p class="digital-eyebrow">Digital identity</p>
-              <h2 id="solana-title">Tokenize on Solana</h2>
+              <p class="digital-eyebrow">Solana · Devnet</p>
+              <h2 id="solana-title">Digital identity</h2>
             </div>
-            <span class="asset-network"><span class="network-dot" aria-hidden="true"></span>Solana Devnet</span>
           </header>
           <div class="solana-panel-body">
             <img class="identity-art" id="identity-art" data-src="/assets/demo/solana-identity-orb.webp" alt="" width="220" height="220" decoding="async">
             <div class="solana-actions">
-              <p class="solana-lede">Create a verifiable on-chain record for this animal’s digital identity.</p>
+              <ol class="proof-flow" aria-label="Identity proof steps">
+                <li>Farm record</li><li>Digest</li><li>Solana</li><li>Digital identity</li>
+              </ol>
               <div class="asset-preview-card" id="asset-preview-card" hidden aria-live="polite">
                 <img id="asset-preview-portrait" src="/assets/demo/animal-0.webp" alt="" width="48" height="48">
                 <div class="asset-preview-copy">
-                  <span>PUBLIC IDENTITY</span>
                   <strong id="asset-preview-public-name">Animal 0</strong>
-                  <small>Minimal metadata · no farm data</small>
+                  <small>Public identity</small>
                 </div>
               </div>
               <p class="asset-preview-status" id="asset-preview-status" role="status" aria-live="polite" hidden></p>
               <div class="asset-actions">
-                <button class="secondary-button" id="asset-preview-action" type="button">Preview asset</button>
-                <button class="primary-button" id="asset-action" type="button" hidden>Create asset</button>
+                <button class="primary-button" id="asset-preview-action" type="button">Create digital identity</button>
+                <button class="primary-button" id="asset-action" type="button" hidden>Create on Devnet</button>
               </div>
-              <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Digital identity not created.</p>
-              <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View verified asset ↗</a>
+              <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Ready when you are.</p>
+              <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View proof ↗</a>
             </div>
           </div>
-          <p class="asset-disclosure">A wallet signature is required. This asset does not verify the animal record or prove physical ownership.</p>
+          <details class="asset-details">
+            <summary>About this proof</summary>
+            <p>A wallet signature is required to create the asset. The digital identity is separate from the farm record and does not prove physical ownership.</p>
+          </details>
         </section>
       </aside>
     </section>
@@ -139,6 +147,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-31"></script>
+  <script type="module" src="/assets/demo.js?v=20261008-02"></script>
 </body>
 </html>
