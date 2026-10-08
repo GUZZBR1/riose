@@ -1,0 +1,26 @@
+{
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
+  "captured_at_utc": "2026-10-08T16:29:05.066991+00:00",
+  "python_regression": "PASS: 953 passed, 8 expected skips, 1 warning",
+  "security": "PASS WITH RESIDUAL RISK: 128 passed, 1 expected skip, 1 warning",
+  "publication_reliability": "PASS: 65 passed",
+  "reproducibility": "PASS_LOCAL_WITH_FOLLOWUPS: three-target mock smoke; public evidence UNVERIFIED; SQLite integrity ok",
+  "pr_fast": "PASS: 85 passed; diff check passed",
+  "scientific": "PASS_LOCAL: 315 passed, 1 expected skip",
+  "ctest": "PASS: 39/39",
+  "evm_local": "PASS: 2 passed",
+  "solidity": "PASS: RioseCommitmentRegistry.sol compile",
+  "integrated_smoke": "PASS: local/mock fixtures only; API ground truth hidden; public chain UNVERIFIED",
+  "targeted_api_after_commit": "PASS: 25 passed, 1 warning",
+  "doctor": "PASS: scripts/doctor.sh exit 0",
+  "uv_lock_check": "PASS: uv lock --check --offline",
+  "python_package_build": "PASS: sdist and wheel cattle_rf-0.1.0",
+  "frontend": "PASS: npm test 22/22 including typecheck/build via Windows Node; browser E2E passed; final post-commit API/integration tests 25 passed.",
+  "remote_ci": "UNVERIFIED; candidate not published",
+  "contracts_dependency_audit": "FOLLOW_UP: 9 inherited test-toolchain advisories (1 critical, 7 high, 1 moderate); farm-demo audit 0.",
+  "checks_not_observed_or_limited": [
+    "remote GitHub CI for candidate: not published, therefore UNVERIFIED",
+    "frontend E2E was run on the reconciled candidate before code commit; commit afterward changed documentation/evidence and test route assertions; 100-animal responsive browser coverage passed."
+  ]
+}

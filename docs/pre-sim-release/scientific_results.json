@@ -1,0 +1,14 @@
+{
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "scientific_gate": "PASS_LOCAL: 315 passed, 1 expected skip",
+  "RF": "SIMULATED",
+  "LOCALIZATION": "SIMULATED",
+  "SOLANA_PUBLIC_TESTNET": "UNVERIFIED",
+  "BASE_PUBLIC_TESTNET": "UNVERIFIED",
+  "ARBITRUM_PUBLIC_TESTNET": "UNVERIFIED",
+  "BEHAVIOR_ML": "RESEARCH_SUPPORTED_NOT_OPERATIONAL",
+  "HARDWARE": "NOT_VALIDATED",
+  "FIELD": "NOT_PERFORMED",
+  "mock_receipts": "Local deterministic fixtures only; no public-chain evidence.",
+  "ground_truth": "Normal API hides ground truth; explicit harness records it; no leakage observed."
+}

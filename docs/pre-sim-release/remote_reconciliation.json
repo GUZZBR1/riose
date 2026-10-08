@@ -1,0 +1,16 @@
+{
+  "classification": "BEHIND_RECONCILED",
+  "captured_at_utc": "2026-10-08T16:29:05.066991+00:00",
+  "repository": "GUZZBR1/riose",
+  "remote_main_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "remote_main_freshness": "VERIFIED via GitHub REST and fetch",
+  "starting_candidate_sha": "d74ceacc08960002bc547d39cca42713280b600e",
+  "starting_candidate_tree": "b00013f734f1e4f4b38ceae969a195049ffd92f3",
+  "candidate_descends_from_remote_main": true,
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
+  "remote_main_new_commits": "Candidate ancestry includes current fork main; no remote-main-only commits observed.",
+  "publication": "Write credential invalid; publication attempt pending after evidence finalization.",
+  "remote_main_preserved": true,
+  "force_push": false
+}

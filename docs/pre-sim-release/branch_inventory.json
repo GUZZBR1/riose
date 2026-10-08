@@ -1,0 +1,1493 @@
+{
+  "captured_at_utc": "2026-10-08T16:29:05.066991+00:00",
+  "repo": "GUZZBR1/riose",
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
+  "ref_count": 105,
+  "worktree_count": 106,
+  "branches": [
+    {
+      "name": "heads/archive/pre-promotion-main-2026-10-06",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "audit/final-integration-authority",
+      "sha": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/autonomous-recovery-protocol",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-02-evidence-bridge",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-03-commitment-v1",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-10-antenna-convergence",
+      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-10-antenna-followup",
+      "sha": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-12-integration-followup",
+      "sha": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-21-dataset-foundation",
+      "sha": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-22-signal-engine",
+      "sha": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-23-behavior-ml",
+      "sha": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-24-behavior-persistence",
+      "sha": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-25-biosignature",
+      "sha": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-26-reproduction-intelligence",
+      "sha": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-27-health-anomaly",
+      "sha": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-28-movement-rf-context",
+      "sha": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-5-spi-timeout-followup",
+      "sha": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "docs/final-competition-readme",
+      "sha": "d3bb56e4745593dc96c61d4779416087d3f8e3f7",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "docs/hackathon-web3-readme",
+      "sha": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "integration/core-product-mvp",
+      "sha": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "integration/embedded-physical-digital-mvp",
+      "sha": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "integration/integrated-beta-final",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "integration/intelligence-research-mvp",
+      "sha": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "integration/pre-blockchain-baseline",
+      "sha": "c2a76712cb57ef354682f51cdbf6d3b1386f6aab",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "integration/riose-candidate",
+      "sha": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "integration/riose-promotion-bridge",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "main",
+      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "mini-mvp/blockchain-publication",
+      "sha": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "mini-mvp/firmware-digital-twin",
+      "sha": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "mini-mvp/intelligence-behavior",
+      "sha": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "mini-mvp/persistence-reliability",
+      "sha": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "mini-mvp/simulation-localization",
+      "sha": "d11d8838f41dbd36da2020365b914a86e2262b76",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/final-integration",
+      "sha": "a45908b6eecb347fb5e2f6bf1e111f10885a4647",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/main-reconciliation",
+      "sha": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/mvp1-core-migration",
+      "sha": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/mvp2-solana-reconciliation",
+      "sha": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/mvp3-evm-core",
+      "sha": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "multichain/mvp4-arbitrum",
+      "sha": "65a70357513d137390a6e97a95a75e966a870c73",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "multichain/mvp4-base",
+      "sha": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "recovery/main-pre-multichain-reconciliation-2026-10-07",
+      "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/mini-mvp-firmware-digital-twin-pre-reconcile",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/mini-mvp-simulation-localization-pre-reconcile",
+      "sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/multichain-final-preintegration",
+      "sha": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/multichain-mvp1-pre-migration",
+      "sha": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "recovery/multichain-mvp2-pre-reconciliation",
+      "sha": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/multichain-mvp3-pre-evm-core",
+      "sha": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/pre-final-main-promotion-2026-10-07",
+      "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "recovery/pre-sim-publication-2026-10-08",
+      "sha": "d74ceacc08960002bc547d39cca42713280b600e",
+      "classification": "RECOVERY_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "recovery/pre-sim-publication-final-2026-10-08",
+      "sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+      "classification": "RECOVERY_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "recovery/pre-software-closure-integration-2026-10-08",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "release/pre-sim-canonical",
+      "sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "research/blockchain-hackathon-demo",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/movement-intelligence-e2e",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "research/network-contention-capacity-closure",
+      "sha": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/network-scale-capacity",
+      "sha": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/repository-audit",
+      "sha": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/rf-realism-campaign",
+      "sha": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/rf-realism-gap-closure",
+      "sha": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/riose-beta-final",
+      "sha": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/simulation-lab",
+      "sha": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "research/tag-simulation-closure",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "riose/hackaton",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/final-canonical-integration",
+      "sha": "d74ceacc08960002bc547d39cca42713280b600e",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc1-publication-reliability",
+      "sha": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc2-security-dependencies",
+      "sha": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc3-reproducible-environment",
+      "sha": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc4-ci-scientific-gates",
+      "sha": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc5-real-on-chain",
+      "sha": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "software-closure/sc6-final-gate",
+      "sha": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp1-e2e-digital-farm",
+      "sha": "ed575e57d36f80d815bd43396a3cb36ae021ac99",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp2-rf-localization-campaign",
+      "sha": "078fca6fe06a92bd55c5fc279918a3c840de8f33",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp3-failure-scale",
+      "sha": "1ea546c38870bedd71b162a38b4a8f3e1c9f0758",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp4-offline-multichain",
+      "sha": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp5-real-on-chain",
+      "sha": "df4ef334729c1e4bfb5e02a21d8f8020330a1d87",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "validation/mvp6-final-gate",
+      "sha": "cac2b3876cf3bd2c298bc7d923296dcb39add93e",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/issue-11-sionna-rt",
+      "sha": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/docs/hackathon-web3-readme",
+      "sha": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/main",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "fork/recovery/rollback-main-pre-integrated-beta-2026-10-06",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "fork/research/network-contention-capacity-closure",
+      "sha": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/research/rf-realism-gap-closure",
+      "sha": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/research/riose-beta-final",
+      "sha": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "fork/validation/mvp4-offline-multichain",
+      "sha": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin",
+      "sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/issue-4-privacy-guard",
+      "sha": "c5c5219bdfd5c57bbeccb47000236e535251a005",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/issues-02-03-evidence-commitment",
+      "sha": "04e00701dc54127703d146621177d9e226d134fc",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/issues-10-16-publication-followups",
+      "sha": "40d3a1f48a5b7d1c1def23b647050a6abc7098c6",
+      "classification": "INTEGRATED",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/mvp2-wsl-toolchain",
+      "sha": "bc315ff52a77ef5fd82d7a4b76f9ff6d62cf1b56",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/mvp3-visual-digital-twin",
+      "sha": "64a873cc53e5fb4c167e2d717e4436afcbf5392a",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/mvp3-visual-production-pass",
+      "sha": "ee3b61dbbd7973ddc952a49b63b142db6b52de92",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin/codex/tokenized-animal-demo",
+      "sha": "c8f4c62cf603dac04623f6f54dbb250784d5752f",
+      "classification": "OPEN_PR_PRESERVE",
+      "deleted": false
+    },
+    {
+      "name": "origin/main",
+      "sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+      "classification": "UNKNOWN_PRESERVE",
+      "deleted": false
+    }
+  ],
+  "worktrees": [
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose",
+      "branch": "codex/issue-10-antenna-convergence",
+      "head": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-embedded-physical-digital-mvp",
+      "branch": "integration/embedded-physical-digital-mvp",
+      "head": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-clean-check",
+      "branch": "DETACHED",
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-final",
+      "branch": "integration/integrated-beta-final",
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-movement-intelligence-e2e",
+      "branch": "research/movement-intelligence-e2e",
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-validation-mvp4-offline-multichain",
+      "branch": "validation/mvp4-offline-multichain",
+      "head": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-beta-final",
+      "branch": "research/riose-beta-final",
+      "head": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-blockchain-hackathon-demo",
+      "branch": "research/blockchain-hackathon-demo",
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-core-product-mvp",
+      "branch": "integration/core-product-mvp",
+      "head": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-final-canonical-integration",
+      "branch": "software-closure/final-canonical-integration",
+      "head": "d74ceacc08960002bc547d39cca42713280b600e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-final-integration-audit",
+      "branch": "audit/final-integration-authority",
+      "head": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-hackathon-web3-readme",
+      "branch": "docs/hackathon-web3-readme",
+      "head": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-integration-candidate",
+      "branch": "integration/riose-candidate",
+      "head": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-intelligence-research-mvp",
+      "branch": "integration/intelligence-research-mvp",
+      "head": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22",
+      "branch": "codex/issue-22-signal-engine",
+      "head": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-publication",
+      "branch": "codex/pr44-publication",
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-signal",
+      "branch": "codex/pr44-signal-engine",
+      "head": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue23",
+      "branch": "codex/issue-23-behavior-ml",
+      "head": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue25",
+      "branch": "codex/issue-25-biosignature",
+      "head": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue26-live",
+      "branch": "codex/issue-26-reproduction-intelligence",
+      "head": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue27",
+      "branch": "codex/issue-27-health-anomaly",
+      "head": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-issue28",
+      "branch": "codex/issue-28-movement-rf-context",
+      "head": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-main-promotion-postcheck",
+      "branch": "docs/final-competition-readme",
+      "head": "d3bb56e4745593dc96c61d4779416087d3f8e3f7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-blockchain-publication",
+      "branch": "mini-mvp/blockchain-publication",
+      "head": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-firmware-digital-twin",
+      "branch": "mini-mvp/firmware-digital-twin",
+      "head": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization",
+      "branch": "validation/mvp2-rf-localization-campaign",
+      "head": "078fca6fe06a92bd55c5fc279918a3c840de8f33",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-clean",
+      "branch": "DETACHED",
+      "head": "a6d3b49397344a60cdd1618d8f94e7e0ba95a2f8",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-commit-check",
+      "branch": "DETACHED",
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-intelligence",
+      "branch": "mini-mvp/intelligence-behavior",
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp5-persistence-reliability",
+      "branch": "mini-mvp/persistence-reliability",
+      "head": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-final-integration",
+      "branch": "multichain/final-integration",
+      "head": "a45908b6eecb347fb5e2f6bf1e111f10885a4647",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation",
+      "branch": "multichain/main-reconciliation",
+      "head": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation-clean",
+      "branch": "DETACHED",
+      "head": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp1",
+      "branch": "multichain/mvp1-core-migration",
+      "head": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp1-clean",
+      "branch": "DETACHED",
+      "head": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp2",
+      "branch": "multichain/mvp2-solana-reconciliation",
+      "head": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp2-clean",
+      "branch": "DETACHED",
+      "head": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp3",
+      "branch": "multichain/mvp3-evm-core",
+      "head": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp3-clean",
+      "branch": "DETACHED",
+      "head": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-arbitrum",
+      "branch": "multichain/mvp4-arbitrum",
+      "head": "65a70357513d137390a6e97a95a75e966a870c73",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-base",
+      "branch": "multichain/mvp4-base",
+      "head": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-base-clean",
+      "branch": "DETACHED",
+      "head": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e",
+      "branch": "validation/mvp1-e2e-digital-farm",
+      "head": "ed575e57d36f80d815bd43396a3cb36ae021ac99",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e-clean",
+      "branch": "DETACHED",
+      "head": "b03a09bf8245ccd9cd80f970fc50bb21eae340d2",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e-verify",
+      "branch": "DETACHED",
+      "head": "d448e4b7e130c65f0080e13b154ac716dcb5f370",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp3-failure-scale",
+      "branch": "validation/mvp3-failure-scale",
+      "head": "1ea546c38870bedd71b162a38b4a8f3e1c9f0758",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-network-contention-capacity-closure",
+      "branch": "research/network-contention-capacity-closure",
+      "head": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-network-scale-capacity",
+      "branch": "research/network-scale-capacity",
+      "head": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-post-promotion-remote-clean",
+      "branch": "DETACHED",
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-10",
+      "branch": "codex/issue-10-antenna-followup",
+      "head": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-12",
+      "branch": "codex/issue-12-integration-followup",
+      "head": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-5",
+      "branch": "codex/issue-5-spi-timeout-followup",
+      "head": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-6",
+      "branch": "codex/issue-6-resd-propagation-followup",
+      "head": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-8",
+      "branch": "codex/issue-8-temperature-axis-followup",
+      "head": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pr41-review",
+      "branch": "DETACHED",
+      "head": "129f19a55e7b29c9e70e1cb9cea78ab3f14d9bc0",
+      "dirty": true,
+      "classification": "PR_REVIEW_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pre-blockchain-baseline",
+      "branch": "integration/pre-blockchain-baseline",
+      "head": "c2a76712cb57ef354682f51cdbf6d3b1386f6aab",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-pre-sim-canonical",
+      "branch": "release/pre-sim-canonical",
+      "head": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+      "dirty": true,
+      "classification": "CURRENT_CANDIDATE_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-promotion-bridge",
+      "branch": "integration/riose-promotion-bridge",
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-promotion-bridge-clean",
+      "branch": "DETACHED",
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-repository-audit",
+      "branch": "research/repository-audit",
+      "head": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-rf-realism-campaign",
+      "branch": "research/rf-realism-campaign",
+      "head": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-rf-realism-gap-closure",
+      "branch": "research/rf-realism-gap-closure",
+      "head": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc1-publication-reliability",
+      "branch": "software-closure/sc1-publication-reliability",
+      "head": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc2-security-dependencies",
+      "branch": "software-closure/sc2-security-dependencies",
+      "head": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment",
+      "branch": "software-closure/sc3-reproducible-environment",
+      "head": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc4-ci-scientific-gates",
+      "branch": "software-closure/sc4-ci-scientific-gates",
+      "head": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc5-real-on-chain",
+      "branch": "software-closure/sc5-real-on-chain",
+      "head": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc6-final-gate",
+      "branch": "software-closure/sc6-final-gate",
+      "head": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-simulation-lab",
+      "branch": "research/simulation-lab",
+      "head": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-tag-simulation-closure",
+      "branch": "research/tag-simulation-closure",
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-upstream-baseline-audit",
+      "branch": "DETACHED",
+      "head": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-validation-mvp5-real-on-chain",
+      "branch": "validation/mvp5-real-on-chain",
+      "head": "df4ef334729c1e4bfb5e02a21d8f8020330a1d87",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-validation-mvp6",
+      "branch": "validation/mvp6-final-gate",
+      "head": "cac2b3876cf3bd2c298bc7d923296dcb39add93e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-01",
+      "branch": "codex/issue-01-event-contract-v1",
+      "head": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-02",
+      "branch": "codex/issue-02-evidence-bridge",
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-03",
+      "branch": "DETACHED",
+      "head": "9de73f99ef7602ccc06c1a37aa393c614379d946",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-03-commitment-v1",
+      "branch": "codex/issue-03-commitment-v1",
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-04",
+      "branch": "DETACHED",
+      "head": "db00cca2d7248dd0adfc965d9aa2652e14f235ce",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-05",
+      "branch": "DETACHED",
+      "head": "ad6823d1788c1c0f0d457f04a702a4fcccbddd8e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-06",
+      "branch": "DETACHED",
+      "head": "84e66fa4fa497f3a9f3b478f10dfa8eb0ac7011e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-07",
+      "branch": "DETACHED",
+      "head": "be156e2c47eec2082596b439d78605aa9e61fe08",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-08",
+      "branch": "DETACHED",
+      "head": "8f06ff72c79c02bfefacb2eebc76b1976f308016",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-09",
+      "branch": "DETACHED",
+      "head": "e50f8609e822c72f8325c5ef547c51eb65c887c4",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-10",
+      "branch": "DETACHED",
+      "head": "a9d12c2769ec90f9466d9fb81a1b0d4bd4541a32",
+      "dirty": true,
+      "classification": "DIRTY_WORK_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-11",
+      "branch": "DETACHED",
+      "head": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-12",
+      "branch": "DETACHED",
+      "head": "e25b6417a0c98a632ed9a8dc05451f151df930bc",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-13",
+      "branch": "DETACHED",
+      "head": "b5b005ce0a7b9e3ea7c59e6162f79ba57f0be794",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-21",
+      "branch": "codex/issue-21-dataset-foundation",
+      "head": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-24",
+      "branch": "codex/issue-24-behavior-persistence",
+      "head": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue10-upstream",
+      "branch": "codex/issue-10-antenna-convergence-upstream",
+      "head": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-beta-dynamic-replay",
+      "branch": "DETACHED",
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-beta-dynamic-replay-clean",
+      "branch": "DETACHED",
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-mini-mvp-clean",
+      "branch": "DETACHED",
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-mini-mvp-clean-final",
+      "branch": "DETACHED",
+      "head": "3c694b25132f0ae65c57b88ce37939e854ddbb07",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-mini-mvp-clean-repro",
+      "branch": "DETACHED",
+      "head": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-mvp4-arbitrum-final",
+      "branch": "DETACHED",
+      "head": "65a70357513d137390a6e97a95a75e966a870c73",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-constrained-check",
+      "branch": "DETACHED",
+      "head": "24a458cd056a76260e92d78b1683a8c789342fa0",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-constrained-check2",
+      "branch": "DETACHED",
+      "head": "24a458cd056a76260e92d78b1683a8c789342fa0",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-delivery-check",
+      "branch": "DETACHED",
+      "head": "1b052db52a92b2c39e1a9a6b504cdde651e1677e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-factory-final",
+      "branch": "DETACHED",
+      "head": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-final-check",
+      "branch": "DETACHED",
+      "head": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-final-check2",
+      "branch": "DETACHED",
+      "head": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-final-source-check",
+      "branch": "DETACHED",
+      "head": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-final-source-check2",
+      "branch": "DETACHED",
+      "head": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-lf-check",
+      "branch": "DETACHED",
+      "head": "d806e05c11bd908386c55608a7d69f9a7c7a6708",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    },
+    {
+      "path": "/tmp/riose-sc3-lf-check2",
+      "branch": "DETACHED",
+      "head": "d806e05c11bd908386c55608a7d69f9a7c7a6708",
+      "dirty": false,
+      "classification": "UNKNOWN_PRESERVE",
+      "removed": false
+    }
+  ],
+  "cleanup_policy": "No branches or worktrees deleted; ambiguous, dirty, recovery, and open-PR work preserved.",
+  "candidate_recovery_ref": "recovery/pre-sim-publication-final-2026-10-08",
+  "candidate_recovery_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929"
+}

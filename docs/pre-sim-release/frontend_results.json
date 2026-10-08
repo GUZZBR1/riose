@@ -1,0 +1,12 @@
+{
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "npm_ci": "PASS: 8 packages, 0 vulnerabilities",
+  "npm_test": "PASS: 22/22 including typecheck/build, rerun through Windows Node after WSL execute-permission failure",
+  "build": "PASS: npm test includes typecheck/build",
+  "e2e": "PASS: desktop, mobile, API unavailable, keyboard/accessibility, 100 animals; no wallet/asset requests",
+  "rendering": "100 animals in both scenes at 60fps in local Chromium run; local observation only",
+  "limitations": [
+    "No physical-device testing",
+    "Guided wallet flow in latest PR head excluded"
+  ]
+}

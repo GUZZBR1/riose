@@ -1,0 +1,37 @@
+[
+  {
+    "component": "Isometric farm diorama, deterministic movement, two scenes, accessible selection",
+    "classification": "ACCEPT_WITH_RECONCILIATION",
+    "result": "Integrated as illustrative simulation with simulated labels; desktop/mobile and 100-animal E2E covered."
+  },
+  {
+    "component": "Landing/demo visual changes and local animal/event readback",
+    "classification": "ACCEPT_WITH_RECONCILIATION",
+    "result": "Integrated without new backend asset workflow; canonical Event V1 remains record-integrity source."
+  },
+  {
+    "component": "Animal digital identity panel",
+    "classification": "ACCEPT_WITH_RECONCILIATION",
+    "result": "Preview-only: no wallet connection, mint, asset API calls, or chain-confirmation claim."
+  },
+  {
+    "component": "Per-animal Solana Metaplex minting and latest guided wallet flow",
+    "classification": "REJECT",
+    "result": "Excluded pending authentication, private-registry separation, ambiguity-safe reserve recovery, exact transaction proof, and architecture review."
+  },
+  {
+    "component": "Animal asset API, public metadata and persistence additions",
+    "classification": "REJECT",
+    "result": "Unauthenticated read/mutation and animal-linked wallet identifiers are unsafe for public exposure."
+  },
+  {
+    "component": "Removal of virtual-fence API/tests and dashboard behavior",
+    "classification": "REJECT",
+    "result": "Regression restored; prior simulator and fence controls remain under /simulator."
+  },
+  {
+    "component": "Dependencies",
+    "classification": "ACCEPT_WITH_RECONCILIATION",
+    "result": "farm-demo audit 0 vulnerabilities; web3-demo excluded. Inherited contracts local test toolchain reports 9 advisories (1 critical, 7 high, 1 moderate)."
+  }
+]

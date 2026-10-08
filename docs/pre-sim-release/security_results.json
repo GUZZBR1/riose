@@ -1,0 +1,29 @@
+{
+  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
+  "sec_solana_001": "CLOSED",
+  "security_tests": "128 passed, 1 expected skip, 1 warning",
+  "candidate_review": "No token minting, signer, wallet integration, asset API, public-chain publication, or private animal-record upload in accepted candidate.",
+  "pr41_findings": [
+    {
+      "severity": "P1",
+      "finding": "Unauthenticated animal asset endpoints expose animal_id/owner_address/asset_address/attempt_ref and allow intent/reserve/release/submission mutations."
+    },
+    {
+      "severity": "P2",
+      "finding": "Release may race chain mint before signature persistence and permit duplicate mint on retry."
+    },
+    {
+      "severity": "P2",
+      "finding": "Browser proof does not establish exact reserved asset creation transaction."
+    },
+    {
+      "severity": "P2",
+      "finding": "Earlier PR commits remove virtual-fence endpoint/tests; restored in candidate."
+    },
+    {
+      "severity": "P2",
+      "finding": "Latest head promotes a record digest read from mutable HTTP metadata as Devnet anchoring proof without comparing it to an immutable reserved/minted value; verification can remain VALIDATED_ON_DEVNET after metadata changes. Excluded with the entire tokenization path."
+    }
+  ],
+  "dependency_residual": "9 advisories in inherited local Ganache/solc test toolchain; no dependency change."
+}
