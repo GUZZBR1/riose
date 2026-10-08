@@ -8,8 +8,8 @@
         "artifact_comparison.json",
         "integrated_smoke.json"
       ],
-      "scope": "Host CMake/CTest, core/dev/Solana Python tests, package builds from clean source worktrees, doctor checks, and mock integrated smoke.",
-      "status": "SUPPORTED_WITH_LIMITATIONS"
+      "scope": "Required local software gates: full Python/EVM suite, host CMake/CTest, npm/Solidity, package builds, doctor and local mock smoke.",
+      "status": "SUPPORTED_WITH_FOLLOWUPS"
     },
     {
       "claim": "CACHED_REPRODUCTION",
@@ -19,7 +19,7 @@
         "clean_room_run_1.json",
         "artifact_comparison.json"
       ],
-      "scope": "Core/dev/Solana Python environment and non-EVM tests, plus CTest and package artifacts from two clean worktrees using the recorded cached builder.",
+      "scope": "Historical cached core/dev/Solana evidence; current fresh-cache run is recorded in clean_room_run_3.json.",
       "status": "SUPPORTED"
     },
     {
@@ -29,8 +29,8 @@
         "node_environment.json",
         "limitations.json"
       ],
-      "scope": "Complete project dependency and regression set.",
-      "status": "NOT_ACHIEVED"
+      "scope": "Mission-required local software gates only; optional physical/toolchain and public-chain validation are not claimed.",
+      "status": "SUPPORTED_FOR_REQUIRED_SOFTWARE_GATES"
     },
     {
       "claim": "SEMANTIC_REPRODUCIBILITY",
@@ -47,10 +47,18 @@
       "evidence": [
         "artifact_comparison.json"
       ],
-      "scope": "Five CTest traces from source 92ef1b5 and wheel/sdist from two clean worktrees at source 92ef1b5 under the versions in build-constraints.txt; package claims are limited to the listed artifacts and cached distribution set.",
+      "scope": "Listed historical CTest traces at 92ef1b5 and fresh wheel/sdist artifacts at implementation baseline 081f6a5; no repository-wide bitwise claim.",
       "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY"
     }
   ],
+  "clean_room_required_software_gates": {
+    "cmake_ctest": "39/39 twice; five trace hashes match.",
+    "mock_smoke": "PASS; fresh SQLite, local mock submission, verified receipt; no public chain.",
+    "npm": "npm ci passed with locked Ganache 7.9.2 and solc 0.8.37.",
+    "python": "888 passed, 7 skipped; EVM focused tests 2 passed.",
+    "solidity": "Compile passed with solc 0.8.37.",
+    "status": "PASS"
+  },
   "not_claimed": [
     "FULLY_REPRODUCIBLE",
     "PUBLIC_VALIDATED",

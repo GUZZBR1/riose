@@ -28,7 +28,12 @@
     "missing": "watchfiles 1.3.0 wheel",
     "result": "BLOCKED_OFFLINE"
   },
+  "recovery": {
+    "network": "WSL resolver returned SERVFAIL; temporary Windows-host HTTPS bridge allowlisted GitHub, npm, and PyPI, then removed after recovery.",
+    "npm": "Fresh isolated npm cache populated by canonical npm ci from official registry.",
+    "python": "Fresh isolated UV cache populated from official PyPI endpoint; exact locked EVM wheels downloaded and installed."
+  },
   "safety": "Only isolated temporary cache directories were created. Existing user caches were not cleared.",
   "schema_version": 1,
-  "status": "PARTIALLY_CACHED"
+  "status": "FRESH_REQUIRED_DEPENDENCIES"
 }

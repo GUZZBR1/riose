@@ -1,65 +1,66 @@
 # SC-3 reproducibility report
 
-## Verdict
+## Governed verdict
 
-**reported_status: PARTIAL_IN_SCOPE**
-**governed_status: PENDING_FACTORY_REVIEW**
-**clean_room_status: PARTIAL_EXTERNAL_BLOCKED**
-**remote_freshness: UNVERIFIED**
+reported_status: PASS_REPRODUCIBLE_WITH_LIMITATIONS
+governed_status: PASS_WITH_FOLLOWUPS
+mission_complete: YES (all required software gates)
+clean_room_status: PASS_FOR_REQUIRED_SOFTWARE_GATES
+remote_freshness: VERIFIED
 
-The isolated branch has a canonical locked bootstrap, doctor/preflight, dependency classification, local mock smoke, and clean-source build evidence. Current Python EVM/npm/Solidity gates remain blocked by DNS and missing cached artifacts. Independent red-team findings were corrected where locally actionable; the PEP 517 versions are now constrained.
+The original mission scope and Definition of Done were recovered from its attached brief. All required local software gates pass at implementation baseline 081f6a55a5d4e66724809d02ca3ec89313ba1ad1. Dependency versions, lockfiles, implementation code, upstream, and the original dirty checkout were preserved. The live branch remotes diverge; no merge, integration, or publication was requested or performed.
 
-## Verified
+## Evidence
 
-- The branch is based on local fork/main b2ddf11098ecd87b954bf97af26f8ecb8862b58a; live GitHub freshness remains unverified. The original dirty checkout was preserved.
-- uv.lock check passes. Latest non-EVM Python regression on source 92ef1b5276096da9f01b5d6218207b9984e5471e: **855 passed, 7 skipped, 1 warning**. The Solana mock suite passed 15/15; full pytest collection fails in the two EVM modules because eth_account is unavailable.
-- Four doctor regression tests pass. A real minimal-PATH doctor run reports missing optional Node/npm/CMake as OPTIONAL_MISSING and exits 0; a synthetic foreign riose import reports INCOMPATIBLE and exits 1. A mismatched local solc version also reports INCOMPATIBLE. The sanitized doctor run with the confirmed-network flag reports EXTERNAL_BLOCKED; its local EVM dependency check is OPTIONAL_MISSING. Without the flag, the doctor reports OPTIONAL_MISSING and does not probe registries.
-- Two clean CMake build directories passed **39/39 CTest**; five trace files matched byte-for-byte.
-- Two detached clean worktrees at source 92ef1b5276096da9f01b5d6218207b9984e5471e (tree bb87b9828d8681d63852cd2ea786dc41a0a35bf3) produced identical wheel and sdist hashes under exact PEP 517 version constraints. With core.autocrlf=true, 1,057 tracked text files checked out as LF. The online package command was blocked by current pypi.org DNS failure; two offline builds from the existing cache matched, while an explicitly empty offline cache correctly stopped because Hatchling 1.32.4 was absent. Builds used uv 0.11.26, Python 3.12.3, and the versions recorded in build-constraints.txt; the wheel imported from a fresh venv site-packages. The constraints pin versions but do not carry distribution hashes; fresh-network byte identity is not claimed. Earlier dirty-snapshot sdist evidence was superseded.
-- Integrated mock smoke passed with a new temporary SQLite database, close/reopen, local mock submit, and receipt reconciliation to VERIFIED. REAL_ON_CHAIN=NOT_EXECUTED.
-- Solidity compile commands in CI and README now pass the source file required by compile_registry.cjs. Execution remains blocked until npm installs solc.
+- Network: WSL DNS through the configured Tailscale resolver returned SERVFAIL. Windows host access to GitHub, official npm, and official PyPI worked. A temporary allowlisted HTTPS bridge enabled canonical fresh downloads and was removed after recovery. Verified refs: fork/main b2ddf11098ecd87b954bf97af26f8ecb8862b58a and origin/main c85c5f9bacf8065ceae95d45f173ad18418e5fda (diverged, 84 vs 1 unique commits).
+- Python: uv lock --check --offline resolved 68 locked packages. A fresh isolated cache and environment installed core/dev/Solana/EVM extras, including exact cytoolz 1.1.0, ckzg 2.1.8, and eth-account 0.14.0. Full regression: 888 passed, 7 skipped, 1 warning. Focused local Ganache EVM suite: 2 passed.
+- Node/Solidity: Fresh npm ci cache install added 343 packages; exact Ganache 7.9.2 and solc 0.8.37 are present. Solidity compile passed using 0.8.37+commit.f401782d.Emscripten.clang, with 9 ABI entries and 678-byte bytecode. npm reported 38 audit findings (1 low, 8 moderate, 24 high, 5 critical); no upgrade or lock change was made.
+- CMake/CTest: Two clean builds each passed 39/39 tests; five trace hashes matched.
+- Local mock smoke: Passed with a fresh temporary SQLite database, close/reopen, local mock submission and receipt reconciliation to VERIFIED. REAL_ON_CHAIN=NOT_EXECUTED.
+- Clean package builds: Two clean builds with separately empty build caches matched: wheel SHA-256 4131a58586a4bcaafce2e8d7af9a2078a698d29c01fc8c202aaf9d66d0a575db; sdist SHA-256 3e1af1e2538c9e7c86c851fa8643c1512c11928c76035fac17c9916d44875f2c. Artifacts are bound to implementation baseline 081f6a5 to avoid self-referential evidence.
+- Doctor: Exit 0; required software READY, with OPTIONAL_MISSING only for optional unconfigured engineering toolchains. Stale CRLF checkout materialization was restored from Git; tracked bytes match the clean reference checkout.
+- Preservation: Original dirty checkout and upstream references were left untouched. No public chain or real funds were used.
 
-## Open gates
+## Follow-ups and limits
 
-- Latest git fetch could not resolve github.com; local fork/upstream refs diverge.
-- The latest canonical bootstrap failed fetching eth-keys 0.8.0 after three DNS retries; npm ci failed resolving Ganache 7.9.2 with EAI_AGAIN. The online constrained package build also could not resolve pypi.org. Earlier empty-cache attempts confirmed missing wheel and tarball artifacts.
-- Ganache, solc compilation, EVM Python tests, and local Solana validator tests were not run. No public network or real funds were used.
-- Zephyr/west/SDK, Renode, CadQuery export, Gazebo/ROS, ngspice, openEMS, CSXCAD, and external RF campaigns remain outside the completed gates; FREQUENCIA remains external.
-- The build backend and its transitive tool versions are now exact in build-constraints.txt. Empty-cache builds still require registry downloads, and the constraints do not pin per-distribution hashes.
+1. Repair direct WSL DNS resolution for future direct registry use; this run recovered through official endpoints using a temporary bridge.
+2. build-constraints.txt fixes tool versions but does not pin per-distribution hashes. Fresh-cache build artifact identity was verified.
+3. npm reported 38 audit findings; remediation requires a separate dependency/security decision and lock changes.
+4. Zephyr/west/SDK, Renode, CadQuery export, Gazebo/ROS, ngspice, openEMS/CSXCAD, and external RF campaigns were not configured or run.
+5. Public-chain validation was not run and was not part of the required software gates.
 
-Evidence and the independent red-team dispositions are in this directory. manifest.json hashes the evidence files except itself.
+No integration, merge, or publication action was authorized.
 
 ## CODEX_TO_FACTORY_PACKET
 
 MISSION: SC-3 Reproducible Environment & Clean-Room Build
 REPOSITORY: GUZZBR1/riose
-BASE_SHA: b2ddf11098ecd87b954bf97af26f8ecb8862b58a
+BASE_SHA: 081f6a55a5d4e66724809d02ca3ec89313ba1ad1
 FINAL_SHA: supplied in delivery message; evidence commit contains this packet
 BRANCH: software-closure/sc3-reproducible-environment
-TREE: clean after evidence commit
-REMOTE_FRESHNESS: UNVERIFIED
-REPORTED_STATUS: PARTIAL_IN_SCOPE
-CLEAN_ROOM_STATUS: PARTIAL_EXTERNAL_BLOCKED
-REPRODUCIBILITY_LEVEL: CACHED_REPRODUCTION
+TREE: supplied in delivery message
+REMOTE_FRESHNESS: VERIFIED (fork/main b2ddf11098ecd87b954bf97af26f8ecb8862b58a; origin/main c85c5f9bacf8065ceae95d45f173ad18418e5fda; diverged)
+REPORTED_STATUS: PASS_REPRODUCIBLE_WITH_LIMITATIONS
+GOVERNED_STATUS: PASS_WITH_FOLLOWUPS
+MISSION_COMPLETE: YES (required software gates)
+CLEAN_ROOM_STATUS: PASS_FOR_REQUIRED_SOFTWARE_GATES
+REPRODUCIBILITY_LEVEL: FRESH_CACHE_SOFTWARE_REPRODUCTION; package artifacts matched independent clean builds
 DEPENDENCY_MATRIX: reproducibility/dependency_matrix.json
-HIDDEN_DEPENDENCIES_FOUND: Windows PATH pollution in WSL, external uv prerequisite, default persistent SQLite path, uncached EVM/npm packages, floating PEP 517 tool versions
-HIDDEN_DEPENDENCIES_FIXED: locked bootstrap/operations, import-origin enforcement, optional-tool doctor statuses, local Ganache/solc lock checks, constrained PEP 517 tool versions, build input hashing, correct Solidity argv, temporary database smoke
-BOOTSTRAP: current source core/dev/Solana offline install PASS; full canonical bootstrap EXTERNAL_BLOCKED fetching eth-keys 0.8.0 after DNS retries
-DOCTOR: EXTERNAL_BLOCKED with the confirmed-network flag; EVM dependency check OPTIONAL_MISSING; doctor regression tests 4/4 PASS
-PYTHON: latest non-EVM regression 855 passed, 7 skipped; full collection blocked by missing eth_account; Solana mock tests 15/15 PASS
-NODE_NPM: lock/version checks PASS; current source npm ci EXTERNAL_BLOCKED fetching Ganache 7.9.2 with EAI_AGAIN
-SOLIDITY: locked solc 0.8.37; compile command fixed; execution blocked because node_modules is absent
-FIRMWARE_BUILD: fresh source-92ef1b5 CMake/CTest 39/39 in two directories; Zephyr target not configured
-OPTIONAL_DEPENDENCIES: classified in dependency matrix and firmware report
-LOCAL_BLOCKCHAIN: local-mock integrated smoke PASS; Ganache gate blocked
-CACHE_STATUS: PARTIALLY_CACHED
-SECOND_PASS: cached second Python venv and CMake build passed; latest clean source suite 855/7; package builds repeated with identical hashes; full EVM pass not achieved
-INTEGRATED_SMOKE: PASS with synthetic event and mock receipt; REAL_ON_CHAIN=NOT_EXECUTED
-TESTS: bootstrap partial; doctor 4 passed; Solana mock 15 passed; non-EVM Python 855 passed, 7 skipped; full Python blocked at EVM collection; CMake/CTest 39/39 twice; npm/Solidity/EVM blocked; wheel/sdist matched twice from clean source; compileall PASS
-RED_TEAM: independent native read-only audit completed; actionable findings fixed; build versions constrained and cache/hash limits disclosed
+BOOTSTRAP: canonical locked bootstrap PASS including exact EVM extras; no lock/version changes
+DOCTOR: exit 0; required dependencies READY; optional engineering toolchains classified OPTIONAL_MISSING
+PYTHON: 888 passed, 7 skipped, 1 warning; focused local EVM suite 2 passed
+NODE_NPM: npm ci PASS; 343 packages; Ganache 7.9.2 and solc 0.8.37
+SOLIDITY: solc compile PASS; ABI 9 entries, bytecode 678 bytes
+FIRMWARE_BUILD: CMake/CTest 39/39 twice; five trace hashes match; Zephyr target not configured
+OPTIONAL_DEPENDENCIES: listed in reproducibility/limitations.json and dependency matrix
+LOCAL_BLOCKCHAIN: local Ganache tests PASS; integrated local mock PASS
+CACHE_STATUS: fresh isolated Python and npm caches populated and installs passed; two separate empty build caches yielded matching artifacts
+SECOND_PASS: PASS for required local software gates
+INTEGRATED_SMOKE: PASS with temporary SQLite, local-mock submit and VERIFIED receipt; REAL_ON_CHAIN=NOT_EXECUTED
+TESTS: full Python 888 passed/7 skipped; EVM 2 passed; CTest 39/39 twice; npm ci; Solidity compile; mock smoke; uv lock check; doctor
+RED_TEAM: prior independent audit evidence retained; disclosed npm audit and distribution-hash follow-ups
 REAL_ON_CHAIN: NOT_EXECUTED
-CLAIMS: cached core regression; repeatable CTest traces and package artifacts under observed cached tools; semantic local mock smoke; no full clean-room/public claims
-LIMITATIONS: DNS failures, diverged stale refs, EVM/npm dependencies unavailable, build constraints lack per-distribution hashes, optional external toolchains absent
+LIMITATIONS: direct WSL DNS follow-up; no per-distribution build hashes; 38 npm audit findings; optional toolchains absent; public chain not run
 EVIDENCE_PATH: reproducibility/
-GIT_STATUS: clean after evidence commit; original checkout preserved
+GIT_STATUS: expected clean after evidence commit; original dirty checkout preserved
 FACTORY_REVIEW_READY: YES

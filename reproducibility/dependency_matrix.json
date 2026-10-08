@@ -248,5 +248,10 @@
       "version_constraint": "hatchling==1.32.4 plus exact build dependency versions in build-constraints.txt"
     }
   ],
+  "current_availability": {
+    "ganache_solc": "READY: exact locked Ganache 7.9.2 and solc 0.8.37 installed.",
+    "python_evm": "READY: exact locked dependencies installed; 2 focused local EVM tests passed.",
+    "registries": "READY through official endpoints via temporary bridge; direct WSL DNS remains a follow-up."
+  },
   "schema_version": 1
 }

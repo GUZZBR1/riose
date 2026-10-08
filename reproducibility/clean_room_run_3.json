@@ -1,0 +1,30 @@
+{
+  "clean_room_status": "PASS_FOR_REQUIRED_SOFTWARE_GATES",
+  "cmake_ctest": "PASS: 39/39 in two clean build dirs; five trace hashes match.",
+  "doctor": "Exit 0; required software READY, OPTIONAL_MISSING only for unconfigured optional engineering toolchains.",
+  "lock_check": "uv lock --check --offline passed, resolved 68 packages.",
+  "mock_smoke": "PASS: temporary SQLite close/reopen, local mock submit and VERIFIED receipt; REAL_ON_CHAIN=NOT_EXECUTED.",
+  "network_recovery": "Temporary allowlisted Windows-host HTTPS bridge to official GitHub/npm/PyPI endpoints; no dependency version or lock changes.",
+  "npm": {
+    "cache": "fresh isolated npm cache",
+    "command": "npm ci --prefix contracts",
+    "result": "343 packages added; Ganache 7.9.2, solc 0.8.37"
+  },
+  "package_builds": {
+    "comparison": "Matched two clean builds with separate empty caches.",
+    "sdist_sha256": "3e1af1e2538c9e7c86c851fa8643c1512c11928c76035fac17c9916d44875f2c",
+    "wheel_sha256": "4131a58586a4bcaafce2e8d7af9a2078a698d29c01fc8c202aaf9d66d0a575db"
+  },
+  "python": {
+    "cache": "fresh isolated UV_CACHE_DIR",
+    "focused_local_evm": "2 passed",
+    "install": "uv sync --locked --extra dev --extra solana --extra evm passed; exact locked dependencies installed",
+    "tests": "888 passed, 7 skipped, 1 warning"
+  },
+  "run": 3,
+  "schema_version": 1,
+  "solidity": "PASS: solc 0.8.37 compile; ABI 9 entries, bytecode 678 bytes.",
+  "source_changes": "None; only reproducibility evidence updated.",
+  "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+  "source_tree_sha": "4ae89c934ff5cd996724fe27e38b476f414b4b82"
+}

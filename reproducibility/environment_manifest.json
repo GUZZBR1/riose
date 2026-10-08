@@ -7,8 +7,10 @@
     "hardware/toolchain.json": "b49f5b666d874b3601e9e584ba049c3fc1ea491c281d00ceac35daf61a80ddda",
     "pyproject.toml": "0bc062876c64141c8182a72d3426ebc4ae734c0b2aba6f031cebd86756bf53ed"
   },
-  "environment_variable_names_set": [],
-  "generated_at_utc": "2026-10-08T12:55:46.693431+00:00",
+  "environment_variable_names_set": [
+    "VIRTUAL_ENV"
+  ],
+  "generated_at_utc": "2026-10-08T14:08:16.836687+00:00",
   "lockfile_hashes_sha256": {
     "contracts/package-lock.json": "ce25e808da9edf9943a5d2c25da042b631971863daf425638b024c21dcdf6afb",
     "uv.lock": "52106fa45a2abab8acae72d657ba236f7b6611049b6cb40caab4be79b82f7d98"
@@ -21,28 +23,28 @@
     "version": "#1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025"
   },
   "python": {
-    "path": "/bin/python3",
+    "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/bin/python3",
     "version": "3.12.3"
   },
   "schema_version": 1,
   "secrets_included": false,
-  "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+  "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
   "source_tree": {
-    "git_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
+    "git_tree_sha": "4ae89c934ff5cd996724fe27e38b476f414b4b82",
     "status_lines": [],
     "working_tree_clean": true
   },
   "tools": {
     "cc": {
-      "path": "/bin/cc",
+      "path": "/usr/bin/cc",
       "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
     },
     "cmake": {
-      "path": "/bin/cmake",
+      "path": "/usr/bin/cmake",
       "version": "cmake version 3.28.3"
     },
     "cxx": {
-      "path": "/bin/c++",
+      "path": "/usr/bin/c++",
       "version": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
     },
     "docker": {
@@ -50,8 +52,8 @@
       "version": null
     },
     "ganache": {
-      "path": null,
-      "version": null
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/contracts/node_modules/.bin/ganache",
+      "version": "ganache v7.9.2 (@ganache/cli: 0.10.2, @ganache/core: 0.10.2)"
     },
     "gz": {
       "path": null,
@@ -62,11 +64,11 @@
       "version": null
     },
     "node": {
-      "path": "/bin/node",
+      "path": "/usr/bin/node",
       "version": "v22.22.2"
     },
     "npm": {
-      "path": "/bin/npm",
+      "path": "/usr/bin/npm",
       "version": "10.9.7"
     },
     "openems": {
@@ -74,7 +76,7 @@
       "version": null
     },
     "python": {
-      "path": "/bin/python3",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/bin/python3",
       "version": "3.12.3"
     },
     "renode": {
@@ -86,8 +88,8 @@
       "version": null
     },
     "solc": {
-      "path": null,
-      "version": null
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/contracts/node_modules/solc/solc.js",
+      "version": "0.8.37+commit.f401782d.Emscripten.clang"
     },
     "uv": {
       "path": "/home/gusta/.local/bin/uv",

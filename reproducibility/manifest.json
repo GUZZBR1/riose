@@ -6,19 +6,19 @@
     },
     {
       "path": "reproducibility/artifact_comparison.json",
-      "sha256": "bb4601712e0486db130e11a2b6308911f6aaaf41a81103a40f988748a27e07ec"
+      "sha256": "ae83e3ad058c5cf3e9cb604a9946df6666fab33bf4b995022334d0ce59cbf081"
     },
     {
       "path": "reproducibility/bootstrap_report.json",
-      "sha256": "85a320cb64a5ea69368ca6840a591bead48ed07d2d61557bbc02f1c5c084a5ac"
+      "sha256": "1eef0ce445b014b93088cd529516fdee0799c9676859bc15024d7654aad22e4f"
     },
     {
       "path": "reproducibility/cache_dependency_report.json",
-      "sha256": "279af31f96d4c76ad937033991f3f517b9b76a604c96fe84490ca2570ea6f2a5"
+      "sha256": "77444c2899cdd86eddb9bf4e4848b3bbf38f1fdcf7ad4fb497536e49e54d3a75"
     },
     {
       "path": "reproducibility/claims.json",
-      "sha256": "3f9dbb74d142d2080f7306dcb4067ae5bb38501659ab410a4fb1c37255207b09"
+      "sha256": "5d352b7afdad0610b1c65f2b25402ac9764a5b7e34ae68c7bfe73a724118c913"
     },
     {
       "path": "reproducibility/clean_room_run_1.json",
@@ -29,24 +29,28 @@
       "sha256": "f62563fe66a5078dbc8965e9051aa4fad018d7c1372881f91cf6c6303866013a"
     },
     {
+      "path": "reproducibility/clean_room_run_3.json",
+      "sha256": "98d97e4c56666042f141e2ab162125d52c795f64056356bbd006e546fd637b4f"
+    },
+    {
       "path": "reproducibility/dependency_matrix.json",
-      "sha256": "dabdadfd04d0c8ee9a7d92c2da5caca5d1122cf91c3276b7472e50dddaeded84"
+      "sha256": "53ad1c6d8335c02b9539b41d046bb5acdcd26bb73a00d4a4b0a3a4dcb638da38"
     },
     {
       "path": "reproducibility/discovery.json",
-      "sha256": "9b3214d0ce7a74eeaa765801a6c6bac9edf7642d96708e9adf41b18c7d4baece"
+      "sha256": "83ce8b097c94c55e422bd81fa1a8a65783bb04a695a1b5aa8f4f25130996f523"
     },
     {
       "path": "reproducibility/doctor_report.json",
-      "sha256": "3c5628e5dada9c0b89b1e32362a969b13a80e7ded0603b51b001b20475340a29"
+      "sha256": "176b187bba2e673aac335106c4f6166f585ea019e334a27a383e874d02bfa603"
     },
     {
       "path": "reproducibility/environment_manifest.json",
-      "sha256": "687e3b062b09b86029e72ae25ea3e34e127810b5111aedbccf347b2c7048e1c0"
+      "sha256": "2c2e0b2eae469098f0ab044886f2638347526436a20c482ddfa1e7cec3b9121f"
     },
     {
       "path": "reproducibility/final_report.md",
-      "sha256": "ddea2eec8120f318ea12f3f9593eec359842610ea7985e470473f8a05950dc61"
+      "sha256": "f8ce03c7f03c6c81097f8ecae64c54239df79721bfbf50fd614bd0953950a156"
     },
     {
       "path": "reproducibility/firmware_environment.json",
@@ -58,15 +62,15 @@
     },
     {
       "path": "reproducibility/limitations.json",
-      "sha256": "daa89c64a31a46aaf8da1b61a0e711a69431a90b6fcafe140063c12832d12500"
+      "sha256": "8235b0e7d53518f4d7f0b9de8a9e05ad91eb2873a9b7a7ce20f04f6f75157d82"
     },
     {
       "path": "reproducibility/node_environment.json",
-      "sha256": "14c85df5529bfb7abe33b917fdd5081f0d34b6bcb70513a5e6c6e33d18509a16"
+      "sha256": "33b06b49c8c27a8715854bf8cbc1c254c7dd99435b7f67d6e635ff9b6186b15d"
     },
     {
       "path": "reproducibility/python_environment.json",
-      "sha256": "833f96c76f58a4eb5a4ef16f9eeafcd2435cdadaeab6e0eaa21ab646bd9f58e3"
+      "sha256": "27571a880046b3c364b7d67e1e1ca689f2e6f9d734c1feb86ec5f88befa4c4cf"
     },
     {
       "path": "reproducibility/red_team_report.md",
@@ -74,14 +78,14 @@
     },
     {
       "path": "reproducibility/solidity_environment.json",
-      "sha256": "5eca98a84ee949ecc854eee1ec74cec2f98e832e96f04d33d1d2183bdbff2905"
+      "sha256": "7cb019bf9795e8fbf993e8354599ed1b6e3473278dc6b8b7fdb728aab8da19ca"
     }
   ],
   "mission": "SC-3 Reproducible Environment & Clean-Room Build",
-  "note": "manifest.json is excluded from its own hash inventory; Git commit integrity covers this file.",
-  "remote_freshness": "UNVERIFIED",
+  "note": "manifest.json excluded from own hash inventory; Git commit integrity covers it.",
+  "remote_freshness": "VERIFIED",
   "schema_version": 1,
   "secrets_included": false,
   "self_hash_excluded": true,
-  "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e"
+  "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1"
 }

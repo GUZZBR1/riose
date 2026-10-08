@@ -1,5 +1,6 @@
 {
-  "local_node_modules": "Not created; no sibling worktree or global Ganache used.",
+  "audit": "npm reported 38 findings (1 low, 8 moderate, 24 high, 5 critical); no audit fix or lock changes applied.",
+  "local_node_modules": "Fresh npm ci installation in contracts/node_modules using isolated cache; no sibling/global Ganache used.",
   "node": {
     "path": "/usr/bin/node",
     "pin": ".nvmrc",
@@ -11,11 +12,9 @@
     "version": "10.9.7"
   },
   "npm_ci": {
-    "command": "npm ci --prefix contracts",
-    "error": "Current clean-source attempt failed resolving registry.npmjs.org for ganache-7.9.2.tgz with EAI_AGAIN.",
-    "observed_on": "2026-10-08",
-    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
-    "status": "EXTERNAL_BLOCKED"
+    "command": "npm ci --prefix contracts --cache /tmp/riose-sc3-clean-npm-cache",
+    "result": "PASS: 343 packages added; exact locked Ganache 7.9.2 and solc 0.8.37 installed.",
+    "status": "PASS"
   },
   "package_lock": {
     "check": "PASS: npm install --package-lock-only --ignore-scripts --offline --prefix contracts",
@@ -38,7 +37,7 @@
     "status": "EXTERNAL_BLOCKED",
     "timestamp_utc": "2026-10-08T12:27:29Z"
   },
-  "registry_freshness": "UNVERIFIED: npm ci returned EAI_AGAIN for registry.npmjs.org.",
+  "registry_freshness": "VERIFIED through Windows-host HTTPS bridge to the official registry; locked tarball fetched successfully.",
   "schema_version": 1,
-  "status": "EXTERNAL_BLOCKED"
+  "status": "PASS"
 }

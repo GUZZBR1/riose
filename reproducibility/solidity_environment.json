@@ -1,15 +1,15 @@
 {
   "compile_command": "node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol",
   "compile_command_validation": "Corrected in CI and the canonical README after independent review found the required source argument was missing.",
-  "compile_result": "FAILED_TO_START: Cannot find module 'solc' because npm ci was blocked by an empty cache and unavailable DNS.",
-  "compiler_origin": "contracts/node_modules/solc after npm ci; not present on this host",
+  "compile_result": "PASS: solc 0.8.37+commit.f401782d.Emscripten.clang compiled the registry; ABI contains 9 entries and bytecode is 678 bytes.",
+  "compiler_origin": "contracts/node_modules/solc installed by fresh canonical npm ci.",
   "contract_changed_for_tooling": false,
   "declared_range": "solc ^0.8.28",
   "ganache_version": "7.9.2",
-  "local_chain_tests": "NOT_RUN",
+  "local_chain_tests": "PASS: focused local Ganache EVM suite, 2 passed.",
   "locked_source": "contracts/package-lock.json",
   "locked_version": "0.8.37",
   "public_chain_or_funds": "NOT_USED",
   "schema_version": 1,
-  "status": "EXTERNAL_BLOCKED"
+  "status": "PASS"
 }

@@ -1,8 +1,8 @@
 {
   "claims": [
-    "The listed CTest traces matched across two fresh build directories.",
-    "Wheel and sdist matched across two clean detached worktrees at source commit 92ef1b5 using PEP 517 with build-constraints.txt.",
-    "No repository-wide or fresh-network bitwise build claim is made."
+    "The listed historical CTest traces matched across two fresh build directories at source 92ef1b5.",
+    "Fresh package artifacts from two clean builds at implementation baseline 081f6a5 matched using exact version constraints and separate empty build caches.",
+    "No repository-wide or public-chain bitwise claim is made."
   ],
   "firmware_trace_artifacts": {
     "comparison": "SHA-256 matched across two clean CMake build directories; CMake 3.28.3 and GNU cc 13.3.0.",
@@ -18,6 +18,17 @@
     "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
     "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3"
   },
+  "fresh_builds": {
+    "comparison": "Two clean builds from identical implementation baseline 081f6a5 produced identical artifacts with separately empty build caches.",
+    "sdist_sha256": "3e1af1e2538c9e7c86c851fa8643c1512c11928c76035fac17c9916d44875f2c",
+    "status": "PASS",
+    "wheel_sha256": "4131a58586a4bcaafce2e8d7af9a2078a698d29c01fc8c202aaf9d66d0a575db"
+  },
+  "historical_92ef_evidence": {
+    "note": "Earlier trace and cached-builder evidence is retained as historical evidence; current required-gate evidence is clean_room_run_3.json.",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3"
+  },
   "integrated_smoke": "Semantic state transitions passed with the simulated event and local mock receipt; no bytewise identity claim for timestamps/random IDs.",
   "python_package_artifacts": {
     "build_toolchain": {
@@ -29,7 +40,7 @@
         "trove-classifiers": "2026.9.21.13"
       },
       "build_backend": "hatchling 1.32.4",
-      "build_isolation": "PEP 517 isolated; exact tool versions constrained by build-constraints.txt; packages resolved from the existing uv cache.",
+      "build_isolation": "PEP 517 isolated with exact tool versions constrained; two independent fresh build caches yielded matching artifacts.",
       "lock_limitation": "build-constraints.txt pins backend and transitive tool versions but does not include per-distribution hashes; an empty offline cache fails until the exact versions can be fetched. No fresh-network byte-level claim is made.",
       "python": "3.12.3",
       "uv": "0.11.26"
@@ -39,21 +50,25 @@
       "/tmp/riose-sc3-current-artifacts1",
       "/tmp/riose-sc3-current-artifacts2"
     ],
-    "sdist_contents_note": "The source commit includes the tracked evidence snapshot from commit 92ef1b5; this exact Git tree SHA and commit bind the artifact input.",
-    "sdist_sha256": "80509518561c6d643573a6d157d3503f2803b1645a3404c986d98dbb293b04b7",
-    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
-    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
+    "sdist_contents_note": "Built from implementation baseline 081f6a5, excluding self-referential recovery evidence.",
+    "sdist_sha256": "3e1af1e2538c9e7c86c851fa8643c1512c11928c76035fac17c9916d44875f2c",
+    "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+    "source_tree_sha": "4ae89c934ff5cd996724fe27e38b476f414b4b82",
     "source_worktrees": [
       "/tmp/riose-sc3-final-source-check",
       "/tmp/riose-sc3-final-source-check2"
     ],
     "source_worktrees_clean_before_build": true,
-    "status": "PASS_CACHED_BUILDER",
+    "status": "PASS_FRESH_EMPTY_CACHE_BUILDS",
     "wheel_import_provenance": "PASS: installed --no-deps into a fresh temporary virtualenv; riose imported from that venv site-packages.",
     "wheel_sha256": "4131a58586a4bcaafce2e8d7af9a2078a698d29c01fc8c202aaf9d66d0a575db"
   },
   "schema_version": 1,
-  "solidity_artifacts": "NOT_BUILT: npm ci could not fetch locked packages.",
+  "solidity_artifacts": {
+    "compile": "solc 0.8.37 compiled registry; ABI 9 entries and bytecode 678 bytes.",
+    "ganache": "Ganache 7.9.2 installed; focused local EVM tests passed 2/2.",
+    "status": "PASS"
+  },
   "status": "BITWISE_MATCH_FOR_LISTED_OUTPUTS",
   "superseded_dirty_snapshot": {
     "old_sdist_sha256": "497842b889d017b823451685d264a768ffcf7690181913f6da3d2fb42ced3391",

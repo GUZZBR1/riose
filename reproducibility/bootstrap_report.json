@@ -37,17 +37,25 @@
       "observed_on": "2026-10-08",
       "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
       "status": "EXTERNAL_BLOCKED"
+    },
+    {
+      "command": "./scripts/bootstrap.sh via temporary Windows-host HTTPS CONNECT bridge to official registries",
+      "observed_on": "2026-10-08",
+      "result": "PASS: canonical locked bootstrap installed core, dev, Solana, and EVM extras; no dependency versions or lockfiles changed.",
+      "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+      "status": "PASS"
     }
   ],
   "bootstrap_version": "1.0.0",
   "canonical_command": "./scripts/bootstrap.sh",
   "installed": true,
-  "installed_scope": "core + dev + Solana extras; EVM extra not installed",
+  "installed_scope": "core + dev + Solana + EVM extras from uv.lock",
   "notes": [
     "The first run used a clean SC-3 checkout and repository-local .venv.",
     "No global cache was deleted.",
     "Bootstrap uses locked uv sync and no pip fallback.",
-    "The current source pins Hatchling and constrains its build toolchain; the full bootstrap still stops at the uncached EVM dependency when the Python registry cannot resolve."
+    "WSL DNS to Tailscale resolver returned SERVFAIL. A temporary allowlisted bridge bound to the WSL gateway reached official GitHub, npm, and PyPI endpoints; clean-cache installs then passed. The bridge was temporary and did not alter system DNS.",
+    "Historical attempts on source 92ef1b5 were blocked by registry DNS; the later 081f6a5 recovery via the temporary official-registry bridge completed the canonical bootstrap, as recorded in the final attempts entry."
   ],
   "python_lock_check": {
     "command": "uv lock --check --offline",
@@ -55,5 +63,5 @@
     "status": "PASS"
   },
   "schema_version": 1,
-  "status": "PARTIAL_EXTERNAL_BLOCKED"
+  "status": "PASS_WITH_FOLLOWUPS"
 }

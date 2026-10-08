@@ -33,12 +33,16 @@
     "upstream_main_unique_commits_vs_fork_main": 1
   },
   "mission": "SC-3 Reproducible Environment & Clean-Room Build",
+  "recovery": {
+    "line_endings": "Restored checkout bytes from Git after detecting stale CRLF materialization; current worktree bytes match clean reference checkout at initial commit.",
+    "original_dirty_checkout": "Preserved."
+  },
   "remote_fetch": {
     "command": "git fetch fork main",
     "error": "Could not resolve host: github.com",
     "error_class": "DNS_FAILURE",
-    "latest_retry_result": "Latest-turn attempts to fetch both fork/main and upstream origin/main failed because github.com could not resolve; local refs remained unchanged, so remote freshness is UNVERIFIED.",
-    "latest_retry_utc": "2026-10-08T12:27:29Z",
+    "latest_retry_result": "Earlier direct WSL fetches failed DNS. Later, after confirming Windows-host connectivity, fetches of fork/main and origin/main succeeded through the temporary allowlisted bridge and verified both refs.",
+    "latest_retry_utc": "2026-10-08 recovery session",
     "latest_turn_attempts": [
       {
         "command": "git fetch fork main",
@@ -71,9 +75,23 @@
         "result": "EXTERNAL_BLOCKED"
       }
     ],
-    "result": "FAILED"
+    "result": "PASS_VIA_TEMPORARY_BRIDGE",
+    "successful_recovery": {
+      "commands": [
+        "git fetch fork main via temporary HTTPS bridge",
+        "git fetch origin main via temporary HTTPS bridge"
+      ],
+      "fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "origin_main": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+      "status": "VERIFIED"
+    }
   },
-  "remote_freshness": "UNVERIFIED",
+  "remote_freshness": {
+    "fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "origin_main": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+    "relationship": "diverged (84 vs 1 unique commits); no merge performed",
+    "status": "VERIFIED"
+  },
   "repo_worktree_count_observation": "The parent repository reported numerous historical worktrees, several prunable. SC-3 used only its new checkout and did not read sibling worktree contents.",
   "repository": "GUZZBR1/riose",
   "sc3_checkout": {
