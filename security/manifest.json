@@ -25,8 +25,8 @@
     },
     {
       "path": "security/discovery.json",
-      "sha256": "770ca9d548e23e1fc87758a49f889eebe50a3c56923b5e871c037ad5f7cd155d",
-      "bytes": 7346
+      "sha256": "33060cf85ce03bfc9d333607a18d8dc0cde27284e368c0f77edd75b551414590",
+      "bytes": 7345
     },
     {
       "path": "security/environment.json",

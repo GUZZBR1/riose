@@ -56,5 +56,15 @@
       "mini-mvp/simulation-localization"
     ],
     "unique_work_lost": 0
+  },
+  "independent_audit_repair": {
+    "finding": "P2 stale SHA-256/byte count in security/manifest.json for security/discovery.json on previously published tree.",
+    "repair": "Manifest entry corrected to actual artifact SHA-256 and byte count.",
+    "post_repair_gates": {
+      "pr_fast": "PASS: 85 passed",
+      "scientific": "PASS: 315 passed, 1 expected skip",
+      "security_focused_regression": "PASS: 179 passed, 1 expected skip"
+    },
+    "publication": "Remote freshness verified by fetch and ls-remote: fork/main is 1f689a806bbf5921a2b7a4605fa28b989416ea43 and is an ancestor; repair commit and final-SHA CI pending."
   }
 }

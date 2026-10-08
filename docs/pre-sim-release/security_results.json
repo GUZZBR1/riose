@@ -29,5 +29,12 @@
   "pr_current_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
   "pr_current_state": "OPEN, not draft; mergeable clean at refresh; core and cad-export checks success",
   "pr_current_commits": 33,
-  "pr_final_delta_finding": "P2: latest head adds identity preview UX and identity badge animations. Its fallback preview is visibly simulated, but tokenization and mutable-digest anchoring remain excluded."
+  "pr_final_delta_finding": "P2: latest head adds identity preview UX and identity badge animations. Its fallback preview is visibly simulated, but tokenization and mutable-digest anchoring remain excluded.",
+  "published_sha_audit": {
+    "finding": "P2 stale SHA-256 and byte count for security/discovery.json in security/manifest.json on published SHA 1f689a806bbf5921a2b7a4605fa28b989416ea43.",
+    "status": "FIXED_LOCALLY_PENDING_REPUBLICATION",
+    "correct_sha256": "33060cf85ce03bfc9d333607a18d8dc0cde27284e368c0f77edd75b551414590",
+    "correct_bytes": 7345,
+    "verification": "Artifact hash/size verified; PR_FAST 85 passed; scientific 315 passed/1 expected skip; security-focused regression 179 passed/1 expected skip."
+  }
 }

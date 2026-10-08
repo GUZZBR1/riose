@@ -22,6 +22,10 @@ The diorama, responsive scene, accessible animal selection, local event readback
 
 Initial published main SHA is 0aaa42a173027c0c26a2563c10ee5b45d2562792. The documentation-only closeout was committed and fast-forwarded to main after test, PR, cleanup, and evidence results were recorded. The final verified main SHA is reported in the handoff packet. Existing local main at e57b235a was a fast-forward ancestor and was advanced to the published candidate SHA. No force push was used. Local main and remote main matched at publication. Cleanup removed two proven redundant local branches, preserved all worktrees, and retained recovery, archive, upstream, dirty, and unknown refs. All refs/worktrees are inventoried; no unique work was lost.
 
+## Final independent audit closeout
+
+The independent reviewer identified a stale SHA-256/byte-count record for `security/discovery.json` in `security/manifest.json` on the previously published tree. The entry now matches the artifact (SHA-256 `33060cf85ce03bfc9d333607a18d8dc0cde27284e368c0f77edd75b551414590`, 7,345 bytes). Affected PR_FAST, scientific, and security-focused regression gates passed after the correction. The initial WSL DNS lookup failed; fresh remote fetch and `git ls-remote` then succeeded using a one-command GitHub DNS resolution override to the address resolved by Windows. GUZZBR1/riose `main` remains `1f689a806bbf5921a2b7a4605fa28b989416ea43` and is an ancestor of this closeout branch. Publication of the evidence correction and CI for its final SHA remain pending.
+
 ## Claim limits
 
 Software core, offline-first, and multichain software are validated locally. Solana/Base/Arbitrum public testnets are UNVERIFIED. RF/localization remain SIMULATED; behavior ML remains research-supported/not operational; hardware is not validated; field testing was not performed. See claim_registry.json.
