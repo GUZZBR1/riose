@@ -1,0 +1,14 @@
+{
+  "schema_version": "riose.evidence-rules/v1",
+  "required_provenance": ["source_sha", "source_tree", "tested_sha", "tested_tree", "patch_sha256", "config_path", "config_sha256", "seed", "environment", "artifact_sha256", "scenario", "backend", "evidence_classification"],
+  "rules": [
+    "A current claim must identify the source commit and source tree under test.",
+    "Every artifact hash is SHA-256 over the exact artifact bytes.",
+    "A claim must link to at least one evidence record with matching claim_id.",
+    "Historical evidence remains historical and is never rewritten as current evidence.",
+    "Local, mock, and simulated evidence cannot be labeled public-chain, measured-lab, hardware, or field validated.",
+    "A missing source revision, artifact, scenario, or backend is unavailable evidence, not a fabricated default."
+  ],
+  "current_claims_file": "ci-scientific-gates/claims.json",
+  "historical_claims_file": "RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json"
+}

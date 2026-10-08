@@ -1,0 +1,5 @@
+{
+  "schema_version": "riose.sc4-claims/v1",
+  "claim_basis": "Local gate implementation and results recorded in evidence_records.json; remote CI and physical claims are excluded.",
+  "claims": []
+}

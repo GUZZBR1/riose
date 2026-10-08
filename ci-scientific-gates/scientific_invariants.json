@@ -1,0 +1,15 @@
+{
+  "schema_version": "riose.scientific-invariants/v1",
+  "invariants": [
+    {"id": "SIMULATED_NOT_VALIDATED", "rule": "simulation evidence cannot establish field, lab, hardware, or public-chain validation", "tests": ["tests/test_evidence_bridge.py", "tests/simulation_contract/test_v1.py"]},
+    {"id": "FORWARDED_NOT_EFFECTIVE", "rule": "forwarding status does not prove application effect", "tests": ["tests/livestock_tracking/test_publication_dispatcher.py"]},
+    {"id": "CONVERGENCE_NOT_ACCURACY", "rule": "numerical convergence and quality acceptance are independent from ground-truth accuracy", "tests": ["tests/research/test_dynamic_localization.py", "tests/simulation_lab/test_farm_network.py"]},
+    {"id": "GROUND_TRUTH_FIREWALL", "rule": "ground truth is only a scenario/scoring input and is absent from estimator inputs", "tests": ["tests/research/test_dynamic_localization.py", "tests/simulation_lab/test_farm_network.py", "tests/livestock_tracking/test_localization.py"]},
+    {"id": "PHY_NOT_APPLICATION", "rule": "PHY_RECEIVED does not imply application delivery", "tests": ["tests/simulation_contract/test_v1.py", "tests/simulation_adapter/test_adapter.py", "tests/simulation_lab/test_farm_network.py"]},
+    {"id": "SIMULATED_TIME_NOT_HARDWARE_ACCURACY", "rule": "simulated timestamp resolution is not hardware timing accuracy", "tests": ["tests/simulation_contract/test_v1.py", "tests/simulation_lab/test_farm_network.py"]},
+    {"id": "MOCK_NOT_REAL_CHAIN", "rule": "mock and local EVM receipts cannot establish REAL_ON_CHAIN or public-network validation", "tests": ["tests/livestock_tracking/test_evm_registry.py", "tests/livestock_tracking/test_solana_memo.py"]},
+    {"id": "UNAVAILABLE_STAYS_UNAVAILABLE", "rule": "missing physical or position values remain null/unavailable, never silent zero substitutes", "tests": ["tests/simulation_adapter/test_adapter.py", "tests/simulation_lab/test_farm_network.py", "tests/livestock_tracking/test_localization.py"]},
+    {"id": "TARGET_INDEPENDENT_COMMITMENT", "rule": "one canonical commitment is used across publication targets and one target failure cannot corrupt another", "tests": ["tests/livestock_tracking/test_evm_registry.py", "tests/livestock_tracking/test_publication_dispatcher.py"]},
+    {"id": "OFFLINE_RESTART", "rule": "events and publication intent survive offline operation and process restart", "tests": ["tests/livestock_tracking/test_publication_outbox.py", "tests/livestock_tracking/test_publication_dispatcher.py"]}
+  ]
+}

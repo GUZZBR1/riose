@@ -1,0 +1,19 @@
+{
+  "schema_version": "riose.claim-rules/v1",
+  "classes": ["SIMULATED", "REAL_ON_CHAIN", "MEASURED_LAB", "FIELD_VALIDATED", "RESEARCH_SUPPORTED", "UNVERIFIED", "ASSUMED"],
+  "promotion_policy": "No automatic class promotion. Each claim is classified only from directly referenced evidence; tests and local simulation cannot promote to physical, field, or public-network validation.",
+  "forbidden_inferences": [
+    {"from": "SIMULATED", "to": "FIELD_VALIDATED", "requires": "independent field evidence and review"},
+    {"from": "MOCKED", "to": "REAL_ON_CHAIN", "requires": "verified public-chain receipt bound to claim and source"},
+    {"from": "LOCAL_EVM", "to": "BASE_SEPOLIA_VALIDATED", "requires": "verified Base Sepolia receipt and network identity"},
+    {"from": "TESTNET", "to": "MAINNET", "requires": "independent mainnet evidence"},
+    {"from": "CONVERGED", "to": "ACCURATE", "requires": "independent ground-truth scoring"},
+    {"from": "PHY_RECEIVED", "to": "APPLICATION_DELIVERED", "requires": "application-layer delivery evidence"}
+  ],
+  "historical_registry": {
+    "path": "RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json",
+    "treatment": "historical_only",
+    "rewrite": false,
+    "reason": "The registry contains free-form evidence strings and a historical candidate SHA; it is not an attestation of the current source tree."
+  }
+}

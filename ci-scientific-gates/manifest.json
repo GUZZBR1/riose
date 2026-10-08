@@ -1,0 +1,25 @@
+{
+  "artifacts": {
+    "ci_capability_matrix.json": "b303651078307a6fd8e9cf5df671460332d9d2897f89cb597cbc40bf04dfb4a4",
+    "claim_rules.json": "3000c005aaa8e9fb6eefcbe7db2bc88a7abcbf6ebf5d3ef037176fa932c78666",
+    "claims.json": "856c84691b627496b8da731d7ac786639084c9f57ccbb51186e314586921e45e",
+    "discovery.json": "d9ef2a7a80ce368c58332bcfd2cc9448a0646b63f9346cd3653f2555ab47a840",
+    "environment.json": "16b0997c879ca23dbbfada25f4893d7c8702befc2907740a94901e42378eec87",
+    "evidence_records.json": "d6224483556e253847096a49d08ed3cec079f2ef69efb34c0d354843141f773e",
+    "evidence_rules.json": "2a75bb2cac6af37961c1e02f70692df2e2be42a84318eb496cd3e3dfc2d8e84f",
+    "final_report.md": "28c76e782a926b3a3a1194ddc2fdcd8e483cc85250ea0e351b095fe42e20dfb7",
+    "gate_architecture.json": "6975f9c18213cd8c8375261c098252e9f7f11ad406db7d1eed64de512e694123",
+    "limitations.json": "b2cfed80c9b034c56e804152f79a747cd78e103373584a73114fa71559f85692",
+    "local_ci_evidence.log": "d51302120bf725e8f190a235ae68524daffd62ec187aef1abb7fec244d6defa5",
+    "local_ci_results.json": "13418871605e3d90c8daf95098957a171c4f9f89b03f0a6a560b0d593dc3b9fd",
+    "red_team_report.md": "377c16d20f4c75b97ba984d01098c954bdc35a8022b63e64f22329e98dc9b455",
+    "scientific_invariants.json": "b72ac01af40f0fefbcf06f319a4bd8aaccb5d68db6e314446de6e2f13bb7ff9e",
+    "skip_classification.json": "fe062169d469c82baff248cd241c2568a7c8b404db5c7aeb7bdc214986a264f6",
+    "test_costs.json": "25593905ac48912ff06f66c19c3db31e39c0f2502e816b8e6713449397b3ce9e",
+    "workflow_security.json": "d4a08c2fd1ef2c487ba4ec8e687733015d27b5248c76f3cffa58da95228f0466"
+  },
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "branch": "software-closure/sc4-ci-scientific-gates",
+  "repository": "GUZZBR1/riose",
+  "schema_version": "riose.sc4-evidence-manifest/v1"
+}

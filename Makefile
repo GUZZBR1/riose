@@ -1,4 +1,4 @@
-.PHONY: setup demo test benchmark hardware-test hardware-demo hardware-native-sim hardware-renode-test
+.PHONY: setup demo test benchmark hardware-test hardware-demo hardware-native-sim hardware-renode-test ci-fast ci-scientific ci-main
 HARDWARE_TEST_BUILD_DIR ?= /tmp/riose-ear-tag-hardware-tests-v2
 setup:
 	./setup.sh
@@ -46,3 +46,13 @@ hardware-renode-test:
 	else \
 		echo "SKIPPED: install renode and renode-test to run the optional platform smoke test"; \
 	fi
+
+# These local entry points invoke the same gate runner used by GitHub Actions.
+ci-fast:
+	uv run python scripts/ci/run_gate.py fast
+
+ci-scientific:
+	uv run python scripts/ci/run_gate.py scientific
+
+ci-main:
+	uv run python scripts/ci/run_gate.py main
