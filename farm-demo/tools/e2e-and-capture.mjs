@@ -44,7 +44,7 @@ async function selectByKeyboard(target) {
     const { animals, camera } = JSON.parse(host.dataset.farmDragState);
     const animal = animals[animalIndex];
     const overviewZoom = Math.min(camera.width / 1536, camera.height / 1024) * 0.96;
-    return camera.zoomX > overviewZoom * 1.14 &&
+    return Math.abs(camera.zoomX - overviewZoom) < 0.02 &&
       animal.screenX > camera.width * 0.15 && animal.screenX < camera.width * 0.85 &&
       animal.screenY > camera.height * 0.15 && animal.screenY < camera.height * 0.85;
   }, target, { timeout: 5000 });
@@ -66,11 +66,11 @@ async function selectByMapClick(target) {
     const { animals, camera } = JSON.parse(host.dataset.farmDragState);
     const animal = animals[animalIndex];
     const overviewZoom = Math.min(camera.width / 1536, camera.height / 1024) * 0.96;
-    return camera.zoomX > overviewZoom * 1.14 &&
+    return Math.abs(camera.zoomX - overviewZoom) < 0.02 &&
       animal.screenX > camera.width * 0.15 && animal.screenX < camera.width * 0.85 &&
       animal.screenY > camera.height * 0.15 && animal.screenY < camera.height * 0.85;
   }, target, { timeout: 5000 });
-  await assertStageAspectStaysStable('Farm 01');
+  await assertFarmStageStaysStable('Farm 01');
 }
 
 async function sampleStageAspect(selector) {
@@ -80,21 +80,25 @@ async function sampleStageAspect(selector) {
     const started = performance.now();
     const sample = (now) => {
       const rect = stage.getBoundingClientRect();
-      window.__farmAspectSamples.push(rect.width / rect.height);
+      window.__farmAspectSamples.push({ width: rect.width, height: rect.height, ratio: rect.width / rect.height });
       if (now - started < 720) requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
   }, selector);
 }
 
-async function assertStageAspectStaysStable(farmName) {
+async function assertFarmStageStaysStable(farmName) {
   await page.waitForFunction(() => (window.__farmAspectSamples || []).length >= 35, null, { timeout: 2500 });
-  const measurements = await page.evaluate(() => window.__farmAspectSamples || []);
-  const ratios = measurements.filter(Number.isFinite);
-  assert.ok(ratios.length > 10, `${farmName} aspect ratio was sampled during its selection transition`);
-  const min = Math.min(...ratios);
-  const max = Math.max(...ratios);
-  assert.ok(max / min < 1.06, `${farmName} scene stretched during selection: ${min.toFixed(3)} → ${max.toFixed(3)}`);
+  const samples = await page.evaluate(() => window.__farmAspectSamples || []);
+  const measurements = samples.filter(({ width, height, ratio }) => Number.isFinite(width) && Number.isFinite(height) && Number.isFinite(ratio));
+  assert.ok(measurements.length > 10, `${farmName} viewport was sampled during its selection transition`);
+  const widths = measurements.map(({ width }) => width);
+  const heights = measurements.map(({ height }) => height);
+  const ratios = measurements.map(({ ratio }) => ratio);
+  assert.ok(Math.max(...ratios) / Math.min(...ratios) < 1.06,
+    `${farmName} scene stretched during selection: ${Math.min(...ratios).toFixed(3)} → ${Math.max(...ratios).toFixed(3)}`);
+  assert.ok(Math.max(...widths) / Math.min(...widths) < 1.12 && Math.max(...heights) / Math.min(...heights) < 1.12,
+    `${farmName} scene scale jumped while the profile opened`);
 }
 
 try {
@@ -151,7 +155,7 @@ try {
   await page.waitForFunction(() => {
     const host = document.querySelector('#farm-canvas .riose-farm-canvas-host');
     const canvas = host?.querySelector('canvas');
-    return host && canvas && host.clientWidth > 1450 &&
+    return host && canvas && host.clientWidth > 1000 &&
       Math.abs(canvas.width - host.clientWidth) < 2 && Math.abs(canvas.height - host.clientHeight) < 2;
   });
   await sampleStageAspect('#farm-stage');
@@ -218,7 +222,7 @@ try {
   await sampleStageAspect('#farm-stage-02');
   await page.getByRole('button', { name: 'Animal 42', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 42');
-  await assertStageAspectStaysStable('Farm 02');
+  await assertFarmStageStaysStable('Farm 02');
   await page.locator('#cerrado-profile').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#animal-journey').isVisible(), false, 'Cerrado has its own profile schema');
   assert.match(await page.locator('#record-portrait').getAttribute('src'), /\/assets\/farm-demo\/nelore\/nelore-\d\.png$/);

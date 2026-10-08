@@ -79,7 +79,7 @@ button { font: inherit; }
 }
 .product-stage.has-selection { grid-template-columns: minmax(0, 2.15fr) minmax(355px, .98fr); }
 .farm-column { position: relative; display: flex; min-width: 0; height: 100%; align-items: center; }
-.farm-stage { position: relative; isolation: isolate; width: 100%; height: auto; max-height: 100%; aspect-ratio: 2.15; overflow: visible; background: transparent; }
+.farm-stage { position: relative; isolation: isolate; width: min(100%, 111svh, 1113px); height: auto; aspect-ratio: 1.5; overflow: visible; background: transparent; }
 .farm-canvas, .farm-canvas canvas { display: block; width: 100%; height: 100%; }
 .farm-canvas { position: absolute; inset: 0; touch-action: pan-y pinch-zoom; }
 .farm-canvas#farm-canvas::before { position: absolute; z-index: 0; inset: 0; background: center / contain no-repeat url('/assets/farm-demo/isometric/island-base.webp'); content: ""; opacity: 1; pointer-events: none; transition: opacity 220ms ease; }
@@ -197,7 +197,6 @@ button { font: inherit; }
 @media (max-width: 1120px) and (min-width: 761px) {
   .demo-page { width: min(100% - 42px, 1500px); }
   .product-stage.has-selection { grid-template-columns: minmax(0, 1.72fr) minmax(330px, 1fr); }
-  .farm-stage { aspect-ratio: 1.55; }
   .context-card { padding-right: 14px; padding-left: 14px; border-radius: 21px; }
   .animal-panel.is-open { padding: 15px 14px 12px; }
   .solana-panel.is-open { padding: 14px; }

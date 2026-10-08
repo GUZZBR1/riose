@@ -397,7 +397,7 @@ function publishSceneState(animals) {
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-30');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-33');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
 

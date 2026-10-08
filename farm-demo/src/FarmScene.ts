@@ -119,19 +119,19 @@ export class FarmScene extends Phaser.Scene {
   }
 
   selectAnimal(id: string | null): void {
-    this.setSelectedAnimal(id, true);
+    this.setSelectedAnimal(id);
   }
 
-  private setSelectedAnimal(id: string | null, focus: boolean): void {
+  private setSelectedAnimal(id: string | null): void {
     const selected = id ? this.cowById(id) : undefined;
     if (id && !selected) return;
     this.selectedId = selected ? id : null;
     for (const cow of this.cows) cow.setSelected(cow === selected);
     const state = selected?.getState() ?? null;
     this.callbacks.onSelect?.(state);
-    if (state && focus) this.cameraController.focus(state.estimatedPosition.x, state.estimatedPosition.y);
-    else if (!state) this.cameraController.showOverview();
-    else this.cameraController.cancelFocus();
+    // Selecting an animal opens its profile without changing the user's camera
+    // framing. Camera focus remains available as an explicit action.
+    this.cameraController.cancelFocus();
   }
 
   focusAnimal(id: string): void {
@@ -195,7 +195,7 @@ export class FarmScene extends Phaser.Scene {
     const event = pointer.event;
     if (!(event instanceof MouseEvent) || pointer.button !== 0) {
       this.pendingAnimalDrag = null;
-      this.setSelectedAnimal(id, true);
+      this.setSelectedAnimal(id);
       return;
     }
     this.pendingAnimalDrag = {
@@ -238,11 +238,11 @@ export class FarmScene extends Phaser.Scene {
     if (drag.dragging) {
       this.herd.endManualMove(drag.index);
       this.cows[drag.index]?.setDragging(false);
-      this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`, false);
+      this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`);
       this.callbacks.onStates?.(this.getAnimals());
       return;
     }
-    this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`, true);
+    this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`);
   }
 
   private clearSelectionOnLandscape(pointer: Phaser.Input.Pointer): void {

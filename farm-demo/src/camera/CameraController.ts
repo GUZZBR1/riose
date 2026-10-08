@@ -78,7 +78,11 @@ export class CameraController {
     } else this.target = target;
   }
 
-  cancelFocus(): void { this.target = null; }
+  cancelFocus(): void {
+    this.target = null;
+    this.viewMode = 'overview';
+    this.selectedZoom = this.overviewZoom;
+  }
 
   destroy(): void {
     this.scene.input.off('pointerdown', this.pointerDown, this);
