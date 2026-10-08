@@ -37,14 +37,23 @@ jobs:
           version: "0.11.7"
           python-version: "3.12"
           enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
       - name: Install locked Python dependencies
-        run: uv sync --locked --extra dev --extra solana
+        run: uv sync --locked --extra dev --extra solana --extra evm
+      - name: Install locked local EVM dependencies
+        run: npm ci --prefix contracts
+      - name: Compile local EVM registry
+        run: node contracts/test/compile_registry.cjs
       - name: Validate hardware spec provenance
-        run: uv run python -m riose.products.ear_tag.digital_twin validate-spec
+        run: uv run --locked python -m riose.products.ear_tag.digital_twin validate-spec
       - name: Probe optional headless tools
-        run: uv run python -m riose.products.ear_tag.digital_twin preflight
+        run: uv run --locked python -m riose.products.ear_tag.digital_twin preflight
       - name: Python test suite
-        run: uv run pytest -q
+        run: uv run --locked pytest -q
       - name: C firmware and virtual model tests
         run: make hardware-test
       - name: Optional Renode platform smoke

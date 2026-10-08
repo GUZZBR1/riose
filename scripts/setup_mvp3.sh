@@ -8,7 +8,7 @@ if ! command -v uv >/dev/null 2>&1; then
   echo "uv is required to create the repository-local Python environment." >&2
   exit 2
 fi
-uv sync --project "$repo_root" --extra dev
+uv sync --locked --project "$repo_root" --extra dev
 
 if [[ -f "$ros_setup" ]]; then
   # ROS Jazzy provides the already-installed Gazebo Harmonic vendor runtime in

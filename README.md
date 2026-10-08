@@ -89,8 +89,8 @@ The EVM registry accepts a `bytes32` commitment and exposes a registration event
 Requirements: Python 3.12 or newer and [uv](https://docs.astral.sh/uv/). The first install needs network access to fetch Python dependencies.
 
 ~~~sh
-uv sync
-uv run cattle-rf demo --host 127.0.0.1 --port 8000
+./scripts/bootstrap.sh
+uv run --locked cattle-rf demo --host 127.0.0.1 --port 8000
 ~~~
 
 Open <http://127.0.0.1:8000>. The demo starts with a seeded farm and provides local animal, anchor, telemetry, position, event, simulation, experiment, and metrics views. Position responses separate estimates from ground truth; debug truth fields require explicit opt-in.
@@ -98,13 +98,15 @@ Open <http://127.0.0.1:8000>. The demo starts with a seeded farm and provides lo
 To run the Python suite and host firmware-model tests:
 
 ~~~sh
-uv sync --extra dev --extra solana --extra evm
+./scripts/bootstrap.sh
 npm ci --prefix contracts
-uv run pytest -q
+uv run --locked pytest -q
 make hardware-test
 ~~~
 
 The CMake/CTest harness is a host-side firmware/model test, not a physical-device test. Hardware, Renode, Gazebo, and local-EVM checks have their own optional tool requirements.
+
+For the canonical clean-checkout bootstrap, preflight, lockfile checks, local EVM setup, and clean CMake/CTest commands, follow [Reproducible local validation](reproducibility/README.md).
 
 ## Technical stack
 

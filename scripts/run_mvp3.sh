@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-exec uv run --project "$repo_root" riose mvp3 run "$@" --visual
+exec uv run --locked --project "$repo_root" riose mvp3 run "$@" --visual
