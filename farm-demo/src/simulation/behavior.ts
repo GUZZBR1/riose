@@ -27,6 +27,9 @@ export interface AnimalBehaviorOptions {
   walkSpeedMin?: number;
   walkSpeedMax?: number;
   interactionChance?: number;
+  interactionRoles?: Record<number, 'drink' | 'shade'>;
+  interactionDwellMin?: number;
+  interactionDwellMax?: number;
 }
 
 /** Deterministic, bounded animal state machine driven by the authored nav grid. */
@@ -65,6 +68,9 @@ export class AnimalBehavior {
       walkSpeedMin: options.walkSpeedMin ?? WALK_SPEED_MIN,
       walkSpeedMax: options.walkSpeedMax ?? WALK_SPEED_MAX,
       interactionChance: options.interactionChance ?? 0.08,
+      interactionRoles: options.interactionRoles ?? {},
+      interactionDwellMin: options.interactionDwellMin ?? 12,
+      interactionDwellMax: options.interactionDwellMax ?? 22,
     };
     this.randomState = (0x9e3779b9 ^ this.options.seed ^ Math.imul(index + 1, 0x85ebca6b)) >>> 0;
     this.x = spawn.x;
@@ -77,7 +83,12 @@ export class AnimalBehavior {
       ? (place < 56 ? 'GRAZE' : place < 76 ? 'REST' : 'IDLE')
       : (place < 56 ? 'GRAZE' : place < 76 ? 'REST' : place < 96 ? 'WALK' : 'IDLE');
     this.dwellRemaining = 4 + this.random() * 11;
-    if (!stationary && this.status === 'WALK') this.chooseDestination();
+    if (!stationary) {
+      const role = this.options.interactionRoles[index];
+      if (!role || !this.chooseInteractionJourney(role)) {
+        if (this.status === 'WALK') this.chooseDestination();
+      }
+    }
   }
 
   step(dt: number, neighbors: readonly NeighborPosition[]): void {
@@ -208,24 +219,33 @@ export class AnimalBehavior {
 
   private beginNextJourney(): void {
     this.stuckFor = 0;
-    const interactionPoints = this.navigation.definition.interactionPoints ?? [];
-    const eligiblePoints = interactionPoints.filter((interaction) => interaction.kind === 'drink' || interaction.kind === 'shade');
-    if (eligiblePoints.length && this.random() < this.options.interactionChance) {
-      const interaction = eligiblePoints[Math.floor(this.random() * eligiblePoints.length)];
-      const route = this.navigation.findPath({ x: this.x, y: this.y }, interaction.point);
-      if (route?.length) {
-        const safeWaterPoint = route[route.length - 1];
-        this.status = 'WALK';
-        this.target = safeWaterPoint;
-        this.path = route;
-        this.pathIndex = 0;
-        this.targetDistance = Math.hypot(safeWaterPoint.x - this.x, safeWaterPoint.y - this.y);
-        this.arrivalState = interaction.kind === 'shade' ? 'SHADE' : 'DRINK';
-        this.speed = this.options.walkSpeedMin + this.random() * (this.options.walkSpeedMax - this.options.walkSpeedMin);
-        return;
-      }
-    }
+    const role = this.options.interactionRoles[this.index];
+    if (role && this.random() < 0.78 && this.chooseInteractionJourney(role)) return;
+    if (!role && this.random() < this.options.interactionChance && this.chooseInteractionJourney()) return;
     this.chooseDestination();
+  }
+
+  private chooseInteractionJourney(preferredKind?: 'drink' | 'shade'): boolean {
+    const eligible = (this.navigation.definition.interactionPoints ?? []).filter((point) =>
+      (point.kind === 'drink' || point.kind === 'shade') && (!preferredKind || point.kind === preferredKind) &&
+      Math.hypot(point.point.x - this.x, point.point.y - this.y) > 58);
+    if (!eligible.length) return false;
+    const startIndex = Math.floor(this.random() * eligible.length);
+    for (let offset = 0; offset < eligible.length; offset += 1) {
+      const interaction = eligible[(startIndex + offset) % eligible.length];
+      const route = this.navigation.findPath({ x: this.x, y: this.y }, interaction.point);
+      if (!route?.length) continue;
+      const safePoint = route[route.length - 1];
+      this.status = 'WALK';
+      this.target = safePoint;
+      this.path = route;
+      this.pathIndex = 0;
+      this.targetDistance = Math.hypot(safePoint.x - this.x, safePoint.y - this.y);
+      this.arrivalState = interaction.kind === 'shade' ? 'SHADE' : 'DRINK';
+      this.speed = this.options.walkSpeedMin + this.random() * (this.options.walkSpeedMax - this.options.walkSpeedMin);
+      return true;
+    }
+    return false;
   }
 
   private chooseDestination(): void {
@@ -259,7 +279,8 @@ export class AnimalBehavior {
     this.pathIndex = 0;
     if (this.arrivalState) {
       this.status = this.arrivalState;
-      this.dwellRemaining = 4 + this.random() * 4;
+      this.dwellRemaining = this.options.interactionDwellMin + this.random() *
+        (this.options.interactionDwellMax - this.options.interactionDwellMin);
       return;
     }
     this.status = this.random() < 0.74 ? 'GRAZE' : 'REST';

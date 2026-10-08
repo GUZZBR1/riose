@@ -271,8 +271,8 @@ function resetIdentityCard(profile) {
   $('asset-preview-status').textContent = '';
   $('asset-preview-action').hidden = false;
   $('asset-preview-action').disabled = false;
-  $('asset-preview-action').textContent = 'Preview asset';
-  setMessage('asset-state', 'Preview only · no blockchain transaction.', 'no-asset');
+  $('asset-preview-action').textContent = 'Build identity';
+  $('asset-state').hidden = true;
   updateIdentityToggle();
 }
 
@@ -282,6 +282,7 @@ function resetRecordState(profile) {
   $('record-portrait').src = profile.image;
   $('record-portrait').alt = `${profile.name}, cattle portrait`;
   $('record-portrait').classList.toggle('is-nelore', profile.farmId === 'farm02');
+  $('animal-panel-body').classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('selected-animal-status').parentElement.classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('animal-journey').hidden = profile.farmId === 'farm02';
   $('cerrado-profile').hidden = profile.farmId !== 'farm02';
@@ -290,10 +291,10 @@ function resetRecordState(profile) {
     $('selected-animal-status').textContent = profile.breed + ' · ' + profile.sex + ' · ' + profile.age;
     const field = (name) => $('cerrado-profile').querySelector(`[data-cerrado="${name}"]`);
     field('health').textContent = profile.health;
-    field('activity').textContent = statusLabels[state.selectedSceneAnimal?.status] || 'Resting';
     field('location').textContent = profile.location;
     field('signal').textContent = profile.signal;
     field('condition').textContent = profile.condition;
+    field('tag').textContent = profile.tagLabel;
     const reproductive = $('cerrado-profile').querySelector('.reproductive-field');
     reproductive.hidden = !profile.reproductive;
     if (profile.reproductive) field('reproductive').textContent = profile.reproductive;
@@ -382,7 +383,6 @@ function publishSceneState(animals) {
       : statusLabels[active.status] || 'Resting';
     $('selected-animal-zone').textContent = active.zone;
     if (farmId === 'farm02') {
-      $('cerrado-profile').querySelector('[data-cerrado="activity"]').textContent = statusLabels[active.status] || 'Resting';
       $('cerrado-profile').querySelector('[data-cerrado="location"]').textContent = active.zone;
     }
   }
@@ -495,14 +495,14 @@ async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
     if (state.identityExpanded) {
       state.assetStatus = 'ERROR';
       state.assetStatusLoaded = true;
-      setMessage('asset-state', 'Preview only · no blockchain transaction.', 'no-asset');
+      $('asset-state').hidden = true;
     }
   }
 }
 
 function updateIdentityToggle(confirmed = false) {
   const button = $('continue-solana');
-  button.replaceChildren(document.createTextNode('Open identity preview'));
+  button.replaceChildren(document.createTextNode('Explore digital identity'));
   const arrow = document.createElement('span');
   arrow.setAttribute('aria-hidden', 'true');
   arrow.textContent = '↗';
@@ -513,7 +513,6 @@ async function refreshAsset(requestId = state.selectionGeneration) {
   if (requestId !== state.selectionGeneration) return;
   state.assetStatus = 'PREVIEW_ONLY';
   state.assetStatusLoaded = true;
-  setMessage('asset-state', 'Preview only · no blockchain transaction.', 'no-asset');
 }
 
 function waitForPreviewBeat(milliseconds) {
@@ -530,25 +529,24 @@ async function previewAsset() {
   const card = $('asset-preview-card');
   const status = $('asset-preview-status');
   button.disabled = true;
-  button.textContent = 'Preparing preview…';
+  button.textContent = 'Preparing identity…';
   card.hidden = false;
   card.classList.remove('is-revealed');
   void card.offsetWidth;
   card.classList.add('is-revealed');
   status.hidden = false;
   const beat = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 480;
-  status.textContent = 'Showing the public identity';
+  status.textContent = 'Preparing animal identity';
   await waitForPreviewBeat(beat);
   if (requestId !== state.selectionGeneration) return;
-  status.textContent = 'Keeping farm data private';
+  status.textContent = 'Connecting the animal record';
   await waitForPreviewBeat(beat);
   if (requestId !== state.selectionGeneration) return;
-  status.textContent = 'Preview complete · not created';
+  status.textContent = 'Digital identity ready';
   state.assetPreviewComplete = true;
   state.assetPreviewRunning = false;
   button.disabled = false;
-  button.textContent = 'Replay preview';
-  setMessage('asset-state', 'Preview only · no blockchain transaction.', 'no-asset');
+  button.textContent = 'Build again';
   if (!state.assetStatusLoaded) {
     void refreshAsset(requestId);
   }
