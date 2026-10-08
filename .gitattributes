@@ -23,3 +23,5 @@ docs/reports/evidence/*.xml text eol=lf
 # Keep shell entry points usable in Linux clean-room checkouts even when the
 # cloning user's core.autocrlf setting is enabled.
 *.sh text eol=lf
+/reproducibility/*.json text eol=lf
+/reproducibility/*.md text eol=lf
