@@ -1,0 +1,26 @@
+{
+  "schema_version": "riose.audit-environment/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "os": "WSL Ubuntu",
+  "python": "3.12.3",
+  "python_environment": "Cached multichain-final-integration venv; matching tested optional versions, no manifests changed.",
+  "versions": {
+    "pytest": "8.4.2",
+    "eth-account": "0.14.0",
+    "eth-utils": "6.0.0",
+    "hexbytes": "2.0.0",
+    "solders": "0.29.0",
+    "uv": "0.11.26",
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "cmake": "3.28.3",
+    "gcc": "13.3.0"
+  },
+  "node_modules": "Cached multichain-final-integration node_modules via NODE_PATH; fresh npm install not claimed.",
+  "network": "GitHub DNS unavailable; public chain not contacted.",
+  "gaps": [
+    "No clean-room install.",
+    "CadQuery absent (7 skips).",
+    "Renode not run."
+  ]
+}

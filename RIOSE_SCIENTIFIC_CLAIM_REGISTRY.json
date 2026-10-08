@@ -125,5 +125,12 @@
       "evidence": ["Candidate diff and runtime dependency graph"],
       "scope_limit": "No end-to-end external simulator integration claim."
     }
-  ]
+  ],
+  "registry_scope": "HISTORICAL_SNAPSHOT",
+  "scope_note": "Claims below apply to the historical candidate_code_head only and do not describe current fork/main.",
+  "current_head_reconciliation": {
+    "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "evidence_package": "docs/software-closure/claim_registry.json",
+    "scope": "Current SC-6 claims are SHA-bound in the linked registry; historical claim records were not rewritten."
+  }
 }

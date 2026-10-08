@@ -1,0 +1,72 @@
+{
+  "schema_version": "riose.software-closure-limitations/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "limitations": [
+    {
+      "id": "REMOTE",
+      "class": "EXTERNAL_BLOCKER",
+      "status": "UNVERIFIED",
+      "detail": "DNS prevented remote refs, PR and CI check."
+    },
+    {
+      "id": "CHAIN",
+      "class": "EXTERNAL_BLOCKER",
+      "status": "UNVERIFIED",
+      "detail": "No public receipt for any target; none sent."
+    },
+    {
+      "id": "SOLANA-SIGNER",
+      "class": "INTERNAL_FOLLOW_UP",
+      "status": "NOT_READY",
+      "detail": "SEC-SOLANA-001 open."
+    },
+    {
+      "id": "PERSISTENCE",
+      "class": "INTERNAL_FOLLOW_UP",
+      "status": "LIMITED",
+      "detail": "No external chain anchor or Event API request idempotency."
+    },
+    {
+      "id": "RETRY",
+      "class": "INTERNAL_FOLLOW_UP",
+      "status": "LIMITED",
+      "detail": "Backoff/cap and some crash windows unverified."
+    },
+    {
+      "id": "REPRO",
+      "class": "ACCEPTED_LIMITATION",
+      "status": "CACHED_REPRODUCTION",
+      "detail": "Fresh dependency install unavailable."
+    },
+    {
+      "id": "SIM",
+      "class": "ACCEPTED_LIMITATION",
+      "status": "SIMULATED",
+      "detail": "No physical RF or localization accuracy."
+    },
+    {
+      "id": "HARDWARE",
+      "class": "HARDWARE_REQUIRED",
+      "status": "NOT_PERFORMED",
+      "detail": "No HIL, target board or measured bench."
+    },
+    {
+      "id": "FIELD",
+      "class": "FIELD_REQUIRED",
+      "status": "NOT_PERFORMED",
+      "detail": "No farm/animal trial."
+    },
+    {
+      "id": "BEHAVIOR",
+      "class": "FUTURE_PRODUCT_FEATURE",
+      "status": "RESEARCH_ONLY",
+      "detail": "Not operational/diagnostic."
+    },
+    {
+      "id": "SKIPS",
+      "class": "ACCEPTED_LIMITATION",
+      "status": "7_SKIPPED",
+      "detail": "CAD/mechanical cases skipped due missing CadQuery; Renode not run."
+    }
+  ]
+}

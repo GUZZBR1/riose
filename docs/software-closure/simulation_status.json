@@ -1,0 +1,17 @@
+{
+  "schema_version": "riose.simulation-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "rf": "SIMULATED",
+  "localization": "SIMULATED",
+  "field_accuracy": "NOT_VALIDATED",
+  "sim_v2_readiness": "SIM_V2_READY_WITH_LIMITATIONS",
+  "basis": [
+    "Synthetic flow and software tests pass.",
+    "Historical FREQUENCIA provenance exists but current external lab was not rerun."
+  ],
+  "limitations": [
+    "No measured antenna/channel/environment/clock/network.",
+    "No HIL or calibrated field comparison.",
+    "RMSE conditional on scored/converged samples."
+  ]
+}

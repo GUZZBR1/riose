@@ -1,0 +1,150 @@
+{
+  "schema_version": "riose.current-state-inventory/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "base_tree": "2ee3930e5ae6b96cef6134840151c17f7c85f0e4",
+  "branch": "software-closure/sc6-final-gate",
+  "refs": {
+    "cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "cached_upstream_main": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+    "merge_base": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+    "local_main": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "local_main_vs_upstream": "behind 14",
+    "fork_vs_upstream": {
+      "fork_only": 84,
+      "upstream_only": 1
+    }
+  },
+  "tags": [
+    "archive/pre-promotion-main-2026-10-06",
+    "milestone/integrated-beta-v1",
+    "milestone/multichain-v1",
+    "milestone/simulation-lab-v1",
+    "recovery-issue-09-a011ddc",
+    "recovery-issue-09-ab468d2",
+    "recovery-issue-09-cacb048"
+  ],
+  "pull_requests": "UNVERIFIED: API unavailable",
+  "closure_worktrees": [
+    {
+      "mission": "SC-1",
+      "branch": "software-closure/sc1-publication-reliability",
+      "head": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "tree": "DIRTY: untracked results/sc1-publication-reliability/"
+    },
+    {
+      "mission": "SC-2",
+      "branch": "software-closure/sc2-security-dependencies",
+      "head": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "tree": "DIRTY: untracked security/; SEC-SOLANA-001 listed OPEN"
+    },
+    {
+      "mission": "SC-3",
+      "branch": "software-closure/sc3-reproducible-environment",
+      "head": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "tree": "DIRTY: setup.sh modified; scripts untracked"
+    },
+    {
+      "mission": "SC-4",
+      "branch": null,
+      "head": null,
+      "tree": "No named local branch/worktree found"
+    },
+    {
+      "mission": "SC-5",
+      "branch": "software-closure/sc5-real-on-chain",
+      "head": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "tree": "CLEAN; no branch-specific commit"
+    },
+    {
+      "mission": "prior MVP6 evidence",
+      "branch": "validation/mvp6-final-gate",
+      "head": "cac2b3876cf3bd2c298bc7d923296dcb39add93e",
+      "tree": "CLEAN; 2 commits ahead of fork/main; historical evidence only"
+    }
+  ],
+  "other_dirty_checkouts": [
+    "riose-blockchain-hackathon-demo",
+    "riose-tag-simulation-closure",
+    "riose-wt-issue-01",
+    "riose-wt-issue-02",
+    "riose-wt-issue-03-commitment-v1",
+    "riose-wt-issue-07",
+    "riose-wt-issue-09",
+    "riose-wt-issue-10"
+  ],
+  "preserved_unmodified": true,
+  "upstream_modified": false,
+  "prior_mission_reconciliation": [
+    {
+      "mission": "SC-1 Publication Reliability",
+      "classification": "PRESENT_CANONICAL",
+      "evidence": "Current canonical SQLite outbox/dispatcher and publication tests are present; related SC-1 evidence worktree has untracked, noncanonical results."
+    },
+    {
+      "mission": "SC-2 Security and Dependencies",
+      "classification": "PARTIAL",
+      "evidence": "Current dependency lock and adapter code are present; security worktree evidence is untracked and SEC-SOLANA-001 remains open."
+    },
+    {
+      "mission": "SC-3 Reproducibility",
+      "classification": "PARTIAL",
+      "evidence": "uv.lock is canonical and lock check passes; clean-room install not verified and bootstrap artifacts remain untracked in SC-3 worktree."
+    },
+    {
+      "mission": "SC-4 CI and Scientific Integrity",
+      "classification": "PARTIAL",
+      "evidence": "Core CI and scientific guard tests are present; core EVM optional extra required repair; remote CI unavailable."
+    },
+    {
+      "mission": "SC-5 REAL_ON_CHAIN",
+      "classification": "EXTERNAL_BLOCKED",
+      "evidence": "Adapters are canonical, but public receipt proof absent and no public transaction was initiated."
+    }
+  ],
+  "evidence_packages_found": [
+    {
+      "path": "docs/validation/mvp6/recheck-20261007",
+      "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "branch": "validation/mvp6-final-gate",
+      "classification": "HISTORICAL_EVIDENCE_RECHECKED; not treated as current remote authority"
+    },
+    {
+      "path": "docs/reports/MINI_MVP_* and multichain DOD reports",
+      "classification": "CANONICAL_HISTORICAL_REPORTS; source SHAs retained"
+    },
+    {
+      "path": "results/sc1-publication-reliability/",
+      "classification": "DIRTY_UNTRACKED_NONCANONICAL in SC-1 worktree"
+    },
+    {
+      "path": "security/discovery.json",
+      "classification": "DIRTY_UNTRACKED_NONCANONICAL in SC-2 worktree"
+    },
+    {
+      "path": "scripts/bootstrap.sh and scripts/doctor.sh",
+      "classification": "DIRTY_UNTRACKED_NONCANONICAL in SC-3 worktree"
+    }
+  ],
+  "claim_registries": [
+    {
+      "path": "RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json",
+      "before_audit": "Historical candidate SHA 479c818; stale for current fork/main",
+      "after_audit": "HISTORICAL_SNAPSHOT with pointer to current SHA-bound docs/software-closure/claim_registry.json"
+    },
+    {
+      "path": "docs/software-closure/claim_registry.json",
+      "status": "Current SC-6 claims bound to source SHA b2ddf11"
+    }
+  ],
+  "ci_and_docs": {
+    "ci": [
+      ".github/workflows/mvp2-core.yml"
+    ],
+    "current_docs": [
+      "README.md",
+      "docs/reports/INTEGRATED_BETA_COMPLETION_GATE.md",
+      "docs/reports/MULTICHAIN_FINAL_INTEGRATION_DOD.md",
+      "docs/reports/MINI_MVP_PERSISTENCE_RELIABILITY.md"
+    ]
+  }
+}

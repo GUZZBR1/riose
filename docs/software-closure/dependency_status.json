@@ -1,0 +1,51 @@
+{
+  "schema_version": "riose.dependency-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "manifests": [
+    "pyproject.toml",
+    "uv.lock",
+    "requirements-cad.txt",
+    "contracts/package.json",
+    "contracts/package-lock.json",
+    "hardware/toolchain.json"
+  ],
+  "categories": {
+    "runtime": [
+      "fastapi",
+      "uvicorn[standard]",
+      "numpy",
+      "scipy",
+      "scikit-learn",
+      "matplotlib",
+      "pyarrow",
+      "PyYAML",
+      "construct"
+    ],
+    "dev_test": [
+      "pytest",
+      "httpx"
+    ],
+    "optional": [
+      "solders (solana)",
+      "eth-account",
+      "eth-utils",
+      "hexbytes (evm)",
+      "CAD requirements"
+    ],
+    "build": [
+      "hatchling",
+      "uv"
+    ],
+    "contract_tests": [
+      "ganache",
+      "solc"
+    ]
+  },
+  "verification": {
+    "uv_lock": "PASS: 68 packages resolved offline",
+    "python_environment": "PASS: uv pip check; 68 cached packages; tested EVM/Solana package versions match lock",
+    "node_environment": "Cached Node modules used for local EVM; fresh npm ci not claimed",
+    "advisories": "UNVERIFIED due DNS; no critical runtime advisory established from available evidence"
+  },
+  "risk": "No dev-only advisory promoted to blocker. Solana signer issue recorded separately."
+}

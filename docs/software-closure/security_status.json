@@ -1,0 +1,17 @@
+{
+  "schema_version": "riose.security-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "overall": "OPEN_FOLLOW_UP",
+  "findings": [
+    {
+      "id": "SEC-SOLANA-001",
+      "status": "OPEN",
+      "source": "src/riose/products/livestock_tracking/adapters/solana_memo.py:287-299",
+      "evidence": "Current load_keypair uses open(path) and reads 4096 bytes before JSON parsing; no no-follow, regular-file, restrictive-mode, or strict EOF/trailing-content checks. SC-2 discovery and MVP6 K1 record this against same source SHA.",
+      "impact": "PUBLIC_SIGNER_READINESS=NOT_READY. Scope: Solana key-file/funded signer, not Event/commitment/local persistence closure.",
+      "closure_effect": "INTERNAL_FOLLOW_UP, not full software closure blocker by itself.",
+      "secret_or_public_write": "No production secret or public transaction used."
+    }
+  ],
+  "advisory_scan": "UNVERIFIED; current advisory service unavailable. No comprehensive security assurance claimed."
+}

@@ -1,0 +1,41 @@
+{
+  "mission": "SC-6 Final Software Closure Gate",
+  "repository": {
+    "fork": "https://github.com/GUZZBR1/riose.git",
+    "upstream": "https://github.com/santleme/riose.git",
+    "branch": "software-closure/sc6-final-gate",
+    "base_ref": "fork/main",
+    "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "cached_upstream_ref": "origin/main",
+    "cached_upstream_sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+    "merge_base": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+    "fork_only_commits": 84,
+    "upstream_only_commits": 1,
+    "remote_freshness": "UNVERIFIED",
+    "fetch": {
+      "fork": "FAILED: DNS could not resolve github.com",
+      "origin": "FAILED: DNS could not resolve github.com"
+    },
+    "pull_requests": "UNAVAILABLE: GitHub API DNS failure",
+    "public_writes": false
+  },
+  "canonical_selection": "Locally cached fork/main b2ddf11 is the audit base; live equality unverified.",
+  "original_checkout": {
+    "path": "/home/gusta/projetos/RIOSE/riose",
+    "branch": "codex/issue-10-antenna-convergence",
+    "head": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "state": "DIRTY",
+    "untracked": [
+      "GUZZ_PRESERVATION_MANIFEST.json",
+      "GUZZ_PRESERVATION_MANIFEST.md",
+      "INTEGRATION_COLLISION_MATRIX.md",
+      "riose-issue26/"
+    ],
+    "modified_by_audit": false
+  },
+  "audit_worktree_initial_state": "CLEAN",
+  "limits": [
+    "Remote state and PRs unavailable due DNS/API.",
+    "Some worktree paths were prunable/inaccessible; not treated as live."
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "riose.architecture-audit/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "result": "COHERENT_WITH_DOCUMENTED_FOLLOWUPS",
+  "event": "src/riose/products/livestock_tracking/domain/identity.py; test_event_contract.py",
+  "commitment": "src/riose/products/livestock_tracking/domain/commitment.py; test_commitment_privacy.py",
+  "publication": [
+    "src/riose/products/livestock_tracking/application/publication_dispatcher.py",
+    "src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py"
+  ],
+  "adapters": [
+    "src/riose/products/livestock_tracking/adapters/solana_memo.py",
+    "src/riose/products/livestock_tracking/adapters/evm_registry.py"
+  ],
+  "persistence": [
+    "src/riose/products/livestock_tracking/adapters/persistence/sqlite_store.py",
+    "src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py",
+    "src/riose/products/livestock_tracking/adapters/persistence/evm_nonce.py"
+  ],
+  "duplicate_models": "No competing Event V1, Commitment V1, dispatcher or persistence model found in reviewed canonical paths.",
+  "simulation_boundary": "Simulation paths are explicitly classified; FREQUENCIA is separate and not rerun.",
+  "small_repairs": [
+    "Core CI now includes evm optional extra.",
+    "Root scientific registry now explicitly marks historical scope and points to current claims."
+  ],
+  "large_refactor": "NONE_REQUIRED"
+}

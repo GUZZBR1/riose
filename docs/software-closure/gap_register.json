@@ -1,0 +1,78 @@
+{
+  "schema_version": "riose.gap-register/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "gaps": [
+    {
+      "id": "SEC-SOLANA-001",
+      "category": "B_INTERNAL_FOLLOW_UP",
+      "blocker_class": "FOLLOW_UP",
+      "status": "OPEN",
+      "impact": "Public signer NOT_READY."
+    },
+    {
+      "id": "EVENT-IDEMPOTENCY",
+      "category": "B_INTERNAL_FOLLOW_UP",
+      "blocker_class": "FOLLOW_UP",
+      "status": "KNOWN",
+      "impact": "Event API retries append distinct events."
+    },
+    {
+      "id": "EVENT-ANCHOR",
+      "category": "B_INTERNAL_FOLLOW_UP",
+      "blocker_class": "FOLLOW_UP",
+      "status": "KNOWN",
+      "impact": "No external head anchor; tail truncation/full rewrite not detected."
+    },
+    {
+      "id": "RETRY-BOUNDS",
+      "category": "B_INTERNAL_FOLLOW_UP",
+      "blocker_class": "FOLLOW_UP",
+      "status": "KNOWN",
+      "impact": "Backoff/cap and crash-window evidence incomplete."
+    },
+    {
+      "id": "REMOTE-FRESHNESS",
+      "category": "C_EXTERNAL_BLOCKER",
+      "blocker_class": "EXTERNAL_BLOCKER",
+      "status": "OPEN",
+      "impact": "Live refs, PR and remote CI unavailable."
+    },
+    {
+      "id": "PUBLIC-CHAIN",
+      "category": "C_EXTERNAL_BLOCKER",
+      "blocker_class": "EXTERNAL_BLOCKER",
+      "status": "UNVERIFIED",
+      "impact": "No public receipt for three targets; none submitted."
+    },
+    {
+      "id": "HARDWARE",
+      "category": "D_HARDWARE_REQUIRED",
+      "blocker_class": "HARDWARE_REQUIRED",
+      "status": "NOT_PERFORMED",
+      "impact": "No board/HIL/bench."
+    },
+    {
+      "id": "FIELD",
+      "category": "E_FIELD_REQUIRED",
+      "blocker_class": "FIELD_REQUIRED",
+      "status": "NOT_PERFORMED",
+      "impact": "No farm/animal trial."
+    },
+    {
+      "id": "BEHAVIOR",
+      "category": "F_FUTURE_PRODUCT_FEATURE",
+      "blocker_class": "FOLLOW_UP",
+      "status": "RESEARCH_ONLY",
+      "impact": "Operational behavior claims require labeled validated evidence."
+    }
+  ],
+  "closure_blockers": [],
+  "category_legend": [
+    "A_INTERNAL_CLOSURE_BLOCKER",
+    "B_INTERNAL_FOLLOW_UP",
+    "C_EXTERNAL_BLOCKER",
+    "D_HARDWARE_REQUIRED",
+    "E_FIELD_REQUIRED",
+    "F_FUTURE_PRODUCT_FEATURE"
+  ]
+}
