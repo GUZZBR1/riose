@@ -20,9 +20,18 @@ export class FarmScene extends Phaser.Scene {
   private cameraController!: CameraController;
   private navGraphics!: Phaser.GameObjects.Graphics;
   private readonly navigationDebug = isLocalDevelopment() && new URLSearchParams(window.location.search).get('navDebug') === '1';
+  private readonly farmDragDebug = isLocalDevelopment() && new URLSearchParams(window.location.search).get('farmDragDebug') === '1';
   private selectedId: string | null = null;
   private reducedMotion = false;
   private statePublishElapsed = 0;
+  private pendingAnimalDrag: {
+    index: number;
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+    dragging: boolean;
+  } | null = null;
   ready = false;
 
   constructor(callbacks: FarmDemoCallbacks, definition: FarmDefinition, animalCount = STARTING_ANIMALS) {
@@ -51,10 +60,13 @@ export class FarmScene extends Phaser.Scene {
       false, { ...this.definition.behavior, seed: this.definition.seed });
     this.cows = Array.from({ length: this.requestedAnimalCount }, (_, index) =>
       new CowEntity(this, index, this.definition.pastureForAnimal(index),
-        () => this.selectAnimal(`${this.definition.id}-animal-${index}`), this.environment, this.definition.id));
+        (pointer) => this.onCowPointerDown(index, pointer), this.environment, this.definition.id));
     this.navGraphics = this.add.graphics().setDepth(9000).setVisible(this.navigationDebug);
 
     this.input.on('pointerdown', this.clearSelectionOnLandscape, this);
+    this.input.on('pointermove', this.moveAnimalFromPointer, this);
+    this.input.on('pointerup', this.finishAnimalDrag, this);
+    this.input.on('pointerupoutside', this.finishAnimalDrag, this);
     this.input.keyboard?.on('keydown-ESC', () => this.selectAnimal(null));
     this.input.keyboard?.on('keydown-LEFT', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
     this.input.keyboard?.on('keydown-UP', (event: KeyboardEvent) => this.stepSelectionFromKey(event, -1));
@@ -76,18 +88,39 @@ export class FarmScene extends Phaser.Scene {
     this.statePublishElapsed += delta;
     if (this.statePublishElapsed >= 500) {
       this.statePublishElapsed %= 500;
-      this.callbacks.onStates?.(this.getAnimals());
+      const animals = this.getAnimals();
+      if (this.farmDragDebug) {
+        const host = this.game.canvas.parentElement;
+        const camera = this.cameras.main;
+        host?.setAttribute('data-farm-drag-state', JSON.stringify({
+          animals: snapshots.map(({ x, y }) => {
+            // Phaser renders world points relative to camera scroll and origin.
+            return {
+              x,
+              y,
+              screenX: camera.x + camera.width * camera.originX * (1 - camera.zoom) + (x - camera.scrollX) * camera.zoom,
+              screenY: camera.y + camera.height * camera.originY * (1 - camera.zoom) + (y - 20 - camera.scrollY) * camera.zoom,
+            };
+          }),
+        }));
+      }
+      this.callbacks.onStates?.(animals);
     }
   }
 
   selectAnimal(id: string | null): void {
+    this.setSelectedAnimal(id, true);
+  }
+
+  private setSelectedAnimal(id: string | null, focus: boolean): void {
     const selected = id ? this.cowById(id) : undefined;
     if (id && !selected) return;
     this.selectedId = selected ? id : null;
     for (const cow of this.cows) cow.setSelected(cow === selected);
     const state = selected?.getState() ?? null;
     this.callbacks.onSelect?.(state);
-    if (state) this.cameraController.focus(state.estimatedPosition.x, state.estimatedPosition.y);
+    if (state && focus) this.cameraController.focus(state.estimatedPosition.x, state.estimatedPosition.y);
+    else this.cameraController.cancelFocus();
   }
 
   focusAnimal(id: string): void {
@@ -146,6 +179,61 @@ export class FarmScene extends Phaser.Scene {
     this.stepSelection(step);
   }
 
+  private onCowPointerDown(index: number, pointer: Phaser.Input.Pointer): void {
+    const id = `${this.definition.id}-animal-${index}`;
+    const event = pointer.event;
+    if (!(event instanceof MouseEvent) || pointer.button !== 0) {
+      this.pendingAnimalDrag = null;
+      this.setSelectedAnimal(id, true);
+      return;
+    }
+    this.pendingAnimalDrag = {
+      index,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      dragging: false,
+    };
+  }
+
+  private moveAnimalFromPointer(pointer: Phaser.Input.Pointer): void {
+    const drag = this.pendingAnimalDrag;
+    if (!drag || !pointer.isDown) return;
+    const event = pointer.event as MouseEvent;
+    if (!drag.dragging) {
+      const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+      if (distance < 6) return;
+      drag.dragging = this.herd.beginManualMove(drag.index);
+      if (!drag.dragging) return;
+      this.selectedId = `${this.definition.id}-animal-${drag.index}`;
+      this.cows.forEach((cow, index) => cow.setSelected(index === drag.index));
+      this.cows[drag.index].setDragging(true);
+      this.cameraController.cancelFocus();
+      const position = this.herd.getStates()[drag.index];
+      drag.offsetX = position.x - pointer.worldX;
+      drag.offsetY = position.y - pointer.worldY;
+    }
+    this.herd.moveManualAnimal(drag.index, {
+      x: pointer.worldX + drag.offsetX,
+      y: pointer.worldY + drag.offsetY,
+    });
+  }
+
+  private finishAnimalDrag(): void {
+    const drag = this.pendingAnimalDrag;
+    if (!drag) return;
+    this.pendingAnimalDrag = null;
+    if (drag.dragging) {
+      this.herd.endManualMove(drag.index);
+      this.cows[drag.index]?.setDragging(false);
+      this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`, false);
+      this.callbacks.onStates?.(this.getAnimals());
+      return;
+    }
+    this.setSelectedAnimal(`${this.definition.id}-animal-${drag.index}`, true);
+  }
+
   private clearSelectionOnLandscape(pointer: Phaser.Input.Pointer): void {
     const hits = this.input.hitTestPointer(pointer);
     if (!hits.some((object) => object.getData('farmCow') === true)) this.selectAnimal(null);
@@ -160,6 +248,9 @@ export class FarmScene extends Phaser.Scene {
 
   private onShutdown(): void {
     this.input.off('pointerdown', this.clearSelectionOnLandscape, this);
+    this.input.off('pointermove', this.moveAnimalFromPointer, this);
+    this.input.off('pointerup', this.finishAnimalDrag, this);
+    this.input.off('pointerupoutside', this.finishAnimalDrag, this);
     this.cameraController?.destroy();
     this.cows.forEach((cow) => cow.destroy());
     this.environment?.destroy();

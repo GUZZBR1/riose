@@ -22,7 +22,7 @@ export class CowEntity {
     private readonly scene: Phaser.Scene,
     readonly index: number,
     pasture: PastureZone,
-    onSelect: () => void,
+    onSelect: (pointer: Phaser.Input.Pointer) => void,
     environment: FarmEnvironmentLayer,
     private readonly farmId: FarmId,
   ) {
@@ -35,10 +35,10 @@ export class CowEntity {
       .setOrigin(0.5, 0.82)
       .setDepth(this.snapshot.y + 2)
       .setData('farmCow', true)
-      .setInteractive({ useHandCursor: true });
+      .setInteractive({ cursor: 'grab' });
     this.sprite.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       pointer.event.stopPropagation();
-      onSelect();
+      onSelect(pointer);
     });
     this.sprite.on('pointerover', () => this.setHovered(true));
     this.sprite.on('pointerout', () => this.setHovered(false));
@@ -67,6 +67,10 @@ export class CowEntity {
     this.selection.setVisible(selected);
     this.sprite.setAlpha(selected || this.hovered ? 1 : 0.96);
     this.sprite.setDepth(this.snapshot.y + (selected ? 5 : 2));
+  }
+
+  setDragging(dragging: boolean): void {
+    if (this.sprite.input) this.sprite.input.cursor = dragging ? 'grabbing' : 'grab';
   }
 
   getState(): AnimalState {

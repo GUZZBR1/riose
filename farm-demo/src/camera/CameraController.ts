@@ -38,6 +38,8 @@ export class CameraController {
     else this.target = { x, y };
   }
 
+  cancelFocus(): void { this.target = null; }
+
   destroy(): void {
     this.scene.input.off('pointerdown', this.pointerDown, this);
     this.scene.input.off('pointermove', this.pointerMove, this);

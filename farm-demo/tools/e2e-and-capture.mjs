@@ -41,10 +41,11 @@ async function selectByKeyboard(target) {
 }
 
 try {
-  await page.goto(`${baseUrl}/demo`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${baseUrl}/demo?farmDragDebug=1`, { waitUntil: 'domcontentloaded' });
   await page.locator('#farm-canvas canvas').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForFunction(() => document.querySelector('#farm-canvas')?.dataset.animalCount === '24');
   await page.waitForFunction(() => Number(document.querySelector('#farm-canvas')?.dataset.movingAnimals) > 0);
+  await page.waitForFunction(() => Boolean(document.querySelector('.riose-farm-canvas-host')?.dataset.farmDragState));
   assert.equal(await page.locator('#farm-canvas-02 canvas').count(), 0, 'Farm 02 waits until its section approaches the viewport');
   assert.equal(await page.locator('#farm-canvas .riose-farm-canvas-host').evaluate((host) => getComputedStyle(host).touchAction), 'pan-y pinch-zoom',
     'touch gestures over the farm must preserve native vertical page scrolling');
@@ -55,6 +56,7 @@ try {
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await page.waitForFunction(() => window.scrollY === 0);
   await page.locator('#farm-intro-hint').waitFor({ state: 'visible' });
+  assert.match(await page.locator('#farm-intro-hint').textContent(), /drag with mouse to move/i, 'the scene briefly hints how to reposition cows on desktop');
   assert.equal(new URL(page.url()).pathname, '/demo');
   const forbidden = await page.locator('body').innerText();
   for (const label of ['Overview', 'Signals', 'Coverage', 'Track', 'SIMULATED', 'Herd overview', '24 animals']) {
@@ -62,6 +64,32 @@ try {
   }
   assert.equal(await page.locator('#context-rail').getAttribute('aria-hidden'), 'true');
   await page.screenshot({ path: resolve(output, 'farm-demo-desktop.png') });
+
+  const cowStart = await page.locator('#farm-canvas .riose-farm-canvas-host').evaluate((host) => {
+    const state = JSON.parse(host.dataset.farmDragState);
+    const rect = host.getBoundingClientRect();
+    const cow = state.animals[0];
+    return {
+      x: rect.left + cow.screenX,
+      y: rect.top + cow.screenY - 10,
+      worldX: cow.x,
+      worldY: cow.y,
+    };
+  });
+  await page.mouse.move(cowStart.x, cowStart.y);
+  await page.mouse.down();
+  await page.mouse.move(cowStart.x + 90, cowStart.y + 30, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'false');
+  await page.waitForFunction(({ x, y }) => {
+    const host = document.querySelector('.riose-farm-canvas-host');
+    if (!host?.dataset.farmDragState) return false;
+    const animal = JSON.parse(host.dataset.farmDragState).animals[0];
+    return Math.hypot(animal.x - x, animal.y - y) > 5;
+  }, { x: cowStart.worldX, y: cowStart.worldY }, { timeout: 5000 });
+  assert.equal(await page.locator('#record-title').textContent(), 'Animal 0', 'dragging a cow also selects it');
+  await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
+  await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
 
   await selectByKeyboard(0);
   assert.equal(await page.locator('#farm-intro-hint').isVisible(), false, 'animal selection dismisses the hint');
@@ -268,7 +296,7 @@ try {
     '- Desktop view: 1672 × 941 (matched to supplied reference); mobile view: 390 × 844',
     `- Farm 01 stress run: 100 animals; browser animation-frame rate: ${farm01Performance.fps} fps; observed long tasks: ${farm01Performance.longTasks}`,
     `- Farm 02 stress run: 100 animals; browser animation-frame rate: ${farm02Performance.fps} fps; observed long tasks: ${farm02Performance.longTasks}`,
-    '- Input behavior: mouse wheel scrolls the page over the farm; camera no longer zooms on wheel. Touch uses native vertical page pan; deliberate scene panning is Shift + left-drag.',
+    '- Input behavior: mouse wheel and touch scroll the page over the farm. Browser drag test selected and repositioned a cow; simulation validation keeps drops on safe walkable terrain and stops at obstacles/overlaps. Deliberate scene panning is Shift + left-drag.',
     `- Synthetic mobile loading: opening farm interactive in ${(mobileFarmReadyMs / 1000).toFixed(2)} s; first contentful paint ${(mobileFcpMs / 1000).toFixed(2)} s; ${(mobileInitialTransferBytes / 1024 / 1024).toFixed(2)} MiB transferred before Farm 02; throttled to 150 ms latency, 200 KiB/s download, and 4× CPU slowdown. This is a repeatable lab check, not field Core Web Vitals.`,
     '- Loading audit: the first version waited for all Farm 01 decoration, Farm 02 art, and unopened Solana artwork before the scene was interactive; the opening scene took about 25 s on this throttled profile. The revised flow paints the island first, loads essential scene layers and animals next, then decorations; Farm 02 and Solana artwork load on demand. Matching runs reached interactive in 4.4–11.3 s, showing variability under CPU/network contention.',
     `- Lazy scene transfer: ${(initialTransferBytes / 1024 / 1024).toFixed(2)} MiB before Farm 02 enters; ${(bothFarmsTransferBytes / 1024 / 1024).toFixed(2)} MiB after both scenes load`,

@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261007-21">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261007-22">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -30,8 +30,8 @@
     <section class="product-stage" id="product-stage" data-farm-id="farm01" aria-label="RIOSE Farm 01 animal and digital identity experience">
       <div class="farm-column">
         <div class="farm-stage" id="farm-stage">
-          <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Use arrow keys to select an animal." tabindex="0"></div>
-          <p class="farm-intro-hint" id="farm-intro-hint" hidden>Select an animal to inspect</p>
+          <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Select a cow to inspect it; drag with a mouse to move it; use arrow keys to select an animal." tabindex="0"></div>
+          <p class="farm-intro-hint" id="farm-intro-hint" hidden>Select an animal to inspect<span class="farm-intro-hint__mouse-drag"> · drag with mouse to move</span></p>
             <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
           <span id="selected-animal-announcement" class="visually-hidden" aria-live="polite"></span>
         </div>
@@ -124,8 +124,8 @@
       <section class="product-stage" id="product-stage-02" data-farm-id="farm02" aria-label="RIOSE Farm 02 Cerrado animal experience">
         <div class="farm-column">
           <div class="farm-stage" id="farm-stage-02">
-            <div class="farm-canvas" id="farm-canvas-02" role="application" aria-label="Cerrado ranch scene. Use arrow keys to select an animal." tabindex="0"></div>
-            <p class="farm-intro-hint" id="farm-intro-hint-02" hidden>Select an animal to inspect</p>
+            <div class="farm-canvas" id="farm-canvas-02" role="application" aria-label="Cerrado ranch scene. Select a cow to inspect it; drag with a mouse to move it; use arrow keys to select an animal." tabindex="0"></div>
+            <p class="farm-intro-hint" id="farm-intro-hint-02" hidden>Select an animal to inspect<span class="farm-intro-hint__mouse-drag"> · drag with mouse to move</span></p>
             <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
             <span id="selected-animal-announcement-02" class="visually-hidden" aria-live="polite"></span>
           </div>
@@ -139,6 +139,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-25"></script>
+  <script type="module" src="/assets/demo.js?v=20261007-27"></script>
 </body>
 </html>

@@ -48,6 +48,7 @@ export class AnimalBehavior {
   private heading: number;
   private randomState: number;
   private arrivalState: 'DRINK' | 'SHADE' | null = null;
+  private manuallyControlled = false;
   private readonly options: Required<AnimalBehaviorOptions>;
 
   constructor(
@@ -80,7 +81,7 @@ export class AnimalBehavior {
   }
 
   step(dt: number, neighbors: readonly NeighborPosition[]): void {
-    if (this.stationary) return;
+    if (this.stationary || this.manuallyControlled) return;
     this.previousX = this.x;
     this.previousY = this.y;
 
@@ -159,6 +160,42 @@ export class AnimalBehavior {
 
   get current(): BehaviorSnapshot {
     return { status: this.status, x: this.x, y: this.y, heading: this.heading, target: this.target, path: this.path };
+  }
+
+  beginManualMove(): void {
+    this.manuallyControlled = true;
+    this.velocityX = 0;
+    this.velocityY = 0;
+    this.target = null;
+    this.path = [];
+    this.pathIndex = 0;
+    this.arrivalState = null;
+    this.previousX = this.x;
+    this.previousY = this.y;
+  }
+
+  moveManualTo(point: WorldPoint): void {
+    if (!this.manuallyControlled) return;
+    const dx = point.x - this.x;
+    const dy = point.y - this.y;
+    if (Math.hypot(dx, dy) > 0.01) this.heading = Math.atan2(dy, dx);
+    this.x = point.x;
+    this.y = point.y;
+    this.previousX = point.x;
+    this.previousY = point.y;
+    this.status = 'IDLE';
+  }
+
+  endManualMove(): void {
+    if (!this.manuallyControlled) return;
+    this.manuallyControlled = false;
+    this.status = 'GRAZE';
+    this.dwellRemaining = 4;
+    this.target = null;
+    this.path = [];
+    this.pathIndex = 0;
+    this.velocityX = 0;
+    this.velocityY = 0;
   }
 
   interpolated(alpha: number): BehaviorSnapshot {
@@ -303,6 +340,7 @@ export class HerdController {
   private readonly fixedStep = 1 / 20;
   private readonly cellSize = 48;
   private readonly spatialHash = new Map<string, NeighborPosition[]>();
+  private readonly manualMoveRegions = new Map<number, number>();
 
   constructor(
     count: number,
@@ -338,6 +376,47 @@ export class HerdController {
   }
 
   getDebugStates(): readonly BehaviorSnapshot[] { return this.getStates(); }
+
+  beginManualMove(index: number): boolean {
+    const animal = this.animals[index];
+    if (!animal) return false;
+    this.manualMoveRegions.set(index, this.navigation.getConnectedRegion(animal.current));
+    animal.beginManualMove();
+    return true;
+  }
+
+  moveManualAnimal(index: number, point: WorldPoint): boolean {
+    const animal = this.animals[index];
+    const region = this.manualMoveRegions.get(index);
+    if (!animal || region === undefined || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+    const start = animal.current;
+    const distance = Math.hypot(point.x - start.x, point.y - start.y);
+    const steps = Math.max(1, Math.ceil(distance / 4));
+    let lastSafe = { x: start.x, y: start.y };
+    for (let step = 1; step <= steps; step += 1) {
+      const candidate = {
+        x: start.x + (point.x - start.x) * step / steps,
+        y: start.y + (point.y - start.y) * step / steps,
+      };
+      if (!this.navigation.isWalkable(candidate.x, candidate.y) ||
+          this.navigation.getConnectedRegion(candidate) !== region ||
+          !this.navigation.isWalkableSegment(lastSafe, candidate)) break;
+      const overlaps = this.animals.some((other) => other.index !== index &&
+        Math.hypot(candidate.x - other.current.x, candidate.y - other.current.y) < COW_SEPARATION_RADIUS - 1);
+      if (overlaps) break;
+      lastSafe = candidate;
+    }
+    if (Math.hypot(lastSafe.x - start.x, lastSafe.y - start.y) < 0.1) return false;
+    animal.moveManualTo(lastSafe);
+    return true;
+  }
+
+  endManualMove(index: number): void {
+    const animal = this.animals[index];
+    if (!animal || !this.manualMoveRegions.has(index)) return;
+    animal.endManualMove();
+    this.manualMoveRegions.delete(index);
+  }
 
   get interpolationAlpha(): number { return this.accumulator / this.fixedStep; }
 

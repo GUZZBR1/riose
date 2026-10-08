@@ -69,6 +69,39 @@ test('reduced motion keeps animal positions fixed', () => {
   assert.deepEqual(herd.getStates(), before);
 });
 
+test('manual animal placement follows only safe, reachable, non-overlapping terrain', () => {
+  const navigation = new FarmNavigation();
+  const herd = new HerdController(24, navigation, pastureForAnimal);
+  const index = 0;
+  assert.equal(herd.beginManualMove(index), true);
+  assert.ok(herd.moveManualAnimal(index, { x: 395, y: 555 }), 'a drag toward blocked water can advance safely to its edge');
+  const pondEdge = herd.getStates()[index];
+  assert.ok(navigation.isWalkable(pondEdge.x, pondEdge.y));
+  assert.notDeepEqual({ x: pondEdge.x, y: pondEdge.y }, { x: 395, y: 555 }, 'the animal cannot be dropped into water');
+  herd.endManualMove(index);
+  assert.equal(herd.beginManualMove(index), true);
+  const current = herd.getStates()[index];
+  const safeTarget = navigation.getWalkableCells().find((point) =>
+    navigation.getConnectedRegion(point) === navigation.getConnectedRegion(current) &&
+    Math.hypot(point.x - current.x, point.y - current.y) >= 50 &&
+    Math.hypot(point.x - current.x, point.y - current.y) <= 90 &&
+    navigation.isWalkableSegment(current, point) &&
+    herd.getStates().filter((_, otherIndex) => otherIndex !== index)
+      .every((other) => Math.hypot(point.x - other.x, point.y - other.y) >= COW_SEPARATION_RADIUS),
+  );
+  assert.ok(safeTarget, 'find an open safe drop point near the pond edge');
+  assert.equal(herd.moveManualAnimal(index, safeTarget), true);
+  const placed = herd.getStates()[index];
+  assert.deepEqual({ x: placed.x, y: placed.y }, safeTarget);
+  assert.ok(navigation.isWalkable(placed.x, placed.y));
+  herd.update(1000, false);
+  assert.deepEqual({ x: herd.getStates()[index].x, y: herd.getStates()[index].y }, safeTarget,
+    'the animal stays under direct control until release');
+  herd.endManualMove(index);
+  assert.equal(herd.getStates()[index].status, 'GRAZE', 'the animal resumes naturally after release');
+  assertMinimumSpacing(herd.getStates(), COW_SEPARATION_RADIUS - 1);
+});
+
 test('the explicit stationary simulation override keeps positions fixed for reduced-motion/debug use', () => {
   const navigation = new FarmNavigation();
   const herd = new HerdController(24, navigation, pastureForAnimal, true);

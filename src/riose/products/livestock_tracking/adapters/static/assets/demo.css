@@ -91,6 +91,7 @@ button { font: inherit; }
 .farm-sound-toggle:hover, .farm-sound-toggle[aria-pressed="true"] { background: rgb(255 255 255 / 68%); color: var(--ink); }
 .farm-sound-toggle:focus-visible { outline: 2px solid rgb(32 33 31 / 56%); outline-offset: 2px; }
 .farm-intro-hint.is-ready { animation: hint-enter 360ms ease-out both; }
+.farm-intro-hint__mouse-drag { white-space: nowrap; }
 .farm-intro-hint.is-typing { animation: hint-enter 360ms ease-out both, hint-type 1.05s steps(29, end) both; }
 .farm-intro-hint.is-typing::after { display: inline-block; width: 1px; height: 1em; margin-left: 3px; background: currentColor; content: ""; vertical-align: -2px; animation: hint-caret 720ms steps(2, end) infinite; }
 
@@ -261,6 +262,10 @@ button { font: inherit; }
   .identity-art { width: 106px; }
   .solana-lede { font-size: 11px; }
   .primary-button, .secondary-button { padding: 0 9px; font-size: 10px; }
+}
+
+@media (pointer: coarse) {
+  .farm-intro-hint__mouse-drag { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
