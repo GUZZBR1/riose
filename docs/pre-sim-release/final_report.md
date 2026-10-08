@@ -4,13 +4,13 @@ Candidate 64846b0b6182cc0b248fe453dd875e0170c5a929 (tree 14bfa86aa1d1b38fc8c2c20
 
 ## Verdict
 
-LOCAL_RELEASE_READY_PUBLICATION_BLOCKED pending valid GitHub write credentials; final read-only self-audit found no P0/P1 in the candidate, while PR tokenization P1/P2 findings remain excluded; delegated final reviewer calls were unavailable because of account model limits. PR #41 verdict: PARTIALLY_INTEGRATE. No direct merge, push, PR close, branch deletion, or worktree deletion has occurred.
+PASS_PRE_SIM_RELEASE_WITH_FOLLOWUPS. The non-force fast-forward publication succeeded at SHA 0aaa42a173027c0c26a2563c10ee5b45d2562792. The five remote checks completed: four success and the heavy-validation request skipped. PR #41 was closed with audit comment 6065411992. Final self-audit found no P0/P1 in the candidate; PR tokenization P1/P2 findings remain excluded. Delegated final reviewer calls were unavailable because this account rejected their configured models. PR #41 verdict: PARTIALLY_INTEGRATE. The original PR was not merged directly. Its useful visual subset was integrated and it was closed with the technical disposition. Two local redundant refs were deleted only after proving their tips are in published main and no worktree depends on them; no worktrees were removed.
 
-GitHub fetch and REST reads succeeded. PR #41 is open, not draft, and mergeable at refresh, at head 79af412aff8a63e7b563d49f3e03f4d8c07c40ec. The PR has 33 commits and 116 changed files. Latest-head isolated tests: farm 22/22; API/integration 29; security subset 90; web3 build passed with 12 moderate advisories; PR E2E failed its 2.5-second stability wait, which was repaired in the candidate. Configured gh authentication is invalid, so write operations are blocked. Candidate remote CI is UNVERIFIED because it is not published.
+GitHub fetch and REST reads succeeded. PR #41 was open, not draft, and mergeable at its latest-head refresh, at head 79af412aff8a63e7b563d49f3e03f4d8c07c40ec. The PR has 33 commits and 116 changed files. Latest-head isolated tests: farm 22/22; API/integration 29; security subset 90; web3 build passed with 12 moderate advisories; PR E2E failed its 2.5-second stability wait, which was repaired in the candidate. The WSL gh token was invalid, but the configured Windows Git credential enabled the authorized non-force push and PR closure. Remote CI passed for the published SHA.
 
 ## Validation
 
-Python: 953 passed / 8 expected skips. Security subset: 128 passed / 1 expected skip. Publication reliability: 65 passed. PR_FAST: 85 passed. Scientific: 315 passed / 1 expected skip. CTest: 39/39. Local EVM: 2 passed. Solidity compile: passed. Frontend tests: 22 passed on the prior reconciled candidate; build and E2E passed. Final npm test rerun could not execute tsc because local node_modules/.bin/tsc lacked execute permission. Post-commit API/integration tests: 25 passed. Integrated deterministic smoke passed with local/mock fixtures; public-chain evidence remains unverified.
+Python: 953 passed / 8 expected skips. Security subset: 128 passed / 1 expected skip. Publication reliability: 65 passed. PR_FAST: 85 passed. Scientific: 315 passed / 1 expected skip. CTest: 39/39. Local EVM: 2 passed. Solidity compile: passed. Frontend tests: 22/22 passed on the final candidate through Windows Node, including typecheck/build; reconciled candidate E2E passed. Initial WSL rerun had a tsc execute-permission issue, resolved by using Windows Node. Post-commit API/integration tests: 25 passed. Integrated deterministic smoke passed with local/mock fixtures; public-chain evidence remains unverified.
 
 Inherited contracts test-toolchain audit reports 9 advisories (1 critical, 7 high, 1 moderate) in local Ganache/solc dependencies. No dependency change was made; farm-demo audit found zero vulnerabilities.
 
@@ -20,7 +20,7 @@ The diorama, responsive scene, accessible animal selection, local event readback
 
 ## Publication and cleanup
 
-Current remote main is b2ddf11098ecd87b954bf97af26f8ecb8862b58a. Existing local main is e57b235a452c6e8d258d1708d5fd53ce56cecfb and was not moved because it is not an ancestor of this candidate. No force push or remote mutation was made. Cleanup was not executed because canonical publication is not confirmed. All refs and worktrees are inventoried; no unique work was lost.
+Initial published main SHA is 0aaa42a173027c0c26a2563c10ee5b45d2562792. A documentation-only closeout update is being fast-forwarded to main after the test, PR, cleanup, and evidence results were recorded; the final verified SHA is reported in the handoff packet. Existing local main at e57b235a was a fast-forward ancestor and was advanced to the published candidate SHA. No force push was used. Local main and remote main matched at publication. Cleanup removed two proven redundant local branches, preserved all worktrees, and retained recovery, archive, upstream, dirty, and unknown refs. All refs/worktrees are inventoried; no unique work was lost.
 
 ## Claim limits
 

@@ -1,8 +1,19 @@
 {
-  "captured_at_utc": "2026-10-08T16:29:05.066991+00:00",
-  "branches_deleted": [],
+  "captured_at_utc": "2026-10-08T17:29:20.250441+00:00",
+  "branches_deleted": [
+    {
+      "name": "riose/hackaton",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "proof": "No worktree; exact tip also retained by codex/autonomous-recovery-protocol and is ancestor of published main."
+    },
+    {
+      "name": "mini-mvp/simulation-localization",
+      "sha": "d11d8838f41dbd36da2020365b914a86e2262b76",
+      "proof": "No worktree; git branch -d verified tip merged into published main."
+    }
+  ],
   "worktrees_removed": [],
-  "status": "NOT_EXECUTED",
-  "reason": "Canonical publication not confirmed. No cleanup. All ambiguous, dirty, recovery, and open-PR items preserved.",
+  "status": "PARTIAL_SAFE_CLEANUP",
+  "reason": "Other local refs are attached to worktrees, recovery/archive refs, upstream refs, the closed PR head, or UNKNOWN_PRESERVE. Dirty worktrees were preserved; ignored/untracked data was not removed.",
   "unique_work_lost": 0
 }

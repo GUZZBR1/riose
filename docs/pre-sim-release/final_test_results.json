@@ -17,7 +17,18 @@
   "uv_lock_check": "PASS: uv lock --check --offline",
   "python_package_build": "PASS: sdist and wheel cattle_rf-0.1.0",
   "frontend": "PASS: npm test 22/22 including typecheck/build via Windows Node; browser E2E passed; final post-commit API/integration tests 25 passed.",
-  "remote_ci": "UNVERIFIED; candidate not published",
+  "remote_ci": {
+    "status": "PASS",
+    "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
+    "checks": [
+      "PR fast gate: success",
+      "Scientific integrity gate: success",
+      "CAD export regression: success",
+      "Main regression gate: success",
+      "Heavy validation request: skipped"
+    ],
+    "workflow": "RIOSE CI and scientific gates: success"
+  },
   "contracts_dependency_audit": "FOLLOW_UP: 9 inherited test-toolchain advisories (1 critical, 7 high, 1 moderate); farm-demo audit 0.",
   "checks_not_observed_or_limited": [
     "remote GitHub CI for candidate: not published, therefore UNVERIFIED",
@@ -30,5 +41,20 @@
     "api_and_integration": "29 passed, 1 warning",
     "security_subset": "90 passed, 1 warning",
     "e2e": "FAIL: assertFarmStageStaysStable timeout at 2500ms during map-click selection; reconciled candidate extends sample window and timeout and its E2E passed."
+  },
+  "publication": {
+    "status": "PUBLISHED",
+    "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
+    "method": "non-force fast-forward",
+    "remote_main_verified": true
+  },
+  "pr41_final_state": "CLOSED with audit comment 6065411992",
+  "branch_cleanup": {
+    "status": "PARTIAL_SAFE_CLEANUP",
+    "deleted": [
+      "riose/hackaton",
+      "mini-mvp/simulation-localization"
+    ],
+    "unique_work_lost": 0
   }
 }

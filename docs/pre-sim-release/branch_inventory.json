@@ -1,9 +1,9 @@
 {
-  "captured_at_utc": "2026-10-08T17:24:35.635074+00:00",
+  "captured_at_utc": "2026-10-08T17:30:31.193506+00:00",
   "repo": "GUZZBR1/riose",
-  "candidate_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
-  "candidate_tree": "14bfa86aa1d1b38fc8c2c203742971ae32e6a04b",
-  "ref_count": 105,
+  "candidate_sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
+  "candidate_tree": "38dd6ab0ee5d32571f5e7a625d4d47ff7afbe026",
+  "ref_count": 103,
   "worktree_count": 107,
   "branches": [
     {
@@ -200,7 +200,7 @@
     },
     {
       "name": "main",
-      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -225,12 +225,6 @@
     {
       "name": "mini-mvp/persistence-reliability",
       "sha": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
-      "classification": "INTEGRATED",
-      "deleted": false
-    },
-    {
-      "name": "mini-mvp/simulation-localization",
-      "sha": "d11d8838f41dbd36da2020365b914a86e2262b76",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -344,7 +338,7 @@
     },
     {
       "name": "release/pre-sim-canonical",
-      "sha": "572ccfbacb5023a2dbccc13e069c991d5de81a53",
+      "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -405,12 +399,6 @@
     {
       "name": "research/tag-simulation-closure",
       "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
-      "classification": "INTEGRATED",
-      "deleted": false
-    },
-    {
-      "name": "riose/hackaton",
-      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -494,7 +482,7 @@
     },
     {
       "name": "fork",
-      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -548,7 +536,7 @@
     },
     {
       "name": "fork/main",
-      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
       "classification": "INTEGRATED",
       "deleted": false
     },
@@ -627,7 +615,7 @@
     {
       "name": "origin/codex/tokenized-animal-demo",
       "sha": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
-      "classification": "OPEN_PR_PRESERVE",
+      "classification": "UPSTREAM_PRESERVE",
       "deleted": false
     },
     {
@@ -1097,7 +1085,7 @@
     {
       "path": "/home/gusta/projetos/RIOSE/riose-pre-sim-canonical",
       "branch": "release/pre-sim-canonical",
-      "head": "572ccfbacb5023a2dbccc13e069c991d5de81a53",
+      "head": "0aaa42a173027c0c26a2563c10ee5b45d2562792",
       "dirty": true,
       "classification": "CURRENT_CANDIDATE_PRESERVE",
       "removed": false
@@ -1498,5 +1486,52 @@
   "cleanup_policy": "No branches or worktrees deleted; ambiguous, dirty, recovery, and open-PR work preserved.",
   "candidate_recovery_ref": "recovery/pre-sim-publication-final-2026-10-08",
   "candidate_recovery_sha": "64846b0b6182cc0b248fe453dd875e0170c5a929",
-  "remote_pr_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec"
+  "remote_pr_head": "79af412aff8a63e7b563d49f3e03f4d8c07c40ec",
+  "branches_before": 102,
+  "branches_after": 103,
+  "branches_deleted": [
+    "riose/hackaton",
+    "mini-mvp/simulation-localization"
+  ],
+  "worktrees_before": 104,
+  "worktrees_after": 107,
+  "worktrees_removed": [],
+  "tags": [
+    {
+      "name": "tags/archive/pre-promotion-main-2026-10-06",
+      "target": "6a5b60b8ee8b1bfe743bc6ee146a28fc03138a38",
+      "preserved": true
+    },
+    {
+      "name": "milestone/integrated-beta-v1",
+      "target": "fc7500f2c64c34dc4a900bd5396262240e7f8df0",
+      "preserved": true
+    },
+    {
+      "name": "milestone/multichain-v1",
+      "target": "8548d03fe5fb0c90f1b5c0fa4304567ff79f2f52",
+      "preserved": true
+    },
+    {
+      "name": "milestone/simulation-lab-v1",
+      "target": "59248e5f9eb7baa4bbe95c59d727c073158feeac",
+      "preserved": true
+    },
+    {
+      "name": "recovery-issue-09-a011ddc",
+      "target": "a011ddce293f53daef817975c7a5cdc1338ff86b",
+      "preserved": true
+    },
+    {
+      "name": "recovery-issue-09-ab468d2",
+      "target": "ab468d22f86a9917a6528165e99fdeae00199839",
+      "preserved": true
+    },
+    {
+      "name": "recovery-issue-09-cacb048",
+      "target": "cacb048bf360a6540c923975e370a69e8ecf29ac",
+      "preserved": true
+    }
+  ],
+  "tag_count": 7
 }
