@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
+import stat
 import time
 import urllib.error
 import urllib.request
@@ -288,8 +290,25 @@ def load_keypair(path: str):
     """Load a Solana CLI JSON keypair file without echoing or retaining its secret."""
     try:
         from solders.keypair import Keypair
-        with open(path, "rb") as stream:
-            document = json.loads(stream.read(4096))
+        if os.name != "posix" and os.path.islink(path):
+            raise ValueError
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        try:
+            info = os.fstat(descriptor)
+            if not stat.S_ISREG(info.st_mode):
+                raise ValueError
+            if os.name == "posix" and (
+                stat.S_IMODE(info.st_mode) & 0o077
+                or info.st_uid != os.geteuid()
+            ):
+                raise ValueError
+            with os.fdopen(descriptor, "rb", closefd=False) as stream:
+                raw = stream.read(4097)
+        finally:
+            os.close(descriptor)
+        if len(raw) > 4096:
+            raise ValueError
+        document = json.loads(raw)
         if type(document) is not list or len(document) not in {32, 64} or any(type(byte) is not int or not 0 <= byte <= 255 for byte in document):
             raise ValueError
         return Keypair.from_bytes(bytes(document))

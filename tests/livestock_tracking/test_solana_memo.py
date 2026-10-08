@@ -245,6 +245,8 @@ def test_missing_transaction_remains_unverified_and_url_must_be_explicit_https()
         SolanaMemoConfig("http://rpc.example", GENESIS)
     with pytest.raises(ValueError, match="allowlisted"):
         SolanaMemoConfig("https://rpc.example", "11111111111111111111111111111111")
+    with pytest.raises(ValueError, match="allowlisted"):
+        SolanaMemoConfig("https://api.mainnet.solana.com", "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d")
     client = FakeClient(SolanaMemoConfig("https://rpc.example", GENESIS), observed=None)
     assert client.verify(_signature(), _envelope()) == (None, None)
 
@@ -271,3 +273,45 @@ def test_rpc_transport_malformed_response_and_signer_failure_are_sanitized(tmp_p
 
     with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
         solana_memo.load_keypair(str(tmp_path / "missing.json"))
+
+
+def test_keypair_loader_rejects_nonregular_and_trailing_data(tmp_path):
+    import json
+    import os
+    from solders.keypair import Keypair
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    key_path = tmp_path / "keypair.json"
+    key_path.write_text(json.dumps(list(bytes(Keypair()))) + " []", encoding="utf-8")
+    if os.name == "posix":
+        key_path.chmod(0o600)
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(key_path))
+
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(tmp_path))
+
+
+def test_keypair_loader_rejects_shared_permissions_and_symlinks(tmp_path):
+    import json
+    import os
+    from solders.keypair import Keypair
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    generated = Keypair()
+    key_path = tmp_path / "keypair.json"
+    key_path.write_text(json.dumps(list(bytes(generated))), encoding="utf-8")
+
+    if os.name == "posix":
+        key_path.chmod(0o644)
+        with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+            load_keypair(str(key_path))
+        key_path.chmod(0o600)
+
+    assert load_keypair(str(key_path)).pubkey() == generated.pubkey()
+
+    if hasattr(os, "O_NOFOLLOW"):
+        link_path = tmp_path / "keypair-link.json"
+        link_path.symlink_to(key_path)
+        with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+            load_keypair(str(link_path))

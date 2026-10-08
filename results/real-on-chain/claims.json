@@ -1,0 +1,35 @@
+{
+  "claims_promoted": [],
+  "claims_remaining_unverified": [
+    "SOLANA_REAL_ON_CHAIN",
+    "BASE_REAL_ON_CHAIN",
+    "ARBITRUM_REAL_ON_CHAIN",
+    "PUBLIC_TESTNET_VALIDATED"
+  ],
+  "cross_chain_commitment_match": "PASS_LOCAL_ONLY",
+  "explicitly_not_claimed": [
+    "MAINNET_VALIDATED",
+    "PRODUCTION_READY",
+    "FIELD_VALIDATED",
+    "HARDWARE_VALIDATED"
+  ],
+  "public_payload_privacy": "PASS_LOCAL_ONLY",
+  "reported_status": "EXTERNAL_BLOCKED_LOCAL_GATE",
+  "targets": {
+    "ARBITRUM_SEPOLIA": {
+      "claim": "PUBLIC_TESTNET_VALIDATED",
+      "claim_status": "UNVERIFIED",
+      "verdict": "EXTERNAL_BLOCKED"
+    },
+    "BASE_SEPOLIA": {
+      "claim": "PUBLIC_TESTNET_VALIDATED",
+      "claim_status": "UNVERIFIED",
+      "verdict": "EXTERNAL_BLOCKED"
+    },
+    "SOLANA_DEVNET": {
+      "claim": "PUBLIC_TESTNET_VALIDATED",
+      "claim_status": "UNVERIFIED",
+      "verdict": "EXTERNAL_BLOCKED"
+    }
+  }
+}

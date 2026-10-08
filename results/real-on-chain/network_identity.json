@@ -1,0 +1,37 @@
+{
+  "reason": "Current execution environment DNS failure prevented network identity queries.",
+  "status": "EXPECTED_IDENTITIES_DOCUMENTED; OBSERVED_IDENTITIES_UNAVAILABLE",
+  "targets": [
+    {
+      "endpoint": "https://api.devnet.solana.com",
+      "expected_identity": "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+      "identity_method": "getGenesisHash",
+      "observed_identity": null,
+      "sources": [
+        "https://solana.com/docs/rpc",
+        "https://solana.com/docs/rpc/http/getgenesishash"
+      ],
+      "target": "SOLANA_DEVNET"
+    },
+    {
+      "endpoint": "https://sepolia.base.org",
+      "expected_chain_id": 84532,
+      "identity_method": "eth_chainId",
+      "observed_chain_id": null,
+      "sources": [
+        "https://docs.base.org/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId"
+      ],
+      "target": "BASE_SEPOLIA"
+    },
+    {
+      "endpoint": "https://sepolia-rollup.arbitrum.io/rpc",
+      "expected_chain_id": 421614,
+      "identity_method": "eth_chainId",
+      "observed_chain_id": null,
+      "sources": [
+        "https://docs.arbitrum.io/chain-info"
+      ],
+      "target": "ARBITRUM_SEPOLIA"
+    }
+  ]
+}

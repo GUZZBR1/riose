@@ -1,0 +1,36 @@
+{
+  "algorithm": "sha256",
+  "canonical_input_hash": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+  "commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+  "event_hash": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+  "event_id": 2,
+  "generated_by": "SQLitePublicationOutbox.enqueue_event -> canonical_event_commitments",
+  "generated_once": true,
+  "outbox_requests": {
+    "arbitrum-sepolia": {
+      "network": "unconfigured-arbitrum-sepolia",
+      "publication_id": "558560ac5c308f0970501a8a7135777c",
+      "status": "QUEUED"
+    },
+    "base-sepolia": {
+      "network": "unconfigured-base-sepolia",
+      "publication_id": "e85b8d02529602efcbe2355e962838bc",
+      "status": "QUEUED"
+    },
+    "solana": {
+      "network": "solana-devnet-GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+      "publication_id": "fd0fc48b57ad00bd3b2935d17b131170",
+      "status": "QUEUED"
+    }
+  },
+  "public_envelope_utf8": "{\"algorithm\":\"sha256\",\"commitment\":\"7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80\",\"version\":1}",
+  "schema": "riose.commitment.v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "target_commitment_match": true,
+  "target_commitments": {
+    "arbitrum-sepolia": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+    "base-sepolia": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+    "solana": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80"
+  },
+  "version": 1
+}

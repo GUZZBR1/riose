@@ -1,0 +1,67 @@
+{
+  "attempted_at_utc": "2026-10-08T12:07:48Z",
+  "dns_diagnosed_at_utc": "2026-10-08T12:07:57Z",
+  "dns_diagnostic": {
+    "classification": "DNS_FAILURE",
+    "hosts": [
+      "api.devnet.solana.com",
+      "sepolia.base.org",
+      "sepolia-rollup.arbitrum.io",
+      "github.com"
+    ],
+    "result": "Temporary failure in name resolution for each host"
+  },
+  "mainnet_endpoints_used": false,
+  "method": "Read-only JSON-RPC identity requests to documented public testnet endpoints; DNS independently checked with socket.getaddrinfo.",
+  "results": [
+    {
+      "balance_status": "NOT_CHECKED_NO_SIGNER_OR_RPC",
+      "dns": "DNS_FAILURE",
+      "endpoint_host": "api.devnet.solana.com",
+      "expected_genesis_hash": "GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+      "observed_genesis_hash": null,
+      "program_status": "MEMO_PROGRAM_NO_DEPLOYMENT_REQUIRED",
+      "publication_status": "NOT_ATTEMPTED",
+      "rpc_method": "getGenesisHash",
+      "rpc_status": "RPC_UNAVAILABLE",
+      "signer_status": "SIGNER_UNAVAILABLE",
+      "target": "SOLANA_DEVNET",
+      "target_status": "EXTERNAL_BLOCKED"
+    },
+    {
+      "balance_status": "NOT_CHECKED_NO_SIGNER_OR_RPC",
+      "deployment_status": "DEPLOYMENT_MISSING; REMOTE_STATE_NOT_QUERIED",
+      "dns": "DNS_FAILURE",
+      "endpoint_host": "sepolia.base.org",
+      "expected_chain_id": 84532,
+      "expected_genesis_hash": null,
+      "observed_chain_id": null,
+      "observed_genesis_hash": null,
+      "publication_status": "NOT_ATTEMPTED",
+      "rpc_method": "eth_chainId",
+      "rpc_status": "RPC_UNAVAILABLE",
+      "signer_status": "SIGNER_UNAVAILABLE",
+      "target": "BASE_SEPOLIA",
+      "target_status": "EXTERNAL_BLOCKED"
+    },
+    {
+      "balance_status": "NOT_CHECKED_NO_SIGNER_OR_RPC",
+      "deployment_status": "DEPLOYMENT_MISSING; REMOTE_STATE_NOT_QUERIED",
+      "dns": "DNS_FAILURE",
+      "endpoint_host": "sepolia-rollup.arbitrum.io",
+      "endpoint_path": "/rpc",
+      "expected_chain_id": 421614,
+      "expected_genesis_hash": null,
+      "observed_chain_id": null,
+      "observed_genesis_hash": null,
+      "publication_status": "NOT_ATTEMPTED",
+      "rpc_method": "eth_chainId",
+      "rpc_status": "RPC_UNAVAILABLE",
+      "signer_status": "SIGNER_UNAVAILABLE",
+      "target": "ARBITRUM_SEPOLIA",
+      "target_status": "EXTERNAL_BLOCKED"
+    }
+  ],
+  "schema": "riose.sc5.preflight.v1",
+  "transactions_sent": false
+}

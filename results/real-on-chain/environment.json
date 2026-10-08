@@ -1,0 +1,16 @@
+{
+  "anchor_cli": "NOT_INSTALLED",
+  "branch": "software-closure/sc5-real-on-chain",
+  "forge": "NOT_INSTALLED",
+  "git": "git version 2.43.0",
+  "network": "DNS failure for GitHub and all three public testnet RPCs",
+  "node": "v22.22.2",
+  "npm": "10.9.7",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "recorded_at_utc": "2026-10-08T12:19:20Z",
+  "secrets_recorded": false,
+  "solana_cli": "NOT_INSTALLED",
+  "test_python_environment": "reused sibling Python 3.12 environment after offline target environment lacked cached eth-abi; versions solders 0.29.0, eth-account 0.14.0, pytest 8.4.2",
+  "uv": "uv 0.11.26 (x86_64-unknown-linux-gnu)"
+}

@@ -1,0 +1,43 @@
+{
+  "animal_id": "synthetic-sc5-animal-20261008",
+  "classification": "SYNTHETIC_TEST_ONLY",
+  "event_chain": {
+    "algorithm": "sha256",
+    "event_count": 2,
+    "head_digest": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+    "note": "Store.create_animal adds the synthetic ANIMAL_CREATED setup event; this package contains one explicit SC-5 validation event using the existing SIMULATION_RUN_RECORDED Event V1 type.",
+    "stored_events": [
+      {
+        "event_id": 1,
+        "event_type": "ANIMAL_CREATED",
+        "hash": "90ed1d1358112ebf9db92f8b973cea3009dd7ece5cd45c49f7d978be6d85d756",
+        "payload": "{\"hardware_id\":\"synthetic-sc5-tag-20261008\"}",
+        "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schema_version": "v1",
+        "timestamp": 1791460800.0
+      },
+      {
+        "event_id": 2,
+        "event_type": "SIMULATION_RUN_RECORDED",
+        "hash": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+        "payload": "{\"classification\":\"TESTNET_VALIDATION_EVENT\",\"purpose\":\"SC-5\",\"synthetic\":true}",
+        "previous_hash": "90ed1d1358112ebf9db92f8b973cea3009dd7ece5cd45c49f7d978be6d85d756",
+        "schema_version": "v1",
+        "timestamp": 1791460860.0
+      }
+    ],
+    "valid": true,
+    "version": 1
+  },
+  "event_hash": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+  "event_id": 2,
+  "event_type": "SIMULATION_RUN_RECORDED",
+  "payload": {
+    "classification": "TESTNET_VALIDATION_EVENT",
+    "purpose": "SC-5",
+    "synthetic": true
+  },
+  "schema": "riose.sc5.testnet-validation-event.v1",
+  "tag_id": "synthetic-sc5-tag-20261008",
+  "timestamp_utc": "2026-10-08T12:01:00Z"
+}

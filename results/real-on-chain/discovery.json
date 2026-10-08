@@ -1,0 +1,53 @@
+{
+  "architecture_map": {
+    "commitment_v1": "src/riose/products/livestock_tracking/domain/commitment.py",
+    "contract_source": "contracts/src/RioseCommitmentRegistry.sol",
+    "deployment_metadata": null,
+    "dispatcher": "src/riose/products/livestock_tracking/application/publication_dispatcher.py",
+    "event_v1": "src/riose/products/livestock_tracking/domain/identity.py",
+    "evm_configuration": "src/riose/products/livestock_tracking/adapters/evm_config.py",
+    "evm_nonce_state": "src/riose/products/livestock_tracking/adapters/persistence/evm_nonce.py",
+    "outbox_and_receipts": "src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py",
+    "public_envelope": "src/riose/products/livestock_tracking/domain/privacy.py",
+    "shared_evm_adapter": "src/riose/products/livestock_tracking/adapters/evm_registry.py",
+    "solana_adapter": "src/riose/products/livestock_tracking/adapters/solana_memo.py"
+  },
+  "config_discovery": {
+    "default_solana_keypair": "absent",
+    "environment_signer_variables": "none",
+    "explicit_evm_signer_file": "absent",
+    "rpc_urls": "no private or project-specific URLs available",
+    "solana_cli_config": "absent",
+    "verified_evm_testnet_deployment_configs": "none"
+  },
+  "discovered_at_utc": "2026-10-08T12:19:20Z",
+  "execution_checkout": {
+    "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "base_tree": "2ee3930e5ae6b96cef6134840151c17f7c85f0e4",
+    "branch": "software-closure/sc5-real-on-chain",
+    "path": "/home/gusta/projetos/RIOSE/riose-sc5-real-on-chain"
+  },
+  "fetch": {
+    "error": "Could not resolve host: github.com",
+    "local_refs": {
+      "fork/main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "origin/main": "c85c5f9"
+    },
+    "result": "DNS_FAILURE"
+  },
+  "historical_sc5_reference": {
+    "branch": "validation/mvp5-real-on-chain",
+    "head": "df4ef334729c1e4bfb5e02a21d8f8020330a1d87",
+    "use": "inspected as stale context only; prior preflight and claims not reused"
+  },
+  "mission": "SC-5 REAL_ON_CHAIN Public Testnet Validation",
+  "preserved_primary_checkout": {
+    "branch": "codex/issue-10-antenna-convergence",
+    "head": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "path": "/home/gusta/projetos/RIOSE/riose",
+    "preexisting_untracked_work": "preserved untouched"
+  },
+  "remote_freshness": "UNVERIFIED",
+  "repository": "https://github.com/GUZZBR1/riose",
+  "upstream": "https://github.com/santleme/riose"
+}

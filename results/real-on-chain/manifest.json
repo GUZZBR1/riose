@@ -1,0 +1,52 @@
+{
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "base_tree": "2ee3930e5ae6b96cef6134840151c17f7c85f0e4",
+  "branch": "software-closure/sc5-real-on-chain",
+  "canonical_commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+  "canonical_event_hash": "194ecd55ae7c812ddd38cc7b7183716b437863e00e197584f3aefd033ddbe668",
+  "contract_source_sha256": "acde20be95cf1ae925de0288adf3cdf13a55ab8655d4849208edefbc976d025e",
+  "evidence_files": {
+    "arbitrum/attempt.json": "cdedde2f18746ba4ee64c4b2a83382b8ccc9eda36fb3e88d7e22cf5ccf39c998",
+    "arbitrum/deployment.json": "d04ff3191d1cb37c90f8515b1ccad2c465f6dfc2732124085d034d43af601f7e",
+    "arbitrum/transaction.json": "16801b981e12bdf8b9c0fa780c862cac137b7287550337e5bddcbb0c9a88814a",
+    "arbitrum/verification.json": "0e95e2358351da4c76824b7a8213bd5356525eda0b3efd25f3746f02b963d36e",
+    "base/attempt.json": "6b9066bbf7f4e057220360a8063b8c9684b9170163916b385ea1179730d997ba",
+    "base/deployment.json": "31aded8f3ff7932ae6909fcf4a4ca3fcfe5e01bb7339bf7ca7a761495ea8f22f",
+    "base/transaction.json": "be80479028940e19c09234de98cf0e6ec4db6baefa1bcd0f8bb6a067b43a8b7b",
+    "base/verification.json": "0e95e2358351da4c76824b7a8213bd5356525eda0b3efd25f3746f02b963d36e",
+    "canonical_commitment.json": "27fac7a1111c427fd06e4e6a507b8235da3a54cee4a15d89b851b719ce574014",
+    "canonical_event.json": "0bee5703d2c92307dc8e263001e43a5b1aaa2874d58f84a1bf6be6388b501a2e",
+    "claims.json": "63403bf0eec1e2b29ed2a02f8e552ca7c2d8b312a51be2bc2b28253ef7a5f922",
+    "discovery.json": "230eb87b9182d2089953dcf415872f4b9dcd710f6cc4ad2f6ad6ba66a48328cf",
+    "environment.json": "ecdea2a3020e61df9c2110a7eca9f846d340fd03f713c8f0c4d6e6e88f36f182",
+    "final_report.md": "cabcc93a8f4dd458b597dd00207b2e732c53a8b853a53abc4a2c7362b54c86d1",
+    "limitations.json": "0bc08240c14ee6cd0f104acb871aa9be400c5029d18f245df94287445f1448b9",
+    "network_identity.json": "c408b0ecd0914bb1fe82111c7bcea2694204599bc2ddd3a8e71c396c83ae9b24",
+    "preflight.json": "84a493cb0671f2a829cb0045e690684891809ca1b1c47753309f55aca9f69564",
+    "privacy_review.json": "068ac03204f7707d9357d5c7ca2d4b0b22e3c0faf25bc1ea1545df442998e5de",
+    "red_team_report.md": "715a0e7be029aaac1201164329d67f092115a0ab96ca89999085ce1d0f61bfd9",
+    "restart_reconciliation.json": "de13fa3a9ef4c23014737857718b7b0cdc4e567d7481acd25b9ae378089987bb",
+    "signer_security.json": "27c3e3a6dd786c39e52a15a6215266df383776960d1818e05e75dc711ac19c3f",
+    "solana/attempt.json": "12243ea35ba004ec2ed29708503e50d961cf8b8c4ab537a3f726b6a79680dcdb",
+    "solana/transaction.json": "cf551da9014ebd15bf2a2440d49bac6c2fa4a078efc7e05e0e0e811766aff94c",
+    "solana/verification.json": "ad3ce1c9d3abeda0aef9c64bf1126024cc32385a62eb22a9c35b49a87d15fd1d",
+    "target_comparison.json": "0a95887640fe7a99f117573b6eae2646be2a7da8d8b86859d1c57b1a93df2a16",
+    "test_results.json": "2ca109726f42dac1fac7de91ed15a5e4a941084fe4dbb1970ac114fb54929f54"
+  },
+  "mission": "SC-5 REAL_ON_CHAIN public testnet validation",
+  "remote_freshness": "UNVERIFIED",
+  "reported_status": "EXTERNAL_BLOCKED_LOCAL_GATE",
+  "schema": "riose.sc5.evidence-manifest.v1",
+  "targets": {
+    "ARBITRUM_SEPOLIA": "EXTERNAL_BLOCKED",
+    "BASE_SEPOLIA": "EXTERNAL_BLOCKED",
+    "SOLANA_DEVNET": "EXTERNAL_BLOCKED"
+  },
+  "verification": {
+    "ctest": "39 passed, 0 failed",
+    "focused_python": "132 passed",
+    "full_python": "888 passed, 7 skipped, 1 existing deprecation warning",
+    "git_diff_check": "PASS after evidence finalization",
+    "solidity_compile": "PASS; no deployment"
+  }
+}

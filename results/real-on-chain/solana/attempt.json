@@ -1,0 +1,9 @@
+{
+  "attempt_count": 0,
+  "attempt_id": null,
+  "network": "solana-devnet-GH7ome3EiwEr7tu9JuTh2dpYWBJK3z69Xm1ZE3MEE6JC",
+  "reason": "DNS_FAILURE and SIGNER_UNAVAILABLE; no signing or submission.",
+  "status": "NOT_ATTEMPTED",
+  "target": "SOLANA_DEVNET",
+  "transaction_id": null
+}

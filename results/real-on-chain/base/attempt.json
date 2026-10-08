@@ -1,0 +1,10 @@
+{
+  "attempt_count": 0,
+  "attempt_id": null,
+  "chain": "base-sepolia",
+  "expected_chain_id": 84532,
+  "reason": "DNS_FAILURE, SIGNER_UNAVAILABLE, and no verified deployment config; no signing or submission.",
+  "status": "NOT_ATTEMPTED",
+  "target": "BASE_SEPOLIA",
+  "transaction_hash": null
+}
