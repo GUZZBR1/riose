@@ -1,0 +1,31 @@
+{
+  "clean_install": "PASS in a fresh isolated cache and project environment for core, dev, Solana, and EVM extras; exact locked dependencies installed.",
+  "compileall": "PASS: python3 -m compileall -q src scripts.",
+  "doctor_regression_tests": "PASS: 4 tests cover absent optional tools, foreign checkout provenance, EVM lock/compiler mismatch, and manifest hashing of build-constraints.txt.",
+  "focused_evm_tests": "PASS: tests/livestock_tracking/test_evm_local.py, 2 passed against local Ganache.",
+  "fresh_cache": "/tmp/riose-sc3-clean-python-cache",
+  "full_python_regression": "PASS: 888 passed, 7 skipped, 1 warning. Focused local EVM tests: 2 passed.",
+  "import_provenance": {
+    "editable_install": "PASS: uv built and installed the local cattle-rf project from this checkout.",
+    "external_pythonpath": "Unset during clean-room install and doctor.",
+    "required_dependencies": "Core/dev dependency imports resolved from this checkout's .venv; see doctor_report.json.",
+    "riose": "Imported from this checkout's src/riose tree."
+  },
+  "interpreter": "/usr/bin/python3",
+  "latest_regression_recheck": "888 passed, 7 skipped, 1 warning using the repository-local .venv and Linux-only PATH.",
+  "latest_source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+  "lock_check": "PASS: uv lock --check --offline resolved 68 packages.",
+  "lockfile": "uv.lock",
+  "optional_extras": {
+    "evm": "PASS: exact locked cytoolz 1.1.0, ckzg 2.1.8, and eth-account 0.14.0 installed from a fresh isolated cache through official PyPI endpoint.",
+    "solana": "PASS: exact locked Solana extras installed; no public Solana network used."
+  },
+  "project_environment": "Repository-local .venv contains project plus locked core/dev/Solana/EVM extras.",
+  "python": "3.12.3",
+  "schema_version": 1,
+  "second_venv": "/tmp/riose-sc3-run2-python-env; uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache.",
+  "shell_entrypoint_validation": "PASS: fresh checkout with core.autocrlf=true; 1,057 tracked text files used LF and all shell scripts passed bash -n.",
+  "solana_local_mock_tests": "PASS: tests/livestock_tracking/test_solana_memo.py, 15 passed with mocked RPC responses; no local validator or public Solana network used.",
+  "status": "PASS",
+  "uv": "0.11.26"
+}

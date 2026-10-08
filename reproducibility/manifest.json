@@ -1,0 +1,91 @@
+{
+  "evidence_files": [
+    {
+      "path": "reproducibility/README.md",
+      "sha256": "6d02a053392594094fec183337a754821602f0206d590247d68e357b3098b445"
+    },
+    {
+      "path": "reproducibility/artifact_comparison.json",
+      "sha256": "ae83e3ad058c5cf3e9cb604a9946df6666fab33bf4b995022334d0ce59cbf081"
+    },
+    {
+      "path": "reproducibility/bootstrap_report.json",
+      "sha256": "1eef0ce445b014b93088cd529516fdee0799c9676859bc15024d7654aad22e4f"
+    },
+    {
+      "path": "reproducibility/cache_dependency_report.json",
+      "sha256": "77444c2899cdd86eddb9bf4e4848b3bbf38f1fdcf7ad4fb497536e49e54d3a75"
+    },
+    {
+      "path": "reproducibility/claims.json",
+      "sha256": "5d352b7afdad0610b1c65f2b25402ac9764a5b7e34ae68c7bfe73a724118c913"
+    },
+    {
+      "path": "reproducibility/clean_room_run_1.json",
+      "sha256": "f4a5c44572d9dcc760b1a6dfb248b2f60974188e0ee0deb0d0f25ffaba55772f"
+    },
+    {
+      "path": "reproducibility/clean_room_run_2.json",
+      "sha256": "f62563fe66a5078dbc8965e9051aa4fad018d7c1372881f91cf6c6303866013a"
+    },
+    {
+      "path": "reproducibility/clean_room_run_3.json",
+      "sha256": "98d97e4c56666042f141e2ab162125d52c795f64056356bbd006e546fd637b4f"
+    },
+    {
+      "path": "reproducibility/dependency_matrix.json",
+      "sha256": "53ad1c6d8335c02b9539b41d046bb5acdcd26bb73a00d4a4b0a3a4dcb638da38"
+    },
+    {
+      "path": "reproducibility/discovery.json",
+      "sha256": "83ce8b097c94c55e422bd81fa1a8a65783bb04a695a1b5aa8f4f25130996f523"
+    },
+    {
+      "path": "reproducibility/doctor_report.json",
+      "sha256": "176b187bba2e673aac335106c4f6166f585ea019e334a27a383e874d02bfa603"
+    },
+    {
+      "path": "reproducibility/environment_manifest.json",
+      "sha256": "2c2e0b2eae469098f0ab044886f2638347526436a20c482ddfa1e7cec3b9121f"
+    },
+    {
+      "path": "reproducibility/final_report.md",
+      "sha256": "f8ce03c7f03c6c81097f8ecae64c54239df79721bfbf50fd614bd0953950a156"
+    },
+    {
+      "path": "reproducibility/firmware_environment.json",
+      "sha256": "77d83633c3b8da844629ab0f210940fb0e657128a0476285ecd4f20dd34d5a02"
+    },
+    {
+      "path": "reproducibility/integrated_smoke.json",
+      "sha256": "aaf6392a601369c53b573992480acad4e5ff0ad26a795e4a93fb93084f826c33"
+    },
+    {
+      "path": "reproducibility/limitations.json",
+      "sha256": "8235b0e7d53518f4d7f0b9de8a9e05ad91eb2873a9b7a7ce20f04f6f75157d82"
+    },
+    {
+      "path": "reproducibility/node_environment.json",
+      "sha256": "33b06b49c8c27a8715854bf8cbc1c254c7dd99435b7f67d6e635ff9b6186b15d"
+    },
+    {
+      "path": "reproducibility/python_environment.json",
+      "sha256": "27571a880046b3c364b7d67e1e1ca689f2e6f9d734c1feb86ec5f88befa4c4cf"
+    },
+    {
+      "path": "reproducibility/red_team_report.md",
+      "sha256": "9e001771f14d73ba3fcb8b0496545ec08bc782c5adc1ea99c4c7ef394672d2ce"
+    },
+    {
+      "path": "reproducibility/solidity_environment.json",
+      "sha256": "7cb019bf9795e8fbf993e8354599ed1b6e3473278dc6b8b7fdb728aab8da19ca"
+    }
+  ],
+  "mission": "SC-3 Reproducible Environment & Clean-Room Build",
+  "note": "manifest.json excluded from own hash inventory; Git commit integrity covers it.",
+  "remote_freshness": "VERIFIED",
+  "schema_version": 1,
+  "secrets_included": false,
+  "self_hash_excluded": true,
+  "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1"
+}

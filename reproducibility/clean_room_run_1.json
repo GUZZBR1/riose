@@ -1,0 +1,41 @@
+{
+  "bootstrap": "PARTIAL_EXTERNAL_BLOCKED: core/dev/Solana packages installed offline from cache; EVM extra blocked by ckzg 2.1.8.",
+  "cache_classification": "PARTIALLY_CACHED",
+  "checkout": {
+    "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "initial_worktree_clean": true,
+    "method": "New isolated Git worktree from local fork/main ref",
+    "remote_freshness": "UNVERIFIED",
+    "status": "PASS"
+  },
+  "cmake": {
+    "build_directory": "/tmp/riose-sc3-run1-cmake",
+    "status": "PASS"
+  },
+  "ctest": {
+    "failed": 0,
+    "passed": 39,
+    "status": "PASS"
+  },
+  "doctor": "EXTERNAL_BLOCKED only for uncached registry access and EVM dependencies; core imports and lock checks READY; report at doctor_report.json",
+  "evm": "NOT_RUN: Ganache and solc not installed",
+  "integrated_smoke": {
+    "evidence": "integrated_smoke.json",
+    "network": "local-mock",
+    "path": "synthetic Event V1 -> temporary SQLite -> Commitment V1 -> publication outbox -> close/reopen -> mock local adapter -> receipt reconciliation",
+    "real_on_chain": "NOT_EXECUTED",
+    "status": "PASS"
+  },
+  "limitations": [
+    "This is a partial clean-room run. The EVM Python/npm dependency sets could not be installed because required artifacts were missing and registry DNS failed."
+  ],
+  "npm_ci": "EXTERNAL_BLOCKED: EAI_AGAIN for registry.npmjs.org; empty-cache attempt ENOTCACHED",
+  "package_build": "PASS: wheel and sdist built offline twice; hashes matched.",
+  "python_focused_tests": "PASS as part of the available suite",
+  "python_full_regression": "PARTIAL: 851 passed, 7 skipped with the two EVM modules explicitly excluded; without exclusion, collection stops on missing eth_account in those modules.",
+  "run": 1,
+  "schema_version": 1,
+  "solana_local": "NOT_RUN: Solana extra (solders 0.29.0) was installed offline, but no local validator/test runner was configured; no public network was used.",
+  "solidity": "BLOCKED: solc module absent; compile command could not start",
+  "tested_source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
+}

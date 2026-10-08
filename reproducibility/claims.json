@@ -1,0 +1,70 @@
+{
+  "claims": [
+    {
+      "claim": "WORKS_ON_CURRENT_MACHINE",
+      "evidence": [
+        "firmware_environment.json",
+        "python_environment.json",
+        "artifact_comparison.json",
+        "integrated_smoke.json"
+      ],
+      "scope": "Required local software gates: full Python/EVM suite, host CMake/CTest, npm/Solidity, package builds, doctor and local mock smoke.",
+      "status": "SUPPORTED_WITH_FOLLOWUPS"
+    },
+    {
+      "claim": "CACHED_REPRODUCTION",
+      "evidence": [
+        "cache_dependency_report.json",
+        "python_environment.json",
+        "clean_room_run_1.json",
+        "artifact_comparison.json"
+      ],
+      "scope": "Historical cached core/dev/Solana evidence; current fresh-cache run is recorded in clean_room_run_3.json.",
+      "status": "SUPPORTED"
+    },
+    {
+      "claim": "CLEAN_ROOM_REPRODUCTION",
+      "evidence": [
+        "bootstrap_report.json",
+        "node_environment.json",
+        "limitations.json"
+      ],
+      "scope": "Mission-required local software gates only; optional physical/toolchain and public-chain validation are not claimed.",
+      "status": "SUPPORTED_FOR_REQUIRED_SOFTWARE_GATES"
+    },
+    {
+      "claim": "SEMANTIC_REPRODUCIBILITY",
+      "evidence": [
+        "clean_room_run_1.json",
+        "clean_room_run_2.json",
+        "artifact_comparison.json"
+      ],
+      "scope": "Repeated host CTest and synthetic mock publication state transitions.",
+      "status": "SUPPORTED_FOR_LISTED_COMPONENTS"
+    },
+    {
+      "claim": "BITWISE_REPRODUCIBILITY",
+      "evidence": [
+        "artifact_comparison.json"
+      ],
+      "scope": "Listed historical CTest traces at 92ef1b5 and fresh wheel/sdist artifacts at implementation baseline 081f6a5; no repository-wide bitwise claim.",
+      "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY"
+    }
+  ],
+  "clean_room_required_software_gates": {
+    "cmake_ctest": "39/39 twice; five trace hashes match.",
+    "mock_smoke": "PASS; fresh SQLite, local mock submission, verified receipt; no public chain.",
+    "npm": "npm ci passed with locked Ganache 7.9.2 and solc 0.8.37.",
+    "python": "888 passed, 7 skipped; EVM focused tests 2 passed.",
+    "solidity": "Compile passed with solc 0.8.37.",
+    "status": "PASS"
+  },
+  "not_claimed": [
+    "FULLY_REPRODUCIBLE",
+    "PUBLIC_VALIDATED",
+    "REAL_ON_CHAIN",
+    "physical-device validated",
+    "repository-wide bitwise build"
+  ],
+  "schema_version": 1
+}

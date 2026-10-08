@@ -1,6 +1,10 @@
 {
   "name": "riose-local-evm-tests",
   "private": true,
+  "packageManager": "npm@10.9.7",
+  "engines": {
+    "node": ">=22.22.2 <23"
+  },
   "dependencies": {
     "ganache": "^7.9.2",
     "solc": "^0.8.28"

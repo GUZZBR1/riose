@@ -7,10 +7,10 @@ demo:
 	./run_demo.sh
 
 test:
-	uv run pytest -q
+	uv run --locked pytest -q
 
 benchmark:
-	uv run cattle-rf benchmark --profile full --output results
+	uv run --locked cattle-rf benchmark --profile full --output results
 
 hardware-test:
 	cmake -S hardware/tests -B "$(HARDWARE_TEST_BUILD_DIR)"

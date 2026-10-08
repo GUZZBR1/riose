@@ -1,0 +1,71 @@
+{
+  "cmake": {
+    "build": "PASS twice",
+    "build_directories": [
+      "/tmp/riose-sc3-92-cmake1",
+      "/tmp/riose-sc3-92-cmake2"
+    ],
+    "configure": "PASS twice",
+    "ctest": "39/39 PASS in each clean directory"
+  },
+  "ctest": {
+    "failed": 0,
+    "passed": 39,
+    "status": "PASS"
+  },
+  "firmware_traces": "Five trace files matched SHA-256 across the two clean builds at source 92ef1b5.",
+  "full_second_clean_room": "NOT_ACHIEVED: Python and EVM dependencies were externally blocked.",
+  "integrated_smoke": {
+    "database": "new temporary SQLite database; closed and reopened",
+    "network": "local-mock",
+    "process_status": "RPC_ACCEPTED",
+    "reconcile_status": "VERIFIED",
+    "status": "PASS",
+    "verified_receipt_count": 1
+  },
+  "post_audit_validation": {
+    "canonical_bootstrap": "EXTERNAL_BLOCKED on current source 92ef1b5 after three retries for eth-keys 0.8.0; core/dev/Solana offline installation passed.",
+    "clean_checkout_text": "PASS: core.autocrlf=true; 1,057 tracked text files checked out LF in both clean worktrees.",
+    "clean_source_package_builds": "PASS: two clean detached worktrees at 92ef1b5 produced identical wheel and sdist SHA-256 with constrained PEP 517 versions; wheel installed into a fresh venv and imported from site-packages.",
+    "compileall": "PASS: python -m compileall -q src scripts.",
+    "doctor": "EXTERNAL_BLOCKED when supplied the confirmed network flag; baseline local_evm_dependencies check is OPTIONAL_MISSING. Import provenance, lock checks, required files, versions and sanitized PATH are READY.",
+    "doctor_regression_tests": "PASS: 4 passed (optional tool classification, foreign checkout import rejection, locked local EVM version comparison, build-constraints manifest hash).",
+    "empty_cache": "BLOCKED_OFFLINE: isolated cache lacked hatchling 1.32.4; exact versions are constrained and registry DNS currently fails.",
+    "integrated_smoke": "PASS: new temporary SQLite database, close/reopen, local-mock receipt VERIFIED; REAL_ON_CHAIN=NOT_EXECUTED.",
+    "npm_ci": "EXTERNAL_BLOCKED on current source 92ef1b5 with EAI_AGAIN fetching Ganache 7.9.2.",
+    "online_package_build": "EXTERNAL_BLOCKED on current source because pypi.org DNS failed resolving hatchling; constrained offline builds passed from the existing cache.",
+    "python_full_suite": "BLOCKED at collection in test_evm_local.py and test_evm_registry.py because eth_account is unavailable after the EVM extra could not install.",
+    "python_non_evm_suite": "PASS: 855 passed, 7 skipped, 1 warning in a fresh checkout environment.",
+    "solana_mock": "PASS: tests/livestock_tracking/test_solana_memo.py, 15 passed; mocked RPC only, no validator or public network.",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
+    "uv_lock": "PASS: uv lock --check --offline resolved 68 packages."
+  },
+  "python_and_npm_bootstrap": "NOT_RETRIED: earlier uncached installs failed on confirmed DNS and missing registry artifacts.",
+  "python_environment": {
+    "install": "PASS: uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache",
+    "path": "/tmp/riose-sc3-run2-python-env",
+    "test_command": "uv run --locked --no-sync pytest -q --ignore=tests/livestock_tracking/test_evm_local.py --ignore=tests/livestock_tracking/test_evm_registry.py",
+    "test_result": "851 passed, 7 skipped, 1 warning"
+  },
+  "python_package_build": {
+    "sdist_sha256": "497842b889d017b823451685d264a768ffcf7690181913f6da3d2fb42ced3391",
+    "sdist_sha256_matches_run_1": true,
+    "status": "PASS",
+    "wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c",
+    "wheel_sha256_matches_run_1": true
+  },
+  "recreated_components": [
+    "Python venv install",
+    "non-EVM Python regression",
+    "CMake configure",
+    "host C build",
+    "CTest",
+    "temporary SQLite smoke",
+    "Python wheel and sdist build"
+  ],
+  "run": 2,
+  "schema_version": 1,
+  "semantic_comparison": "Both host CTest runs passed 39/39 and the smoke completed the same semantic state transitions.",
+  "tested_source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
+}

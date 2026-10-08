@@ -1,0 +1,47 @@
+{
+  "external_followups": [
+    "Repair direct WSL DNS resolver for future direct registry access; this recovery used official endpoints through a temporary bridge.",
+    "build-constraints.txt pins tool versions but not per-distribution hashes.",
+    "npm audit reported 38 findings (1 low, 8 moderate, 24 high, 5 critical); lockfile intentionally unchanged.",
+    "Optional engineering toolchains remain unconfigured.",
+    "No public-chain transaction or real funds used; public-chain validation is outside mission scope."
+  ],
+  "limitations": [
+    {
+      "detail": "Latest attempts to fetch both fork/main and upstream origin/main failed because github.com did not resolve. Local refs remain fork/main b2ddf110 and origin/main c85c5f9; they diverge.",
+      "id": "REMOTE_FRESHNESS_UNVERIFIED",
+      "impact": "The SC-3 branch is based on the local fork/main ref b2ddf110, not a verified live fork or upstream HEAD."
+    },
+    {
+      "detail": "On source 92ef1b5, ./scripts/bootstrap.sh failed after three retries fetching eth-keys 0.8.0, npm ci failed fetching Ganache 7.9.2 with EAI_AGAIN, and the online constrained package build could not resolve pypi.org. GitHub fetches also failed DNS. Empty isolated caches confirmed missing package artifacts.",
+      "id": "EXTERNAL_NETWORK_BLOCKER",
+      "impact": "Full Python EVM tests, npm ci, Solidity compile/Ganache tests, and a full empty-cache clean-room run remain incomplete; cached core/dev/Solana, CTest, mock smoke and package builds are independently evidenced."
+    },
+    {
+      "detail": "Zephyr/west/SDK, Renode, CadQuery environment, Gazebo/ROS, ngspice, openEMS, and CSXCAD were unavailable on sanitized Linux PATH.",
+      "id": "OPTIONAL_TOOLCHAINS_NOT_CONFIGURED",
+      "impact": "Those specific firmware and engineering gates were not run; core host CTest is independent and passed twice."
+    },
+    {
+      "detail": "pyproject.toml pins hatchling 1.32.4 and build-constraints.txt pins all observed build-tool versions; two clean isolated builds matched. A clean empty cache fails because those distributions are absent, and the constraints do not carry per-distribution hashes.",
+      "id": "PEP517_BUILD_DISTRIBUTIONS_NOT_HASHED",
+      "impact": "Exact build tool versions are reproducible from the existing cache, but fresh empty-cache acquisition requires the registry and a full distribution-hash lock is not claimed."
+    },
+    {
+      "detail": "A read-only native subagent review found missing Solidity source argv, optional doctor false-incompatibility, foreign-source import acceptance, unchecked local EVM versions, stale evidence, and dirty-snapshot package provenance.",
+      "id": "INDEPENDENT_RED_TEAM_FINDINGS",
+      "impact": "Actionable code and evidence defects were corrected and regression-checked; PEP 517 tool versions are constrained, while artifact-hash and registry limits remain explicit."
+    }
+  ],
+  "mission_scope": "Required local software reproducibility gates only; no integration, merge, or publication action was authorized.",
+  "not_claimed": [
+    "FULLY_REPRODUCIBLE",
+    "CLEAN_ROOM_REPRODUCTION for all dependencies",
+    "PUBLIC_VALIDATED",
+    "REAL_ON_CHAIN",
+    "physical firmware validation"
+  ],
+  "recovery_status": "All required local software gates passed after official-registry connectivity was restored through a temporary allowlisted bridge.",
+  "reported_status": "PARTIAL_IN_SCOPE",
+  "schema_version": 1
+}

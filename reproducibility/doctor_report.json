@@ -1,0 +1,326 @@
+{
+  "checks": [
+    {
+      "detail": "Python >=3.12 is required.",
+      "evidence": {
+        "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/bin/python3",
+        "version": "3.12.3"
+      },
+      "name": "python",
+      "status": "READY"
+    },
+    {
+      "detail": "Run the doctor through uv so imports come from this checkout's repository-local .venv.",
+      "evidence": {
+        "actual_prefix": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv",
+        "expected_prefix": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv"
+      },
+      "name": "python_environment",
+      "status": "READY"
+    },
+    {
+      "detail": "uv >=0.11.7 is expected; CI pins 0.11.7.",
+      "evidence": {
+        "path": "/home/gusta/.local/bin/uv",
+        "version": "uv 0.11.26 (x86_64-unknown-linux-gnu)"
+      },
+      "name": "uv",
+      "status": "READY"
+    },
+    {
+      "detail": "Required source and lock files.",
+      "evidence": {
+        "missing": []
+      },
+      "name": "required_files",
+      "status": "READY"
+    },
+    {
+      "detail": "uv.lock consistency check (offline).",
+      "evidence": {
+        "command": [
+          "uv",
+          "lock",
+          "--check",
+          "--offline"
+        ],
+        "exit_code": 0,
+        "stderr": "Resolved 68 packages in 0.93ms",
+        "stdout": ""
+      },
+      "name": "python_lock",
+      "status": "READY"
+    },
+    {
+      "detail": "package-lock root dependencies and engine constraints must match package.json.",
+      "evidence": {
+        "expected": {
+          "ganache": "^7.9.2",
+          "solc": "^0.8.28"
+        },
+        "expected_engines": {
+          "node": ">=22.22.2 <23"
+        },
+        "locked": {
+          "ganache": "^7.9.2",
+          "solc": "^0.8.28"
+        },
+        "locked_engines": {
+          "node": ">=22.22.2 <23"
+        },
+        "lockfile_version": 3
+      },
+      "name": "npm_lock",
+      "status": "READY"
+    },
+    {
+      "detail": "Required for the local EVM test gate; not needed for Python-only use.",
+      "evidence": {
+        "path": "/usr/bin/node",
+        "version": "v22.22.2"
+      },
+      "name": "node",
+      "status": "READY"
+    },
+    {
+      "detail": "Required for the local EVM test gate; not needed for Python-only use.",
+      "evidence": {
+        "path": "/usr/bin/npm",
+        "version": "10.9.7"
+      },
+      "name": "npm",
+      "status": "READY"
+    },
+    {
+      "detail": "Required for the host CMake/CTest gate.",
+      "evidence": {
+        "path": "/usr/bin/cmake",
+        "version": "cmake version 3.28.3"
+      },
+      "name": "cmake",
+      "status": "READY"
+    },
+    {
+      "detail": "Required for the host CMake/CTest gate.",
+      "evidence": {
+        "path": "/usr/bin/cc",
+        "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+      },
+      "name": "cc",
+      "status": "READY"
+    },
+    {
+      "detail": "Hardware CMake project requires CMake >=3.16 for its specific gate.",
+      "evidence": "cmake version 3.28.3",
+      "name": "cmake_version",
+      "status": "READY"
+    },
+    {
+      "detail": "Local EVM validation uses the exact Node version in .nvmrc.",
+      "evidence": {
+        "actual": "v22.22.2",
+        "expected": "22.22.2"
+      },
+      "name": "node_version",
+      "status": "READY"
+    },
+    {
+      "detail": "Local EVM validation uses the npm version recorded in package.json.",
+      "evidence": {
+        "actual": "10.9.7",
+        "expected": "10.9.7"
+      },
+      "name": "npm_version",
+      "status": "READY"
+    },
+    {
+      "detail": "Local Ganache and solc package/compiler versions must match package-lock.json for the EVM gate.",
+      "evidence": {
+        "mismatched": [],
+        "missing": [],
+        "packages": {
+          "ganache": {
+            "actual": "7.9.2",
+            "expected": "7.9.2"
+          },
+          "solc": {
+            "actual": "0.8.37",
+            "compiler_version": "0.8.37+commit.f401782d.Emscripten.clang",
+            "expected": "0.8.37"
+          }
+        }
+      },
+      "name": "local_evm_dependencies",
+      "status": "READY"
+    },
+    {
+      "detail": "External Python/Node path overrides can change imports; values are reported only as paths, never secret variables.",
+      "evidence": {
+        "configured_names": [
+          "VIRTUAL_ENV"
+        ],
+        "outside_checkout": []
+      },
+      "name": "environment_overrides",
+      "status": "READY"
+    },
+    {
+      "detail": "RIOSE must import from this checkout and Python dependencies from the repository-local .venv.",
+      "evidence": {
+        "expected_riose_source": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/src/riose",
+        "missing_optional_imports": [],
+        "missing_project_import": false,
+        "missing_required_imports": [],
+        "origins": {
+          "construct": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/construct/__init__.py",
+          "eth_account": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/eth_account/__init__.py",
+          "eth_utils": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/eth_utils/__init__.py",
+          "fastapi": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/fastapi/__init__.py",
+          "hexbytes": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/hexbytes/__init__.py",
+          "httpx": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/httpx/__init__.py",
+          "matplotlib": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/matplotlib/__init__.py",
+          "numpy": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/numpy/__init__.py",
+          "pyarrow": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/pyarrow/__init__.py",
+          "pytest": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/pytest/__init__.py",
+          "riose": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/src/riose/__init__.py",
+          "scipy": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/scipy/__init__.py",
+          "sklearn": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/sklearn/__init__.py",
+          "solders": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/solders/__init__.py",
+          "yaml": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/lib/python3.12/site-packages/yaml/__init__.py"
+        },
+        "source_present": true,
+        "sys_prefix": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv",
+        "unexpected_imports": [],
+        "unexpected_project_import": false
+      },
+      "name": "import_provenance",
+      "status": "READY"
+    },
+    {
+      "detail": "Network is needed only for dependencies absent from local package caches; the doctor does not contact registries.",
+      "evidence": {
+        "network_probe_performed": false
+      },
+      "name": "first_install_network",
+      "status": "NOT_CONFIGURED"
+    },
+    {
+      "detail": "Optional engineering/simulation tools are not required for the Python or host CTest route.",
+      "evidence": {
+        "missing": [
+          "west",
+          "renode",
+          "renode_test",
+          "ngspice",
+          "openems",
+          "gz",
+          "docker"
+        ],
+        "tools": {
+          "docker": {
+            "path": null,
+            "version": null
+          },
+          "gz": {
+            "path": null,
+            "version": null
+          },
+          "ngspice": {
+            "path": null,
+            "version": null
+          },
+          "openems": {
+            "path": null,
+            "version": null
+          },
+          "renode": {
+            "path": null,
+            "version": null
+          },
+          "renode_test": {
+            "path": null,
+            "version": null
+          },
+          "west": {
+            "path": null,
+            "version": null
+          }
+        }
+      },
+      "name": "optional_toolchains",
+      "status": "OPTIONAL_MISSING"
+    }
+  ],
+  "kind": "doctor_report",
+  "overall_status": "OPTIONAL_MISSING",
+  "repository": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment",
+  "schema_version": 1,
+  "scope": "local software preflight; does not contact public networks or validate physical hardware",
+  "source_sha": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+  "tools": {
+    "cc": {
+      "path": "/usr/bin/cc",
+      "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    "cmake": {
+      "path": "/usr/bin/cmake",
+      "version": "cmake version 3.28.3"
+    },
+    "cxx": {
+      "path": "/usr/bin/c++",
+      "version": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    "docker": {
+      "path": null,
+      "version": null
+    },
+    "ganache": {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/contracts/node_modules/.bin/ganache",
+      "version": "ganache v7.9.2 (@ganache/cli: 0.10.2, @ganache/core: 0.10.2)"
+    },
+    "gz": {
+      "path": null,
+      "version": null
+    },
+    "ngspice": {
+      "path": null,
+      "version": null
+    },
+    "node": {
+      "path": "/usr/bin/node",
+      "version": "v22.22.2"
+    },
+    "npm": {
+      "path": "/usr/bin/npm",
+      "version": "10.9.7"
+    },
+    "openems": {
+      "path": null,
+      "version": null
+    },
+    "python": {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/.venv/bin/python3",
+      "version": "3.12.3"
+    },
+    "renode": {
+      "path": null,
+      "version": null
+    },
+    "renode_test": {
+      "path": null,
+      "version": null
+    },
+    "solc": {
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment/contracts/node_modules/solc/solc.js",
+      "version": "0.8.37+commit.f401782d.Emscripten.clang"
+    },
+    "uv": {
+      "path": "/home/gusta/.local/bin/uv",
+      "version": "uv 0.11.26 (x86_64-unknown-linux-gnu)"
+    },
+    "west": {
+      "path": null,
+      "version": null
+    }
+  }
+}
