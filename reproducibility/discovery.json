@@ -37,8 +37,40 @@
     "command": "git fetch fork main",
     "error": "Could not resolve host: github.com",
     "error_class": "DNS_FAILURE",
-    "latest_retry_result": "FAILED: DNS lookup could not resolve github.com; local refs remain unchanged and remote freshness remains UNVERIFIED.",
+    "latest_retry_result": "Latest-turn attempts to fetch both fork/main and upstream origin/main failed because github.com could not resolve; local refs remained unchanged, so remote freshness is UNVERIFIED.",
     "latest_retry_utc": "2026-10-08T12:27:29Z",
+    "latest_turn_attempts": [
+      {
+        "command": "git fetch fork main",
+        "error": "Could not resolve host: github.com",
+        "result": "FAILED"
+      },
+      {
+        "command": "git fetch origin main",
+        "error": "Could not resolve host: github.com",
+        "result": "FAILED"
+      },
+      {
+        "command": "npm view ganache@7.9.2 version",
+        "error": "EAI_AGAIN resolving registry.npmjs.org",
+        "result": "FAILED"
+      },
+      {
+        "command": "uv lock",
+        "error": "DNS failure resolving pypi.org while fetching hexbytes metadata",
+        "result": "FAILED"
+      },
+      {
+        "command": "./scripts/bootstrap.sh",
+        "error": "DNS failure fetching eth-keys 0.8.0 from files.pythonhosted.org on source 92ef1b5",
+        "result": "EXTERNAL_BLOCKED"
+      },
+      {
+        "command": "npm ci --prefix contracts",
+        "error": "EAI_AGAIN fetching Ganache 7.9.2 from registry.npmjs.org on source 92ef1b5",
+        "result": "EXTERNAL_BLOCKED"
+      }
+    ],
     "result": "FAILED"
   },
   "remote_freshness": "UNVERIFIED",

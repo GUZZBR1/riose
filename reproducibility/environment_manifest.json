@@ -1,16 +1,17 @@
 {
   "bootstrap_version": "1.0.0",
   "config_hash_sha256": {
-    "Makefile": "94d6136426502198c865f2a500a7701281389040470108f0754baab2e88429f1",
-    "contracts/package.json": "8058dc3c9eceb03c50f7644a0e38ee3e36a714ce237991ef04e9c5c58389465c",
-    "hardware/toolchain.json": "23e59fe446da8793c14e72804e751ea93a5544a0fccbf5ff7432d94330514307",
-    "pyproject.toml": "ea1cd6cc66c82b3245c93de23c626836671e6af02cca411ac99f48a6c90c968c"
+    "Makefile": "9688b587805e7efdc77325f1a4af19dc4fbc44d43568061924efcf1a5df8dd81",
+    "build-constraints.txt": "f998ab1e793c73204fc8e407057e2dd5dcddd84d838c6375e5281a44fbc92669",
+    "contracts/package.json": "9d158c4eb50aae18b83062b70fda19081bee9543580cc3022de50d483899e5b0",
+    "hardware/toolchain.json": "b49f5b666d874b3601e9e584ba049c3fc1ea491c281d00ceac35daf61a80ddda",
+    "pyproject.toml": "0bc062876c64141c8182a72d3426ebc4ae734c0b2aba6f031cebd86756bf53ed"
   },
   "environment_variable_names_set": [],
-  "generated_at_utc": "2026-10-08T12:47:02.515822+00:00",
+  "generated_at_utc": "2026-10-08T12:55:46.693431+00:00",
   "lockfile_hashes_sha256": {
-    "contracts/package-lock.json": "ea239d5a67f165ae80d01bc0b0c158d8f839dcd7ca793c8f28daea10de15b31e",
-    "uv.lock": "2db7575b0385c45d6cc95ea108c8f4c04bd0802c41b0c8eb3485f2999c4e76bf"
+    "contracts/package-lock.json": "ce25e808da9edf9943a5d2c25da042b631971863daf425638b024c21dcdf6afb",
+    "uv.lock": "52106fa45a2abab8acae72d657ba236f7b6611049b6cb40caab4be79b82f7d98"
   },
   "os": {
     "architecture": "64bit",
@@ -20,32 +21,32 @@
     "version": "#1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025"
   },
   "python": {
-    "path": "/usr/bin/python3",
+    "path": "/bin/python3",
     "version": "3.12.3"
   },
   "schema_version": 1,
   "secrets_included": false,
-  "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+  "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
   "source_tree": {
-    "git_tree_sha": "c973a8bd7b4cebd8f257f4fe2f002d9da76d81bc",
+    "git_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
     "status_lines": [],
     "working_tree_clean": true
   },
   "tools": {
     "cc": {
-      "path": "/usr/bin/cc",
+      "path": "/bin/cc",
       "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
     },
     "cmake": {
-      "path": "/usr/bin/cmake",
+      "path": "/bin/cmake",
       "version": "cmake version 3.28.3"
     },
     "cxx": {
-      "path": "/usr/bin/c++",
+      "path": "/bin/c++",
       "version": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
     },
     "docker": {
-      "path": "/mnt/c/Program Files/Docker/Docker/resources/bin/docker",
+      "path": null,
       "version": null
     },
     "ganache": {
@@ -61,11 +62,11 @@
       "version": null
     },
     "node": {
-      "path": "/usr/bin/node",
+      "path": "/bin/node",
       "version": "v22.22.2"
     },
     "npm": {
-      "path": "/usr/bin/npm",
+      "path": "/bin/npm",
       "version": "10.9.7"
     },
     "openems": {
@@ -73,7 +74,7 @@
       "version": null
     },
     "python": {
-      "path": "/usr/bin/python3",
+      "path": "/bin/python3",
       "version": "3.12.3"
     },
     "renode": {

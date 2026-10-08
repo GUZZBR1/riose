@@ -31,8 +31,10 @@ uv run --locked --no-sync python -m compileall -q src scripts
 uv run --locked --no-sync python scripts/integrated_smoke.py --output "$evidence_dir/integrated_smoke.json"
 uv run --locked --no-sync python scripts/reproducibility.py manifest --output "$evidence_dir/environment_manifest.json"
 mkdir -p "$evidence_dir/packages"
-uv build --build-constraints build-constraints.txt --offline --out-dir "$evidence_dir/packages"
+uv build --build-constraints build-constraints.txt --out-dir "$evidence_dir/packages"
 ```
+
+The package build needs the Python registry when constrained build artifacts are not cached. If the pinned artifacts are already present, add `--offline`; that cached route was verified twice. An empty offline cache correctly fails when Hatchling is absent.
 
 `setup.sh` remains a compatibility wrapper for the one canonical bootstrap. Bootstrap installs lockfile-resolved Python runtime/dev/Solana/EVM dependencies; `npm ci` installs the separate locked local EVM toolchain. The documented package build uses PEP 517 isolation with exact version constraints for Hatchling and its build toolchain. The doctor checks Python and npm lock consistency, import provenance, required files, local Ganache/solc versions when installed, and optional tool availability. It never probes a public chain or prints secret values.
 
@@ -45,8 +47,8 @@ Use a new empty cache directory to distinguish a fresh attempt from a cached one
 | Python app, tests, SQLite persistence | Required for software validation | `uv.lock` and temp-database tests; no old database is required |
 | Ganache and solc | Required for the local EVM gate | Local test chains only; no public transaction |
 | CMake and host C compiler | Required for host firmware/model CTest | Simulated host build, not target firmware or device validation |
-| Zephyr SDK, west, native_sim | Optional feature / specific firmware gate | Requires the separately pinned Zephyr toolchain in `hardware/toolchain.json` |
-| Renode | Optional by design | Surrogate platform smoke only |
+| Zephyr SDK, west, native_sim | Required for target firmware simulation; optional for the core route | Requires the separately pinned Zephyr toolchain in `hardware/toolchain.json` |
+| Renode | Required for surrogate smoke; optional for the core route | Surrogate platform smoke only |
 | CadQuery | Required for the CAD export gate only | Separate `requirements-cad.txt`; not part of the core app install |
 | Gazebo / ROS | Optional integrated simulation capability | Requires the documented external ROS/Gazebo installation |
 | ngspice, openEMS, CSXCAD | Optional engineering simulations | Pinned target versions are recorded in `hardware/toolchain.json`; availability is machine-specific |

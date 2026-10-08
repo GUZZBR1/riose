@@ -12,7 +12,9 @@
   },
   "npm_ci": {
     "command": "npm ci --prefix contracts",
-    "error": "EAI_AGAIN resolving registry.npmjs.org; the empty-cache offline attempt also returned ENOTCACHED for Ganache.",
+    "error": "Current clean-source attempt failed resolving registry.npmjs.org for ganache-7.9.2.tgz with EAI_AGAIN.",
+    "observed_on": "2026-10-08",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
     "status": "EXTERNAL_BLOCKED"
   },
   "package_lock": {
@@ -23,6 +25,12 @@
     "root_dependencies_match_package_json": true,
     "root_engines_match_package_json": true,
     "solc": "0.8.37"
+  },
+  "registry_check_latest_turn": {
+    "command": "npm ci --prefix contracts",
+    "error": "EAI_AGAIN resolving registry.npmjs.org for ganache-7.9.2.tgz",
+    "observed_utc": "2026-10-08T13:01:12Z",
+    "status": "EXTERNAL_BLOCKED"
   },
   "registry_check_retry": {
     "command": "npm view ganache@7.9.2 version --fetch-retries=0 --fetch-timeout=10000",

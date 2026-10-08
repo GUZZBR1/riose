@@ -9,19 +9,22 @@
   "npm": {
     "default_cache": "Offline npm ci also returned ENOTCACHED for the Ganache tarball",
     "empty_isolated_cache": "/tmp/riose-sc3-empty-npm-cache",
+    "latest_ci_attempt": "On source 92ef1b5, npm ci failed with EAI_AGAIN fetching Ganache 7.9.2 from registry.npmjs.org.",
     "missing": "Ganache 7.9.2 tarball",
     "result": "BLOCKED_OFFLINE"
   },
   "package_build": {
-    "command": "UV_CACHE_DIR=/tmp/riose-sc3-empty-hatchling-cache-20261008 UV_OFFLINE=1 uv build --offline",
-    "empty_isolated_cache": "/tmp/riose-sc3-empty-hatchling-cache-20261008",
-    "existing_cache_result": "Two clean-source offline builds succeeded with hatchling 1.32.4 and matching hashes.",
-    "missing": "hatchling build backend",
-    "result": "BLOCKED_OFFLINE"
+    "command": "UV_CACHE_DIR=<empty> UV_OFFLINE=1 uv build --build-constraints build-constraints.txt --offline",
+    "empty_isolated_cache": "/tmp/riose-sc3-current-empty-build-cache",
+    "existing_cache_result": "Two clean detached worktrees at source 92ef1b5 built identical wheel and sdist using exact versions from build-constraints.txt.",
+    "missing": "hatchling 1.32.4 and constrained isolated build artifacts",
+    "result": "BLOCKED_OFFLINE",
+    "scope_note": "Version constraints are exact but do not include per-distribution hashes; registry access is needed to populate an empty cache."
   },
   "python": {
     "default_cache_attempt": "Core/dev install passed offline from existing cache; adding Solana passed offline; a second fresh venv reproduced the install and suite; full EVM extra failed because cytoolz 1.1.0 and ckzg 2.1.8 were absent.",
     "empty_isolated_cache": "/tmp/riose-sc3-empty-uv-cache",
+    "latest_full_bootstrap_attempt": "On source 92ef1b5, ./scripts/bootstrap.sh resolved 68 packages then failed after three retries fetching eth-keys 0.8.0 from files.pythonhosted.org due DNS.",
     "missing": "watchfiles 1.3.0 wheel",
     "result": "BLOCKED_OFFLINE"
   },

@@ -55,7 +55,7 @@
     {
       "classification": "REQUIRED_FOR_SPECIFIC_GATE",
       "component": "Python Solana extra",
-      "current_availability": "Installed in two fresh venvs from cache; no local validator/test runner was configured.",
+      "current_availability": "solders 0.29.0 installed from the lock; 15 Solana Memo adapter tests pass with mocked RPC responses. No local validator is configured.",
       "external_dependency": "Python package registry for uncached installs; local validator only for local-chain tests",
       "locked": true,
       "optional": true,
@@ -157,13 +157,13 @@
       "version_constraint": "Zephyr 4.2.1, west 1.5.0, SDK 0.16.8"
     },
     {
-      "classification": "OPTIONAL_BY_DESIGN",
+      "classification": "REQUIRED_FOR_SPECIFIC_GATE",
       "component": "Renode",
       "current_availability": "Not configured; renode and renode-test unavailable",
       "external_dependency": "External Renode distribution",
       "locked": false,
       "optional": true,
-      "purpose": "Optional surrogate platform smoke",
+      "purpose": "Required for the optional surrogate-platform smoke; not needed for core software validation.",
       "reproducibility_risk": "Custom platform/model integration cannot be validated on this host.",
       "required": false,
       "source": "hardware/toolchain.json, hardware/renode/README.md",
@@ -237,15 +237,15 @@
     {
       "classification": "REQUIRED_FOR_SPECIFIC_GATE",
       "component": "Python PEP 517 build backend",
-      "current_availability": "Hatchling 1.32.4 and build transitive packages were present in the existing uv cache; empty-cache offline build failed because hatchling was absent.",
-      "external_dependency": "Python package registry for uncached isolated PEP 517 build dependencies",
+      "current_availability": "Hatchling 1.32.4 plus packaging 26.3, pathspec 1.1.1, pluggy 1.6.0, tomlkit 0.15.1, and trove-classifiers 2026.9.21.13 are pinned in build-constraints.txt; two isolated offline builds matched. An empty cache cannot build without registry access.",
+      "external_dependency": "Python package registry when the constrained build tool artifacts are uncached",
       "locked": false,
       "optional": true,
       "purpose": "Build project wheel and source distribution",
-      "reproducibility_risk": "The isolated builder and transitive versions are not in uv.lock; fresh uncached package-build reproducibility is unverified.",
+      "reproducibility_risk": "Versions are exact but constraints do not record distribution hashes; fresh empty-cache artifact acquisition requires the registry.",
       "required": false,
-      "source": "pyproject.toml [build-system]",
-      "version_constraint": "pyproject.toml declares hatchling without a version bound; observed build selected 1.32.4"
+      "source": "pyproject.toml [build-system], build-constraints.txt",
+      "version_constraint": "hatchling==1.32.4 plus exact build dependency versions in build-constraints.txt"
     }
   ],
   "schema_version": 1

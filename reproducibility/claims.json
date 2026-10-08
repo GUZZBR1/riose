@@ -47,7 +47,7 @@
       "evidence": [
         "artifact_comparison.json"
       ],
-      "scope": "Five CTest traces from source 04dd457 and the wheel/sdist from two clean worktrees at source 97aee, using the observed versions listed in artifact_comparison.json.",
+      "scope": "Five CTest traces from source 92ef1b5 and wheel/sdist from two clean worktrees at source 92ef1b5 under the versions in build-constraints.txt; package claims are limited to the listed artifacts and cached distribution set.",
       "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY"
     }
   ],

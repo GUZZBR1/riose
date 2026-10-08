@@ -1,14 +1,14 @@
 {
   "limitations": [
     {
-      "detail": "Latest git fetch retry on 2026-10-08 also could not resolve github.com; local fork/main and upstream/main refs diverge.",
+      "detail": "Latest attempts to fetch both fork/main and upstream origin/main failed because github.com did not resolve. Local refs remain fork/main b2ddf110 and origin/main c85c5f9; they diverge.",
       "id": "REMOTE_FRESHNESS_UNVERIFIED",
-      "impact": "The SC-3 branch is based on the local fork/main ref from 2026-10-07, not a verified live remote HEAD."
+      "impact": "The SC-3 branch is based on the local fork/main ref b2ddf110, not a verified live fork or upstream HEAD."
     },
     {
-      "detail": "Fresh canonical bootstrap retry could not resolve files.pythonhosted.org while fetching ckzg 2.1.8; npm view and GitHub fetch also failed DNS resolution. Isolated cache checks confirmed missing Python wheels and npm tarballs.",
+      "detail": "On source 92ef1b5, ./scripts/bootstrap.sh failed after three retries fetching eth-keys 0.8.0, npm ci failed fetching Ganache 7.9.2 with EAI_AGAIN, and the online constrained package build could not resolve pypi.org. GitHub fetches also failed DNS. Empty isolated caches confirmed missing package artifacts.",
       "id": "EXTERNAL_NETWORK_BLOCKER",
-      "impact": "The full Python EVM suite, npm ci, Solidity compile/Ganache tests, and complete fresh-network clean-room validation remain incomplete. Python wheel/sdist builds did pass offline."
+      "impact": "Full Python EVM tests, npm ci, Solidity compile/Ganache tests, and a full empty-cache clean-room run remain incomplete; cached core/dev/Solana, CTest, mock smoke and package builds are independently evidenced."
     },
     {
       "detail": "Zephyr/west/SDK, Renode, CadQuery environment, Gazebo/ROS, ngspice, openEMS, and CSXCAD were unavailable on sanitized Linux PATH.",
@@ -16,14 +16,14 @@
       "impact": "Those specific firmware and engineering gates were not run; core host CTest is independent and passed twice."
     },
     {
-      "detail": "pyproject.toml requires unpinned hatchling; two clean-source offline builds selected hatchling 1.32.4 from cache, while an isolated empty-cache build failed because hatchling was absent.",
-      "id": "PEP517_BUILD_BACKEND_NOT_LOCKED",
-      "impact": "The tested wheel/sdist match is scoped to the observed cached builder and transitive versions. Fresh uncached package-build reproduction remains unverified until build dependencies are pinned/locked."
+      "detail": "pyproject.toml pins hatchling 1.32.4 and build-constraints.txt pins all observed build-tool versions; two clean isolated builds matched. A clean empty cache fails because those distributions are absent, and the constraints do not carry per-distribution hashes.",
+      "id": "PEP517_BUILD_DISTRIBUTIONS_NOT_HASHED",
+      "impact": "Exact build tool versions are reproducible from the existing cache, but fresh empty-cache acquisition requires the registry and a full distribution-hash lock is not claimed."
     },
     {
       "detail": "A read-only native subagent review found missing Solidity source argv, optional doctor false-incompatibility, foreign-source import acceptance, unchecked local EVM versions, stale evidence, and dirty-snapshot package provenance.",
       "id": "INDEPENDENT_RED_TEAM_FINDINGS",
-      "impact": "All identified code/evidence defects were corrected and regression-checked; the unpinned PEP 517 backend remains disclosed."
+      "impact": "Actionable code and evidence defects were corrected and regression-checked; PEP 517 tool versions are constrained, while artifact-hash and registry limits remain explicit."
     }
   ],
   "not_claimed": [

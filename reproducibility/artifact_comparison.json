@@ -1,7 +1,7 @@
 {
   "claims": [
     "The listed CTest traces matched across two fresh build directories.",
-    "Wheel and sdist matched across two clean detached worktrees at source commit ada955d using the observed cached PEP 517 build environment.",
+    "Wheel and sdist matched across two clean detached worktrees at source commit 92ef1b5 using PEP 517 with build-constraints.txt.",
     "No repository-wide or fresh-network bitwise build claim is made."
   ],
   "firmware_trace_artifacts": {
@@ -13,10 +13,10 @@
       "normal-trace.jsonl": "91b86a611df7f22037ce9b674dc96f15ca256cdf87ca7b5306890238f539f40d",
       "worst_reasonable_case-trace.jsonl": "4cf6de31c70d9375dc9280983c420c608b8efc4d9663cc50f3cec766dd3c7a21"
     },
-    "run_1": "/tmp/riose-sc3-run1-cmake",
-    "run_2": "/tmp/riose-sc3-run2-cmake",
-    "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94",
-    "source_tree_sha": "ab45d2250df9c2e215f072ffb17a564074bca2a4"
+    "run_1": "/tmp/riose-sc3-92-cmake1",
+    "run_2": "/tmp/riose-sc3-92-cmake2",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3"
   },
   "integrated_smoke": "Semantic state transitions passed with the simulated event and local mock receipt; no bytewise identity claim for timestamps/random IDs.",
   "python_package_artifacts": {
@@ -29,28 +29,28 @@
         "trove-classifiers": "2026.9.21.13"
       },
       "build_backend": "hatchling 1.32.4",
-      "build_isolation": "PEP 517 isolated; resolved offline from the existing uv cache",
-      "lock_limitation": "pyproject.toml declares hatchling without a version bound and uv.lock does not capture the isolated build environment; this is documented and limits fresh-network build reproducibility claims.",
+      "build_isolation": "PEP 517 isolated; exact tool versions constrained by build-constraints.txt; packages resolved from the existing uv cache.",
+      "lock_limitation": "build-constraints.txt pins backend and transitive tool versions but does not include per-distribution hashes; an empty offline cache fails until the exact versions can be fetched. No fresh-network byte-level claim is made.",
       "python": "3.12.3",
       "uv": "0.11.26"
     },
     "built_twice": true,
     "output_directories": [
-      "/tmp/riose-sc3-final-clean-artifacts1",
-      "/tmp/riose-sc3-final-clean-artifacts2"
+      "/tmp/riose-sc3-current-artifacts1",
+      "/tmp/riose-sc3-current-artifacts2"
     ],
-    "sdist_contents_note": "The source commit includes the tracked evidence snapshot from commit ada955d; its exact Git tree SHA and commit bind the artifact input.",
-    "sdist_sha256": "a8cd8d3f575e6480864b3fef1ea84984615e074a94ff86f8acec93e4254f762b",
-    "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
-    "source_tree_sha": "c973a8bd7b4cebd8f257f4fe2f002d9da76d81bc",
+    "sdist_contents_note": "The source commit includes the tracked evidence snapshot from commit 92ef1b5; this exact Git tree SHA and commit bind the artifact input.",
+    "sdist_sha256": "80509518561c6d643573a6d157d3503f2803b1645a3404c986d98dbb293b04b7",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
     "source_worktrees": [
-      "/tmp/riose-sc3-final-check",
-      "/tmp/riose-sc3-final-check2"
+      "/tmp/riose-sc3-final-source-check",
+      "/tmp/riose-sc3-final-source-check2"
     ],
     "source_worktrees_clean_before_build": true,
     "status": "PASS_CACHED_BUILDER",
     "wheel_import_provenance": "PASS: installed --no-deps into a fresh temporary virtualenv; riose imported from that venv site-packages.",
-    "wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c"
+    "wheel_sha256": "4131a58586a4bcaafce2e8d7af9a2078a698d29c01fc8c202aaf9d66d0a575db"
   },
   "schema_version": 1,
   "solidity_artifacts": "NOT_BUILT: npm ci could not fetch locked packages.",

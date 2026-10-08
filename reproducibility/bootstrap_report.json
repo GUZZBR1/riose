@@ -30,6 +30,13 @@
       "error": "Fresh canonical bootstrap retry resolved 68 locked packages, then failed after 3 retries because DNS could not resolve files.pythonhosted.org for ckzg==2.1.8, required through cattle-rf[evm] -> eth-account 0.14.0.",
       "status": "EXTERNAL_BLOCKED",
       "timestamp_utc": "2026-10-08T12:27:29Z"
+    },
+    {
+      "command": "./scripts/bootstrap.sh",
+      "error": "After 3 retries, DNS failed while fetching eth-keys 0.8.0, required through cattle-rf[evm] -> eth-account 0.14.0.",
+      "observed_on": "2026-10-08",
+      "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+      "status": "EXTERNAL_BLOCKED"
     }
   ],
   "bootstrap_version": "1.0.0",
@@ -39,7 +46,8 @@
   "notes": [
     "The first run used a clean SC-3 checkout and repository-local .venv.",
     "No global cache was deleted.",
-    "Bootstrap uses locked uv sync and no pip fallback."
+    "Bootstrap uses locked uv sync and no pip fallback.",
+    "The current source pins Hatchling and constrains its build toolchain; the full bootstrap still stops at the uncached EVM dependency when the Python registry cannot resolve."
   ],
   "python_lock_check": {
     "command": "uv lock --check --offline",

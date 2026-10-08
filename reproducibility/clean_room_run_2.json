@@ -1,14 +1,19 @@
 {
   "cmake": {
-    "build_directory": "/tmp/riose-sc3-run2-cmake",
-    "status": "PASS"
+    "build": "PASS twice",
+    "build_directories": [
+      "/tmp/riose-sc3-92-cmake1",
+      "/tmp/riose-sc3-92-cmake2"
+    ],
+    "configure": "PASS twice",
+    "ctest": "39/39 PASS in each clean directory"
   },
   "ctest": {
     "failed": 0,
     "passed": 39,
     "status": "PASS"
   },
-  "firmware_traces": "Five listed CTest trace files had matching SHA-256 across fresh build directories.",
+  "firmware_traces": "Five trace files matched SHA-256 across the two clean builds at source 92ef1b5.",
   "full_second_clean_room": "NOT_ACHIEVED: Python and EVM dependencies were externally blocked.",
   "integrated_smoke": {
     "database": "new temporary SQLite database; closed and reopened",
@@ -19,12 +24,22 @@
     "verified_receipt_count": 1
   },
   "post_audit_validation": {
-    "clean_checkout_lf_validation": "PASS: with core.autocrlf=true, fresh checkout at ada955d had LF working-tree endings for all tracked shell scripts and reproducibility JSON/Markdown; bash -n passed for all shell scripts, and doctor.sh ran through its shebang.",
-    "clean_source_package_builds": "PASS: two detached clean worktrees at ada955d produced identical wheel and sdist SHA-256; see artifact_comparison.json.",
-    "doctor_regression_tests": "PASS: 3 passed (optional tool classification, foreign checkout import rejection, locked local EVM version comparison).",
-    "full_python_suite": "BLOCKED: collection failed in test_evm_local.py and test_evm_registry.py because eth_account was unavailable after the EVM extra could not install.",
-    "non_evm_python_suite": "PASS: 854 passed, 7 skipped, 1 warning; EVM modules explicitly excluded.",
-    "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7"
+    "canonical_bootstrap": "EXTERNAL_BLOCKED on current source 92ef1b5 after three retries for eth-keys 0.8.0; core/dev/Solana offline installation passed.",
+    "clean_checkout_text": "PASS: core.autocrlf=true; 1,057 tracked text files checked out LF in both clean worktrees.",
+    "clean_source_package_builds": "PASS: two clean detached worktrees at 92ef1b5 produced identical wheel and sdist SHA-256 with constrained PEP 517 versions; wheel installed into a fresh venv and imported from site-packages.",
+    "compileall": "PASS: python -m compileall -q src scripts.",
+    "doctor": "EXTERNAL_BLOCKED when supplied the confirmed network flag; baseline local_evm_dependencies check is OPTIONAL_MISSING. Import provenance, lock checks, required files, versions and sanitized PATH are READY.",
+    "doctor_regression_tests": "PASS: 4 passed (optional tool classification, foreign checkout import rejection, locked local EVM version comparison, build-constraints manifest hash).",
+    "empty_cache": "BLOCKED_OFFLINE: isolated cache lacked hatchling 1.32.4; exact versions are constrained and registry DNS currently fails.",
+    "integrated_smoke": "PASS: new temporary SQLite database, close/reopen, local-mock receipt VERIFIED; REAL_ON_CHAIN=NOT_EXECUTED.",
+    "npm_ci": "EXTERNAL_BLOCKED on current source 92ef1b5 with EAI_AGAIN fetching Ganache 7.9.2.",
+    "online_package_build": "EXTERNAL_BLOCKED on current source because pypi.org DNS failed resolving hatchling; constrained offline builds passed from the existing cache.",
+    "python_full_suite": "BLOCKED at collection in test_evm_local.py and test_evm_registry.py because eth_account is unavailable after the EVM extra could not install.",
+    "python_non_evm_suite": "PASS: 855 passed, 7 skipped, 1 warning in a fresh checkout environment.",
+    "solana_mock": "PASS: tests/livestock_tracking/test_solana_memo.py, 15 passed; mocked RPC only, no validator or public network.",
+    "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+    "source_tree_sha": "bb87b9828d8681d63852cd2ea786dc41a0a35bf3",
+    "uv_lock": "PASS: uv lock --check --offline resolved 68 packages."
   },
   "python_and_npm_bootstrap": "NOT_RETRIED: earlier uncached installs failed on confirmed DNS and missing registry artifacts.",
   "python_environment": {

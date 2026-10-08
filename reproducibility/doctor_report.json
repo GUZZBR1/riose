@@ -3,7 +3,7 @@
     {
       "detail": "Python >=3.12 is required.",
       "evidence": {
-        "path": "/tmp/riose-sc3-final-check/.venv/bin/python3",
+        "path": "/tmp/riose-sc3-final-source-check/.venv/bin/python3",
         "version": "3.12.3"
       },
       "name": "python",
@@ -12,8 +12,8 @@
     {
       "detail": "Run the doctor through uv so imports come from this checkout's repository-local .venv.",
       "evidence": {
-        "actual_prefix": "/tmp/riose-sc3-final-check/.venv",
-        "expected_prefix": "/tmp/riose-sc3-final-check/.venv"
+        "actual_prefix": "/tmp/riose-sc3-final-source-check/.venv",
+        "expected_prefix": "/tmp/riose-sc3-final-source-check/.venv"
       },
       "name": "python_environment",
       "status": "READY"
@@ -45,7 +45,7 @@
           "--offline"
         ],
         "exit_code": 0,
-        "stderr": "Resolved 68 packages in 1ms",
+        "stderr": "Resolved 68 packages in 0.93ms",
         "stdout": ""
       },
       "name": "python_lock",
@@ -169,7 +169,7 @@
     {
       "detail": "RIOSE must import from this checkout and Python dependencies from the repository-local .venv.",
       "evidence": {
-        "expected_riose_source": "/tmp/riose-sc3-final-check/src/riose",
+        "expected_riose_source": "/tmp/riose-sc3-final-source-check/src/riose",
         "missing_optional_imports": [
           "eth_account",
           "eth_utils",
@@ -178,24 +178,24 @@
         "missing_project_import": false,
         "missing_required_imports": [],
         "origins": {
-          "construct": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/construct/__init__.py",
+          "construct": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/construct/__init__.py",
           "eth_account": null,
           "eth_utils": null,
-          "fastapi": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/fastapi/__init__.py",
+          "fastapi": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/fastapi/__init__.py",
           "hexbytes": null,
-          "httpx": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/httpx/__init__.py",
-          "matplotlib": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/matplotlib/__init__.py",
-          "numpy": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/numpy/__init__.py",
-          "pyarrow": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/pyarrow/__init__.py",
-          "pytest": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/pytest/__init__.py",
-          "riose": "/tmp/riose-sc3-final-check/src/riose/__init__.py",
-          "scipy": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/scipy/__init__.py",
-          "sklearn": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/sklearn/__init__.py",
-          "solders": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/solders/__init__.py",
-          "yaml": "/tmp/riose-sc3-final-check/.venv/lib/python3.12/site-packages/yaml/__init__.py"
+          "httpx": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/httpx/__init__.py",
+          "matplotlib": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/matplotlib/__init__.py",
+          "numpy": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/numpy/__init__.py",
+          "pyarrow": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/pyarrow/__init__.py",
+          "pytest": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/pytest/__init__.py",
+          "riose": "/tmp/riose-sc3-final-source-check/src/riose/__init__.py",
+          "scipy": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/scipy/__init__.py",
+          "sklearn": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/sklearn/__init__.py",
+          "solders": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/solders/__init__.py",
+          "yaml": "/tmp/riose-sc3-final-source-check/.venv/lib/python3.12/site-packages/yaml/__init__.py"
         },
         "source_present": true,
-        "sys_prefix": "/tmp/riose-sc3-final-check/.venv",
+        "sys_prefix": "/tmp/riose-sc3-final-source-check/.venv",
         "unexpected_imports": [],
         "unexpected_project_import": false
       },
@@ -208,7 +208,7 @@
         "network_probe_performed": false
       },
       "name": "first_install_network",
-      "status": "NOT_CONFIGURED"
+      "status": "EXTERNAL_BLOCKED"
     },
     {
       "detail": "Optional engineering/simulation tools are not required for the Python or host CTest route.",
@@ -224,7 +224,7 @@
         ],
         "tools": {
           "docker": {
-            "path": "/mnt/c/Program Files/Docker/Docker/resources/bin/docker",
+            "path": null,
             "version": null
           },
           "gz": {
@@ -257,8 +257,13 @@
       "status": "OPTIONAL_MISSING"
     }
   ],
+  "invocation": {
+    "command": "./scripts/doctor.sh --external-network-blocked --output /tmp/riose-sc3-current-doctor.json",
+    "external_blocker_basis": "Same-turn git fetch fork main, git fetch origin main, npm view ganache@7.9.2, and uv lock attempts failed DNS resolution.",
+    "path": "Sanitized Linux PATH; PYTHONPATH, NODE_PATH, VIRTUAL_ENV, CONDA_PREFIX, and CMAKE_PREFIX_PATH unset."
+  },
   "kind": "doctor_report",
-  "overall_status": "OPTIONAL_MISSING",
+  "overall_status": "EXTERNAL_BLOCKED",
   "red_team_cases": {
     "minimal_path_without_gate_tools": {
       "cmake": "OPTIONAL_MISSING",
@@ -279,10 +284,10 @@
       "unexpected_project_import": true
     }
   },
-  "repository": "/tmp/riose-sc3-final-check",
+  "repository": "/tmp/riose-sc3-final-source-check",
   "schema_version": 1,
   "scope": "local software preflight; does not contact public networks or validate physical hardware",
-  "source_sha": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+  "source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
   "tools": {
     "cc": {
       "path": "/usr/bin/cc",
@@ -297,7 +302,7 @@
       "version": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
     },
     "docker": {
-      "path": "/mnt/c/Program Files/Docker/Docker/resources/bin/docker",
+      "path": null,
       "version": null
     },
     "ganache": {
@@ -325,7 +330,7 @@
       "version": null
     },
     "python": {
-      "path": "/tmp/riose-sc3-final-check/.venv/bin/python3",
+      "path": "/tmp/riose-sc3-final-source-check/.venv/bin/python3",
       "version": "3.12.3"
     },
     "renode": {

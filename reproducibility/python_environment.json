@@ -1,8 +1,8 @@
 {
   "clean_install": "PASS from the existing cache for core, dev, and Solana extras; the EVM extra is blocked by the missing ckzg 2.1.8 wheel and registry DNS.",
   "compileall": "PASS: python3 -m compileall -q src scripts.",
-  "doctor_regression_tests": "PASS: 3 tests cover absent optional tools, foreign checkout import provenance, and Solc mismatch against package-lock.json.",
-  "full_python_regression": "BLOCKED at collection by two EVM modules importing missing eth_account; remaining suite passed 851 tests with 7 skips in each of two fresh venvs.",
+  "doctor_regression_tests": "PASS: 4 tests cover absent optional tools, foreign checkout provenance, EVM lock/compiler mismatch, and manifest hashing of build-constraints.txt.",
+  "full_python_regression": "Full pytest collection on source 92ef1b5 is BLOCKED by missing eth_account in test_evm_local.py and test_evm_registry.py. The clean non-EVM suite passed 855 tests with 7 skips and 1 warning.",
   "import_provenance": {
     "editable_install": "PASS: uv built and installed the local cattle-rf project from this checkout.",
     "external_pythonpath": "Unset during clean-room install and doctor.",
@@ -10,8 +10,8 @@
     "riose": "Imported from this checkout's src/riose tree."
   },
   "interpreter": "/usr/bin/python3",
-  "latest_regression_recheck": "854 passed, 7 skipped, 1 warning in the non-EVM suite; full suite still fails collection in two EVM modules importing missing eth_account.",
-  "latest_source_sha": "97aeeacf1878f0d12a4b4b518a4c3c529f35841e",
+  "latest_regression_recheck": "855 passed, 7 skipped, 1 warning in the fresh source-92ef1b5 checkout; full suite stopped at the two EVM collection errors.",
+  "latest_source_sha": "92ef1b5276096da9f01b5d6218207b9984e5471e",
   "lock_check": "PASS: uv lock --check --offline resolved 68 packages.",
   "lockfile": "uv.lock",
   "optional_extras": {
@@ -22,7 +22,8 @@
   "python": "3.12.3",
   "schema_version": 1,
   "second_venv": "/tmp/riose-sc3-run2-python-env; uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache.",
-  "shell_entrypoint_validation": "PASS: fresh ada955d checkout with core.autocrlf=true had LF line endings in all tracked shell scripts and reproducibility JSON/Markdown; bash -n passed and doctor.sh executed via its shebang.",
+  "shell_entrypoint_validation": "PASS: fresh checkout with core.autocrlf=true; 1,057 tracked text files used LF and all shell scripts passed bash -n.",
+  "solana_local_mock_tests": "PASS: tests/livestock_tracking/test_solana_memo.py, 15 passed with mocked RPC responses; no local validator or public Solana network used.",
   "status": "PASS_WITH_EVM_LIMITATION",
   "uv": "0.11.26"
 }
