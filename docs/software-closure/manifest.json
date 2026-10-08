@@ -1,0 +1,43 @@
+{
+  "schema_version": "riose.software-closure-manifest/v1",
+  "mission": "SC-6 Final Software Closure Gate",
+  "repository": "GUZZBR1/riose",
+  "branch": "software-closure/sc6-final-gate",
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "remote_freshness": "UNVERIFIED",
+  "reported_status": "AUDIT_COMPLETE_WITH_FOLLOWUPS",
+  "recommended_software_closure": "SOFTWARE_READY_WITH_FOLLOWUPS",
+  "technical_stage": "BETA_CANDIDATE",
+  "sim_v2_readiness": "SIM_V2_READY_WITH_LIMITATIONS",
+  "artifact_hashes_sha256": {
+    "architecture_audit.json": "89c807f04ae6f6e7ce7e7b062cfa9aeef21a8bdc45f33b1c554ec9cc3aa0490a",
+    "blockchain_status.json": "58b73f9b1a4246eec7301414633d133e2301602c624edaeab30057da2429ce81",
+    "ci_status.json": "d3d7851de8b2acdfb47e9fc015317eb9a7f82747cb39c51860dc1e25ccb2615b",
+    "claim_registry.json": "42b37af4d27bd9dc39620359577fef5a8f6a6badd10bfee667be88d3968558da",
+    "current_state_inventory.json": "8c79fa358f709d4500c5b7338b76021b9e06092855b789d44096cfaf38f7c360",
+    "dependency_status.json": "c14aa106a3503aded23b7b50be82199cf36de31ac5c3e17070de094a3fe07db2",
+    "discovery.json": "634d4511eaf9e339ca20804bc93acae3eec0da345c3ed08acf3c09c46869b590",
+    "environment.json": "b7ae3991c62bcca2540bf99308cdf60fac79e81631adf0e8d64e6e206addece3",
+    "final_report.md": "249cd75939c5931971bf6fea113d2f5d67f2ae39d399a689cd8d2503ab1e5273",
+    "gap_register.json": "725615b049459529a22c1e716ebb339baed72ff5a3506162032e5475bfb72e0f",
+    "integrated_smoke.json": "05d00771a6853c23cabab484809b63aa37fffffd1ddf764ce8d9e3ec4bd11af8",
+    "limitations.json": "eff9fb708632059961beca76a3585e1e6f65bad84f806c85b1f1ff243ff20ae6",
+    "red_team_report.md": "6d0f421e9482b02324b94192c3871ec079d4eb15739ed998864139261dd5ed99",
+    "regression_results.json": "29c7501dc87d43ce92a6b3e5e2e86969ea95d5282231b0fa48fe2287e505571b",
+    "reproduce_flow.py": "8d23a6fa7baaa28347eacff30e0e0e9796acf85a468db060007712ab790e9821",
+    "reproducibility_status.json": "37158a1dd42a0a918aca5d6f7b71d7db3e07ef6095c9a90ac2c254e822628d2d",
+    "scientific_integrity.json": "b7d3ccc134d85b3c4fecba6694bd24adedde068011ed5c072df7145840f0677c",
+    "security_status.json": "73e6f2ed3bfd098f1f6437a5ed868a8b34fd09339ed51106f8ce311ac8194a51",
+    "simulation_status.json": "1fd150e190880e787266aca91c26513145edf9f4950a3ec9c03a8b3c63d00c5f",
+    "software_closure_matrix.json": "5b1b6508b837cdc9182c830dbb66f152f9dccba5012ab13057385138e52a0b16"
+  },
+  "manifest_self_hash_excluded": true,
+  "no_public_transactions": true,
+  "upstream_modified": false,
+  "factory_verdict": "NOT_ASSIGNED",
+  "reference_hashes_sha256": {
+    "RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json": "72b0604b3f7ed9c526acd8d25c497b8f30f8e08cd5de652f34a66bfb97ed8e53",
+    ".github/workflows/mvp2-core.yml": "a0b2964e2e524ee711a79ab1fc55d9059186fc4d89ef8651163aeebeb1a9a9f9"
+  }
+}

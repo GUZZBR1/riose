@@ -1,0 +1,21 @@
+{
+  "schema_version": "riose.reproducibility-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "level": "CACHED_REPRODUCTION",
+  "evidence": [
+    "Full/focused suite from current source with Python 3.12.3 cached env matching locked versions.",
+    "CTest built from current source in /tmp/riose-sc6-ctest.",
+    "uv lock --check --offline passed.",
+    "Integrated smoke rerun from current source."
+  ],
+  "not_established": [
+    "CLEAN_ROOM_REPRODUCTION",
+    "BITWISE_REPRODUCIBILITY",
+    "fresh dependency install"
+  ],
+  "constraints": [
+    "DNS blocks fetch and downloads.",
+    "Offline eth-account install failed because absent from cache.",
+    "Cached compatible environments reused without changing dependency manifests."
+  ]
+}

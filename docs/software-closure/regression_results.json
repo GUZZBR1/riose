@@ -1,0 +1,44 @@
+{
+  "schema_version": "riose.software-closure-regression/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "focused_python": {
+    "status": "PASS",
+    "passed": 117,
+    "skipped": 0,
+    "suite": "Event, Commitment, Solana, EVM, outbox, dispatcher"
+  },
+  "full_python": {
+    "status": "PASS",
+    "passed": 884,
+    "skipped": 7,
+    "warnings": 1,
+    "warning": "Starlette/httpx deprecation"
+  },
+  "ctest": {
+    "status": "PASS",
+    "passed": 39,
+    "failed": 0,
+    "build": "CMake configure+build from current source"
+  },
+  "evm": "PASS in focused and full suite using local Ganache only",
+  "solidity": "PASS via local compile/deploy tests",
+  "compileall": "PASS",
+  "uv_lock_check": "PASS; 68 packages resolved",
+  "uv_pip_check": "PASS; 68 packages compatible",
+  "git_diff_check": "PASS after evidence-package generation and before commit",
+  "skips": {
+    "count": 7,
+    "classification": "CAD/mechanical tests skipped because CadQuery unavailable"
+  },
+  "remote_ci": "UNVERIFIED",
+  "public_transactions": "NONE",
+  "python_package_build": {
+    "status": "PASS",
+    "command": "uv build --offline --out-dir /tmp/riose-sc6-dist",
+    "artifacts": [
+      "cattle_rf-0.1.0.tar.gz",
+      "cattle_rf-0.1.0-py3-none-any.whl"
+    ],
+    "note": "Build output is external temporary evidence; source manifests unchanged."
+  }
+}

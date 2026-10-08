@@ -1,0 +1,27 @@
+{
+  "schema_version": "riose.ci-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "workflow": ".github/workflows/mvp2-core.yml",
+  "jobs": {
+    "cad-export": "locked dev dependencies plus CAD requirements; selected mechanical export tests",
+    "core": "locked dev+solana+evm; spec/preflight; full Python suite; firmware CTest; optional Renode"
+  },
+  "coverage": {
+    "unit": "LOCAL_VALIDATED",
+    "integration": "LOCAL_VALIDATED",
+    "full_python": "LOCAL_VALIDATED",
+    "ctest": "LOCAL_VALIDATED",
+    "evm": "LOCAL_VALIDATED; workflow dependency omission repaired",
+    "solidity": "LOCAL_VALIDATED via Ganache/solc",
+    "event_commitment_persistence": "LOCAL_VALIDATED",
+    "scientific_invariants": "TESTED_WITH_LIMITS",
+    "security_regressions": "PARTIAL; Solana gap open"
+  },
+  "remote_ci": "UNVERIFIED",
+  "reason": "GitHub API/DNS unavailable.",
+  "repair": {
+    "file": ".github/workflows/mvp2-core.yml",
+    "change": "uv sync core job now includes --extra evm",
+    "verification": "Full local suite passed; remote run unavailable."
+  }
+}

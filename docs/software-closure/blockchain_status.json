@@ -1,0 +1,44 @@
+{
+  "schema_version": "riose.blockchain-status/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "overall": "SOFTWARE_PATHS_TESTED_PUBLIC_NETWORK_UNVERIFIED",
+  "targets": {
+    "solana": {
+      "software": "SOFTWARE_VALIDATED_LOCAL",
+      "tests": [
+        "test_solana_memo.py",
+        "test_publication_dispatcher.py"
+      ],
+      "public_testnet": "UNVERIFIED",
+      "classification": "MOCKED_ONLY",
+      "transaction_receipt": null,
+      "signer_readiness": "NOT_READY",
+      "limitation": "SEC-SOLANA-001 open; no live action."
+    },
+    "base": {
+      "software": "SOFTWARE_VALIDATED_LOCAL",
+      "tests": [
+        "test_evm_registry.py",
+        "test_evm_local.py"
+      ],
+      "public_testnet": "UNVERIFIED",
+      "classification": "MOCKED_ONLY",
+      "transaction_receipt": null,
+      "limitation": "Ganache is local evidence, not Base testnet."
+    },
+    "arbitrum": {
+      "software": "SOFTWARE_VALIDATED_LOCAL",
+      "tests": [
+        "test_evm_registry.py",
+        "test_evm_local.py"
+      ],
+      "public_testnet": "UNVERIFIED",
+      "classification": "MOCKED_ONLY",
+      "transaction_receipt": null,
+      "limitation": "Ganache is local evidence, not Arbitrum testnet."
+    }
+  },
+  "common_commitment": "One commitment across target fan-out verified.",
+  "failure_isolation": "Per-target tests exercise independent failures.",
+  "public_transactions_sent": false
+}

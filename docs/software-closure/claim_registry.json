@@ -1,0 +1,153 @@
+{
+  "schema_version": "riose.final-claim-registry/v1",
+  "repository_source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "claims": [
+    {
+      "CLAIM": "SOFTWARE_CORE",
+      "STATUS": "READY_WITH_FOLLOWUPS",
+      "EVIDENCE": "Current source full/focused suites, CTest, integrated smoke.",
+      "LIMITATION": "SEC-SOLANA-001, remote freshness, hardware/field gaps.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "EVENT_V1",
+      "STATUS": "SOFTWARE_VALIDATED",
+      "EVIDENCE": "identity.py; Event tests.",
+      "LIMITATION": "No API idempotency or external head anchor.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "COMMITMENT_V1",
+      "STATUS": "SOFTWARE_VALIDATED",
+      "EVIDENCE": "Golden vector; same commitment across target fan-out.",
+      "LIMITATION": "Not authorship or truth proof.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "PERSISTENCE",
+      "STATUS": "SOFTWARE_VALIDATED_WITH_LIMITS",
+      "EVIDENCE": "SQLite, concurrency, rollback, restart, smoke.",
+      "LIMITATION": "Local only; no distributed/power-loss guarantees.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "OFFLINE_FIRST",
+      "STATUS": "SOFTWARE_VALIDATED_LOCAL",
+      "EVIDENCE": "Queued requests survive restart and mock reconciliation.",
+      "LIMITATION": "Mocks do not prove public delivery.",
+      "CLASSIFICATION": "MOCKED_LOCAL"
+    },
+    {
+      "CLAIM": "MULTICHAIN_SOFTWARE",
+      "STATUS": "SOFTWARE_VALIDATED_LOCAL",
+      "EVIDENCE": "Solana/EVM suites and three-target smoke.",
+      "LIMITATION": "Public network unverified; signer follow-up open.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "SOLANA_SOFTWARE",
+      "STATUS": "SOFTWARE_VALIDATED_LOCAL",
+      "EVIDENCE": "Solana adapter tests.",
+      "LIMITATION": "SEC-SOLANA-001; signer NOT_READY.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "BASE_SOFTWARE",
+      "STATUS": "SOFTWARE_VALIDATED_LOCAL",
+      "EVIDENCE": "EVM registry and local EVM suites.",
+      "LIMITATION": "Ganache only.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "ARBITRUM_SOFTWARE",
+      "STATUS": "SOFTWARE_VALIDATED_LOCAL",
+      "EVIDENCE": "EVM registry and local EVM suites.",
+      "LIMITATION": "Ganache only.",
+      "CLASSIFICATION": "SOFTWARE_LOCAL"
+    },
+    {
+      "CLAIM": "SOLANA_PUBLIC_TESTNET",
+      "STATUS": "UNVERIFIED",
+      "EVIDENCE": "No receipt found; no transaction submitted.",
+      "LIMITATION": "Signer finding and external RPC/funds.",
+      "CLASSIFICATION": "EXTERNAL_BLOCKED"
+    },
+    {
+      "CLAIM": "BASE_PUBLIC_TESTNET",
+      "STATUS": "UNVERIFIED",
+      "EVIDENCE": "No receipt found; no transaction submitted.",
+      "LIMITATION": "External RPC/deployment/signer.",
+      "CLASSIFICATION": "EXTERNAL_BLOCKED"
+    },
+    {
+      "CLAIM": "ARBITRUM_PUBLIC_TESTNET",
+      "STATUS": "UNVERIFIED",
+      "EVIDENCE": "No receipt found; no transaction submitted.",
+      "LIMITATION": "External RPC/deployment/signer.",
+      "CLASSIFICATION": "EXTERNAL_BLOCKED"
+    },
+    {
+      "CLAIM": "RF_SIMULATION",
+      "STATUS": "SIMULATED",
+      "EVIDENCE": "RF software tests and model.",
+      "LIMITATION": "No measured RF/application delivery.",
+      "CLASSIFICATION": "SIMULATED"
+    },
+    {
+      "CLAIM": "LOCALIZATION_SIMULATION",
+      "STATUS": "SIMULATED",
+      "EVIDENCE": "TDoA tests and model reports.",
+      "LIMITATION": "No field accuracy; conditional scoring.",
+      "CLASSIFICATION": "SIMULATED"
+    },
+    {
+      "CLAIM": "LOCALIZATION_ACCURACY_FIELD",
+      "STATUS": "NOT_VALIDATED",
+      "EVIDENCE": "No field result found.",
+      "LIMITATION": "Controlled field trial required.",
+      "CLASSIFICATION": "FIELD_REQUIRED"
+    },
+    {
+      "CLAIM": "SECURITY_REVIEW",
+      "STATUS": "PARTIAL_OPEN_FOLLOWUP",
+      "EVIDENCE": "SEC-SOLANA-001 current code and SC-2/MVP6 record.",
+      "LIMITATION": "Signer NOT_READY; advisory scan unavailable.",
+      "CLASSIFICATION": "INTERNAL_FOLLOW_UP"
+    },
+    {
+      "CLAIM": "REPRODUCIBILITY",
+      "STATUS": "CACHED_REPRODUCTION",
+      "EVIDENCE": "Lock check; version-matched environment.",
+      "LIMITATION": "Clean-room/bitwise unverified.",
+      "CLASSIFICATION": "CACHED"
+    },
+    {
+      "CLAIM": "CI_GATES",
+      "STATUS": "LOCAL_VALIDATED_REMOTE_UNVERIFIED",
+      "EVIDENCE": "Local full suite, CTest; CI EVM extra repaired.",
+      "LIMITATION": "No remote run.",
+      "CLASSIFICATION": "REMOTE_UNVERIFIED"
+    },
+    {
+      "CLAIM": "BEHAVIOR_ML",
+      "STATUS": "RESEARCH_SUPPORTED_NOT_OPERATIONAL",
+      "EVIDENCE": "Claim docs/tests.",
+      "LIMITATION": "No labeled field or clinical efficacy.",
+      "CLASSIFICATION": "RESEARCH"
+    },
+    {
+      "CLAIM": "HARDWARE_VALIDATION",
+      "STATUS": "NOT_PERFORMED",
+      "EVIDENCE": "39 host/model CTest.",
+      "LIMITATION": "No target board/HIL/bench.",
+      "CLASSIFICATION": "HARDWARE_REQUIRED"
+    },
+    {
+      "CLAIM": "FIELD_VALIDATION",
+      "STATUS": "NOT_PERFORMED",
+      "EVIDENCE": "No field trial artifacts.",
+      "LIMITATION": "Controlled physical trial required.",
+      "CLASSIFICATION": "FIELD_REQUIRED"
+    }
+  ]
+}

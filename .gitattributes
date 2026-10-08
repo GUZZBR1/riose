@@ -19,3 +19,5 @@ docs/reports/*.md text eol=lf
 docs/reports/*.json text eol=lf
 docs/reports/evidence/*.log text eol=lf
 docs/reports/evidence/*.xml text eol=lf
+/docs/software-closure/* text eol=lf
+/.github/workflows/mvp2-core.yml text eol=lf

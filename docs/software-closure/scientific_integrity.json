@@ -1,0 +1,15 @@
+{
+  "schema_version": "riose.scientific-integrity/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "invariants": {
+    "SIMULATED != VALIDATED": "PRESERVED: simulation code and smoke explicitly classify output SIMULATED",
+    "GROUND_TRUTH != ESTIMATOR_INPUT": "PRESERVED in reviewed path; scoring after estimation, software scope only",
+    "PHY_RECEIVED != APPLICATION_DELIVERED": "EXPLICIT limitation in simulation claims",
+    "NUMERICAL_CONVERGENCE != ACCURACY": "EXPLICIT limitation in localization reports",
+    "CONVERGED != QUALITY_ACCEPTED": "Separate quality gates in localization tests",
+    "MOCKED != REAL_ON_CHAIN": "PRESERVED in smoke and blockchain status",
+    "FORWARDED != EFFECTIVE": "Explicit in multichain reports"
+  },
+  "behavior_ml": "RESEARCH_SUPPORTED, NOT_OPERATIONAL; no diagnostic/welfare efficacy claim.",
+  "provenance": "Historical registries remain historical; current claim registry binds to source SHA."
+}

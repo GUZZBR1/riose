@@ -1,0 +1,193 @@
+{
+  "schema_version": "riose.software-closure-matrix/v1",
+  "source_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "rows": [
+    {
+      "CAPABILITY": "Core architecture",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "CURRENT_SOURCE_AND_TESTS",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "No large structural defect found.",
+      "BLOCKER_CLASS": "NONE",
+      "CLAIM": "Core contracts and integration test-supported.",
+      "ACTION": "No architecture rewrite."
+    },
+    {
+      "CAPABILITY": "Event V1",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "SOURCE_AND_TESTS",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "No request idempotency; local chain cannot prove tail completeness without external anchor.",
+      "BLOCKER_CLASS": "FOLLOW_UP",
+      "CLAIM": "Canonical Event V1 schema/hash.",
+      "ACTION": "Keep protocol stable."
+    },
+    {
+      "CAPABILITY": "Commitment V1",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "GOLDEN_VECTOR_AND_FANOUT_TESTS",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "Digest does not prove authorship or truth.",
+      "BLOCKER_CLASS": "NONE",
+      "CLAIM": "Same canonical commitment reused across targets.",
+      "ACTION": "No chain-specific input."
+    },
+    {
+      "CAPABILITY": "SQLite persistence/outbox",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "CURRENT_TESTS_AND_SMOKE",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "Local SQLite limits; backoff/cap and crash windows incomplete.",
+      "BLOCKER_CLASS": "FOLLOW_UP",
+      "CLAIM": "Local transactional event and publication state.",
+      "ACTION": "No distributed durability claim."
+    },
+    {
+      "CAPABILITY": "Offline-first",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "INTEGRATED_LOCAL_SMOKE",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "Mock reconciliation only.",
+      "BLOCKER_CLASS": "NONE",
+      "CLAIM": "Event→queue→restart→reconcile validated locally.",
+      "ACTION": "Keep mock distinct from effective publication."
+    },
+    {
+      "CAPABILITY": "Multichain software",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "FULL_FOCUSED_TESTS_AND_SMOKE",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "No public RPC/signer/funds evidence.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "Three software adapter paths; common commitment.",
+      "ACTION": "Public claims UNVERIFIED."
+    },
+    {
+      "CAPABILITY": "Solana public testnet",
+      "IMPLEMENTATION_STATUS": "NO_PUBLIC_EVIDENCE",
+      "TEST_STATUS": "N/A",
+      "EVIDENCE_STATUS": "NO_CURRENT_RECEIPT",
+      "CANONICAL_STATUS": "SOFTWARE_ONLY",
+      "KNOWN_GAPS": "SEC-SOLANA-001 blocks funded signer readiness.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "No public transaction claim.",
+      "ACTION": "No SC-6 write."
+    },
+    {
+      "CAPABILITY": "Base public testnet",
+      "IMPLEMENTATION_STATUS": "NO_PUBLIC_EVIDENCE",
+      "TEST_STATUS": "N/A",
+      "EVIDENCE_STATUS": "NO_CURRENT_RECEIPT",
+      "CANONICAL_STATUS": "SOFTWARE_ONLY",
+      "KNOWN_GAPS": "No public receipt/deployment proof.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "No public transaction claim.",
+      "ACTION": "No promotion from local EVM."
+    },
+    {
+      "CAPABILITY": "Arbitrum public testnet",
+      "IMPLEMENTATION_STATUS": "NO_PUBLIC_EVIDENCE",
+      "TEST_STATUS": "N/A",
+      "EVIDENCE_STATUS": "NO_CURRENT_RECEIPT",
+      "CANONICAL_STATUS": "SOFTWARE_ONLY",
+      "KNOWN_GAPS": "No public receipt/deployment proof.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "No public transaction claim.",
+      "ACTION": "No promotion from local EVM."
+    },
+    {
+      "CAPABILITY": "Security",
+      "IMPLEMENTATION_STATUS": "PARTIAL",
+      "TEST_STATUS": "PARTIAL",
+      "EVIDENCE_STATUS": "CURRENT_CODE_AND_SC2_DISCOVERY",
+      "CANONICAL_STATUS": "PARTIAL",
+      "KNOWN_GAPS": "SEC-SOLANA-001 OPEN; permissive/symlink/oversized key handling.",
+      "BLOCKER_CLASS": "FOLLOW_UP",
+      "CLAIM": "Core local software testable; public Solana signer NOT_READY.",
+      "ACTION": "Harden before funded signing."
+    },
+    {
+      "CAPABILITY": "Dependencies",
+      "IMPLEMENTATION_STATUS": "LOCKED",
+      "TEST_STATUS": "PASS",
+      "EVIDENCE_STATUS": "UV_LOCK_AND_PIP_CHECK",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "Advisory database/clean install unavailable.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "Locked dependency graph consistent.",
+      "ACTION": "No indiscriminate upgrade."
+    },
+    {
+      "CAPABILITY": "Reproducibility",
+      "IMPLEMENTATION_STATUS": "CACHED_REPRODUCTION",
+      "TEST_STATUS": "PASS_WITH_LIMITS",
+      "EVIDENCE_STATUS": "LOCK_AND_CACHED_ENV",
+      "CANONICAL_STATUS": "PARTIAL",
+      "KNOWN_GAPS": "No clean-room or bitwise repro.",
+      "BLOCKER_CLASS": "FOLLOW_UP",
+      "CLAIM": "Current suite reproduced with version-matched cache.",
+      "ACTION": "Do not claim clean-room."
+    },
+    {
+      "CAPABILITY": "CI",
+      "IMPLEMENTATION_STATUS": "CONFIGURED",
+      "TEST_STATUS": "LOCAL_PASS_REMOTE_UNVERIFIED",
+      "EVIDENCE_STATUS": "FULL_SUITE_AND_WORKFLOW_REPAIR",
+      "CANONICAL_STATUS": "PARTIAL",
+      "KNOWN_GAPS": "No remote workflow run.",
+      "BLOCKER_CLASS": "EXTERNAL_BLOCKER",
+      "CLAIM": "Core workflow now installs EVM extra.",
+      "ACTION": "Remote CI remains unverified."
+    },
+    {
+      "CAPABILITY": "Scientific integrity",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_GUARDS",
+      "TEST_STATUS": "PASS_WITH_LIMITS",
+      "EVIDENCE_STATUS": "TESTS_AND_REPORTS",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "Outputs remain simulated; no physical validity.",
+      "BLOCKER_CLASS": "NONE",
+      "CLAIM": "Evidence classes separated in reviewed paths.",
+      "ACTION": "Maintain boundaries."
+    },
+    {
+      "CAPABILITY": "RF/localization",
+      "IMPLEMENTATION_STATUS": "SIMULATION_ONLY",
+      "TEST_STATUS": "PASS_WITH_LIMITS",
+      "EVIDENCE_STATUS": "TESTS_AND_HISTORICAL_PROVENANCE",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "No measured RF/field accuracy.",
+      "BLOCKER_CLASS": "HARDWARE_REQUIRED",
+      "CLAIM": "SIMULATED only.",
+      "ACTION": "No field accuracy claim."
+    },
+    {
+      "CAPABILITY": "Behavior/ML",
+      "IMPLEMENTATION_STATUS": "RESEARCH_ONLY",
+      "TEST_STATUS": "PASS_WITH_LIMITS",
+      "EVIDENCE_STATUS": "CLAIM_DOCS_AND_TESTS",
+      "CANONICAL_STATUS": "PRESENT_CANONICAL",
+      "KNOWN_GAPS": "No labeled field/clinical efficacy.",
+      "BLOCKER_CLASS": "FOLLOW_UP",
+      "CLAIM": "Research-supported only.",
+      "ACTION": "No diagnostic claim."
+    },
+    {
+      "CAPABILITY": "Hardware/field",
+      "IMPLEMENTATION_STATUS": "NOT_VALIDATED",
+      "TEST_STATUS": "HOST_TESTS_PASS",
+      "EVIDENCE_STATUS": "39_CTEST_AND_REPORTS",
+      "CANONICAL_STATUS": "SOFTWARE_ONLY",
+      "KNOWN_GAPS": "No HIL, board, bench or animal trial.",
+      "BLOCKER_CLASS": "HARDWARE_REQUIRED",
+      "CLAIM": "Host/model evidence only.",
+      "ACTION": "Separate gates."
+    }
+  ]
+}
