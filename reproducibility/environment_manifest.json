@@ -1,0 +1,121 @@
+{
+  "bootstrap_version": "1.0.0",
+  "config_hash_sha256": {
+    "Makefile": "94d6136426502198c865f2a500a7701281389040470108f0754baab2e88429f1",
+    "contracts/package.json": "8058dc3c9eceb03c50f7644a0e38ee3e36a714ce237991ef04e9c5c58389465c",
+    "hardware/toolchain.json": "23e59fe446da8793c14e72804e751ea93a5544a0fccbf5ff7432d94330514307",
+    "pyproject.toml": "ea1cd6cc66c82b3245c93de23c626836671e6af02cca411ac99f48a6c90c968c"
+  },
+  "environment_variable_names_set": [],
+  "generated_at_utc": "2026-10-08T12:26:35.010120+00:00",
+  "lockfile_hashes_sha256": {
+    "contracts/package-lock.json": "ea239d5a67f165ae80d01bc0b0c158d8f839dcd7ca793c8f28daea10de15b31e",
+    "uv.lock": "2db7575b0385c45d6cc95ea108c8f4c04bd0802c41b0c8eb3485f2999c4e76bf"
+  },
+  "os": {
+    "architecture": "64bit",
+    "machine": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux",
+    "version": "#1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025"
+  },
+  "python": {
+    "path": "/usr/bin/python3",
+    "version": "3.12.3"
+  },
+  "schema_version": 1,
+  "secrets_included": false,
+  "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94",
+  "source_tree": {
+    "git_tree_sha": "ab45d2250df9c2e215f072ffb17a564074bca2a4",
+    "status_lines": [
+      "A  reproducibility/README.md",
+      "A  reproducibility/artifact_comparison.json",
+      "A  reproducibility/bootstrap_report.json",
+      "A  reproducibility/cache_dependency_report.json",
+      "A  reproducibility/claims.json",
+      "A  reproducibility/clean_room_run_1.json",
+      "A  reproducibility/clean_room_run_2.json",
+      "A  reproducibility/dependency_matrix.json",
+      "A  reproducibility/discovery.json",
+      "A  reproducibility/doctor_report.json",
+      "A  reproducibility/environment_manifest.json",
+      "A  reproducibility/final_report.md",
+      "A  reproducibility/firmware_environment.json",
+      "A  reproducibility/integrated_smoke.json",
+      "A  reproducibility/limitations.json",
+      "A  reproducibility/manifest.json",
+      "A  reproducibility/node_environment.json",
+      "A  reproducibility/python_environment.json",
+      "A  reproducibility/red_team_report.md",
+      "A  reproducibility/solidity_environment.json"
+    ],
+    "working_tree_clean": false
+  },
+  "tools": {
+    "cc": {
+      "path": "/usr/bin/cc",
+      "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    "cmake": {
+      "path": "/usr/bin/cmake",
+      "version": "cmake version 3.28.3"
+    },
+    "cxx": {
+      "path": "/usr/bin/c++",
+      "version": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    "docker": {
+      "path": "/mnt/c/Program Files/Docker/Docker/resources/bin/docker",
+      "version": null
+    },
+    "ganache": {
+      "path": null,
+      "version": null
+    },
+    "gz": {
+      "path": null,
+      "version": null
+    },
+    "ngspice": {
+      "path": null,
+      "version": null
+    },
+    "node": {
+      "path": "/usr/bin/node",
+      "version": "v22.22.2"
+    },
+    "npm": {
+      "path": "/usr/bin/npm",
+      "version": "10.9.7"
+    },
+    "openems": {
+      "path": null,
+      "version": null
+    },
+    "python": {
+      "path": "/usr/bin/python3",
+      "version": "3.12.3"
+    },
+    "renode": {
+      "path": null,
+      "version": null
+    },
+    "renode_test": {
+      "path": null,
+      "version": null
+    },
+    "solc": {
+      "path": null,
+      "version": null
+    },
+    "uv": {
+      "path": "/home/gusta/.local/bin/uv",
+      "version": "uv 0.11.26 (x86_64-unknown-linux-gnu)"
+    },
+    "west": {
+      "path": null,
+      "version": null
+    }
+  }
+}

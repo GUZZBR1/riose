@@ -1,0 +1,48 @@
+{
+  "cmake": {
+    "build_directory": "/tmp/riose-sc3-run2-cmake",
+    "status": "PASS"
+  },
+  "ctest": {
+    "failed": 0,
+    "passed": 39,
+    "status": "PASS"
+  },
+  "firmware_traces": "Five listed CTest trace files had matching SHA-256 across fresh build directories.",
+  "full_second_clean_room": "NOT_ACHIEVED: Python and EVM dependencies were externally blocked.",
+  "integrated_smoke": {
+    "database": "new temporary SQLite database; closed and reopened",
+    "network": "local-mock",
+    "process_status": "RPC_ACCEPTED",
+    "reconcile_status": "VERIFIED",
+    "status": "PASS",
+    "verified_receipt_count": 1
+  },
+  "python_and_npm_bootstrap": "NOT_RETRIED: earlier uncached installs failed on confirmed DNS and missing registry artifacts.",
+  "python_environment": {
+    "install": "PASS: uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache",
+    "path": "/tmp/riose-sc3-run2-python-env",
+    "test_command": "uv run --locked --no-sync pytest -q --ignore=tests/livestock_tracking/test_evm_local.py --ignore=tests/livestock_tracking/test_evm_registry.py",
+    "test_result": "851 passed, 7 skipped, 1 warning"
+  },
+  "python_package_build": {
+    "sdist_sha256": "497842b889d017b823451685d264a768ffcf7690181913f6da3d2fb42ced3391",
+    "sdist_sha256_matches_run_1": true,
+    "status": "PASS",
+    "wheel_sha256": "4665224670200938bdad2c8508d9e974d2c1ad7082f2e4c3daf39a0e863b043c",
+    "wheel_sha256_matches_run_1": true
+  },
+  "recreated_components": [
+    "Python venv install",
+    "non-EVM Python regression",
+    "CMake configure",
+    "host C build",
+    "CTest",
+    "temporary SQLite smoke",
+    "Python wheel and sdist build"
+  ],
+  "run": 2,
+  "schema_version": 1,
+  "semantic_comparison": "Both host CTest runs passed 39/39 and the smoke completed the same semantic state transitions.",
+  "tested_source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "status": "EXTERNAL_BLOCKED",
+  "declared_range": "solc ^0.8.28",
+  "locked_version": "0.8.37",
+  "locked_source": "contracts/package-lock.json",
+  "ganache_version": "7.9.2",
+  "compiler_origin": "contracts/node_modules/solc after npm ci; not present on this host",
+  "compile_command": "node contracts/test/compile_registry.cjs",
+  "compile_result": "FAILED_TO_START: Cannot find module 'solc' because npm ci was blocked by an empty cache and unavailable DNS.",
+  "contract_changed_for_tooling": false,
+  "local_chain_tests": "NOT_RUN",
+  "public_chain_or_funds": "NOT_USED"
+}

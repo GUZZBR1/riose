@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "status": "PASS_WITH_EVM_LIMITATION",
+  "python": "3.12.3",
+  "interpreter": "/usr/bin/python3",
+  "uv": "0.11.26",
+  "lockfile": "uv.lock",
+  "lock_check": "PASS: uv lock --check --offline resolved 68 packages.",
+  "clean_install": "PASS from the existing cache for core, dev, and Solana extras; the EVM extra is blocked by the missing ckzg 2.1.8 wheel and registry DNS.",
+  "project_environment": ".venv contains the source project, core/dev requirements, and solders 0.29.0 from uv.lock.",
+  "import_provenance": {
+    "riose": "Imported from this checkout's src/riose tree.",
+    "required_dependencies": "Core/dev dependency imports resolved from this checkout's .venv; see doctor_report.json.",
+    "external_pythonpath": "Unset during clean-room install and doctor.",
+    "editable_install": "PASS: uv built and installed the local cattle-rf project from this checkout."
+  },
+  "optional_extras": {
+    "solana": "PASS: solders 0.29.0 installed offline; no public Solana network used.",
+    "evm": "BLOCKED: eth-account's dependency graph could not install because cytoolz 1.1.0 and ckzg 2.1.8 were absent from cache."
+  },
+  "full_python_regression": "BLOCKED at collection by two EVM modules importing missing eth_account; remaining suite passed 851 tests with 7 skips in each of two fresh venvs.",
+  "second_venv": "/tmp/riose-sc3-run2-python-env; uv sync --locked --extra dev --extra solana --offline installed 49 packages from cache.",
+  "compileall": "PASS: python3 -m compileall -q src scripts."
+}

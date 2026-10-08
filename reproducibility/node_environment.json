@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "EXTERNAL_BLOCKED",
+  "node": {"version": "v22.22.2", "path": "/usr/bin/node", "pin": ".nvmrc"},
+  "npm": {"version": "10.9.7", "path": "/usr/bin/npm", "pin": "contracts/package.json packageManager"},
+  "package_lock": {
+    "lockfile_version": 3,
+    "root_dependencies_match_package_json": true,
+    "root_engines_match_package_json": true,
+    "locked_package_count": 57,
+    "ganache": "7.9.2",
+    "solc": "0.8.37",
+    "check": "PASS: npm install --package-lock-only --ignore-scripts --offline --prefix contracts"
+  },
+  "npm_ci": {
+    "command": "npm ci --prefix contracts",
+    "status": "EXTERNAL_BLOCKED",
+    "error": "EAI_AGAIN resolving registry.npmjs.org; the empty-cache offline attempt also returned ENOTCACHED for Ganache."
+  },
+  "local_node_modules": "Not created; no sibling worktree or global Ganache used.",
+  "registry_freshness": "UNVERIFIED: npm ci returned EAI_AGAIN for registry.npmjs.org."
+}

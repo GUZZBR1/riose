@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "status": "PASS_WITH_LIMITATIONS",
+  "scope": "Host C firmware/model build and CTest; not a Zephyr target or physical firmware build.",
+  "tools": {
+    "cmake": "3.28.3",
+    "c_compiler": "GNU 13.3.0",
+    "python": "3.12.3"
+  },
+  "clean_builds": [
+    {"build_directory": "/tmp/riose-sc3-run1-cmake", "configure": "PASS", "build": "PASS", "ctest": "39/39 PASS"},
+    {"build_directory": "/tmp/riose-sc3-run2-cmake", "configure": "PASS", "build": "PASS", "ctest": "39/39 PASS"}
+  ],
+  "target_toolchain": {
+    "zephyr": "4.2.1 target; west and SDK unavailable",
+    "sdk": "0.16.8 target; not configured",
+    "renode": "1.17.0 target; not installed",
+    "cadquery": "2.8.0 pinned in requirements-cad.txt; CAD gate not run",
+    "ngspice": "47 target; not installed",
+    "openems": "0.37.0-rc3 target; not installed",
+    "csxcad": "0.7.0-rc3 target; not installed"
+  },
+  "optional_dependencies_classification": {
+    "OPTIONAL_BY_DESIGN": ["Docker", "Renode for the core local software route", "Gazebo/ROS", "Sionna RF backend"],
+    "OPTIONAL_FEATURE": ["Zephyr native_sim", "ngspice/openEMS/CSXCAD simulations"],
+    "VALIDATION_ONLY": ["host CMake/CTest", "local Ganache/solc"],
+    "REQUIRED_FOR_RELEASE": [],
+    "REQUIRED_FOR_SPECIFIC_GATE": ["CadQuery for CAD export", "Zephyr SDK/west for target firmware simulation", "Renode for surrogate platform smoke"]
+  }
+}

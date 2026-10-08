@@ -1,0 +1,87 @@
+{
+  "evidence_files": [
+    {
+      "path": "reproducibility/README.md",
+      "sha256": "33d5d99e9ce4fb1c451e592f2cfa1426d5188b0c715b4f65493876a1f63b4f1c"
+    },
+    {
+      "path": "reproducibility/artifact_comparison.json",
+      "sha256": "65d038bf8cf8017d2ab3e9fa09afd9eaf60ad30b4d0bf5fb824cd57cc19f26eb"
+    },
+    {
+      "path": "reproducibility/bootstrap_report.json",
+      "sha256": "8c12b9c4cbe6d461c7e5a3e04e81532234fa286c5c1e096f604f017880623103"
+    },
+    {
+      "path": "reproducibility/cache_dependency_report.json",
+      "sha256": "0153f518a3b69e447dd92732fb7c740bc94ad44309af9a6269219306b6406c3c"
+    },
+    {
+      "path": "reproducibility/claims.json",
+      "sha256": "7b8fc6f92a65729735ed902aac406d039cb1759625920bb01e31c8807d5f7d41"
+    },
+    {
+      "path": "reproducibility/clean_room_run_1.json",
+      "sha256": "4bb36697e01235378e9e3224d0549dcc60894a79b87774b8f66737d038694f42"
+    },
+    {
+      "path": "reproducibility/clean_room_run_2.json",
+      "sha256": "6aad6fb53a26d309a2f6dd4f4cd989c21eb2bc9a98fb1f7b145c3c72f26419fd"
+    },
+    {
+      "path": "reproducibility/dependency_matrix.json",
+      "sha256": "3f0425f5a1858e1d0618cf9eb018bd0126b2875f560994d3369f6a3b3be092ea"
+    },
+    {
+      "path": "reproducibility/discovery.json",
+      "sha256": "422938ab8725e7e26c834514ee7369cf6b3642f574a56c3b1c9e027127c6f2d7"
+    },
+    {
+      "path": "reproducibility/doctor_report.json",
+      "sha256": "a8d057116ec0d5a51790cd7fbb52084b1076daebb13814e03f2fe391e316218d"
+    },
+    {
+      "path": "reproducibility/environment_manifest.json",
+      "sha256": "f5927ce9d1bd3534c46a13f4e32f5b48dd4f604a7839a2e04666c99978a88496"
+    },
+    {
+      "path": "reproducibility/final_report.md",
+      "sha256": "69ca27e92a426995137c008a66eba6f4d046c0780a900fa6c13aeee03167f93a"
+    },
+    {
+      "path": "reproducibility/firmware_environment.json",
+      "sha256": "3c5fc641f949c1982f9a27c845dae88ba44e6419a785593e57ee24311e226c91"
+    },
+    {
+      "path": "reproducibility/integrated_smoke.json",
+      "sha256": "bcdbcacb0b481f160e6e714f9c2d1417b8bcb44c4f6c82a2a12164c15068a944"
+    },
+    {
+      "path": "reproducibility/limitations.json",
+      "sha256": "da41b0b03022a9e4600f6acc2d2cf8987cae85d723e56cace3b1f0d6be7b6de7"
+    },
+    {
+      "path": "reproducibility/node_environment.json",
+      "sha256": "64d8d6885197db219f6f49a6ea3446c3fc37bb5f26282521bc7f96c8151c0396"
+    },
+    {
+      "path": "reproducibility/python_environment.json",
+      "sha256": "f8c974da13c43beb735883eb3801ec74c41ca1082438c708c4830e49ae353057"
+    },
+    {
+      "path": "reproducibility/red_team_report.md",
+      "sha256": "b401e4b8ab1bfb3d9910fcaa7d010586e25723cba593140f6ddaf691843d324d"
+    },
+    {
+      "path": "reproducibility/solidity_environment.json",
+      "sha256": "8ccb48814baeb6113176f60f64f982aa6ebf93f2f4b9e937ae88f4209f66bcab"
+    }
+  ],
+  "mission": "SC-3 Reproducible Environment & Clean-Room Build",
+  "note": "manifest.json is excluded from its own hash inventory; Git commit integrity covers this file.",
+  "remote_freshness": "UNVERIFIED",
+  "schema_version": 1,
+  "secrets_included": false,
+  "self_hash_excluded": true,
+  "source_sha": "04dd45767c59902377cbf78120c4239ffbccbb94"
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "claims": [
+    {
+      "claim": "WORKS_ON_CURRENT_MACHINE",
+      "scope": "Host CMake/CTest, core/dev/Solana Python tests, Python packaging, and mock integrated smoke in the SC-3 checkout.",
+      "status": "SUPPORTED_WITH_LIMITATIONS",
+      "evidence": ["firmware_environment.json", "python_environment.json", "artifact_comparison.json", "integrated_smoke.json"]
+    },
+    {
+      "claim": "CACHED_REPRODUCTION",
+      "scope": "Core/dev/Solana Python environment and tests excluding two EVM test modules, plus wheel/sdist and CTest outputs.",
+      "status": "SUPPORTED",
+      "evidence": ["cache_dependency_report.json", "python_environment.json", "clean_room_run_1.json", "artifact_comparison.json"]
+    },
+    {
+      "claim": "CLEAN_ROOM_REPRODUCTION",
+      "scope": "Complete project dependency and regression set.",
+      "status": "NOT_ACHIEVED",
+      "evidence": ["bootstrap_report.json", "node_environment.json", "limitations.json"]
+    },
+    {
+      "claim": "SEMANTIC_REPRODUCIBILITY",
+      "scope": "Repeated host CTest and synthetic mock publication state transitions.",
+      "status": "SUPPORTED_FOR_LISTED_COMPONENTS",
+      "evidence": ["clean_room_run_1.json", "clean_room_run_2.json", "artifact_comparison.json"]
+    },
+    {
+      "claim": "BITWISE_REPRODUCIBILITY",
+      "scope": "Five generated CTest trace JSONL files and the Python wheel/sdist listed in artifact_comparison.json.",
+      "status": "SUPPORTED_FOR_LISTED_ARTIFACTS_ONLY",
+      "evidence": ["artifact_comparison.json"]
+    }
+  ],
+  "not_claimed": ["FULLY_REPRODUCIBLE", "PUBLIC_VALIDATED", "REAL_ON_CHAIN", "physical-device validated", "repository-wide bitwise build"]
+}
