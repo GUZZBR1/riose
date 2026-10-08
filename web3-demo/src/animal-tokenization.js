@@ -110,12 +110,17 @@ export async function verifyAsset(record) {
   if (!metadataResponse.ok) return { evidence: 'METADATA_NOT_FOUND', valid: false };
   const metadata = await metadataResponse.json();
   const valid = asset.owner === record.owner_address && asset.uri === record.metadata_uri && asset.name === metadata.name;
+  const attributes = Array.isArray(metadata.attributes) ? metadata.attributes : [];
+  const metadataValue = (type) => attributes.find((attribute) => attribute.trait_type === type)?.value ?? null;
   return {
     evidence: valid ? 'VALIDATED_ON_DEVNET' : asset.name !== metadata.name ? 'ONCHAIN_NAME_MISMATCH' : 'ONCHAIN_MISMATCH',
     valid,
     asset_address: record.asset_address,
     owner_address: asset.owner,
     metadata_uri: asset.uri,
+    public_tag: metadataValue('Riose tag'),
+    record_digest: metadataValue('Record digest'),
+    created_at: metadataValue('Created at'),
     signature,
     explorer_url: `${CORE_EXPLORER}/${record.asset_address}?cluster=devnet`,
   };
@@ -145,20 +150,25 @@ async function recoverPendingWithoutSignature(animalId, pending) {
   return null;
 }
 
-async function performMintAnimalAsset(animalId) {
+async function performMintAnimalAsset(animalId, onProgress = () => {}) {
   if (!animalId) throw new Error('Selecione um bovino registrado antes de criar o ativo.');
+  await onProgress({ state: 'PREPARING_RECORD' });
   const previous = readPending(animalId);
   if (previous?.release_requested) {
     await releaseUnsignedAttempt(animalId, previous);
   } else if (previous) {
     if (!previous.transaction_signature) {
       const recovered = await recoverPendingWithoutSignature(animalId, previous);
-      if (recovered) return recovered;
+      if (recovered) {
+        await onProgress({ state: 'CONFIRMED', result: recovered });
+        return recovered;
+      }
       throw new Error('A tentativa anterior não tem assinatura local nem resultado recuperável na Devnet. Ela foi mantida para evitar criar um segundo ativo para o mesmo bovino.');
     }
     const reconciled = await verifyAsset(previous);
     if (reconciled.valid) {
       await persistSubmission(animalId, previous);
+      await onProgress({ state: 'CONFIRMED', result: reconciled });
       return reconciled;
     }
     if (reconciled.evidence === 'ONCHAIN_PENDING' || reconciled.evidence === 'RPC_NOT_FOUND') {
@@ -176,8 +186,14 @@ async function performMintAnimalAsset(animalId) {
     }
   }
 
+  await onProgress({ state: 'HASHING' });
   const intent = await api(`/api/animals/${encodeURIComponent(animalId)}/asset-intent`, { method: 'POST' });
   if (intent.cluster !== 'devnet') throw new Error('A criação deste demo está limitada à Devnet Solana.');
+  if (!/^[a-f0-9]{64}$/.test(intent.record_digest ?? '')) {
+    throw new Error('O registro local ainda não tem um digest verificado.');
+  }
+  await onProgress({ state: 'HASHING', record_digest: intent.record_digest,
+    public_tag: intent.public_tag, created_at: intent.created_at });
   if (intent.status === 'SIGNING') {
     throw new Error('Já existe uma tentativa reservada para este bovino. Confira o estado da transação antes de iniciar outra.');
   }
@@ -194,7 +210,11 @@ async function performMintAnimalAsset(animalId) {
   if (!allowedPublicName) {
     throw new Error('The public asset name is not valid for this RIOSE demo.');
   }
+  const digestAttribute = publicMetadata.attributes?.find((attribute) => attribute.trait_type === 'Record digest')?.value;
+  if (digestAttribute !== intent.record_digest) throw new Error('O digest público não corresponde ao registro reservado.');
 
+  await onProgress({ state: 'SIGNATURE_REQUIRED', public_tag: intent.public_tag,
+    record_digest: intent.record_digest, created_at: intent.created_at });
   const { wallet } = await connectWallet();
   const umi = makeUmi(wallet);
   const signer = generateSigner(umi);
@@ -240,11 +260,14 @@ async function performMintAnimalAsset(animalId) {
   savePending(animalId, submission);
 
   await persistSubmission(animalId, submission);
+  await onProgress({ state: 'SUBMITTING_TO_DEVNET' });
 
   const connection = new Connection(DEVNET_RPC, 'confirmed');
+  await onProgress({ state: 'CONFIRMING' });
   await connection.confirmTransaction(submission.transaction_signature, 'confirmed');
   const verification = await verifyAsset(submission);
   if (!verification.valid) throw new Error(`A criação foi enviada, mas a leitura on-chain não confirmou o ativo (${verification.evidence}).`);
+  await onProgress({ state: 'CONFIRMED', result: verification });
   return verification;
 }
 
@@ -258,9 +281,9 @@ function isExplicitWalletRejection(error) {
   return false;
 }
 
-export function mintAnimalAsset(animalId) {
+export function mintAnimalAsset(animalId, options = {}) {
   if (!animalId) return Promise.reject(new Error('Selecione um bovino registrado antes de criar o ativo.'));
-  const run = () => performMintAnimalAsset(animalId);
+  const run = () => performMintAnimalAsset(animalId, options.onProgress);
   if (typeof navigator !== 'undefined' && navigator.locks?.request) {
     return navigator.locks.request(`riose-mint:${animalId}`, run);
   }

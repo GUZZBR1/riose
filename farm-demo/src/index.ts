@@ -63,6 +63,13 @@ export function mountFarmDemo(parent: HTMLElement, callbacks: FarmDemoCallbacks 
   return {
     focusAnimal(id: string): void { invokeWhenReady(() => scene.focusAnimal(id)); },
     selectAnimal(id: string | null): void { invokeWhenReady(() => scene.selectAnimal(id)); },
+    pulseAnimalIdentity(id: string): boolean {
+      if (destroyed || !scene.ready) return false;
+      return scene.pulseAnimalIdentity(id);
+    },
+    getAnimalScreenPosition(id: string): { x: number; y: number } | null {
+      return destroyed || !scene.ready ? null : scene.getAnimalScreenPosition(id);
+    },
     getAnimals(): readonly AnimalState[] { return scene.ready ? scene.getAnimals() : []; },
     setActive(active: boolean): void {
       if (destroyed || !scene.ready) return;

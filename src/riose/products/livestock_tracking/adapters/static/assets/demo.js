@@ -99,8 +99,8 @@ const state = {
   asset: null,
   assetStatus: 'NO_ASSET',
   assetStatusLoaded: false,
-  assetPreviewComplete: false,
-  assetPreviewRunning: false,
+  recordDigest: null,
+  identityRunId: 0,
   identityExpanded: false,
   selectionGeneration: 0,
 };
@@ -261,22 +261,20 @@ function resetIdentityCard(profile) {
   state.asset = null;
   state.assetStatus = 'NO_ASSET';
   state.assetStatusLoaded = false;
-  state.assetPreviewComplete = false;
-  state.assetPreviewRunning = false;
-  $('asset-preview-public-name').textContent = profile.name;
-  $('asset-preview-portrait').src = profile.image;
-  $('asset-preview-card').hidden = true;
-  $('asset-preview-card').classList.remove('is-revealed');
-  $('asset-preview-status').hidden = true;
-  $('asset-preview-status').textContent = '';
-  $('asset-preview-action').hidden = false;
-  $('asset-preview-action').disabled = false;
-  $('asset-preview-action').textContent = 'Create digital identity';
-  $('asset-action').hidden = true;
-  $('asset-action').disabled = false;
+  state.recordDigest = null;
+  state.identityRunId += 1;
+  $('asset-complete').hidden = true;
+  $('asset-progress').hidden = true;
+  $('asset-actions').hidden = false;
+  $('asset-error').hidden = true;
+  $('asset-error').textContent = '';
+  $('asset-action').hidden = false;
+  $('asset-action').disabled = true;
+  $('asset-action').textContent = 'Preparing record…';
   $('asset-explorer').hidden = true;
-  $('solana-screen').dataset.proofState = 'pending';
-  setMessage('asset-state', 'Ready when you are.', 'no-asset');
+  $('solana-screen').dataset.proofState = 'no-asset';
+  $('identity-art-wrap').classList.remove('is-assembling', 'is-confirmed');
+  setProofSteps('NO_ASSET');
   $('continue-solana').textContent = 'Digital identity';
   const arrow = document.createElement('span');
   arrow.setAttribute('aria-hidden', 'true');
@@ -398,7 +396,7 @@ function publishSceneState(animals) {
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261008-02');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261008-03');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
 
@@ -478,6 +476,7 @@ async function verifyRecord(animalId, requestId) {
     if (verification.valid !== true || verification.evidence !== 'LOCAL_HASH_CHAIN') {
       throw new Error('The local record did not verify.');
     }
+    state.recordDigest = verification.record_digest;
     setMessage('record-verification', 'Record integrity verified', 'verified');
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
@@ -494,29 +493,64 @@ async function loadSelectedAnimal(sceneAnimal, profile, requestId) {
     state.animal = animal;
     await verifyRecord(animal.animal_id, requestId);
     if (requestId !== state.selectionGeneration) return;
+    if (!state.identityExpanded) {
+      $('asset-action').disabled = false;
+      $('asset-action').textContent = 'Create digital identity';
+    }
     if (state.identityExpanded) await refreshAsset(requestId);
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
     setMessage('record-verification', 'Record integrity unavailable', 'error');
     $('api-state').textContent = 'Animal record unavailable. The farm remains available.';
     $('api-state').hidden = false;
+    $('asset-action').disabled = true;
+    $('asset-action').textContent = 'Record unavailable';
     if (state.identityExpanded) {
       state.assetStatus = 'ERROR';
       state.assetStatusLoaded = true;
-      setMessage('asset-state', 'Connect to the local record before creating an asset.', 'error');
+      showAssetError('Connect to the local record before creating an asset.');
     }
   }
 }
 
 function tokenizationModule() {
-  return import('/assets/animal-tokenization.bundle.js?v=20261007-13');
+  return import('/assets/animal-tokenization.bundle.js?v=20261008-03');
 }
 
-function setAssetButton(label, { disabled = false, hidden = false } = {}) {
-  const button = $('asset-action');
-  button.textContent = label;
-  button.disabled = disabled;
-  button.hidden = hidden;
+function setProofSteps(phase) {
+  const completed = {
+    NO_ASSET: [], PREPARING_RECORD: [], HASHING: ['record'], SIGNATURE_REQUIRED: ['record', 'hash'],
+    SUBMITTING_TO_DEVNET: ['record', 'hash'], CONFIRMING: ['record', 'hash', 'solana'],
+    CONFIRMED: ['record', 'hash', 'solana', 'wallet'], ADDED_TO_WALLET: ['record', 'hash', 'solana', 'wallet'],
+  }[phase] || [];
+  const active = {
+    PREPARING_RECORD: 'record', HASHING: 'hash', SIGNATURE_REQUIRED: 'wallet',
+    SUBMITTING_TO_DEVNET: 'solana', CONFIRMING: 'wallet',
+  }[phase];
+  for (const step of document.querySelectorAll('[data-proof-step]')) {
+    const name = step.dataset.proofStep;
+    step.classList.toggle('is-done', completed.includes(name));
+    step.classList.toggle('is-active', name === active);
+  }
+}
+
+const phaseCopy = {
+  PREPARING_RECORD: 'Preparing farm record', HASHING: 'Creating digest',
+  SIGNATURE_REQUIRED: 'Waiting for wallet signature', SUBMITTING_TO_DEVNET: 'Anchoring on Solana',
+  CONFIRMING: 'Confirming asset', CONFIRMED: 'Digital identity created', ADDED_TO_WALLET: 'Digital identity created',
+};
+
+function setAssetPhase(phase) {
+  state.assetStatus = phase;
+  $('solana-screen').dataset.proofState = phase.toLowerCase().replaceAll('_', '-');
+  setProofSteps(phase);
+  $('asset-progress').hidden = false;
+  $('asset-complete').hidden = true;
+  $('asset-actions').hidden = true;
+  $('asset-error').hidden = true;
+  $('asset-state').textContent = phaseCopy[phase] || 'Preparing digital identity';
+  $('asset-state').dataset.state = phase === 'ERROR' ? 'error' : phase === 'CONFIRMED' ? 'confirmed' : 'submitting';
+  $('identity-art-wrap').classList.toggle('is-assembling', !['CONFIRMED', 'ADDED_TO_WALLET'].includes(phase));
 }
 
 function updateIdentityToggle(confirmed = false) {
@@ -529,19 +563,16 @@ function updateIdentityToggle(confirmed = false) {
 }
 
 async function refreshAsset(requestId = state.selectionGeneration) {
-  $('asset-explorer').hidden = true;
   if (!state.animal) {
     state.assetStatus = 'ERROR';
     state.assetStatusLoaded = true;
-    setMessage('asset-state', 'Animal record unavailable. Try again when connected.', 'error');
-    setAssetButton('Retry Devnet check', { hidden: !state.assetPreviewComplete });
+    showAssetError('Animal record unavailable. Try again when connected.');
     return;
   }
 
   state.assetStatusLoaded = false;
-  $('solana-screen').dataset.proofState = 'checking';
-  setMessage('asset-state', 'Checking Solana Devnet…', 'checking');
-  setAssetButton('Checking Devnet…', { disabled: true, hidden: !state.assetPreviewComplete });
+  setAssetPhase('CONFIRMING');
+  $('asset-state').textContent = 'Checking Solana Devnet';
   try {
     const module = await tokenizationModule();
     const asset = await module.getAnimalAsset(state.animal.animal_id);
@@ -549,106 +580,191 @@ async function refreshAsset(requestId = state.selectionGeneration) {
     state.asset = asset;
     state.assetStatusLoaded = true;
     if (asset.valid && asset.asset_address) {
-      state.assetStatus = 'CONFIRMED';
-      $('solana-screen').dataset.proofState = 'confirmed';
-      setMessage('asset-state', 'Identity verified on Devnet.', 'confirmed');
-      setAssetButton('Asset verified', { disabled: true, hidden: true });
-      $('asset-preview-action').hidden = true;
-      const explorer = $('asset-explorer');
-      explorer.href = module.assetExplorerUrl(asset.asset_address);
-      explorer.hidden = false;
+      renderCompletedIdentity(asset, module);
       updateIdentityToggle(true);
       return;
     }
 
     const status = asset.evidence || asset.status || 'UNREGISTERED';
     if (status === 'UNREGISTERED' || status === 'PREPARED') {
-      state.assetStatus = state.assetPreviewComplete ? 'SIGNATURE_REQUIRED' : 'NO_ASSET';
-      setMessage('asset-state', state.assetPreviewComplete ? 'Ready for your wallet signature.' : 'Ready when you are.', state.assetStatus === 'SIGNATURE_REQUIRED' ? 'signature-required' : 'no-asset');
-      setAssetButton('Create on Devnet', { hidden: !state.assetPreviewComplete });
+      state.assetStatus = 'NO_ASSET';
+      $('solana-screen').dataset.proofState = 'no-asset';
+      $('asset-progress').hidden = true;
+      $('asset-actions').hidden = false;
+      $('asset-action').disabled = false;
+      $('asset-action').textContent = 'Create digital identity';
       updateIdentityToggle(false);
     } else {
       state.assetStatus = 'SUBMITTING';
       $('solana-screen').dataset.proofState = 'submitting';
-      setMessage('asset-state', 'A submitted transaction is still awaiting verification.', 'submitting');
-      setAssetButton('Check status again', { hidden: !state.assetPreviewComplete });
+      setAssetPhase('CONFIRMING');
+      $('asset-state').textContent = 'Confirming asset';
+      $('asset-actions').hidden = false;
+      $('asset-action').textContent = 'Check status again';
     }
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
     state.assetStatus = 'ERROR';
-    $('solana-screen').dataset.proofState = 'pending';
     state.assetStatusLoaded = true;
-    setMessage('asset-state', `Devnet status unavailable: ${error.message}`, 'error');
-    setAssetButton('Retry Devnet check', { hidden: !state.assetPreviewComplete });
+    showAssetError(`Devnet status unavailable: ${error.message}`);
   }
 }
 
-function waitForPreviewBeat(milliseconds) {
-  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+function showAssetError(message) {
+  state.assetStatus = 'ERROR';
+  $('solana-screen').dataset.proofState = 'error';
+  $('asset-progress').hidden = true;
+  $('asset-complete').hidden = true;
+  $('asset-actions').hidden = false;
+  $('asset-error').textContent = message;
+  $('asset-error').hidden = false;
+  $('asset-action').disabled = false;
+  $('asset-action').textContent = 'Retry';
+  $('identity-art-wrap').classList.remove('is-assembling');
 }
 
-async function previewAsset() {
-  if (state.assetPreviewRunning || !state.selectedProfile) return;
-  const requestId = state.selectionGeneration;
-  state.assetPreviewRunning = true;
-  state.assetPreviewComplete = false;
-  state.assetStatus = 'PREVIEW';
-  $('solana-screen').dataset.proofState = 'preview';
-  const button = $('asset-preview-action');
-  const card = $('asset-preview-card');
-  const status = $('asset-preview-status');
-  button.disabled = true;
-  button.textContent = 'Preparing preview…';
-  $('asset-action').hidden = true;
-  card.hidden = false;
-  card.classList.remove('is-revealed');
-  void card.offsetWidth;
-  card.classList.add('is-revealed');
-  status.hidden = false;
-  const beat = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 480;
-  status.textContent = 'Showing the public identity';
-  await waitForPreviewBeat(beat);
-  if (requestId !== state.selectionGeneration) return;
-  status.textContent = 'Keeping farm data private';
-  await waitForPreviewBeat(beat);
-  if (requestId !== state.selectionGeneration) return;
-  status.textContent = 'Preview complete · not created';
-  state.assetPreviewComplete = true;
-  state.assetPreviewRunning = false;
-  button.hidden = true;
-  if (state.assetStatusLoaded && state.assetStatus !== 'ERROR' && state.assetStatus !== 'SUBMITTING') {
-    if (state.assetStatus !== 'CONFIRMED') {
-      state.assetStatus = 'SIGNATURE_REQUIRED';
-      setMessage('asset-state', 'Ready for your wallet signature.', 'signature-required');
-      setAssetButton('Create on Devnet');
-    }
-  } else if (!state.assetStatusLoaded) {
-    void refreshAsset(requestId);
-  }
+function shortAddress(value, lead = 7, trail = 5) {
+  return value && value.length > lead + trail + 1 ? `${value.slice(0, lead)}…${value.slice(-trail)}` : value || '—';
+}
+
+function renderCompletedIdentity(asset, module) {
+  state.asset = asset;
+  state.assetStatus = 'ADDED_TO_WALLET';
+  state.assetStatusLoaded = true;
+  $('solana-screen').dataset.proofState = 'added-to-wallet';
+  setProofSteps('ADDED_TO_WALLET');
+  $('asset-progress').hidden = true;
+  $('asset-actions').hidden = true;
+  $('asset-error').hidden = true;
+  $('asset-complete').hidden = false;
+  $('proof-animal-name').textContent = asset.name || state.selectedProfile?.name || 'Animal';
+  $('proof-public-tag').textContent = asset.public_tag || state.selectedProfile?.tagLabel || '—';
+  $('proof-record-digest').textContent = shortAddress(asset.record_digest || state.recordDigest, 12, 8);
+  $('proof-record-digest').title = asset.record_digest || state.recordDigest || '';
+  $('proof-transaction').textContent = shortAddress(asset.signature || asset.transaction_signature, 8, 6);
+  $('proof-wallet').textContent = shortAddress(asset.owner_address, 8, 6);
+  $('proof-wallet').title = asset.owner_address || '';
+  const explorer = $('asset-explorer');
+  explorer.href = module.assetExplorerUrl(asset.asset_address);
+  explorer.hidden = false;
+  $('identity-art-wrap').classList.remove('is-assembling');
+  $('identity-art-wrap').classList.add('is-confirmed');
+  $('asset-state').textContent = 'Digital identity created';
+  $('asset-state').dataset.state = 'confirmed';
+  updateIdentityToggle(true);
+}
+
+function animateIdentityLink(requestId) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const farm = state.farms.get(state.activeFarmId);
+  const animalId = state.selectedSceneAnimal?.id;
+  if (reduced || !animalId || !farm?.getAnimalScreenPosition) return Promise.resolve();
+  const from = farm.getAnimalScreenPosition(animalId);
+  const targetRect = $('identity-art-wrap').getBoundingClientRect();
+  if (!from || !targetRect.width) return Promise.resolve();
+  const to = { x: targetRect.left + targetRect.width / 2, y: targetRect.top + targetRect.height / 2 };
+  const dx = to.x - from.x;
+  const path = $('identity-motion-path');
+  const group = $('identity-motion-fragments');
+  const fragments = ['01', '7A', 'D4', '·'];
+  path.setAttribute('d', `M ${from.x} ${from.y} C ${from.x + dx * 0.36} ${from.y - 30}, ${to.x - dx * 0.28} ${to.y + 34}, ${to.x} ${to.y}`);
+  group.replaceChildren(...fragments.map((fragment, index) => {
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.textContent = fragment;
+    text.dataset.index = String(index);
+    return text;
+  }));
+  const length = path.getTotalLength();
+  const duration = 1900;
+  const start = performance.now();
+  const overlay = $('identity-motion-overlay');
+  overlay.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+  overlay.setAttribute('preserveAspectRatio', 'none');
+  overlay.classList.add('is-active');
+  path.style.strokeDasharray = `${length}`;
+  path.style.strokeDashoffset = `${length}`;
+  path.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], { duration, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' });
+  return new Promise((resolve) => {
+    const tick = (now) => {
+      if (requestId !== state.identityRunId) {
+        overlay.classList.remove('is-active');
+        resolve();
+        return;
+      }
+      const progress = Math.min(1, (now - start) / duration);
+      group.querySelectorAll('text').forEach((fragment) => {
+        const index = Number(fragment.dataset.index);
+        const point = path.getPointAtLength(Math.max(0, progress * length - index * 15));
+        fragment.setAttribute('x', String(point.x));
+        fragment.setAttribute('y', String(point.y - 7 - index % 2 * 8));
+        fragment.style.opacity = String(Math.min(1, progress * 4, (1 - progress) * 4));
+      });
+      if (progress < 1) requestAnimationFrame(tick);
+      else {
+        overlay.classList.remove('is-active');
+        $('identity-art-wrap').classList.add('is-assembling');
+        resolve();
+      }
+    };
+    requestAnimationFrame(tick);
+  });
 }
 
 async function performAssetAction() {
-  if (!state.animal || !state.assetPreviewComplete || state.assetStatus !== 'SIGNATURE_REQUIRED') return;
+  if (!state.selectedProfile || ['PREPARING_RECORD', 'HASHING', 'SIGNATURE_REQUIRED', 'SUBMITTING_TO_DEVNET', 'CONFIRMING'].includes(state.assetStatus)) return;
+  if (!state.animal) {
+    setAssetPhase('PREPARING_RECORD');
+    await loadSelectedAnimal(state.selectedSceneAnimal, state.selectedProfile, state.selectionGeneration);
+    return;
+  }
   const requestId = state.selectionGeneration;
-  state.assetStatus = 'SUBMITTING';
-  $('solana-screen').dataset.proofState = 'submitting';
-  setAssetButton('Waiting for wallet…', { disabled: true });
-  setMessage('asset-state', 'Waiting for wallet and Devnet verification…', 'submitting');
+  const runId = ++state.identityRunId;
+  state.farms.get(state.activeFarmId)?.pulseAnimalIdentity?.(state.selectedSceneAnimal?.id);
+  $('identity-art-wrap').classList.remove('is-confirmed');
+  $('asset-action').disabled = true;
+  setAssetPhase('PREPARING_RECORD');
   try {
     const module = await tokenizationModule();
-    const result = await module.mintAnimalAsset(state.animal.animal_id);
+    const result = await module.mintAnimalAsset(state.animal.animal_id, {
+      onProgress: async ({ state: phase, result: verified, record_digest: digest }) => {
+        if (requestId !== state.selectionGeneration || runId !== state.identityRunId) return;
+        if (phase === 'PREPARING_RECORD') setAssetPhase(phase);
+        else if (phase === 'HASHING') {
+          setAssetPhase(phase);
+          if (digest || verified?.record_digest) state.recordDigest = digest || verified.record_digest;
+          if (state.recordDigest) await animateIdentityLink(runId);
+        } else if (phase === 'SIGNATURE_REQUIRED') {
+          setAssetPhase(phase);
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            await new Promise((resolve) => window.setTimeout(resolve, 560));
+          }
+        } else if (phase === 'SUBMITTING_TO_DEVNET') {
+          setAssetPhase(phase);
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            await new Promise((resolve) => window.setTimeout(resolve, 380));
+          }
+        }
+        else if (phase === 'CONFIRMING') setAssetPhase(phase);
+      },
+    });
     if (requestId !== state.selectionGeneration) return;
     if (!result.valid || result.evidence !== 'VALIDATED_ON_DEVNET') {
       throw new Error(`The asset is not verified (${result.evidence || result.status || 'unknown state'}).`);
     }
-    await refreshAsset(requestId);
+    setAssetPhase('CONFIRMED');
+    await new Promise((resolve) => window.setTimeout(resolve, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320));
+    if (requestId !== state.selectionGeneration) return;
+    renderCompletedIdentity(result, module);
   } catch (error) {
     if (requestId !== state.selectionGeneration) return;
-    state.assetStatus = 'ERROR';
-    $('solana-screen').dataset.proofState = 'pending';
     state.assetStatusLoaded = true;
-    setMessage('asset-state', `Creation not confirmed: ${error.message}`, 'error');
-    setAssetButton('Retry Devnet check');
+    const detail = typeof error?.message === 'string' ? error.message.trim() : '';
+    const fallback = state.assetStatus === 'SIGNATURE_REQUIRED'
+      ? 'Wallet connection or signature did not complete. Connect a Devnet wallet and retry.'
+      : ['SUBMITTING_TO_DEVNET', 'CONFIRMING'].includes(state.assetStatus)
+        ? 'Devnet has not confirmed this identity yet. Check again or retry.'
+        : 'The identity could not be prepared. Retry when the record is available.';
+    showAssetError((detail || fallback).slice(0, 180));
   }
 }
 
@@ -664,10 +780,20 @@ function toggleDigitalIdentity() {
 $('close-animal-panel').addEventListener('click', () => state.farms.get(state.activeFarmId)?.selectAnimal(null));
 $('continue-solana').addEventListener('click', toggleDigitalIdentity);
 $('demo-main').querySelectorAll('[data-farm-sound]').forEach((button) => button.addEventListener('click', () => farmAudio.toggle()));
-$('asset-preview-action').addEventListener('click', () => void previewAsset());
 $('asset-action').addEventListener('click', () => {
-  if (state.assetStatus === 'SIGNATURE_REQUIRED' && state.assetPreviewComplete) void performAssetAction();
-  else void refreshAsset();
+  if (state.assetStatus === 'CONFIRMING' && state.assetStatusLoaded) void refreshAsset();
+  else void performAssetAction();
+});
+$('copy-asset-id').addEventListener('click', async () => {
+  if (!state.asset?.asset_address) return;
+  try {
+    await navigator.clipboard.writeText(state.asset.asset_address);
+    $('copy-asset-id').textContent = 'Copied';
+    window.setTimeout(() => { $('copy-asset-id').textContent = 'Copy asset ID'; }, 1600);
+  } catch {
+    $('copy-asset-id').textContent = 'Copy unavailable';
+    window.setTimeout(() => { $('copy-asset-id').textContent = 'Copy asset ID'; }, 1600);
+  }
 });
 
 document.addEventListener('pointerdown', (event) => {

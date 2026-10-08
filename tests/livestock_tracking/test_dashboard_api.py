@@ -161,8 +161,14 @@ def test_demo_animal_metadata_uses_only_its_public_label(tmp_path):
 
     metadata = client.get(intent.json()["metadata_uri"])
     assert metadata.status_code == 200, metadata.text
-    assert metadata.json()["name"] == "Animal 7"
-    assert metadata.json()["attributes"] == []
+    public_metadata = metadata.json()
+    assert public_metadata["name"] == "Animal 7"
+    attributes = {item["trait_type"]: item["value"] for item in public_metadata["attributes"]}
+    assert set(attributes) == {"Network", "Metadata reference", "Riose tag", "Record digest", "Created at"}
+    assert attributes["Network"] == "Solana Devnet"
+    assert attributes["Riose tag"] == "Riose Tag #0007"
+    assert attributes["Record digest"] == intent.json()["record_digest"]
+    assert len(attributes["Record digest"]) == 64
     assert "demo-animal-7" not in metadata.text
     assert "demo-tag-0007" not in metadata.text
 
@@ -184,7 +190,11 @@ def test_cerrado_demo_asset_exposes_only_its_synthetic_public_label(tmp_path):
     assert metadata.status_code == 200, metadata.text
     public_metadata = metadata.json()
     assert public_metadata["name"] == "Animal 42"
-    assert public_metadata["attributes"] == []
+    attributes = {item["trait_type"]: item["value"] for item in public_metadata["attributes"]}
+    assert set(attributes) == {"Network", "Metadata reference", "Riose tag", "Record digest", "Created at"}
+    assert attributes["Riose tag"] == "Riose Tag #0042"
+    assert attributes["Record digest"] == intent.json()["record_digest"]
+    assert len(attributes["Record digest"]) == 64
     for private_value in (
         "demo-cerrado-animal-18", "demo-cerrado-tag-0042", "Nelore", "Pregnant", "Cerrado pasture",
     ):

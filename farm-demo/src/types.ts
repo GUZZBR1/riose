@@ -29,6 +29,8 @@ export interface FarmDemoCallbacks {
 export interface FarmDemoHandle {
   focusAnimal(id: string): void;
   selectAnimal(id: string | null): void;
+  pulseAnimalIdentity(id: string): boolean;
+  getAnimalScreenPosition(id: string): { x: number; y: number } | null;
   getAnimals(): readonly AnimalState[];
   setActive(active: boolean): void;
   destroy(): void;

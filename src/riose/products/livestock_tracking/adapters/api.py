@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import date, datetime, timezone
 import json
 import math
 import os
@@ -302,6 +302,9 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             "status": status,
             "public_ref": record["public_ref"],
             "metadata_uri": metadata_uri,
+            "record_digest": record.get("record_digest"),
+            "public_tag": record.get("public_tag"),
+            "created_at": record.get("created_at"),
             "asset_address": active_attempt["asset_address"] if active_attempt else record["asset_address"],
             "owner_address": active_attempt["owner_address"] if active_attempt else record["owner_address"],
             "transaction_signature": record["transaction_signature"],
@@ -341,6 +344,9 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             "asset_address": attempt["asset_address"],
             "owner_address": attempt["owner_address"],
             "metadata_uri": attempt["metadata_uri"],
+            "record_digest": current.get("record_digest"),
+            "public_tag": current.get("public_tag"),
+            "created_at": current.get("created_at"),
             "evidence": "ATTEMPT_RESERVED",
         }
 
@@ -391,6 +397,9 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             "owner_address": record["owner_address"],
             "metadata_uri": record["metadata_uri"],
             "transaction_signature": record["transaction_signature"],
+            "record_digest": record.get("record_digest"),
+            "public_tag": record.get("public_tag"),
+            "created_at": record.get("created_at"),
             "evidence": "SUBMITTED_UNVERIFIED",
         }
 
@@ -422,6 +431,9 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
             "owner_address": active_attempt["owner_address"] if active_attempt else record["owner_address"],
             "metadata_uri": (active_attempt["metadata_uri"] if active_attempt else record["metadata_uri"]) or metadata_uri,
             "transaction_signature": record["transaction_signature"],
+            "record_digest": record.get("record_digest"),
+            "public_tag": record.get("public_tag"),
+            "created_at": record.get("created_at"),
             "attempt_ref": active_attempt["attempt_ref"] if active_attempt else None,
             "evidence": ("ATTEMPT_RESERVED" if status == "SIGNING" else
                          "PREPARED" if status == "PREPARED" else "SUBMITTED_UNVERIFIED"),
@@ -455,15 +467,27 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
 
     @app.get("/api/animal-assets/metadata/{public_ref}", name="animal_asset_metadata")
     def animal_asset_metadata(public_ref: str, request: Request) -> dict[str, Any]:
-        public_name = app.state.store.animal_asset_public_name(public_ref)
-        if public_name is None:
+        identity = app.state.store.animal_asset_public_identity(public_ref)
+        if identity is None:
             raise HTTPException(status_code=404, detail="asset metadata not found")
+        attributes = []
+        if identity["public_tag"]:
+            attributes = [
+                {"trait_type": "Network", "value": "Solana Devnet"},
+                {"trait_type": "Metadata reference", "value": str(request.url)},
+                {"trait_type": "Riose tag", "value": identity["public_tag"]},
+                {"trait_type": "Record digest", "value": identity["record_digest"]},
+                {
+                    "trait_type": "Created at",
+                    "value": datetime.fromtimestamp(identity["created_at"], timezone.utc).isoformat(),
+                },
+            ]
         return {
-            "name": public_name,
-            "description": "Digital identity only. It does not verify animal records or prove physical identity or ownership.",
+            "name": identity["name"],
+            "description": "A digital identity for a RIOSE animal record. It does not establish physical identity or legal ownership.",
             "image": str(request.url_for("site-assets", path="riose-mark.png")),
             "external_url": str(request.base_url),
-            "attributes": [],
+            "attributes": attributes,
         }
 
     @app.get("/api/animals/{animal_id}")
@@ -561,9 +585,13 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
     def verify_animal_events(animal_id: str) -> dict[str, Any]:
         if app.state.store.get_animal(animal_id) is None:
             raise HTTPException(status_code=404, detail="animal not found")
+        evidence = app.state.store.event_chain_evidence(animal_id)
+        valid = bool(evidence and evidence.valid)
         return {"animal_id": animal_id,
-                "valid": app.state.store.verify_animal_chain(animal_id),
-                "evidence": "LOCAL_HASH_CHAIN"}
+                "valid": valid,
+                "evidence": "LOCAL_HASH_CHAIN",
+                "record_digest": evidence.head_digest if valid and evidence else None,
+                "algorithm": evidence.algorithm if evidence else "sha256"}
 
     @app.post("/api/simulation/run")
     def run_simulation(body: SimulationRequest) -> dict[str, Any]:

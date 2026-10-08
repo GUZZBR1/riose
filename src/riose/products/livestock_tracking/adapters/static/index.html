@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261008-03">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261008-05">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -94,30 +94,39 @@
             </div>
           </header>
           <div class="solana-panel-body">
-            <img class="identity-art" id="identity-art" data-src="/assets/demo/solana-identity-orb.webp" alt="" width="220" height="220" decoding="async">
+            <div class="identity-art-wrap" id="identity-art-wrap" aria-hidden="true">
+              <img class="identity-art" id="identity-art" data-src="/assets/demo/solana-identity-orb.webp" alt="" width="220" height="220" decoding="async">
+              <span class="identity-orbit-node identity-orbit-node-a"></span><span class="identity-orbit-node identity-orbit-node-b"></span><span class="identity-orbit-node identity-orbit-node-c"></span>
+              <span class="identity-confirmation-ring"></span>
+            </div>
             <div class="solana-actions">
               <ol class="proof-flow" aria-label="Identity proof steps">
-                <li>Farm record</li><li>Digest</li><li>Solana</li><li>Digital identity</li>
+                <li data-proof-step="record">Farm record</li><li data-proof-step="hash">Hash</li><li data-proof-step="solana">Solana</li><li data-proof-step="wallet">Wallet <svg class="proof-wallet-icon" viewBox="0 0 20 16" focusable="false"><rect x="1" y="2" width="18" height="13" rx="3"></rect><path d="M1 5h18M14 9h2"></path></svg></li>
               </ol>
-              <div class="asset-preview-card" id="asset-preview-card" hidden aria-live="polite">
-                <img id="asset-preview-portrait" src="/assets/demo/animal-0.webp" alt="" width="48" height="48">
-                <div class="asset-preview-copy">
-                  <strong id="asset-preview-public-name">Animal 0</strong>
-                  <small>Public identity</small>
-                </div>
+              <div class="asset-progress" id="asset-progress" hidden aria-live="polite">
+                <span class="asset-progress-indicator" aria-hidden="true"></span>
+                <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Ready when you are.</p>
               </div>
-              <p class="asset-preview-status" id="asset-preview-status" role="status" aria-live="polite" hidden></p>
-              <div class="asset-actions">
-                <button class="primary-button" id="asset-preview-action" type="button">Create digital identity</button>
-                <button class="primary-button" id="asset-action" type="button" hidden>Create on Devnet</button>
+              <section class="asset-complete" id="asset-complete" aria-live="polite" hidden>
+                <div class="asset-complete-heading"><span class="asset-complete-mark" aria-hidden="true">✓</span><div><h3>Digital identity created</h3><p>A verifiable Riose record digest has been anchored on Solana.</p></div></div>
+                <dl class="asset-proof-data">
+                  <div><dt>Animal</dt><dd id="proof-animal-name"></dd></div>
+                  <div><dt>Riose tag</dt><dd id="proof-public-tag"></dd></div>
+                  <div><dt>Record digest</dt><dd id="proof-record-digest"></dd></div>
+                  <div><dt>Transaction</dt><dd id="proof-transaction"></dd></div>
+                  <div><dt>Wallet</dt><dd id="proof-wallet"></dd></div>
+                  <div><dt>Network</dt><dd>Solana Devnet</dd></div>
+                </dl>
+                <p class="wallet-explainer">Your wallet controls the keys for this digital identity. The physical animal remains represented by its Riose record.</p>
+                <div class="asset-actions"><a id="asset-explorer" class="primary-button asset-link" href="#" target="_blank" rel="noopener noreferrer">View proof</a><button id="copy-asset-id" class="secondary-button" type="button">Copy asset ID</button></div>
               </div>
-              <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Ready when you are.</p>
-              <a id="asset-explorer" class="asset-link" href="#" target="_blank" rel="noopener noreferrer" hidden>View proof ↗</a>
+              <div class="asset-actions" id="asset-actions"><button class="primary-button" id="asset-action" type="button">Create digital identity</button></div>
+              <p class="asset-error" id="asset-error" role="alert" hidden></p>
             </div>
           </div>
           <details class="asset-details">
             <summary>About this proof</summary>
-            <p>A wallet signature is required to create the asset. The digital identity is separate from the farm record and does not prove physical ownership.</p>
+            <p>Only a minimal public identifier and record digest are anchored. Farm operations stay private; the digital identity does not represent legal ownership of the physical animal.</p>
           </details>
         </section>
       </aside>
@@ -147,6 +156,7 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261008-02"></script>
+  <svg class="identity-motion-overlay" id="identity-motion-overlay" aria-hidden="true" focusable="false"><path id="identity-motion-path"></path><g id="identity-motion-fragments"></g></svg>
+  <script type="module" src="/assets/demo.js?v=20261008-04"></script>
 </body>
 </html>

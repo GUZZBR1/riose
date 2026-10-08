@@ -21,6 +21,18 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _public_demo_tag(animal_id: str) -> str | None:
+    match = re.fullmatch(r"demo-animal-(\d{1,2})", animal_id)
+    if match:
+        number = int(match.group(1))
+    else:
+        cerrado = re.fullmatch(r"demo-cerrado-animal-(\d{1,2})", animal_id)
+        if not cerrado:
+            return None
+        number = int(cerrado.group(1)) + 24
+    return f"Riose Tag #{number:04d}"
+
+
 SCHEMA = """
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS animals (
@@ -108,6 +120,8 @@ CREATE TABLE IF NOT EXISTS animal_assets (
   owner_address TEXT,
   metadata_uri TEXT,
   transaction_signature TEXT UNIQUE,
+  public_tag TEXT,
+  record_digest TEXT,
   status TEXT NOT NULL CHECK(status IN ('PREPARED','SUBMITTED')),
   created_at REAL NOT NULL,
   updated_at REAL NOT NULL,
@@ -145,6 +159,11 @@ class Store:
         if "schema_version" not in columns:
             # NULL identifies historical rows written before the v1 marker existed.
             self.connection.execute("ALTER TABLE animal_events ADD COLUMN schema_version TEXT")
+        asset_columns = {row[1] for row in self.connection.execute("PRAGMA table_info(animal_assets)")}
+        if "public_tag" not in asset_columns:
+            self.connection.execute("ALTER TABLE animal_assets ADD COLUMN public_tag TEXT")
+        if "record_digest" not in asset_columns:
+            self.connection.execute("ALTER TABLE animal_assets ADD COLUMN record_digest TEXT")
         for table in ("positions", "telemetry"):
             columns = {row[1] for row in self.connection.execute(f"PRAGMA table_info({table})")}
             if "run_id" not in columns:
@@ -266,17 +285,30 @@ class Store:
         import time
 
         with self._lock:
-            if self.connection.execute(
-                "SELECT 1 FROM animals WHERE animal_id=?", (animal_id,)
-            ).fetchone() is None:
+            animal = self.connection.execute(
+                "SELECT animal_id FROM animals WHERE animal_id=?", (animal_id,)
+            ).fetchone()
+            if animal is None:
                 return None
             now = time.time()
+            from ...domain.identity import event_chain_evidence
+            evidence = event_chain_evidence(self.connection, animal_id)
+            record_digest = evidence.head_digest if evidence and evidence.valid else None
+            public_tag = _public_demo_tag(str(animal["animal_id"]))
             self.connection.execute(
                 "INSERT OR IGNORE INTO animal_assets "
-                "(animal_id,cluster,public_ref,status,created_at,updated_at) "
-                "VALUES(?, 'devnet', ?, 'PREPARED', ?, ?)",
-                (animal_id, uuid.uuid4().hex, now, now),
+                "(animal_id,cluster,public_ref,status,created_at,updated_at,public_tag,record_digest) "
+                "VALUES(?, 'devnet', ?, 'PREPARED', ?, ?, ?, ?)",
+                (animal_id, uuid.uuid4().hex, now, now, public_tag, record_digest),
             )
+            current = self._animal_asset_row(animal_id)
+            # Existing prepared intents from before this snapshot schema can be
+            # enriched before any wallet has signed or submitted a transaction.
+            if current and current["status"] == "PREPARED" and not current.get("record_digest") and record_digest:
+                self.connection.execute(
+                    "UPDATE animal_assets SET public_tag=?,record_digest=? WHERE animal_id=? AND cluster='devnet' AND status='PREPARED'",
+                    (public_tag, record_digest, animal_id),
+                )
             self.connection.commit()
             return self._animal_asset_row(animal_id)
 
@@ -314,6 +346,28 @@ class Store:
             if cerrado_match:
                 return f"Animal {int(cerrado_match.group(1)) + 24}"
             return "RIOSE · Ativo bovino"
+
+    def animal_asset_public_identity(self, public_ref: str) -> dict[str, Any] | None:
+        """Return only the frozen, public identity fields used by Devnet metadata."""
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT animal_id,public_tag,record_digest,created_at,transaction_signature "
+                "FROM animal_assets WHERE public_ref=?", (public_ref,),
+            ).fetchone()
+            if row is None:
+                return None
+            animal_id = str(row["animal_id"])
+            match = re.fullmatch(r"demo-animal-(\d{1,2})", animal_id)
+            cerrado_match = re.fullmatch(r"demo-cerrado-animal-(\d{1,2})", animal_id)
+            public_index = int(match.group(1)) if match else int(cerrado_match.group(1)) + 24 if cerrado_match else None
+            public_name = f"Animal {public_index}" if public_index is not None else "RIOSE · Ativo bovino"
+            return {
+                "name": public_name,
+                "public_tag": row["public_tag"],
+                "record_digest": row["record_digest"],
+                "created_at": float(row["created_at"]),
+                "transaction_signature": row["transaction_signature"],
+            }
 
     def get_animal_asset_attempt(self, animal_id: str) -> dict[str, Any] | None:
         with self._lock:

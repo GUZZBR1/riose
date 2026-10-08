@@ -141,6 +141,27 @@ export class FarmScene extends Phaser.Scene {
     this.cameraController.focus(x, y);
   }
 
+  pulseAnimalIdentity(id: string): boolean {
+    const cow = this.cowById(id);
+    if (!cow || id !== this.selectedId) return false;
+    cow.pulseIdentityTag(this.reducedMotion);
+    return true;
+  }
+
+  getAnimalScreenPosition(id: string): { x: number; y: number } | null {
+    const cow = this.cowById(id);
+    if (!cow || !this.game.canvas) return null;
+    const { x, y } = cow.getState().estimatedPosition;
+    const camera = this.cameras.main;
+    const rect = this.game.canvas.getBoundingClientRect();
+    const localX = camera.x + camera.width * camera.originX * (1 - camera.zoomX) + (x - camera.scrollX) * camera.zoomX;
+    const localY = camera.y + camera.height * camera.originY * (1 - camera.zoomY) + (y - 20 - camera.scrollY) * camera.zoomY;
+    return {
+      x: rect.left + localX * rect.width / camera.width,
+      y: rect.top + localY * rect.height / camera.height,
+    };
+  }
+
   getAnimals(): readonly AnimalState[] { return this.cows.map((cow) => cow.getState()); }
 
   private drawNavigationDebug(): void {

@@ -11,6 +11,8 @@ const COW_HEIGHT: Record<FarmId, number> = { farm01: 54, farm02: 66 };
 export class CowEntity {
   readonly sprite: Phaser.GameObjects.Image;
   private readonly selection: Phaser.GameObjects.Ellipse;
+  private readonly tagHalo: Phaser.GameObjects.Ellipse;
+  private readonly tagMarker: Phaser.GameObjects.Rectangle;
   private readonly pasture: PastureZone;
   private snapshot: BehaviorSnapshot;
   private hovered = false;
@@ -46,6 +48,14 @@ export class CowEntity {
       .setStrokeStyle(2, 0xe9ebc9, 0.86)
       .setDepth(this.snapshot.y + 1)
       .setVisible(false);
+    this.tagHalo = scene.add.ellipse(this.snapshot.x, this.snapshot.y - 24, 19, 19, 0xf2d15b, 0.16)
+      .setStrokeStyle(1, 0xe8bd38, 0.78)
+      .setDepth(this.snapshot.y + 6)
+      .setVisible(false);
+    this.tagMarker = scene.add.rectangle(this.snapshot.x, this.snapshot.y - 24, 7, 11, 0xf0ca48, 1)
+      .setStrokeStyle(1, 0x806824, 0.85)
+      .setDepth(this.snapshot.y + 7)
+      .setVisible(false);
   }
 
   update(snapshot: BehaviorSnapshot, _deltaMs: number, reducedMotion: boolean): void {
@@ -61,6 +71,10 @@ export class CowEntity {
       .setFlipX(Math.cos(snapshot.heading) < 0)
       .setDepth(y + 2);
     this.selection.setPosition(x, y + 7).setDepth(y + 1);
+    const tagX = x + (this.sprite.flipX ? 23 : -23);
+    const tagY = y - 24 - gaitLift;
+    this.tagHalo.setPosition(tagX, tagY).setDepth(y + 6);
+    this.tagMarker.setPosition(tagX, tagY).setDepth(y + 7);
   }
 
   setSelected(selected: boolean): void {
@@ -71,6 +85,26 @@ export class CowEntity {
 
   setDragging(dragging: boolean): void {
     if (this.sprite.input) this.sprite.input.cursor = dragging ? 'grabbing' : 'grab';
+  }
+
+  pulseIdentityTag(reducedMotion: boolean): void {
+    this.scene.tweens.killTweensOf([this.selection, this.tagHalo, this.tagMarker]);
+    this.selection.setVisible(true).setScale(1).setAlpha(0.86);
+    this.tagHalo.setVisible(true).setScale(0.65).setAlpha(0.85);
+    this.tagMarker.setVisible(true).setAlpha(1);
+    const clearTag = () => {
+      this.tagHalo.setVisible(false).setScale(1).setAlpha(0.16);
+      this.tagMarker.setVisible(false).setAlpha(1);
+      this.selection.setScale(1).setAlpha(0.86);
+    };
+    if (reducedMotion) {
+      this.scene.time.delayedCall(1900, clearTag);
+      return;
+    }
+    this.scene.tweens.add({ targets: this.selection, scaleX: 1.24, scaleY: 1.45, alpha: 0.25,
+      duration: 360, yoyo: true, repeat: 2, ease: 'Sine.easeInOut' });
+    this.scene.tweens.add({ targets: this.tagHalo, scaleX: 1.65, scaleY: 1.65, alpha: 0.06,
+      duration: 460, yoyo: true, repeat: 2, ease: 'Sine.easeInOut', onComplete: clearTag });
   }
 
   getState(): AnimalState {
@@ -88,6 +122,8 @@ export class CowEntity {
   destroy(): void {
     this.sprite.destroy();
     this.selection.destroy();
+    this.tagHalo.destroy();
+    this.tagMarker.destroy();
   }
 
   private setHovered(hovered: boolean): void {
