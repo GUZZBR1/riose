@@ -27,16 +27,25 @@ class SkipGovernance:
 
     def pytest_runtest_logreport(self, report: pytest.TestReport) -> None:
         if report.skipped:
-            detail = str(report.longrepr)
-            classification = "UNEXPLAINED"
-            for rule in self.rules:
-                if rule["pattern"] in detail:
-                    classification = rule["classification"]
-                    break
-            item = (report.nodeid, classification, detail)
-            self.skips.append(item)
-            if classification in BLOCKING_SKIP_CLASSES:
-                self.blocking.append(item)
+            self._record_skip(report.nodeid, report.longrepr)
+
+    def pytest_collectreport(self, report: pytest.CollectReport) -> None:
+        # Module-level importorskip and collection skips do not produce a
+        # runtest report, so they need the same explicit governance.
+        if report.skipped:
+            self._record_skip(report.nodeid, report.longrepr)
+
+    def _record_skip(self, nodeid: str, longrepr: object) -> None:
+        detail = str(longrepr)
+        classification = "UNEXPLAINED"
+        for rule in self.rules:
+            if rule["pattern"] in detail:
+                classification = rule["classification"]
+                break
+        item = (nodeid, classification, detail)
+        self.skips.append(item)
+        if classification in BLOCKING_SKIP_CLASSES:
+            self.blocking.append(item)
 
     def pytest_terminal_summary(self, terminalreporter: Any) -> None:
         if self.skips:

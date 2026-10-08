@@ -182,3 +182,16 @@ def test_skip_governance_reports_expected_optional_and_blocks_unexplained_skips(
     ))
     assert [row[1] for row in governance.skips] == ["EXPECTED_OPTIONAL", "UNEXPLAINED"]
     assert [row[1] for row in governance.blocking] == ["UNEXPLAINED"]
+
+
+def test_skip_governance_blocks_module_level_collection_skips():
+    from types import SimpleNamespace
+
+    governance = SkipGovernance(PACKAGE / "skip_classification.json")
+    governance.pytest_collectreport(SimpleNamespace(
+        skipped=True,
+        nodeid="tests/test_hidden_module.py",
+        longrepr="No module named 'optional_dependency'",
+    ))
+    assert [row[1] for row in governance.skips] == ["UNEXPLAINED"]
+    assert [row[1] for row in governance.blocking] == ["UNEXPLAINED"]
