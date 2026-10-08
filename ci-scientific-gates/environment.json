@@ -1,0 +1,16 @@
+{
+  "schema_version": "riose.sc4-environment/v1",
+  "platform": "Ubuntu 24.04 in WSL2; Linux 6.6.87.2-microsoft-standard-WSL2; x86_64",
+  "python": "3.12.3 (reused venv from sibling worktree with identical uv.lock; current src injected via PYTHONPATH)",
+  "uv": "0.11.26",
+  "node": "v22.22.2",
+  "npm": "10.9.7",
+  "cmake": "3.28.3",
+  "ctest": "3.28.3",
+  "compiler": "GCC 13.3.0",
+  "tools": {
+    "west": "NOT_INSTALLED",
+    "renode": "NOT_INSTALLED",
+    "gh": "2.45.0 available; GitHub API request failed due connection/network error; branch protection NOT_VERIFIED"
+  }
+}

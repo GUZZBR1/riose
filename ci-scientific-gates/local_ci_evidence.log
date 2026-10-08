@@ -1,0 +1,22 @@
+RIOSE SC-4 local verification record
+Base: fork/main b2ddf11098ecd87b954bf97af26f8ecb8862b58a
+Worktree branch: software-closure/sc4-ci-scientific-gates
+Platform: Ubuntu 24.04 / WSL2, Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+Runtime: Python 3.12.3, uv 0.11.26, Node v22.22.2, npm 10.9.7, CMake/CTest 3.28.3, GCC 13.3.0
+
+PASS PR_FAST: python scripts/ci/run_gate.py fast; 83 passed in 1.85 seconds; compileall and git diff --check passed.
+PASS SCIENTIFIC: python scripts/ci/run_gate.py scientific; 275 passed in 22.02 seconds.
+PASS FULL_PYTHON: python scripts/ci/run_gate.py python; 664 passed in 71.08 seconds, zero skips, one StarletteDeprecationWarning.
+PASS CAD_EXPORT: RIOSE_REQUIRE_CADQUERY=1 pytest -q tests/cad_export; 7 passed, 34 deselected in 7.31 seconds.
+PASS HOST_C: CMake host build succeeded; CTest 39/39 passed (0.48 seconds test time). No hardware claim.
+PASS SOLIDITY: node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol; compilation output contained ABI and bytecode.
+PASS PACKAGE: uv build --offline --wheel --out-dir /tmp/riose-sc4-dist; cattle_rf-0.1.0-py3-none-any.whl produced.
+PASS LOCAL_EVM: local EVM regression passed within full Python suite, using an existing package tree checked against the target package-lock package versions and integrities.
+PASS HEAVY_INTERFACE: emitted a REQUEST_ONLY/UNVERIFIED campaign request, source tree and repository config SHA recorded; no simulation campaign executed.
+BLOCKED CLEAN_NPM_INSTALL: npm ci could not resolve npm registry due WSL DNS failure; offline cache did not include Ganache.
+NOT_EXECUTED REMOTE_CI: GitHub Actions was not run.
+NOT_VERIFIED BRANCH_PROTECTION: GitHub API connection failed; no protection state asserted.
+NOT_EXECUTED REAL_ON_CHAIN: no public chain transaction/receipt.
+NOT_TESTED HARDWARE/FIELD: no physical target, Zephyr, Renode, lab, or field capture; west and renode unavailable.
+
+Dependencies for Python and local EVM were reused read-only from sibling worktrees; the Python environment had the identical uv.lock and the node_modules tree matched package-lock package versions/integrity. The SC-4 worktree's temporary symlink and partial failed environment will be removed before delivery. These local checks do not imply remote CI, branch protection, field or public-network validation.

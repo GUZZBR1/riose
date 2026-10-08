@@ -1,0 +1,39 @@
+{
+  "mission": "RIOSE SC-4 CI & Scientific Integrity Gates",
+  "repository": "GUZZBR1/riose",
+  "upstream": "santleme/riose",
+  "base_branch": "fork/main",
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "branch": "software-closure/sc4-ci-scientific-gates",
+  "remote_freshness": "VERIFIED",
+  "remote_checks": {
+    "fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "upstream_main": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+    "upstream_modified": false
+  },
+  "preexisting_worktree_state": {
+    "source_checkout": "RIOSE/riose",
+    "branch": "codex/issue-10-antenna-convergence",
+    "head": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "dirty": true,
+    "untracked": ["GUZZ_PRESERVATION_MANIFEST.json", "GUZZ_PRESERVATION_MANIFEST.md", "INTEGRATION_COLLISION_MATRIX.md", "riose-issue26/"],
+    "action": "preserved unchanged; SC-4 uses an isolated worktree"
+  },
+  "current_worktree": {
+    "path": "/home/gusta/projetos/RIOSE/riose-sc4-ci-scientific-gates",
+    "initial_status": "clean",
+    "initial_head": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a"
+  },
+  "current_ci": [".github/workflows/mvp2-core.yml"],
+  "pytest_markers": {
+    "custom_markers": [],
+    "observed_builtin_usage": ["parametrize"],
+    "skip_points": ["CadQuery optional tests", "optional imports for scikit-learn, FastAPI/httpx, and PyYAML"]
+  },
+  "security_issue_status": {
+    "SEC_SOLANA_001": "OPEN",
+    "basis": "No closure record or issue identifier was found in tracked source at the verified baseline; existing Solana adapter and mock/local regression tests are included in the gates.",
+    "scope_note": "SC-4 adds CI coverage only and does not claim to close SC-2."
+  },
+  "branch_protection": "NOT_VERIFIED: not stored in repository; account-level settings were not queried."
+}

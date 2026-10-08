@@ -1,0 +1,55 @@
+{
+  "schema_version": "riose.ci-gates/v1",
+  "gates": {
+    "PR_FAST": {
+      "trigger": ["pull_request", "push"],
+      "runtime_budget": "FAST",
+      "tests": [
+        "tests/ci_scientific_gates/test_policy.py",
+        "tests/livestock_tracking/test_event_contract.py",
+        "tests/livestock_tracking/test_commitment_privacy.py",
+        "tests/livestock_tracking/test_publication_outbox.py",
+        "tests/test_evidence_bridge.py"
+      ],
+      "commands": ["python -m compileall -q src", "pytest focused contract tests", "git diff --check"],
+      "blocking": true
+    },
+    "MAIN": {
+      "trigger": ["push to fork/main", "workflow_dispatch"],
+      "runtime_budget": "MEDIUM",
+      "tests": ["tests", "hardware"],
+      "commands": ["full pytest regression including hardware models", "Solidity compile", "CTest host firmware suite", "package build with build constraints"],
+      "blocking": true
+    },
+    "HEAVY": {
+      "trigger": ["schedule", "workflow_dispatch with run_heavy=true"],
+      "runtime_budget": "HEAVY",
+      "tests": [],
+      "commands": ["validate and emit a provenance-bound campaign request"],
+      "blocking": false,
+      "campaign_inputs": ["scenario", "seed", "duration", "backend", "artifact_directory"]
+    },
+    "SCIENTIFIC": {
+      "trigger": ["pull_request", "push", "workflow_dispatch"],
+      "runtime_budget": "MEDIUM",
+      "tests": [
+        "tests/test_evidence_bridge.py",
+        "tests/ci_scientific_gates/test_policy.py",
+        "tests/simulation_contract/test_v1.py",
+        "tests/simulation_adapter/test_adapter.py",
+        "tests/simulation_lab/test_farm_rf.py",
+        "tests/simulation_lab/test_farm_network.py",
+        "tests/research/test_dynamic_localization.py",
+        "tests/livestock_tracking/test_localization.py",
+        "tests/livestock_tracking/test_event_contract.py",
+        "tests/livestock_tracking/test_commitment_privacy.py",
+        "tests/livestock_tracking/test_publication_outbox.py",
+        "tests/livestock_tracking/test_publication_dispatcher.py",
+        "tests/livestock_tracking/test_evm_registry.py",
+        "tests/livestock_tracking/test_solana_memo.py"
+      ],
+      "commands": ["pytest scientific integrity contract suite", "validate checked-in gate policy and provenance"],
+      "blocking": true
+    }
+  }
+}

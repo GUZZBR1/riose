@@ -1,0 +1,15 @@
+{
+  "schema_version": "riose.sc4-limitations/v1",
+  "limitations": [
+    "GitHub Actions was not executed remotely during this mission; remote green is not claimed.",
+    "Branch protection settings require repository administration/API access and were not verified.",
+    "SEC_SOLANA_001 has no closure record in the verified baseline and remains OPEN; SC-4 only wires existing regression coverage.",
+    "Host CTest and local EVM do not establish hardware or public-chain validation.",
+    "No physical hardware, field, mainnet, Base Sepolia, Arbitrum Sepolia, Zephyr, or Renode campaign was executed.",
+    "The existing RIOSE_SCIENTIFIC_CLAIM_REGISTRY.json remains an unchanged historical registry with free-form evidence strings.",
+    "The heavy interface records a request only; no SIM-1 through SIM-8 campaign or Digital Farm V2 is implemented.",
+    "No repeat-run CI data exists yet to classify any test as known flaky."
+  ],
+  "hardware_claim": "HOST_TESTED only; HARDWARE_NOT_TESTED",
+  "network_claim": "LOCAL_MOCKS_ONLY; REAL_ON_CHAIN NOT_EXECUTED"
+}

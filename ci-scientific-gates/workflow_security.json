@@ -1,0 +1,18 @@
+{
+  "schema_version": "riose.workflow-security/v1",
+  "workflow": ".github/workflows/mvp2-core.yml",
+  "permissions": {"contents": "read"},
+  "pull_request_trigger": "pull_request",
+  "privileged_triggers": [],
+  "secrets_exposed_to_pr_code": false,
+  "untrusted_expression_in_shell": false,
+  "checkout_credentials_persisted": false,
+  "action_pins": [
+    {"action":"actions/checkout","version":"v4.4.0","sha":"11d5960a326750d5838078e36cf38b85af677262","source":"https://github.com/actions/checkout/releases/tag/v4.4.0"},
+    {"action":"astral-sh/setup-uv","version":"v6.6.1","sha":"557e51de59eb14aaaba2ed9621916900a91d50c6","source":"https://github.com/astral-sh/setup-uv/releases/tag/v6.6.1"},
+    {"action":"actions/setup-node","version":"v4.4.0","sha":"49933ea5288caeca8642d1e84afbd3f7d6820020","source":"https://github.com/actions/setup-node/releases/tag/v4.4.0"},
+    {"action":"actions/upload-artifact","version":"v4.6.2","sha":"ea165f8d65b6e75b540449e92b4886f43607fa02","source":"https://github.com/actions/upload-artifact/releases/tag/v4.6.2"}
+  ],
+  "artifact_handling": "Only the explicit non-sensitive heavy request JSON is uploaded; no credentials or simulation results are attached.",
+  "branch_protection": "NOT_VERIFIED: requires repository settings access; no branch protection claim is made."
+}

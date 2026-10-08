@@ -1,0 +1,19 @@
+{
+  "schema_version": "riose.test-costs/v1",
+  "measurement_method": "Measured from local gate runner wall time on the recorded environment; no historical CI timing data was available.",
+  "gates": {
+    "PR_FAST": {"class": "FAST", "seconds": 1.85, "tests": 83, "status": "PASS"},
+    "SCIENTIFIC": {"class": "MEDIUM", "seconds": 22.02, "tests": 275, "status": "PASS"},
+    "MAIN": {"class": "MEDIUM", "seconds": null, "status": "NOT_RUN_AS_COMPOSITE; constituent full Python, Solidity, CTest, package, and CAD checks recorded separately; clean npm install blocked by DNS"},
+    "HEAVY": {"class": "HEAVY", "seconds": null, "status": "REQUEST_ONLY; no campaign executed"},
+    "CAD_EXPORT": {"class": "MEDIUM", "seconds": 7.31, "tests": 7, "status": "PASS; 34 deselected"},
+    "ZEPHYR_RENODE": {"class": "HEAVY", "seconds": null, "status": "NOT_RUN; external toolchain not provisioned"}
+  },
+  "test_flakiness": {
+    "classification": "UNKNOWN pending repeated CI evidence",
+    "known_flaky": [],
+    "deterministic": ["schema and contract tests", "seeded simulation fixtures", "C host tests"],
+    "environment_sensitive": ["CAD export", "local EVM process startup", "optional Renode/Zephyr tests"],
+    "policy": "Do not add arbitrary sleeps, unbounded retries, or permanent xfail markers; investigate only reproducible failures."
+  }
+}

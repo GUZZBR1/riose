@@ -1,0 +1,71 @@
+{
+  "schema_version": "riose.local-ci-results/v1",
+  "status": "PASS_WITH_LIMITATIONS",
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "tested_sha": "588130561123203c3d270208d7c31927b8520702",
+  "branch": "software-closure/sc4-ci-scientific-gates",
+  "commands": [
+    {
+      "gate": "PR_FAST",
+      "command": "python scripts/ci/run_gate.py fast",
+      "result": "PASS: 83 passed in 1.85s; git diff --check passed"
+    },
+    {
+      "gate": "SCIENTIFIC",
+      "command": "python scripts/ci/run_gate.py scientific",
+      "result": "PASS: 275 passed in 22.02s"
+    },
+    {
+      "gate": "FULL_PYTHON",
+      "command": "python scripts/ci/run_gate.py python",
+      "result": "PASS: 664 passed in 71.08s; one StarletteDeprecationWarning; no skips"
+    },
+    {
+      "gate": "CAD_EXPORT",
+      "command": "RIOSE_REQUIRE_CADQUERY=1 pytest -q tests/cad_export",
+      "result": "PASS: 7 passed, 34 deselected in 7.31s"
+    },
+    {
+      "gate": "HOST_C",
+      "command": "cmake configure/build and ctest",
+      "result": "PASS: 39/39 CTest passed; host only"
+    },
+    {
+      "gate": "SOLIDITY",
+      "command": "node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol",
+      "result": "PASS: compile plus ABI/bytecode presence validation"
+    },
+    {
+      "gate": "PYTHON_PACKAGE",
+      "command": "uv build --offline --wheel --out-dir /tmp/riose-sc4-dist",
+      "result": "PASS: wheel cattle_rf-0.1.0-py3-none-any.whl"
+    },
+    {
+      "gate": "HEAVY_INTERFACE",
+      "command": "python scripts/ci/run_gate.py heavy --scenario contract-smoke --seed 1 --duration 1 --backend contract-only --config-file uv.lock",
+      "result": "PASS: emits REQUEST_ONLY/UNVERIFIED manifest with verified config SHA; campaign not run"
+    },
+    {
+      "gate": "FULL_PYTHON_EVM",
+      "command": "local EVM test included in full Python suite",
+      "result": "PASS using existing dependency cache whose package versions and integrities match package-lock.json"
+    },
+    {
+      "gate": "NPM_CLEAN_INSTALL",
+      "command": "npm ci",
+      "result": "BLOCKED: npm registry DNS unavailable; offline cache missing Ganache package"
+    }
+  ],
+  "environment": "ci-scientific-gates/environment.json",
+  "remote_ci": "NOT_EXECUTED",
+  "real_on_chain": "NOT_EXECUTED",
+  "hardware": "HARDWARE_NOT_TESTED; HOST_TESTED only",
+  "branch_protection": "NOT_VERIFIED; GitHub API connection failed",
+  "skip_governance": "PASS; full suite reported zero skips",
+  "notes": [
+    "Python dependencies came from a sibling worktree using the exact same uv.lock; no dependency files were altered.",
+    "Local EVM test used an existing sibling node_modules tree verified to match target package versions and integrities; temporary symlink will be removed before delivery.",
+    "No GitHub Actions run or public-chain/hardware validation is claimed."
+  ],
+  "tested_tree": "f6092ce371b1d3abd82ba839fa0c8940ab6f4ddb"
+}
