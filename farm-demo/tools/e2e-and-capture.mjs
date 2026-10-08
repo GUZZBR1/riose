@@ -70,6 +70,31 @@ async function selectByMapClick(target) {
       animal.screenX > camera.width * 0.15 && animal.screenX < camera.width * 0.85 &&
       animal.screenY > camera.height * 0.15 && animal.screenY < camera.height * 0.85;
   }, target, { timeout: 5000 });
+  await assertStageAspectStaysStable('Farm 01');
+}
+
+async function sampleStageAspect(selector) {
+  await page.evaluate((stageSelector) => {
+    const stage = document.querySelector(stageSelector);
+    window.__farmAspectSamples = [];
+    const started = performance.now();
+    const sample = (now) => {
+      const rect = stage.getBoundingClientRect();
+      window.__farmAspectSamples.push(rect.width / rect.height);
+      if (now - started < 720) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }, selector);
+}
+
+async function assertStageAspectStaysStable(farmName) {
+  await page.waitForFunction(() => (window.__farmAspectSamples || []).length >= 35, null, { timeout: 2500 });
+  const measurements = await page.evaluate(() => window.__farmAspectSamples || []);
+  const ratios = measurements.filter(Number.isFinite);
+  assert.ok(ratios.length > 10, `${farmName} aspect ratio was sampled during its selection transition`);
+  const min = Math.min(...ratios);
+  const max = Math.max(...ratios);
+  assert.ok(max / min < 1.06, `${farmName} scene stretched during selection: ${min.toFixed(3)} → ${max.toFixed(3)}`);
 }
 
 try {
@@ -123,6 +148,13 @@ try {
   await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
 
+  await page.waitForFunction(() => {
+    const host = document.querySelector('#farm-canvas .riose-farm-canvas-host');
+    const canvas = host?.querySelector('canvas');
+    return host && canvas && host.clientWidth > 1450 &&
+      Math.abs(canvas.width - host.clientWidth) < 2 && Math.abs(canvas.height - host.clientHeight) < 2;
+  });
+  await sampleStageAspect('#farm-stage');
   await selectByMapClick(0);
   await page.locator('#demo-title').click({ position: { x: 5, y: 5 } });
   await page.waitForFunction(() => document.querySelector('#context-rail')?.getAttribute('aria-hidden') === 'true');
@@ -183,8 +215,10 @@ try {
   await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.animalCount === '24');
   await page.waitForFunction(() => document.querySelector('#farm-canvas-02')?.dataset.movingAnimals !== undefined);
   await page.getByText('Choose an animal from a list').last().click();
+  await sampleStageAspect('#farm-stage-02');
   await page.getByRole('button', { name: 'Animal 42', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 42');
+  await assertStageAspectStaysStable('Farm 02');
   await page.locator('#cerrado-profile').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#animal-journey').isVisible(), false, 'Cerrado has its own profile schema');
   assert.match(await page.locator('#record-portrait').getAttribute('src'), /\/assets\/farm-demo\/nelore\/nelore-\d\.png$/);
@@ -338,6 +372,7 @@ try {
     `- Lazy scene transfer: ${(initialTransferBytes / 1024 / 1024).toFixed(2)} MiB before Farm 02 enters; ${(bothFarmsTransferBytes / 1024 / 1024).toFixed(2)} MiB after both scenes load`,
     '- Farm 02 simulation and landscape assets load only after at least 10% of its stage is visible; Solana artwork loads only when its panel opens.',
     `- Scene bundle: ${rawBytes.toLocaleString('en-US')} bytes; gzip: ${gzipBytes.toLocaleString('en-US')} bytes`,
+    '- Layout transition: both farm scenes kept their viewport aspect ratio within 6% while the animal panel opened.',
     '- Verified in-browser: one continuous page with distinct lush dairy and Cerrado beef farms; in-place animal and Solana panels; selection changes update both panels; outside click clears selection; keyboard and accessible-list selection; local preview without transaction; missing-wallet failure does not confirm an asset; API failure leaves both scenes and preview available; mobile layout; 100-animal rendering on each farm.',
     '- Simulation tests cover safe spawning, walkable boundaries, water and fences, route reachability, deterministic movement and 10 accelerated minutes for herds of 1, 10, 24 and 100 on each farm.',
     '',
