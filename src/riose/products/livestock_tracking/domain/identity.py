@@ -36,6 +36,24 @@ def _finite_number(value: Any) -> bool:
 _HASH_PATTERN = re.compile(r"[0-9a-f]{64}\Z", re.ASCII)
 
 
+def _json_object_without_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON object key")
+        result[key] = value
+    return result
+
+
+def parse_event_payload_json(document: str | bytes) -> Any:
+    """Decode persisted Event V1 payloads without ambiguous duplicate keys."""
+    return json.loads(
+        document,
+        object_pairs_hook=_json_object_without_duplicate_keys,
+        parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)),
+    )
+
+
 class EventSigner(Protocol):
     def sign(self, digest: bytes) -> bytes: ...
 
@@ -214,7 +232,7 @@ def verify_event_chain(connection: sqlite3.Connection, animal_id: str) -> bool:
         try:
             if schema_version not in (None, EVENT_CONTRACT_V1):
                 return False
-            payload = json.loads(payload_json, parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)))
+            payload = parse_event_payload_json(payload_json)
             if not isinstance(payload, dict):
                 return False
             if stored_previous != previous_hash:

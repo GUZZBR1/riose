@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "algorithm": "SHA-256",
+  "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "files": [
+    {
+      "path": "security/adversarial_tests.json",
+      "sha256": "30e65de2868bf2b5016a20b4f91b9542eaa2d30f013786066a31a9984ca66519",
+      "bytes": 2079
+    },
+    {
+      "path": "security/claims.json",
+      "sha256": "7abfedd56ebf4869ac6c8e0f6af531c5c75b49d8bffb0ebe969667a48277f4f0",
+      "bytes": 1342
+    },
+    {
+      "path": "security/dependency_node.json",
+      "sha256": "a2dfa7dc28aaacacfad19ac502dd5a89d3223c0178ef1c97cb129f500d3f5360",
+      "bytes": 754178
+    },
+    {
+      "path": "security/dependency_python.json",
+      "sha256": "df03d1c686e3601422dd56a0c2f4728fc10e788530896a4bffd97f5d84961f82",
+      "bytes": 10859
+    },
+    {
+      "path": "security/discovery.json",
+      "sha256": "770ca9d548e23e1fc87758a49f889eebe50a3c56923b5e871c037ad5f7cd155d",
+      "bytes": 7346
+    },
+    {
+      "path": "security/environment.json",
+      "sha256": "18b3e29042ebdfdc22df5791f24086419d612cafb5c2c6a7f2e09511f7cb0d8d",
+      "bytes": 1568
+    },
+    {
+      "path": "security/final_report.md",
+      "sha256": "d68f4a4674019f3d6fcda0d9279cdc33234f742069cc70c805e373c86200a100",
+      "bytes": 2669
+    },
+    {
+      "path": "security/findings.json",
+      "sha256": "c92d15fef545225fa42c33161f6db7a1eba70d35ac5d50abc99409a01cfb22a9",
+      "bytes": 68354
+    },
+    {
+      "path": "security/red_team_report.md",
+      "sha256": "21b50908a06d83fbfef746f9891e10feec49a92aa3f94ceb1e4ae9e4520839e1",
+      "bytes": 1630
+    },
+    {
+      "path": "security/residual_risk_register.json",
+      "sha256": "ae9b415efe9bf3b365587ae5b89e8ef9969d2f82d31f3b6310215240ee4f8503",
+      "bytes": 3028
+    },
+    {
+      "path": "security/secret_scan.json",
+      "sha256": "82bb37452f9443cb9d9d54b67f0bc1ae7c3789313b496dcac9fa374a816c5944",
+      "bytes": 938
+    },
+    {
+      "path": "security/solana_keypair_security.json",
+      "sha256": "7ba9f7dbb6da43cbe64f5c52ba40f61a6097b5cdfef403fb01c6431448c98c9b",
+      "bytes": 1543
+    },
+    {
+      "path": "security/solidity_security.json",
+      "sha256": "c3773fb86f94add29fbb5d7470267d69b97e94dd5124cebea0b6fa0373d50eaa",
+      "bytes": 1645
+    },
+    {
+      "path": "security/threat_model.md",
+      "sha256": "0a2e2fece21e9017a383df4b89e0168ef673368b459c06ed20c284d7f827d04f",
+      "bytes": 2408
+    },
+    {
+      "path": "security/trust_boundaries.json",
+      "sha256": "5269e5d598a2584f66f028955ebe0ec57fd1608cf14a4de028b792e413554300",
+      "bytes": 5028
+    }
+  ],
+  "self_hash": "omitted; manifest cannot include its own stable hash"
+}

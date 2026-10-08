@@ -12,7 +12,13 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from ...domain.commitment import create_commitment_v1, new_subject_ref, public_envelope
-from ...domain.identity import GENESIS_HASH, EVENT_CONTRACT_V1, append_event, event_digest
+from ...domain.identity import (
+    GENESIS_HASH,
+    EVENT_CONTRACT_V1,
+    append_event,
+    event_digest,
+    parse_event_payload_json,
+)
 from ...domain.privacy import serialize_public_envelope
 from ...domain.publication_state import PublicationState, require_transition
 
@@ -830,7 +836,7 @@ def _verified_event_prefix(con: sqlite3.Connection, event_id: int) -> dict[str, 
         try:
             if row["schema_version"] not in (None, EVENT_CONTRACT_V1) or row["previous_hash"] != previous:
                 raise ValueError
-            payload = json.loads(row["payload"], parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
+            payload = parse_event_payload_json(row["payload"])
             digest = event_digest(row["animal_id"], row["event_type"], row["timestamp"], payload, previous)
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ValueError("event prefix failed local chain verification") from exc

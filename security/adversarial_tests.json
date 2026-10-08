@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "suite": "Deterministic adversarial and boundary tests",
+  "result": "PASS",
+  "focused_result": "155 passed in 15.66s",
+  "coverage": [
+    {
+      "area": "Solana keypair loader",
+      "result": "PASS",
+      "cases": "private mode, permissive modes, symlinks, dangling symlink, directory, FIFO, empty/malformed/truncated/oversized/trailing/invalid UTF-8/wrong length, path replacement race, sanitized exception chain"
+    },
+    {
+      "area": "Event V1 and outbox",
+      "result": "PASS",
+      "cases": "duplicate payload object keys, chain verification and enqueue binding, canonical event validation"
+    },
+    {
+      "area": "Commitment V1",
+      "result": "PASS",
+      "cases": "digest/source digest/subject reference mutation and public envelope schema mutations rejected in red-team probes"
+    },
+    {
+      "area": "EVM signer/transaction",
+      "result": "PASS",
+      "cases": "special files, trailing/oversized signer file, private mode and priority fee cap"
+    },
+    {
+      "area": "Solana RPC",
+      "result": "PASS",
+      "cases": "duplicate JSON keys, non-JSON constants, deep JSON, wrong returned signature, malformed receipt"
+    },
+    {
+      "area": "EVM receipt",
+      "result": "PASS",
+      "cases": "8 mutations including sender, transaction hash, removed log, topics, payload, canonical block hash and calldata rejected in red-team probes"
+    },
+    {
+      "area": "Filesystem",
+      "result": "PASS_WITH_LIMITATIONS",
+      "cases": "symlink and special-file rejection, descriptor replacement exercised; native Windows ACL and hostile concurrent write not tested"
+    },
+    {
+      "area": "Secret redaction",
+      "result": "PASS_WITH_LIMITATIONS",
+      "cases": "sanitized key loader failures tested; static fallback scan found no secret-pattern hits, specialized scanner unavailable"
+    }
+  ],
+  "notes": [
+    "Fixtures are synthetic.",
+    "No public RPC, REAL_ON_CHAIN transaction, or real funds were used.",
+    "Randomized/infinite fuzzing was not used; probes are deterministic."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "mission": "SC-2 Security & Dependency Closure",
+  "repository": {
+    "fork": "https://github.com/GUZZBR1/riose.git",
+    "upstream": "https://github.com/santleme/riose.git",
+    "checkout": "/home/gusta/projetos/RIOSE/riose-sc2-security-dependencies",
+    "branch": "software-closure/sc2-security-dependencies",
+    "base_ref": "fork/main",
+    "base_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "upstream_local_ref": "origin/main",
+    "upstream_local_sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+    "merge_base_fork_upstream": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+    "fork_vs_upstream_local_counts": {"fork_only": 84, "upstream_only": 1},
+    "remote_freshness": "UNVERIFIED",
+    "fetch_attempts": [
+      {"remote": "fork", "result": "FAILED", "reason": "DNS resolution failure for github.com"},
+      {"remote": "origin", "result": "FAILED", "reason": "DNS resolution failure for github.com"}
+    ],
+    "initial_tree": "CLEAN",
+    "tags": ["archive/pre-promotion-main-2026-10-06", "milestone/integrated-beta-v1", "milestone/multichain-v1", "milestone/simulation-lab-v1", "recovery-issue-09-a011ddc", "recovery-issue-09-ab468d2", "recovery-issue-09-cacb048"],
+    "related_local_branches": ["software-closure/sc1-publication-reliability", "mini-mvp/blockchain-publication", "multichain/mvp1-core-migration", "multichain/mvp2-solana-reconciliation", "multichain/mvp3-evm-core", "multichain/mvp4-base", "multichain/mvp4-arbitrum", "multichain/final-integration", "validation/mvp4-offline-multichain", "validation/mvp5-real-on-chain"],
+    "prior_sc1_execution_assumed": false
+  },
+  "tooling_inventory": {
+    "python_manifests": ["pyproject.toml", "uv.lock", "requirements-cad.txt", "hardware/toolchain.json"],
+    "node_manifests": ["contracts/package.json", "contracts/package-lock.json"],
+    "solidity": ["contracts/src/RioseCommitmentRegistry.sol", "contracts/test/compile_registry.cjs", "contracts/test/local_evm_server.cjs"],
+    "ci": [".github/workflows/mvp2-core.yml"],
+    "existing_security_evidence": ["docs/validation-adversarial.md", "tests/livestock_tracking/test_adversarial.py", "tests/livestock_tracking/test_solana_memo.py", "tests/livestock_tracking/test_evm_registry.py", "tests/livestock_tracking/test_commitment_privacy.py", "tests/livestock_tracking/test_event_contract.py"]
+  },
+  "component_map": [
+    {"component": "API/backend and CLI", "evidence": ["src/riose/products/livestock_tracking/adapters/api.py", "src/riose/products/livestock_tracking/cli.py", "src/riose/products/livestock_tracking/publication_cli.py"], "boundary": "External HTTP/CLI inputs enter typed application and domain functions"},
+    {"component": "SQLite persistence", "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/sqlite_store.py", "src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py", "src/riose/products/livestock_tracking/adapters/persistence/evm_nonce.py"], "boundary": "Local process to local DB; parameterized statements and dynamic schema migrations"},
+    {"component": "Event V1", "evidence": ["src/riose/products/livestock_tracking/domain/identity.py"], "boundary": "Application event values to canonical UTF-8 JSON/SHA-256 local chain"},
+    {"component": "Commitment V1 and privacy envelope", "evidence": ["src/riose/products/livestock_tracking/domain/commitment.py", "src/riose/products/livestock_tracking/domain/privacy.py"], "boundary": "Private event-chain binding to allowlisted public commitment DTO"},
+    {"component": "Outbox and dispatcher", "evidence": ["src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py", "src/riose/products/livestock_tracking/application/publication_dispatcher.py", "src/riose/products/livestock_tracking/domain/publication.py"], "boundary": "Durable local request/attempt state to chain-specific adapter calls"},
+    {"component": "Solana adapter and signer", "evidence": ["src/riose/products/livestock_tracking/adapters/solana_memo.py", "src/riose/products/livestock_tracking/publication_cli.py"], "boundary": "Local keypair and signed transaction to HTTPS RPC; cluster genesis allowlist, transaction/receipt checks"},
+    {"component": "EVM adapter, signer and networks", "evidence": ["src/riose/products/livestock_tracking/adapters/evm_config.py", "src/riose/products/livestock_tracking/adapters/evm_registry.py", "src/riose/products/livestock_tracking/adapters/persistence/evm_nonce.py"], "boundary": "Local key file/config and signer to RPC; chain/genesis/contract/code/receipt checks"},
+    {"component": "Base and Arbitrum", "evidence": ["EVMNetworkConfig/EVMRegistryAdapter with chain IDs and expected genesis", "docs/reports/MULTICHAIN_MVP3_ARBITRUM_HANDOFF.md"], "boundary": "Same EVM implementation with target-specific IDs/genesis/contract configuration"},
+    {"component": "Smart contract", "evidence": ["contracts/src/RioseCommitmentRegistry.sol"], "boundary": "Authorized publisher transaction to immutable single-publisher registry"},
+    {"component": "Simulation/tooling", "evidence": ["contracts/test/local_evm_server.cjs", "tests/livestock_tracking/test_evm_local.py", "hardware/toolchain.json", ".github/workflows/mvp2-core.yml"], "boundary": "Local-only Ganache and hardware toolchain; no production RPC transaction identified in tests"},
+    {"component": "Filesystem/config/export", "evidence": ["src/riose/products/livestock_tracking/adapters/solana_memo.py", "src/riose/products/livestock_tracking/adapters/evm_registry.py", "src/riose/products/livestock_tracking/adapters/evm_config.py", "src/riose/products/livestock_tracking/adapters/datasets/writer.py"], "boundary": "User-supplied paths to credentials/configuration or generated data artifacts"},
+    {"component": "Logging/error handling", "evidence": ["SolanaRpcError/EVMRpcError sanitized errors in adapter files", "tests/livestock_tracking/test_solana_memo.py", "tests/livestock_tracking/test_evm_registry.py"], "boundary": "Untrusted RPC/filesystem exceptions to CLI/API/error output"}
+  ],
+  "pre_edit_observations": [
+    {"id": "SEC-SOLANA-001", "status": "OPEN", "evidence": "load_keypair uses built-in open and json.loads(stream.read(4096)); lacks file type/permission/no-follow checks and EOF/trailing-content validation", "location": "src/riose/products/livestock_tracking/adapters/solana_memo.py:287-299"},
+    {"id": "SEC-EVM-KEYFILE-BASELINE", "status": "MITIGATED", "evidence": "load_evm_signer uses O_NOFOLLOW when available, fstat regular-file/mode checks and bounded strict hex length", "location": "src/riose/products/livestock_tracking/adapters/evm_registry.py:379-397"},
+    {"id": "SEC-EVENT-COMMITMENT-BASELINE", "status": "PENDING_ADVERSARIAL_VALIDATION", "evidence": "Event V1 validates finite JSON values; public envelope rejects duplicate keys, unknown fields and oversized input; Commitment V1 hashes domain-separated deterministic JSON", "locations": ["src/riose/products/livestock_tracking/domain/identity.py", "src/riose/products/livestock_tracking/domain/commitment.py", "src/riose/products/livestock_tracking/domain/privacy.py"]}
+  ],
+  "scope_guardrails": ["No REAL_ON_CHAIN", "No public blockchain transaction", "No real funds", "No upstream modification", "No secret material in evidence", "No package upgrade before applicability/compatibility review"]
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "risks": [
+    {
+      "id": "RR-01",
+      "category": "deployment",
+      "risk": "Unauthenticated API can be reached if bound to a network interface.",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "mitigation": "Default loopback bind; externally exposed deployments need network authentication/access control."
+    },
+    {
+      "id": "RR-02",
+      "category": "data_at_rest",
+      "risk": "SQLite data is plaintext and unkeyed Event hashes can be recomputed by a local DB writer.",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "mitigation": "OS filesystem permissions and backups; hashes are tamper-evidence only."
+    },
+    {
+      "id": "RR-03",
+      "category": "dependencies",
+      "risk": "npm audit reports 38 advisories (1 low, 8 moderate, 24 high, 5 critical) in local EVM/compiler test dependency tree; package-level audit also records 73 lock/advisory matches including extraneous Ganache shrinkwrap entries. Exploitability in project usage was not reproduced.",
+      "severity": "TOOLING_RESIDUAL",
+      "status": "OPEN",
+      "mitigation": "No force upgrade; dependency owners/compatibility path require separate remediation; re-audit before release/build on untrusted hosts."
+    },
+    {
+      "id": "RR-04",
+      "category": "dependencies",
+      "risk": "pytest 8.4.2 matches moderate GHSA-6w46-j5rx-g56g; test tmp_path API is used, but shared /tmp attacker precondition not established. pytest 9.0.3 fix is excluded by project constraint.",
+      "severity": "MODERATE",
+      "status": "OPEN",
+      "mitigation": "Plan compatible pytest 9 migration and run full test suite."
+    },
+    {
+      "id": "RR-05",
+      "category": "tooling",
+      "risk": "gitleaks, Slither, Forge, standalone solc, and CadQuery unavailable in current Linux environment.",
+      "severity": "EXTERNAL_LIMITATION",
+      "status": "OPEN",
+      "mitigation": "Run dedicated CAD/security toolchain jobs before release."
+    },
+    {
+      "id": "RR-06",
+      "category": "remote_state",
+      "risk": "Git remotes could not be fetched because WSL DNS failed; fork/upstream refs are local snapshots.",
+      "severity": "EXTERNAL_LIMITATION",
+      "status": "OPEN",
+      "mitigation": "Reconcile branch with current fork/main and upstream/main before merge."
+    },
+    {
+      "id": "RR-07",
+      "category": "signer_platform",
+      "risk": "Native Windows ACL semantics and hostile concurrent filesystem writers were not validated.",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "mitigation": "Use private signer file on a supported POSIX host or add platform-specific ACL tests before Windows signer use."
+    },
+    {
+      "id": "RR-08",
+      "category": "rpc",
+      "risk": "RPC provider correctness and credential handling are external trust assumptions.",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "mitigation": "Use authenticated TLS RPC endpoint and monitor configured chain/genesis/contract identity."
+    }
+  ]
+}

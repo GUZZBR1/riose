@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "SEC-SOLANA-001",
+  "baseline_reproduced": true,
+  "baseline_evidence": "Prior synthetic probe against baseline accepted mode 0644, a symlink and oversized content with trailing invalid bytes.",
+  "status": "CLOSED",
+  "closure": "Current loader opens a descriptor with O_NOFOLLOW/O_CLOEXEC/O_NONBLOCK when supported; fstat regular file; on POSIX requires private permissions and effective-user ownership; reads at most 513 bytes; accepts only strict UTF-8 JSON list of exactly 64 integer bytes and validates with solders; rejects empty, malformed, truncated, oversized and trailing content; sanitized failure has no chained input exception.",
+  "adversarial_cases": [
+    "secure synthetic keypair",
+    "0640/0644/0660/0666/0622 modes",
+    "symlink and dangling symlink",
+    "directory and FIFO",
+    "empty and malformed JSON",
+    "invalid UTF-8",
+    "truncated and 32/63-byte payloads",
+    "oversized/trailing garbage",
+    "descriptor path replacement race",
+    "error-chain redaction"
+  ],
+  "result": "All targeted cases reject or accept according to policy; 155 focused tests passed overall including keypair coverage.",
+  "secret_material": "Only synthetic fixture; no real key included.",
+  "limitations": [
+    "POSIX mode/owner semantics tested under Linux only.",
+    "Native Windows ACL behavior not tested.",
+    "Concurrent hostile filesystem write after descriptor open is outside tested guarantees; descriptor pins inode and bounded read mitigates path substitution."
+  ]
+}

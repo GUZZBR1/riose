@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "contract": "contracts/src/RioseCommitmentRegistry.sol",
+  "toolchain": {
+    "package": "contracts/package.json",
+    "solc_range": "^0.8.28",
+    "locked_solc": "0.8.37",
+    "ganache_locked": "7.9.2",
+    "lockfile": "contracts/package-lock.json",
+    "compiler_bug_database": "NOT_AUDITED"
+  },
+  "reviewed_properties": {
+    "access_control": "single immutable publisher; unauthorized sender rejected by local-EVM test",
+    "replay_duplicate": "duplicate commitment rejected by persistent mapping and local-EVM test",
+    "event_emission": "successful registration emits commitment event",
+    "input_size": "fixed bytes32 input",
+    "state_mutation": "one mapping insert per commitment",
+    "reentrancy": "not relevant to current function: no external calls",
+    "ownership_admin": "no post-deployment owner/admin found in reviewed source",
+    "upgradeability": "no proxy/upgrade mechanism found in reviewed source"
+  },
+  "verification": {
+    "local_evm_tests": "2 passed (test_real_local_evm_registry_deploy_dispatch_duplicate_and_revert; test_three_chain_local_evm_fanout_uses_one_event_and_independent_receipts)",
+    "solidity_compilation": "exercised by local EVM integration tests with solc 0.8.37",
+    "slither": "TOOL_UNAVAILABLE",
+    "forge": "TOOL_UNAVAILABLE",
+    "solc_cli": "TOOL_UNAVAILABLE"
+  },
+  "limitations": [
+    "Review is scoped to the checked-in source and local tests; not an audit certification.",
+    "No public chain, deployed contract, live RPC or real funds.",
+    "Compiler known-bug database and deployment bytecode provenance were not independently audited."
+  ]
+}
