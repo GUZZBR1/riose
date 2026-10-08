@@ -1,0 +1,33 @@
+{
+  "schema_version": "riose.integrated-scientific-results/v1",
+  "tested_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "invariants": {
+    "SIMULATED != VALIDATED": "PRESERVED",
+    "FORWARDED != EFFECTIVE": "PRESERVED",
+    "NUMERICAL_CONVERGENCE != ACCURACY": "PRESERVED",
+    "CONVERGED != QUALITY_ACCEPTED": "PRESERVED",
+    "GROUND_TRUTH != ESTIMATOR_INPUT": "PRESERVED",
+    "PHY_RECEIVED != APPLICATION_DELIVERED": "PRESERVED",
+    "simulated timestamp resolution != hardware accuracy": "PRESERVED"
+  },
+  "gates": {
+    "PR_FAST": {"status": "PASS", "passed": 85},
+    "SCIENTIFIC": {"status": "PASS", "passed": 315, "expected_skips": 1},
+    "MAIN": {"status": "PASS", "passed": 952, "expected_skips": 8, "warnings": 1},
+    "HEAVY": {"status": "REQUEST_ONLY", "campaign_executed": false}
+  },
+  "expected_skips": [
+    "one non-POSIX-only symlink precheck test on POSIX",
+    "seven CadQuery export tests; the dedicated CI CAD job installs requirements-cad.txt"
+  ],
+  "public_claims": {
+    "solana_devnet": "UNVERIFIED",
+    "base_sepolia": "UNVERIFIED",
+    "arbitrum_sepolia": "UNVERIFIED"
+  },
+  "simulation_claims": {
+    "rf": "SIMULATED",
+    "localization": "SIMULATED",
+    "behavior_ml": "RESEARCH_SUPPORTED_NOT_OPERATIONAL"
+  }
+}

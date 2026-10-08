@@ -1,0 +1,34 @@
+{
+  "schema_version": "riose.integrated-reproducibility-results/v1",
+  "tested_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "tested_tree_sha": "ea0fde9aaf32ee980da2cbae76e1d6c9260c77da",
+  "environment": {
+    "python": "3.12.3",
+    "uv": "0.11.26 (minimum expected 0.11.7; CI pins 0.11.7)",
+    "node": "22.22.2",
+    "npm": "10.9.7",
+    "ganache": "7.9.2",
+    "solc": "0.8.37",
+    "cmake": "3.28.3",
+    "compiler": "GCC 13.3.0",
+    "platform": "Ubuntu 24.04 under WSL"
+  },
+  "gates": {
+    "bootstrap": "PASS",
+    "uv_lock_check_offline": "PASS",
+    "doctor": "OPTIONAL_MISSING: all required software checks READY; optional west/Renode/ngspice/openEMS/Gazebo/Docker tools unavailable",
+    "npm_ci_offline": "PASS; 343 packages installed offline. Installer reported zero vulnerabilities, but no fresh online advisory scan was performed.",
+    "solidity_compile": "PASS",
+    "import_origin": "PASS; riose imports from this checkout and Python dependencies from its local .venv",
+    "clean_checkout": "PASS for the isolated integration worktree; the original dirty checkout was left unchanged",
+    "ctest": "PASS; 39/39 from a fresh CMake directory",
+    "package_build": "PASS offline using pinned build constraints"
+  },
+  "limitations": [
+    "The package build first attempted online resolution and failed because DNS could not resolve pypi.org; the same pinned build then passed from the local cache in offline mode.",
+    "GitHub DNS failed for origin and fork; REMOTE_FRESHNESS is UNVERIFIED and no remote CI result is claimed.",
+    "The dedicated CAD workflow installs requirements-cad.txt; this local environment lacks CadQuery, so seven CAD tests are governed expected skips.",
+    "No native Windows run, hardware validation, or field validation was performed.",
+    "npm ci was offline and is not a fresh advisory review; inherited SC-2 dependency advisory evidence remains separately scoped."
+  ]
+}

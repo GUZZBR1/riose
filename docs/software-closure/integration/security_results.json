@@ -1,0 +1,35 @@
+{
+  "schema_version": "riose.integrated-security-results/v1",
+  "tested_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "sec_solana_001": {
+    "status": "CLOSED",
+    "implementation_source": "SC-2 with SC-5 non-POSIX symlink precheck",
+    "properties": [
+      "descriptor-based regular-file validation",
+      "O_NOFOLLOW and O_NONBLOCK where supported",
+      "bounded 513-byte read rejects content over 512 bytes",
+      "strict UTF-8 JSON array with exactly 64 valid byte values",
+      "POSIX effective-owner and private-mode checks",
+      "sanitized failure raised outside the parsing exception context",
+      "adversarial coverage for symlinks, FIFOs, directories, truncation, oversized input, malformed UTF-8, trailing data, replacement races, and traceback leakage"
+    ],
+    "platform_limitations": [
+      "Native Windows ACL behavior was not tested.",
+      "The non-POSIX islink precheck is not atomic against concurrent path replacement.",
+      "Ancestor-directory symlink traversal is not prevented."
+    ]
+  },
+  "evm_security": {
+    "status": "PASS_LOCAL",
+    "properties": ["testnet or loopback network guard", "signer file no-follow/nonblocking open where supported", "bounded whole-input read", "POSIX owner/private-mode validation", "receipt and transaction identity checks", "priority fee cap validation", "duplicate JSON key rejection"]
+  },
+  "secret_scan": {
+    "status": "LOCAL_EVIDENCE_ONLY",
+    "notes": "SC-2 checked-in secret-scan evidence was preserved. Red-team review did not scan ignored files or reflogs."
+  },
+  "historical_hash_notes": [
+    "The inherited SC-2 security manifest records security/discovery.json using the original CRLF byte stream; the tracked Git blob differs only by its final LF-to-CRLF normalization.",
+    "SC-1 source/test hashes likewise describe original CRLF bytes; the source branch contents match after line-ending normalization. The final integration manifest hashes actual canonical files."
+  ],
+  "focused_suite": "169 passed, 1 expected platform-specific skip"
+}

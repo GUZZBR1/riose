@@ -1,0 +1,58 @@
+{
+  "classification": "SIMULATED",
+  "publication_backend": "MOCK_TEST_FIXTURE",
+  "integrated_flow": "VERIFIED_REPRODUCIBLE_LOCAL_HARNESS",
+  "simulation": {
+    "status": "completed",
+    "evidence": "SIMULATED",
+    "observations": 12,
+    "estimates": 3,
+    "metrics": {
+      "samples": 3,
+      "coverage_pct": 100.0,
+      "mean_error_m": 1483.2649127707082,
+      "median_error_m": 780.2157513610641,
+      "p90_error_m": 2486.3642604644338,
+      "p95_error_m": 2699.6328241023543,
+      "p99_error_m": 2870.2476750126916,
+      "max_error_m": 2912.901387740276,
+      "packet_delivery_ratio": 0.8333333333333334,
+      "anchor_observations_per_animal_per_day": 11520.0,
+      "anchor_count": 4,
+      "animal_count": 1,
+      "method": "path_loss",
+      "evidence": "SIMULATED",
+      "farm": {
+        "width_m": 1000.0,
+        "height_m": 1000.0
+      },
+      "duration_s": 90.0,
+      "energy_per_tag_day_mah": 0.08969866666666668,
+      "estimated_battery_life_days": null,
+      "energy_profile": "stm32wle5-reference-assumed",
+      "energy_status": "ASSUMED",
+      "energy_source": "TX/RX and sleep values use approximate figures supplied in the MVP brief; idle, IMU, BLE, Wi-Fi and alert values are configurable placeholder assumptions. Verify the complete board profile by measurement.",
+      "messages_per_tag_day": 96.0,
+      "messages_per_animal_per_day": 96.0
+    }
+  },
+  "telemetry_count": 12,
+  "positions_returned": 1,
+  "normal_api_truth_hidden": true,
+  "explicit_harness_event_recording": true,
+  "offline_queue_size_before_restart": 3,
+  "restart_count": 2,
+  "canonical_commitment_same_for_all_targets": true,
+  "mock_target_states": {
+    "solana": "VERIFIED",
+    "base": "VERIFIED",
+    "arbitrum": "VERIFIED"
+  },
+  "remaining_pending": 0,
+  "one_attempt_and_submit_per_target": true,
+  "public_payload_minimal": true,
+  "sqlite_integrity": "ok",
+  "public_chain_evidence": "UNVERIFIED",
+  "external_frequencia_scenario_reexecuted": false,
+  "hardware_or_field_validation": false
+}

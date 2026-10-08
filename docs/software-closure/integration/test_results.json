@@ -1,0 +1,71 @@
+{
+  "schema_version": "riose.integrated-test-results/v1",
+  "tested_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "tested_tree_sha": "ea0fde9aaf32ee980da2cbae76e1d6c9260c77da",
+  "results": [
+    {
+      "gate": "PR_FAST",
+      "command": "uv run --locked --no-sync python scripts/ci/run_gate.py fast",
+      "status": "PASS",
+      "summary": "85 passed; compileall and git diff --check passed"
+    },
+    {
+      "gate": "SCIENTIFIC",
+      "command": "uv run --locked --no-sync python scripts/ci/run_gate.py scientific",
+      "status": "PASS",
+      "summary": "315 passed, 1 expected platform-specific skip"
+    },
+    {
+      "gate": "PYTHON_REGRESSION",
+      "command": "NPM_CONFIG_OFFLINE=true UV_OFFLINE=1 RIOSE_CTEST_BUILD_DIR=<fresh> RIOSE_DIST_DIR=<fresh> uv run --locked --no-sync python scripts/ci/run_gate.py main",
+      "status": "PASS",
+      "summary": "952 passed, 8 expected skips, 1 Starlette/httpx deprecation warning"
+    },
+    {
+      "gate": "SECURITY_AND_PUBLICATION_FOCUSED",
+      "command": "uv run --locked --no-sync pytest -q tests/livestock_tracking/test_solana_memo.py tests/livestock_tracking/test_evm_registry.py tests/livestock_tracking/test_evm_local.py tests/livestock_tracking/test_publication_dispatcher.py tests/livestock_tracking/test_publication_outbox.py tests/livestock_tracking/test_evm_nonce.py tests/livestock_tracking/test_commitment_privacy.py tests/livestock_tracking/test_event_contract.py",
+      "status": "PASS",
+      "summary": "169 passed, 1 expected platform-specific skip"
+    },
+    {
+      "gate": "LOCAL_EVM",
+      "command": "uv run --locked --no-sync pytest -q tests/livestock_tracking/test_evm_local.py",
+      "status": "PASS",
+      "summary": "2 passed"
+    },
+    {
+      "gate": "SOLIDITY",
+      "command": "node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol",
+      "status": "PASS",
+      "summary": "compiled with locked solc 0.8.37"
+    },
+    {
+      "gate": "CTEST",
+      "command": "cmake -S hardware/tests -B /tmp/riose-final-canonical-ctest-20261008-r3 && cmake --build /tmp/riose-final-canonical-ctest-20261008-r3 --parallel && ctest --test-dir /tmp/riose-final-canonical-ctest-20261008-r3 --output-on-failure",
+      "status": "PASS",
+      "summary": "39/39 passed in a fresh build directory"
+    },
+    {
+      "gate": "PACKAGE_BUILD",
+      "command": "UV_OFFLINE=1 uv build --build-constraints build-constraints.txt --wheel --out-dir /tmp/riose-final-canonical-dist-20261008-r3",
+      "status": "PASS",
+      "summary": "wheel built with pinned build constraints from cached dependencies"
+    },
+    {
+      "gate": "INTEGRATED_SMOKE",
+      "command": "uv run --locked --no-sync python scripts/integrated_smoke.py --output /tmp/riose-final-integrated-smoke-20261008.json",
+      "status": "PASS",
+      "summary": "SIMULATED Event V1 → SQLite persistence → Commitment V1 → local mock publication → restart → reconciliation VERIFIED; real_on_chain NOT_EXECUTED"
+    },
+    {
+      "gate": "THREE_TARGET_LOCAL_SMOKE",
+      "command": "uv run --locked --no-sync python docs/software-closure/reproduce_flow.py --output /tmp/riose-final-three-target-smoke-20261008.json",
+      "status": "PASS",
+      "summary": "local/mock flow only; no public transaction"
+    }
+  ],
+  "heavy_campaign": {
+    "status": "NOT_EXECUTED",
+    "reason": "CI HEAVY remains REQUEST_ONLY; no simulation campaign was requested or run."
+  }
+}

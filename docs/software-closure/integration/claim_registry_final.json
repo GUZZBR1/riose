@@ -1,0 +1,29 @@
+{
+  "schema_version": "riose.final-claim-registry/v1",
+  "source_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "claims": {
+    "SOFTWARE_CORE": "SOFTWARE_VALIDATED_LOCAL",
+    "OFFLINE_FIRST": "SOFTWARE_VALIDATED_LOCAL",
+    "MULTICHAIN_SOFTWARE": "SOFTWARE_VALIDATED_LOCAL",
+    "LOCAL_BLOCKCHAIN": "LOCAL_EVM_VALIDATED",
+    "PUBLIC_BLOCKCHAIN": "UNVERIFIED",
+    "SOLANA_PUBLIC_TESTNET": "UNVERIFIED",
+    "BASE_PUBLIC_TESTNET": "UNVERIFIED",
+    "ARBITRUM_PUBLIC_TESTNET": "UNVERIFIED",
+    "RF_SIMULATION": "SIMULATED",
+    "LOCALIZATION_SIMULATION": "SIMULATED",
+    "BEHAVIOR_ML": "RESEARCH_SUPPORTED_NOT_OPERATIONAL",
+    "HARDWARE": "NOT_VALIDATED",
+    "FIELD": "NOT_PERFORMED",
+    "SECURITY": "SEC-SOLANA-001_CLOSED_WITH_PLATFORM_LIMITATIONS",
+    "REPRODUCIBILITY": "PASS_LOCAL_WITH_FOLLOWUPS",
+    "CI": "PR_FAST_SCIENTIFIC_MAIN_PASS_LOCAL",
+    "SCIENTIFIC_INTEGRITY": "PASS_LOCAL"
+  },
+  "evidence_boundaries": [
+    "Ganache, Solidity, and mock receipts establish local software behavior only.",
+    "No public transaction or blockchain confirmation is claimed.",
+    "Simulation does not establish hardware or field accuracy.",
+    "Historical SC-1…SC-6 reports are not treated as current-tree proof."
+  ]
+}

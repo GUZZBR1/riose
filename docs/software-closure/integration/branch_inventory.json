@@ -1,0 +1,1754 @@
+{
+  "cached_heads": {
+    "fork/main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+    "integration_head": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+    "local_main": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+    "origin/main": "c85c5f9bacf8065ceae95d45f173ad18418e5fda"
+  },
+  "fetch_attempt": {
+    "command": "git fetch --all --prune",
+    "result": "FAILED: Could not resolve host: github.com for origin and fork"
+  },
+  "generated_at_utc": "2026-10-08T14:58:53.850721+00:00",
+  "inventory_worktree": "/home/gusta/projetos/RIOSE/riose-final-canonical-integration",
+  "local_branch_count": 78,
+  "local_branches": [
+    {
+      "ref": "refs/heads/archive/pre-promotion-main-2026-10-06",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "subject": "Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml"
+    },
+    {
+      "ref": "refs/heads/audit/final-integration-authority",
+      "sha": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "subject": "Remove report formatting whitespace"
+    },
+    {
+      "ref": "refs/heads/codex/autonomous-recovery-protocol",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "subject": "Merge pull request #29 from santleme/codex/mvp2-close-open-issues"
+    },
+    {
+      "ref": "refs/heads/codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "subject": "Keep historical livestock event hashes verifiable"
+    },
+    {
+      "ref": "refs/heads/codex/issue-02-evidence-bridge",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "subject": "Prevent incomplete antenna sensitivity evidence from reaching prototype readiness (#32)"
+    },
+    {
+      "ref": "refs/heads/codex/issue-03-commitment-v1",
+      "sha": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "subject": "Prevent incomplete antenna sensitivity evidence from reaching prototype readiness (#32)"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-convergence",
+      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "subject": "Merge pull request #35 from santleme/codex/mvp2-runner-robustness"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "subject": "Require refinement proof for accepted antenna metrics"
+    },
+    {
+      "ref": "refs/heads/codex/issue-10-antenna-followup",
+      "sha": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "subject": "Keep antenna guidance aligned with current modeled geometry"
+    },
+    {
+      "ref": "refs/heads/codex/issue-12-integration-followup",
+      "sha": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "subject": "Prevent incomplete antenna sensitivity evidence from reaching prototype readiness"
+    },
+    {
+      "ref": "refs/heads/codex/issue-21-dataset-foundation",
+      "sha": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "subject": "Make movement dataset evidence reproducible"
+    },
+    {
+      "ref": "refs/heads/codex/issue-22-signal-engine",
+      "sha": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "subject": "Record scientific libraries in the workstation benchmark"
+    },
+    {
+      "ref": "refs/heads/codex/issue-23-behavior-ml",
+      "sha": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "subject": "Keep behavior estimates honest until labeled movement evidence exists"
+    },
+    {
+      "ref": "refs/heads/codex/issue-24-behavior-persistence",
+      "sha": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "subject": "Preserve behavior provenance across local restarts"
+    },
+    {
+      "ref": "refs/heads/codex/issue-25-biosignature",
+      "sha": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "subject": "Make individual behavior changes reproducible and auditable"
+    },
+    {
+      "ref": "refs/heads/codex/issue-26-reproduction-intelligence",
+      "sha": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "subject": "Keep evidence fixtures byte-stable across checkout platforms"
+    },
+    {
+      "ref": "refs/heads/codex/issue-27-health-anomaly",
+      "sha": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "subject": "Keep movement deviations at an investigation-only evidence boundary"
+    },
+    {
+      "ref": "refs/heads/codex/issue-28-movement-rf-context",
+      "sha": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "subject": "Document Issue 28 red-team outcomes and verification scope"
+    },
+    {
+      "ref": "refs/heads/codex/issue-5-spi-timeout-followup",
+      "sha": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "subject": "Prevent instantaneous dropped SPI bytes from masquerading as timed transfer faults"
+    },
+    {
+      "ref": "refs/heads/codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "subject": "Prevent spurious wake edges when native sensor interrupts update"
+    },
+    {
+      "ref": "refs/heads/codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "subject": "Enable declared temperature sensitivity without inventing component data"
+    },
+    {
+      "ref": "refs/heads/codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "subject": "Implement evidence bridge and commitment v1"
+    },
+    {
+      "ref": "refs/heads/codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "subject": "Record scientific libraries in the workstation benchmark"
+    },
+    {
+      "ref": "refs/heads/docs/final-competition-readme",
+      "sha": "d3bb56e4745593dc96c61d4779416087d3f8e3f7",
+      "subject": "Clarify RIOSE's product and evidence boundaries for competition review"
+    },
+    {
+      "ref": "refs/heads/docs/hackathon-web3-readme",
+      "sha": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "subject": "Make RIOSE Web3 positioning clearer without overstating validation"
+    },
+    {
+      "ref": "refs/heads/integration/core-product-mvp",
+      "sha": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "subject": "Document the Core and Product integration evidence"
+    },
+    {
+      "ref": "refs/heads/integration/embedded-physical-digital-mvp",
+      "sha": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "subject": "Keep integration report free of trailing whitespace"
+    },
+    {
+      "ref": "refs/heads/integration/integrated-beta-final",
+      "sha": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "subject": "Record clean checkout verification"
+    },
+    {
+      "ref": "refs/heads/integration/intelligence-research-mvp",
+      "sha": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "subject": "Record exact integration evidence for the Gate beta audit"
+    },
+    {
+      "ref": "refs/heads/integration/pre-blockchain-baseline",
+      "sha": "c2a76712cb57ef354682f51cdbf6d3b1386f6aab",
+      "subject": "Record published tag trace closure before Web3 work"
+    },
+    {
+      "ref": "refs/heads/integration/riose-candidate",
+      "sha": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "subject": "Keep the candidate auditable for final integration authority"
+    },
+    {
+      "ref": "refs/heads/integration/riose-promotion-bridge",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "subject": "Preserve both approved and GUZZ history without changing product contents"
+    },
+    {
+      "ref": "refs/heads/main",
+      "sha": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "subject": "Merge pull request #35 from santleme/codex/mvp2-runner-robustness"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/blockchain-publication",
+      "sha": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "subject": "Keep publication evidence optional and recoverable"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/firmware-digital-twin",
+      "sha": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "subject": "Make the simulated completion gate auditable from preserved evidence"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/intelligence-behavior",
+      "sha": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "subject": "Preserve animal behavior evaluation as an auditable research baseline"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/persistence-reliability",
+      "sha": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "subject": "Record bounded evidence for local SQLite reliability"
+    },
+    {
+      "ref": "refs/heads/mini-mvp/simulation-localization",
+      "sha": "d11d8838f41dbd36da2020365b914a86e2262b76",
+      "subject": "Make simulated localization evidence auditable"
+    },
+    {
+      "ref": "refs/heads/multichain/final-integration",
+      "sha": "a45908b6eecb347fb5e2f6bf1e111f10885a4647",
+      "subject": "Prevent malformed EVM receipt logs from proving publication"
+    },
+    {
+      "ref": "refs/heads/multichain/main-reconciliation",
+      "sha": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "subject": "Preserve current main behaviors alongside approved multichain"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp1-core-migration",
+      "sha": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "subject": "Make the migration handoff reproducible and reviewable"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp2-solana-reconciliation",
+      "sha": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "subject": "Record clean-checkout evidence for publication reconciliation"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp3-evm-core",
+      "sha": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "subject": "Keep the EVM verification record reproducible"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp4-arbitrum",
+      "sha": "65a70357513d137390a6e97a95a75e966a870c73",
+      "subject": "Keep Arbitrum publication claims bounded by available evidence"
+    },
+    {
+      "ref": "refs/heads/multichain/mvp4-base",
+      "sha": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "subject": "Record Base candidate verification evidence"
+    },
+    {
+      "ref": "refs/heads/recovery/main-pre-multichain-reconciliation-2026-10-07",
+      "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
+      "subject": "Record published tag trace closure before Web3 work"
+    },
+    {
+      "ref": "refs/heads/recovery/mini-mvp-firmware-digital-twin-pre-reconcile",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "subject": "Preserve both approved and GUZZ history without changing product contents"
+    },
+    {
+      "ref": "refs/heads/recovery/mini-mvp-simulation-localization-pre-reconcile",
+      "sha": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "subject": "Preserve the in-flight simulation boundary for reconciliation"
+    },
+    {
+      "ref": "refs/heads/recovery/multichain-final-preintegration",
+      "sha": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "subject": "Keep the EVM verification record reproducible"
+    },
+    {
+      "ref": "refs/heads/recovery/multichain-mvp1-pre-migration",
+      "sha": "9bc8e972c4e7418669ce94250c58ce91e49cb744",
+      "subject": "Keep mesh convergence evidence physically meaningful"
+    },
+    {
+      "ref": "refs/heads/recovery/multichain-mvp2-pre-reconciliation",
+      "sha": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "subject": "Make the migration handoff reproducible and reviewable"
+    },
+    {
+      "ref": "refs/heads/recovery/multichain-mvp3-pre-evm-core",
+      "sha": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "subject": "Record clean-checkout evidence for publication reconciliation"
+    },
+    {
+      "ref": "refs/heads/recovery/pre-final-main-promotion-2026-10-07",
+      "sha": "a974a4e9f5008487d70f3ab8f71a78c9465158ac",
+      "subject": "Record published tag trace closure before Web3 work"
+    },
+    {
+      "ref": "refs/heads/recovery/pre-software-closure-integration-2026-10-08",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "subject": "Clarify RIOSE\u2019s offline-first Web3 product story (#42)"
+    },
+    {
+      "ref": "refs/heads/research/blockchain-hackathon-demo",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "subject": "Implement evidence bridge and commitment v1"
+    },
+    {
+      "ref": "refs/heads/research/movement-intelligence-e2e",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "subject": "Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml"
+    },
+    {
+      "ref": "refs/heads/research/network-contention-capacity-closure",
+      "sha": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "subject": "Close the simulated contention evidence with explicit limits"
+    },
+    {
+      "ref": "refs/heads/research/network-scale-capacity",
+      "sha": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "subject": "Preserve reproducible network capacity evidence"
+    },
+    {
+      "ref": "refs/heads/research/repository-audit",
+      "sha": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "subject": "Preserve repository state before uncertain work can be lost"
+    },
+    {
+      "ref": "refs/heads/research/rf-realism-campaign",
+      "sha": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "subject": "Clarify blocked-link counts in the robustness map"
+    },
+    {
+      "ref": "refs/heads/research/rf-realism-gap-closure",
+      "sha": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "subject": "Bind RF closure report to clean final simulation run"
+    },
+    {
+      "ref": "refs/heads/research/riose-beta-final",
+      "sha": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "subject": "Mark H integration ready for the next Beta gate review"
+    },
+    {
+      "ref": "refs/heads/research/simulation-lab",
+      "sha": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "subject": "Record runtime-attested Cycle 6 campaign evidence"
+    },
+    {
+      "ref": "refs/heads/research/tag-simulation-closure",
+      "sha": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "subject": "Merge pull request #35 from GUZZBR1/codex/issue-23-behavior-ml"
+    },
+    {
+      "ref": "refs/heads/riose/hackaton",
+      "sha": "b442787ef9516adcb7465eee804a84c8dc08cd77",
+      "subject": "Merge pull request #29 from santleme/codex/mvp2-close-open-issues"
+    },
+    {
+      "ref": "refs/heads/software-closure/final-canonical-integration",
+      "sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+      "subject": "Make collection-time skips obey scientific gate policy"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc1-publication-reliability",
+      "sha": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "subject": "Keep publication recovery bounded without overstating chain evidence"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc2-security-dependencies",
+      "sha": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "subject": "Prevent unsafe signer and ambiguous publication inputs"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc3-reproducible-environment",
+      "sha": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "subject": "Close SC-3 after recovering locked clean-room gates"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc4-ci-scientific-gates",
+      "sha": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "subject": "Bind local validation claims to immutable evidence"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc5-real-on-chain",
+      "sha": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "subject": "Keep public testnet validation fail-closed and evidence-bound"
+    },
+    {
+      "ref": "refs/heads/software-closure/sc6-final-gate",
+      "sha": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "subject": "Make software closure claims auditable against current source"
+    },
+    {
+      "ref": "refs/heads/validation/mvp1-e2e-digital-farm",
+      "sha": "ed575e57d36f80d815bd43396a3cb36ae021ac99",
+      "subject": "Preserve the causal digital-farm validation evidence"
+    },
+    {
+      "ref": "refs/heads/validation/mvp2-rf-localization-campaign",
+      "sha": "078fca6fe06a92bd55c5fc279918a3c840de8f33",
+      "subject": "Make RF localization failures reviewable from reproducible evidence"
+    },
+    {
+      "ref": "refs/heads/validation/mvp3-failure-scale",
+      "sha": "1ea546c38870bedd71b162a38b4a8f3e1c9f0758",
+      "subject": "Bind the return packet to reproducible campaign evidence"
+    },
+    {
+      "ref": "refs/heads/validation/mvp4-offline-multichain",
+      "sha": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "subject": "Preserve bounded proof for offline multichain recovery"
+    },
+    {
+      "ref": "refs/heads/validation/mvp5-real-on-chain",
+      "sha": "df4ef334729c1e4bfb5e02a21d8f8020330a1d87",
+      "subject": "Preserve truthful public-chain claims when external gates are unavailable"
+    },
+    {
+      "ref": "refs/heads/validation/mvp6-final-gate",
+      "sha": "cac2b3876cf3bd2c298bc7d923296dcb39add93e",
+      "subject": "Keep the independent audit grounded in current reproducible evidence"
+    }
+  ],
+  "preservation_note": "Untracked/modified and unavailable/prunable worktrees are inventoried and preserved; prunable labels were not treated as deletion authority.",
+  "remote_freshness": "UNVERIFIED",
+  "remote_tracking_ref_count": 24,
+  "remote_tracking_refs": [
+    {
+      "ref": "refs/remotes/fork/HEAD",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "subject": "Clarify RIOSE\u2019s offline-first Web3 product story (#42)"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-01-event-contract-v1",
+      "sha": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "subject": "Keep historical livestock event hashes verifiable"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-10-antenna-convergence-upstream",
+      "sha": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "subject": "Require refinement proof for accepted antenna metrics"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-11-sionna-rt",
+      "sha": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "subject": "Make the orientation scenario test a real antenna change"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-6-resd-propagation-followup",
+      "sha": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "subject": "Prevent spurious wake edges when native sensor interrupts update"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/issue-8-temperature-axis-followup",
+      "sha": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "subject": "Enable declared temperature sensitivity without inventing component data"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/pr44-publication",
+      "sha": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "subject": "Implement evidence bridge and commitment v1"
+    },
+    {
+      "ref": "refs/remotes/fork/codex/pr44-signal-engine",
+      "sha": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "subject": "Record scientific libraries in the workstation benchmark"
+    },
+    {
+      "ref": "refs/remotes/fork/docs/hackathon-web3-readme",
+      "sha": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "subject": "Make RIOSE Web3 positioning clearer without overstating validation"
+    },
+    {
+      "ref": "refs/remotes/fork/main",
+      "sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "subject": "Clarify RIOSE\u2019s offline-first Web3 product story (#42)"
+    },
+    {
+      "ref": "refs/remotes/fork/recovery/rollback-main-pre-integrated-beta-2026-10-06",
+      "sha": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "subject": "Preserve both approved and GUZZ history without changing product contents"
+    },
+    {
+      "ref": "refs/remotes/fork/research/network-contention-capacity-closure",
+      "sha": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "subject": "Close the simulated contention evidence with explicit limits"
+    },
+    {
+      "ref": "refs/remotes/fork/research/rf-realism-gap-closure",
+      "sha": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "subject": "Bind RF closure report to clean final simulation run"
+    },
+    {
+      "ref": "refs/remotes/fork/research/riose-beta-final",
+      "sha": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "subject": "Mark H integration ready for the next Beta gate review"
+    },
+    {
+      "ref": "refs/remotes/fork/validation/mvp4-offline-multichain",
+      "sha": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "subject": "Preserve bounded proof for offline multichain recovery"
+    },
+    {
+      "ref": "refs/remotes/origin/HEAD",
+      "sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+      "subject": "docs: reconcile MVP3 evidence references (#55)"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issue-4-privacy-guard",
+      "sha": "c5c5219bdfd5c57bbeccb47000236e535251a005",
+      "subject": "feat: define external anchoring signer contract"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issues-02-03-evidence-commitment",
+      "sha": "04e00701dc54127703d146621177d9e226d134fc",
+      "subject": "Implement evidence bridge and commitment v1"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/issues-10-16-publication-followups",
+      "sha": "40d3a1f48a5b7d1c1def23b647050a6abc7098c6",
+      "subject": "feat: add publication issues 12-16"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp2-wsl-toolchain",
+      "sha": "bc315ff52a77ef5fd82d7a4b76f9ff6d62cf1b56",
+      "subject": "fix: bound simulation API workload"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp3-visual-digital-twin",
+      "sha": "64a873cc53e5fb4c167e2d717e4436afcbf5392a",
+      "subject": "feat(mvp3): add visual digital twin and cinematic replay"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/mvp3-visual-production-pass",
+      "sha": "ee3b61dbbd7973ddc952a49b63b142db6b52de92",
+      "subject": "feat(mvp3): add Gazebo visual production pass"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/tokenized-animal-demo",
+      "sha": "b2358d0dbd684a68498b15507f72fcb3763bb145",
+      "subject": "fix(demo): keep cattle sprites fully still"
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "c85c5f9bacf8065ceae95d45f173ad18418e5fda",
+      "subject": "docs: reconcile MVP3 evidence references (#55)"
+    }
+  ],
+  "repository": "GUZZBR1/riose",
+  "schema_version": "riose.branch-inventory/v1",
+  "software_closure_candidates": [
+    {
+      "branch": "software-closure/sc1-publication-reliability",
+      "candidate": "SC1",
+      "expected_sha": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "source_commit_count": 1,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 1,
+      "worktree_clean": null
+    },
+    {
+      "branch": "software-closure/sc2-security-dependencies",
+      "candidate": "SC2",
+      "expected_sha": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "source_commit_count": 1,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 1,
+      "worktree_clean": null
+    },
+    {
+      "branch": "software-closure/sc3-reproducible-environment",
+      "candidate": "SC3",
+      "expected_sha": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "source_commit_count": 12,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 12,
+      "worktree_clean": null
+    },
+    {
+      "branch": "software-closure/sc4-ci-scientific-gates",
+      "candidate": "SC4",
+      "expected_sha": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "source_commit_count": 2,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 2,
+      "worktree_clean": null
+    },
+    {
+      "branch": "software-closure/sc5-real-on-chain",
+      "candidate": "SC5",
+      "expected_sha": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "source_commit_count": 1,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 1,
+      "worktree_clean": null
+    },
+    {
+      "branch": "software-closure/sc6-final-gate",
+      "candidate": "SC6",
+      "expected_sha": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "merge_base_with_cached_fork_main": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+      "sha": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "source_commit_count": 1,
+      "tip_matches_expected": true,
+      "unique_commit_count_vs_cached_fork_main": 1,
+      "worktree_clean": null
+    }
+  ],
+  "tag_count": 7,
+  "tags": [
+    {
+      "ref": "refs/tags/archive/pre-promotion-main-2026-10-06",
+      "sha": "6a5b60b8ee8b1bfe743bc6ee146a28fc03138a38",
+      "subject": "Pre-promotion main snapshot"
+    },
+    {
+      "ref": "refs/tags/milestone/integrated-beta-v1",
+      "sha": "fc7500f2c64c34dc4a900bd5396262240e7f8df0",
+      "subject": "Integrated beta baseline"
+    },
+    {
+      "ref": "refs/tags/milestone/multichain-v1",
+      "sha": "8548d03fe5fb0c90f1b5c0fa4304567ff79f2f52",
+      "subject": "Final multichain reconciliation"
+    },
+    {
+      "ref": "refs/tags/milestone/simulation-lab-v1",
+      "sha": "59248e5f9eb7baa4bbe95c59d727c073158feeac",
+      "subject": "Pre-Web3 Simulation Lab baseline"
+    },
+    {
+      "ref": "refs/tags/recovery-issue-09-a011ddc",
+      "sha": "a011ddce293f53daef817975c7a5cdc1338ff86b",
+      "subject": "Keep CAD reports aligned with generated geometry"
+    },
+    {
+      "ref": "refs/tags/recovery-issue-09-ab468d2",
+      "sha": "ab468d22f86a9917a6528165e99fdeae00199839",
+      "subject": "Make enclosure feasibility errors block CAD export"
+    },
+    {
+      "ref": "refs/tags/recovery-issue-09-cacb048",
+      "sha": "cacb048bf360a6540c923975e370a69e8ecf29ac",
+      "subject": "Preserve named CAD parts and fit failure status"
+    }
+  ],
+  "workspace_root": "/home/gusta/projetos/RIOSE/riose",
+  "worktree_count": 104,
+  "worktrees": [
+    {
+      "branch": "refs/heads/codex/issue-10-antenna-convergence",
+      "detached": false,
+      "dirty_file_count": 345,
+      "dirty_paths": [
+        "?? GUZZ_PRESERVATION_MANIFEST.json",
+        "?? GUZZ_PRESERVATION_MANIFEST.md",
+        "?? INTEGRATION_COLLISION_MATRIX.md",
+        "?? riose-issue26/.github/workflows/mvp2-core.yml",
+        "?? riose-issue26/.gitignore",
+        "?? riose-issue26/.python-version",
+        "?? riose-issue26/AGENTS.md",
+        "?? riose-issue26/Makefile",
+        "?? riose-issue26/README.md",
+        "?? riose-issue26/datasets/holdout/features/observations.csv",
+        "?? riose-issue26/datasets/holdout/features/observations.parquet",
+        "?? riose-issue26/datasets/holdout/ground_truth/labels.csv"
+      ],
+      "head": "e57b235a452c6e8d258d1708d5fd53ce56cecfb3",
+      "path": "/home/gusta/projetos/RIOSE/riose",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": "refs/heads/integration/embedded-physical-digital-mvp",
+      "detached": false,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "10a7b3215c3f87b3893cbfcc790c58cb5cdccd72",
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-embedded-physical-digital-mvp",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-clean-check",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": "refs/heads/integration/integrated-beta-final",
+      "detached": false,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-integrated-beta-final",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": "refs/heads/research/movement-intelligence-e2e",
+      "detached": false,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-movement-intelligence-e2e",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": "refs/heads/validation/mvp4-offline-multichain",
+      "detached": false,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "4e38b5a83d65ff30f7069dd0078c7fe93c1a6446",
+      "path": "//wsl.localhost/Ubuntu/home/gusta/projetos/RIOSE/riose-validation-mvp4-offline-multichain",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": "refs/heads/research/riose-beta-final",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "bfc6e86c189863e538aa7ba2aecce1d882d9cbe4",
+      "path": "/home/gusta/projetos/RIOSE/riose-beta-final",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/blockchain-hackathon-demo",
+      "detached": false,
+      "dirty_file_count": 17,
+      "dirty_paths": [
+        " M docs/blockchain-demo.md",
+        " M docs/integrity-verifier.md",
+        " M src/riose/products/livestock_tracking/adapters/persistence/publication_outbox.py",
+        " M src/riose/products/livestock_tracking/adapters/solana_memo.py",
+        " M src/riose/products/livestock_tracking/application/integrity_verifier.py",
+        " M src/riose/products/livestock_tracking/cli.py",
+        " M src/riose/products/livestock_tracking/domain/publication.py",
+        " M tests/livestock_tracking/test_blockchain_demo.py",
+        " M tests/livestock_tracking/test_integrity_verifier.py",
+        " M tests/livestock_tracking/test_publication_outbox.py",
+        "?? docs/research/blockchain-hackathon-demo/architecture.md",
+        "?? docs/research/blockchain-hackathon-demo/claim-matrix.md"
+      ],
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "path": "/home/gusta/projetos/RIOSE/riose-blockchain-hackathon-demo",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": "refs/heads/integration/core-product-mvp",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "84ae34f2f8e54aabed3ac1be70338023d981d566",
+      "path": "/home/gusta/projetos/RIOSE/riose-core-product-mvp",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/final-canonical-integration",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+      "path": "/home/gusta/projetos/RIOSE/riose-final-canonical-integration",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/audit/final-integration-authority",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "7d75ae22778a098855c7ad6a04672fdcdf46bbde",
+      "path": "/home/gusta/projetos/RIOSE/riose-final-integration-audit",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/docs/hackathon-web3-readme",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "996a659facfbb855c7b1297ae61f302a0b289bc2",
+      "path": "/home/gusta/projetos/RIOSE/riose-hackathon-web3-readme",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/integration/riose-candidate",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "7adec506a56f23d909d12aca8e8bc091909dee18",
+      "path": "/home/gusta/projetos/RIOSE/riose-integration-candidate",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/integration/intelligence-research-mvp",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "7581f1188f0801543ce38a1496eb955c7aac4e9d",
+      "path": "/home/gusta/projetos/RIOSE/riose-intelligence-research-mvp",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-22-signal-engine",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "866d9854e5f75fc065b4a566149fa93c493de13b",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/pr44-publication",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "3bdb712dbfbe10d9130a9d49831b7476c79534dc",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-publication",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/pr44-signal-engine",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "c4f60d07208625fcb574adca30df829f72cd6f7e",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue22/.local-pr44-signal",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-23-behavior-ml",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "6fdc34a0fbd6d7aa33618b9436440c80ebfd3ade",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue23",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-25-biosignature",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "fe4b841e913843964c847af220ef31c477c81e4c",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue25",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-26-reproduction-intelligence",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "ac6844352d4c6eecc50093adf26184be2c731a8b",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue26-live",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-27-health-anomaly",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "b79ee4e6ca60ae2b7b1e3f8225d14a82fb379d30",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue27",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-28-movement-rf-context",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "044b90b3b487cfc56e2cd2feae0b926dde2e491b",
+      "path": "/home/gusta/projetos/RIOSE/riose-issue28",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/docs/final-competition-readme",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "d3bb56e4745593dc96c61d4779416087d3f8e3f7",
+      "path": "/home/gusta/projetos/RIOSE/riose-main-promotion-postcheck",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/mini-mvp/blockchain-publication",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "0c482054a7a0b37c9c2d59a3d97641a0c57837d7",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-blockchain-publication",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/mini-mvp/firmware-digital-twin",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "15f63a4bef31f4985ffc0c911785b1043e656eae",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-firmware-digital-twin",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/validation/mvp2-rf-localization-campaign",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "078fca6fe06a92bd55c5fc279918a3c840de8f33",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp-simulation-localization",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "a6d3b49397344a60cdd1618d8f94e7e0ba95a2f8",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-commit-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/mini-mvp/intelligence-behavior",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "cb912a42ed089d8a1bfbbdbe3d95e13e1c4e0f48",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp4-intelligence",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/mini-mvp/persistence-reliability",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "e0efe781c7109fd8c0ea3044654eed9175f4954b",
+      "path": "/home/gusta/projetos/RIOSE/riose-mini-mvp5-persistence-reliability",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/final-integration",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "a45908b6eecb347fb5e2f6bf1e111f10885a4647",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-final-integration",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/main-reconciliation",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "6367bd5d9b512b7da164bb095e3dc2ec1b9ef05f",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-main-reconciliation-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/mvp1-core-migration",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp1",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "fedc1bb8b3645d78d5747745d1b8f6ad21af5fd2",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp1-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/mvp2-solana-reconciliation",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp2",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "977be7b2c2aeb13b1bb378c0f9a3c753c8436701",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp2-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/mvp3-evm-core",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp3",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "60bbb7f29bc98cf5c69caf798276929c859c8d2f",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp3-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/mvp4-arbitrum",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "65a70357513d137390a6e97a95a75e966a870c73",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-arbitrum",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/multichain/mvp4-base",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-base",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "df9d281dffb56b33047dd56837acb320fd58cef8",
+      "path": "/home/gusta/projetos/RIOSE/riose-multichain-mvp4-base-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/validation/mvp1-e2e-digital-farm",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "ed575e57d36f80d815bd43396a3cb36ae021ac99",
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "b03a09bf8245ccd9cd80f970fc50bb21eae340d2",
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "d448e4b7e130c65f0080e13b154ac716dcb5f370",
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp1-e2e-verify",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/validation/mvp3-failure-scale",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "1ea546c38870bedd71b162a38b4a8f3e1c9f0758",
+      "path": "/home/gusta/projetos/RIOSE/riose-mvp3-failure-scale",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/network-contention-capacity-closure",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "4152f8a92f59510957bf24e675adce29853a29f7",
+      "path": "/home/gusta/projetos/RIOSE/riose-network-contention-capacity-closure",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/network-scale-capacity",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "a3e8f1b8227b57a13d1caec79f696aee3da17887",
+      "path": "/home/gusta/projetos/RIOSE/riose-network-scale-capacity",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "b2de3a9a58f911e24dc9a8395717f520542282b3",
+      "path": "/home/gusta/projetos/RIOSE/riose-post-promotion-remote-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-10-antenna-followup",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "0b5bd21256c0ad180fa1050735346df4e3c5d327",
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-10",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-12-integration-followup",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "9120adb7312c9af088b19255c9ad7cf7f770135b",
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-12",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-5-spi-timeout-followup",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "3111a381d750f48eb337fdcd0925bc0f90cbd802",
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-5",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-6-resd-propagation-followup",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "7f9b4b74caf849c562fe6a1a8ca767e5c80381be",
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-6",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-8-temperature-axis-followup",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "a55ea0794b7a217e2c164c1c1e061c9a9b99dd7a",
+      "path": "/home/gusta/projetos/RIOSE/riose-pr-issue-8",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/integration/pre-blockchain-baseline",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "c2a76712cb57ef354682f51cdbf6d3b1386f6aab",
+      "path": "/home/gusta/projetos/RIOSE/riose-pre-blockchain-baseline",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/integration/riose-promotion-bridge",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "path": "/home/gusta/projetos/RIOSE/riose-promotion-bridge",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "path": "/home/gusta/projetos/RIOSE/riose-promotion-bridge-clean",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/repository-audit",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "2a0dd05dd5d441bbf081da242f9a63de76af71b7",
+      "path": "/home/gusta/projetos/RIOSE/riose-repository-audit",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/rf-realism-campaign",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "cecda8d9145b169299d4fc077e800de9d8c4811c",
+      "path": "/home/gusta/projetos/RIOSE/riose-rf-realism-campaign",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/rf-realism-gap-closure",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "44216b30cfaba4721329125dc5f527deafcb6947",
+      "path": "/home/gusta/projetos/RIOSE/riose-rf-realism-gap-closure",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc1-publication-reliability",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc1-publication-reliability",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc2-security-dependencies",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc2-security-dependencies",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc3-reproducible-environment",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc3-reproducible-environment",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc4-ci-scientific-gates",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc4-ci-scientific-gates",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc5-real-on-chain",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc5-real-on-chain",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/software-closure/sc6-final-gate",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "path": "/home/gusta/projetos/RIOSE/riose-sc6-final-gate",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/simulation-lab",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "2c9c477321505ba7983acf63d1f07c634cf7002a",
+      "path": "/home/gusta/projetos/RIOSE/riose-simulation-lab",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/research/tag-simulation-closure",
+      "detached": false,
+      "dirty_file_count": 14,
+      "dirty_paths": [
+        " M hardware/firmware/zephyr/boards/nucleo_l031k6_renode.conf",
+        " M hardware/renode/scripts/dataset_to_resd.py",
+        " M hardware/renode/tests/platform-smoke.robot",
+        " M hardware/renode/tests/test_dataset_to_resd.py",
+        " M src/riose/products/ear_tag/digital_twin/cli.py",
+        " M src/riose/products/ear_tag/digital_twin/runner.py",
+        " M tests/ear_tag/test_digital_twin.py",
+        "?? docs/research/tag-simulation-closure/antenna-pilot-evidence.json",
+        "?? docs/research/tag-simulation-closure/architecture.md",
+        "?? docs/research/tag-simulation-closure/firmware-trace-capture.log",
+        "?? docs/research/tag-simulation-closure/firmware-trace-evidence.json",
+        "?? docs/research/tag-simulation-closure/results.md"
+      ],
+      "head": "72ad69551b54eb069bb1c5f863dfff4066786965",
+      "path": "/home/gusta/projetos/RIOSE/riose-tag-simulation-closure",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "5b17771f0f86b0bb0cdb526485e8e2f50e78fdea",
+      "path": "/home/gusta/projetos/RIOSE/riose-upstream-baseline-audit",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/validation/mvp5-real-on-chain",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "df4ef334729c1e4bfb5e02a21d8f8020330a1d87",
+      "path": "/home/gusta/projetos/RIOSE/riose-validation-mvp5-real-on-chain",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/validation/mvp6-final-gate",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "cac2b3876cf3bd2c298bc7d923296dcb39add93e",
+      "path": "/home/gusta/projetos/RIOSE/riose-validation-mvp6",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-01-event-contract-v1",
+      "detached": false,
+      "dirty_file_count": 1,
+      "dirty_paths": [
+        " M src/riose/products/livestock_tracking/domain/identity.py"
+      ],
+      "head": "1d960a919a4dc683249b87015b20a616cd6f4b36",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-01",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": "refs/heads/codex/issue-02-evidence-bridge",
+      "detached": false,
+      "dirty_file_count": 6,
+      "dirty_paths": [
+        " M tests/ear_tag/test_digital_twin.py",
+        "?? docs/evidence-bridge.md",
+        "?? src/riose/evidence.py",
+        "?? src/riose/products/ear_tag/digital_twin/evidence.py",
+        "?? src/riose/products/livestock_tracking/domain/evidence.py",
+        "?? tests/evidence/test_bridge.py"
+      ],
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-02",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "9de73f99ef7602ccc06c1a37aa393c614379d946",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-03",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-03-commitment-v1",
+      "detached": false,
+      "dirty_file_count": 3,
+      "dirty_paths": [
+        "?? docs/commitment-v1.md",
+        "?? src/riose/products/livestock_tracking/domain/commitment.py",
+        "?? tests/livestock_tracking/test_commitment.py"
+      ],
+      "head": "2214df0c7c0fcefb3efa0b40be6b56dcbc56e50d",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-03-commitment-v1",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "db00cca2d7248dd0adfc965d9aa2652e14f235ce",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-04",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "ad6823d1788c1c0f0d457f04a702a4fcccbddd8e",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-05",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "84e66fa4fa497f3a9f3b478f10dfa8eb0ac7011e",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-06",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 1,
+      "dirty_paths": [
+        "?? .omx/plans/issue-07-checklist.md"
+      ],
+      "head": "be156e2c47eec2082596b439d78605aa9e61fe08",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-07",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "8f06ff72c79c02bfefacb2eebc76b1976f308016",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-08",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 2,
+      "dirty_paths": [
+        " M hardware/mechanical/tests/test_model.py",
+        "?? .omx/state/recovery/issue-09-core-cadquery-gate.md"
+      ],
+      "head": "e50f8609e822c72f8325c5ef547c51eb65c887c4",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-09",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 18,
+      "dirty_paths": [
+        " M README.md",
+        " M hardware/antenna/README.md",
+        " M hardware/antenna/run.py",
+        " M hardware/antenna/test_antenna.py",
+        " M hardware/mechanical/README.md",
+        " M hardware/mechanical/model.py",
+        " M hardware/mechanical/tests/test_model.py",
+        " M hardware/reports/toolchain-provisioning.md",
+        " M hardware/spec.yaml",
+        " M src/riose/digital_twin/spec.py",
+        "?? hardware/antenna/geometry.py",
+        "?? hardware/antenna/metrics.py"
+      ],
+      "head": "a9d12c2769ec90f9466d9fb81a1b0d4bd4541a32",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-10",
+      "prunable": null,
+      "status": "dirty"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "279617a3b1bcbe57a39a79947cfcb5488953850d",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-11",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "e25b6417a0c98a632ed9a8dc05451f151df930bc",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-12",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "b5b005ce0a7b9e3ea7c59e6162f79ba57f0be794",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-13",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-21-dataset-foundation",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "816049f9f01d3e74af8a45f7aa57d3664e586689",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-21",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-24-behavior-persistence",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "55b10acca7b25fe9269582b7b5156ae7c66d7667",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue-24",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": "refs/heads/codex/issue-10-antenna-convergence-upstream",
+      "detached": false,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "6619fb4d4f765d1351138a38af5858aa2689a46c",
+      "path": "/home/gusta/projetos/RIOSE/riose-wt-issue10-upstream",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "path": "/tmp/riose-beta-dynamic-replay",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "a844bd6039a5c10d22ee0cc0ed1b866db7a8c1b6",
+      "path": "/tmp/riose-beta-dynamic-replay-clean",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "3b5aaa634a800d1cb9f2d0060cf53c8ffe6901ed",
+      "path": "/tmp/riose-mini-mvp-clean",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "3c694b25132f0ae65c57b88ce37939e854ddbb07",
+      "path": "/tmp/riose-mini-mvp-clean-final",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "5a6e09bcfe1de757e023f59459c9a6114bca292c",
+      "path": "/tmp/riose-mini-mvp-clean-repro",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": null,
+      "dirty_paths": [],
+      "head": "65a70357513d137390a6e97a95a75e966a870c73",
+      "path": "/tmp/riose-mvp4-arbitrum-final",
+      "prunable": "gitdir file points to non-existent location",
+      "status": "unavailable_or_missing"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "24a458cd056a76260e92d78b1683a8c789342fa0",
+      "path": "/tmp/riose-sc3-constrained-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "24a458cd056a76260e92d78b1683a8c789342fa0",
+      "path": "/tmp/riose-sc3-constrained-check2",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "1b052db52a92b2c39e1a9a6b504cdde651e1677e",
+      "path": "/tmp/riose-sc3-delivery-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "081f6a55a5d4e66724809d02ca3ec89313ba1ad1",
+      "path": "/tmp/riose-sc3-factory-final",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+      "path": "/tmp/riose-sc3-final-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "ada955dd4238dad6f6d614f2520d058fb6edeaf7",
+      "path": "/tmp/riose-sc3-final-check2",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+      "path": "/tmp/riose-sc3-final-source-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "92ef1b5276096da9f01b5d6218207b9984e5471e",
+      "path": "/tmp/riose-sc3-final-source-check2",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "d806e05c11bd908386c55608a7d69f9a7c7a6708",
+      "path": "/tmp/riose-sc3-lf-check",
+      "prunable": null,
+      "status": "clean"
+    },
+    {
+      "branch": null,
+      "detached": true,
+      "dirty_file_count": 0,
+      "dirty_paths": [],
+      "head": "d806e05c11bd908386c55608a7d69f9a7c7a6708",
+      "path": "/tmp/riose-sc3-lf-check2",
+      "prunable": null,
+      "status": "clean"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "riose.software-closure-integration-ledger/v1",
+  "mission": "RIOSE Final Canonical Software Closure Integration",
+  "base_canonical_sha": "b2ddf11098ecd87b954bf97af26f8ecb8862b58a",
+  "validated_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "validated_tree_sha": "ea0fde9aaf32ee980da2cbae76e1d6c9260c77da",
+  "remote_freshness": "UNVERIFIED",
+  "entries": [
+    {
+      "source": "SC-1",
+      "branch": "software-closure/sc1-publication-reliability",
+      "sha": "4bcf18ec6a2be9000d5a4e78c490dd9f330aceef",
+      "unique_commits_from_base": 1,
+      "classification": "INTEGRATE",
+      "consumed": ["persisted bounded retries", "exponential backoff and jitter", "crash/restart recovery", "ambiguous attempts", "duplicate suppression", "EVM nonce coordination", "reliability regression tests"],
+      "evidence_classification": "EVIDENCE_ONLY",
+      "notes": "Runtime code and tests are included. The branch report remains historical evidence, not current-tree proof."
+    },
+    {
+      "source": "SC-2",
+      "branch": "software-closure/sc2-security-dependencies",
+      "sha": "091efd561e8b575c2db3d08c645e88f02e56a8ad",
+      "unique_commits_from_base": 1,
+      "classification": "INTEGRATE",
+      "consumed": ["descriptor-pinned Solana keypair loading", "strict UTF-8 and 64-byte payload", "bounded nonblocking read", "POSIX owner/private-mode checks", "redacted Solana failures", "EVM signer and event validation hardening", "adversarial tests"],
+      "evidence_classification": "EVIDENCE_ONLY",
+      "notes": "Selected as the stronger SEC-SOLANA-001 implementation. The inherited manifest newline mismatch is explained in the red-team report."
+    },
+    {
+      "source": "SC-3",
+      "branch": "software-closure/sc3-reproducible-environment",
+      "sha": "60a1222212e4e250948aea7ed788cf0a94f72b6f",
+      "unique_commits_from_base": 12,
+      "classification": "INTEGRATE",
+      "consumed": ["bootstrap and doctor", "locked Python and Node toolchain", "clean-room and import-origin checks", "build constraints", "LF safeguards", "integrated mock smoke", "reproducibility regression"],
+      "workflow_classification": "RECONCILE",
+      "evidence_classification": "EVIDENCE_ONLY",
+      "notes": "All 12 commits were considered. Earlier implementation commits were included; the final evidence-only commit was not treated as the complete feature set."
+    },
+    {
+      "source": "SC-4",
+      "branch": "software-closure/sc4-ci-scientific-gates",
+      "sha": "33b62c04ad97b51bec98afee41335b108e5ca17f",
+      "unique_commits_from_base": 2,
+      "classification": "INTEGRATE",
+      "consumed": ["PR_FAST", "SCIENTIFIC", "skip governance", "claim/evidence validation", "SHA-pinned actions", "restricted permissions", "HEAVY REQUEST_ONLY"],
+      "workflow_classification": "RECONCILE",
+      "evidence_classification": "EVIDENCE_ONLY",
+      "notes": "Workflow keeps SC-4 gate architecture and full-history checkout while restoring SC-3 locked Node/Python settings and EVM dependencies. Main gate now includes configured hardware tests and installs npm before Python tests."
+    },
+    {
+      "source": "SC-5",
+      "branch": "software-closure/sc5-real-on-chain",
+      "sha": "2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa",
+      "unique_commits_from_base": 1,
+      "classification": "RECONCILE",
+      "consumed": ["EVM testnet/loopback safety guard", "network identity checks", "public-validation evidence structure", "non-POSIX existing-symlink precheck"],
+      "superseded": ["SC-5 Solana loader body"],
+      "superseded_by": "SC-2 stronger nonblocking, bounded, strict-payload loader",
+      "evidence_classification": "HISTORICAL_ONLY",
+      "notes": "No public transaction was attempted. Solana Devnet, Base Sepolia, and Arbitrum Sepolia remain UNVERIFIED."
+    },
+    {
+      "source": "SC-6",
+      "branch": "software-closure/sc6-final-gate",
+      "sha": "425b71b9dcce59f993e4f79c30cf21aa4d71f82b",
+      "unique_commits_from_base": 1,
+      "classification": "RECONCILE",
+      "consumed": ["closure matrix", "claim registry", "historical scientific registry clarification", "integrated smoke documentation"],
+      "historical_results_classification": "HISTORICAL_ONLY",
+      "workflow_classification": "ALREADY_EQUIVALENT",
+      "notes": "SC-6 audit findings are bound to the older independent baseline. Current claims and gate results are recorded separately in this package."
+    }
+  ],
+  "cross_reconciliations": {
+    "SEC-SOLANA-001": "CLOSED using SC-2 loader; retained SC-5 non-POSIX symlink precheck and EVM network guard.",
+    "publication_reliability": "SC-1 retry, persisted due times, restart reconciliation, duplicate suppression, and nonce behavior retained.",
+    "ci": "SC-4 architecture retained; SC-3 locked toolchain and SC-6 EVM dependency correction are present.",
+    "reproducibility": "SC-3 full implementation history retained and validated on the final code tree.",
+    "scientific_claims": "Current claims are conservative; SC-4/SC-6 historical evidence is not promoted to current proof.",
+    "public_chain": "No funded transaction was authorized or attempted; all public testnet claims remain UNVERIFIED."
+  },
+  "unique_required_work_lost": 0
+}

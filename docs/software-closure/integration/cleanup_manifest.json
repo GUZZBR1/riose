@@ -1,0 +1,23 @@
+{
+  "schema_version": "riose.branch-cleanup-manifest/v1",
+  "status": "NOT_EXECUTED",
+  "reason": "Publication was not attempted because remote freshness could not be verified after DNS failure; cleanup is gated on safe promotion/publication and evidence commit.",
+  "inventory_snapshot": {
+    "local_branch_count": 78,
+    "remote_tracking_ref_count": 24,
+    "tag_count": 7,
+    "worktree_count": 104
+  },
+  "branches": [
+    {"branch":"software-closure/sc1-publication-reliability","sha":"4bcf18ec6a2be9000d5a4e78c490dd9f330aceef","classification":"INTEGRATED","proof":"SC-1 candidate commit is a merge ancestor of the canonical integration branch and its reliable publication changes/tests pass.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false},
+    {"branch":"software-closure/sc2-security-dependencies","sha":"091efd561e8b575c2db3d08c645e88f02e56a8ad","classification":"INTEGRATED","proof":"SC-2 candidate commit is a merge ancestor; SEC-SOLANA-001 focused tests pass.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false},
+    {"branch":"software-closure/sc3-reproducible-environment","sha":"60a1222212e4e250948aea7ed788cf0a94f72b6f","classification":"INTEGRATED","proof":"All 12 SC-3 commits are merge ancestors; clean-room, lock, doctor, build, and CTest checks are recorded.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false},
+    {"branch":"software-closure/sc4-ci-scientific-gates","sha":"33b62c04ad97b51bec98afee41335b108e5ca17f","classification":"INTEGRATED","proof":"Both SC-4 commits are merge ancestors; PR_FAST, SCIENTIFIC, and MAIN gates pass on the integrated tree.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false},
+    {"branch":"software-closure/sc5-real-on-chain","sha":"2b1d2ace05ffc2846533f9c1fb9d2b2ede7d34fa","classification":"INTEGRATED","proof":"SC-5 candidate commit is a merge ancestor; EVM safety code is retained and public claims remain unverified.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false},
+    {"branch":"software-closure/sc6-final-gate","sha":"425b71b9dcce59f993e4f79c30cf21aa4d71f82b","classification":"INTEGRATED","proof":"SC-6 candidate commit is a merge ancestor; its old-baseline results are explicitly historical.","action":"PRESERVE_UNTIL_PUBLICATION_CONFIRMED","local_deleted":false,"remote_deleted":false}
+  ],
+  "branches_deleted": [],
+  "unique_work_lost": 0,
+  "worktrees_removed": [],
+  "preservation_note": "All unrelated, dirty, unavailable/prunable, unknown, and potentially open-PR branches/worktrees remain untouched."
+}

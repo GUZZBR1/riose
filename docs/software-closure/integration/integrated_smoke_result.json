@@ -1,0 +1,26 @@
+{
+  "event_status": "SIMULATED",
+  "flow": [
+    "synthetic input",
+    "Event V1 append and chain verification",
+    "SQLite persistence in a new temporary database",
+    "Commitment V1 binding verification",
+    "publication queue persistence",
+    "database close and reopen",
+    "local mock adapter submit",
+    "local mock receipt reconciliation"
+  ],
+  "generated_at_utc": "2026-10-08T15:01:24.363332+00:00",
+  "kind": "integrated_smoke",
+  "limitations": [
+    "Uses the existing mock adapter boundary; does not start Ganache or contact a public chain."
+  ],
+  "process_status": "RPC_ACCEPTED",
+  "publication_network": "local-mock",
+  "real_on_chain": "NOT_EXECUTED",
+  "reconcile_status": "VERIFIED",
+  "schema_version": 1,
+  "source_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "status": "PASS",
+  "verified_receipt_count": 1
+}

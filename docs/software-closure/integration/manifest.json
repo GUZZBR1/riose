@@ -1,0 +1,22 @@
+{
+  "schema_version": "riose.software-closure-evidence-manifest/v1",
+  "mission": "RIOSE Final Canonical Software Closure Integration",
+  "validated_code_sha": "a1dbaca2db0aff42a2c18aba0300bea1cfc263c1",
+  "validated_code_tree_sha": "ea0fde9aaf32ee980da2cbae76e1d6c9260c77da",
+  "hash_algorithm": "SHA-256 over exact package file bytes (manifest excludes its own digest)",
+  "files": {
+    "branch_inventory.json": "ecf9d843113729fd3a48a4193d1494746cb9e6b5cf742c92fb8cdc9275fb5622",
+    "claim_registry_final.json": "b334225b9b15b48595c2460366747adb4a1b5ea026f3fa62f3e012846b7604e3",
+    "cleanup_manifest.json": "7527e785cb9519d6c0f986d791ab0da0b765f85228742524969cacd162bc7ee4",
+    "doctor_result.json": "ea3ce29e0c8f853ffa648d448e8ae200c8a5d9187ecc420137e3454626824d31",
+    "final_report.md": "cca453ed50604ba10fd4e2d72682a7fd355ed6145926b63a003faa5c40ccd7d8",
+    "integrated_smoke_result.json": "0fecdf57d7b7641ad8c8ccf2539f1bf51b03854ba04b88753e1ef1ee3eef70fd",
+    "integration_ledger.json": "e08d273828be795139ccbc25ebed1e0da82cf41cd89d6d88e67f859bcd5c2c00",
+    "red_team_report.md": "fd14f2052cf3761ef2d269eafa5a49faef961067136cac936e6ef594f6eca29e",
+    "reproducibility_results.json": "d1103633474d43ea8129f579ab2d3cf3b6f93a605bdb0bb422d939fa22f0ee8d",
+    "scientific_gate_results.json": "d6459fda4214b101deeccbe28c5a9aa3ad73a610c0c5539dd260e693d3c5bf04",
+    "security_results.json": "b5724d7e8d62c4b1d8704aae148f333f77bb3176d33c1284eb326e68f0443ac8",
+    "test_results.json": "68458f5d9fa882a17f3d99ff71d95dcf5ea539a65fcbb9c24a1ac601aca90766",
+    "three_target_smoke_result.json": "05d00771a6853c23cabab484809b63aa37fffffd1ddf764ce8d9e3ec4bd11af8"
+  }
+}
