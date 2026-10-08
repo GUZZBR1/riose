@@ -8,7 +8,7 @@ This is the canonical route from a clean RIOSE checkout to the locked Python app
 - uv 0.11.7 or newer. CI pins 0.11.7; `uv.lock` fixes Python package versions.
 - Node.js 22.22.2 (`.nvmrc`) and npm 10.9.7 for the local EVM gate. `contracts/package-lock.json` fixes Ganache and solc dependencies.
 - CMake 3.16 or newer and a C compiler for the host firmware/model gate.
-- Package builds use PEP 517 build isolation. `pyproject.toml` currently declares unpinned `hatchling`, whose isolated build environment is not captured in `uv.lock`; record the actual builder version for each package-build claim.
+- Hatchling 1.32.4 and its observed build toolchain are pinned in `build-constraints.txt`. `uv build --build-constraints` applies those constraints to PEP 517 isolation without mixing build tools into the application environment.
 - Network access to Python and npm registries on the first uncached install. A successful install from an existing cache is a cached reproduction, not fresh-network reproduction.
 
 ## Clean checkout to local validation
@@ -31,10 +31,10 @@ uv run --locked --no-sync python -m compileall -q src scripts
 uv run --locked --no-sync python scripts/integrated_smoke.py --output "$evidence_dir/integrated_smoke.json"
 uv run --locked --no-sync python scripts/reproducibility.py manifest --output "$evidence_dir/environment_manifest.json"
 mkdir -p "$evidence_dir/packages"
-uv build --offline --verbose --out-dir "$evidence_dir/packages"
+uv build --build-constraints build-constraints.txt --offline --out-dir "$evidence_dir/packages"
 ```
 
-`setup.sh` remains a compatibility wrapper for the one canonical bootstrap. Bootstrap installs lockfile-resolved Python runtime/dev/Solana/EVM dependencies; `npm ci` installs the separate locked local EVM toolchain. The package-build backend is the exception: its PEP 517 isolated environment is not in `uv.lock`, so package-build evidence must include the verbose builder output and must not imply fresh-network reproducibility. The doctor checks Python and npm lock consistency, import provenance, required files, local Ganache/solc versions when installed, and optional tool availability. It never probes a public chain or prints secret values.
+`setup.sh` remains a compatibility wrapper for the one canonical bootstrap. Bootstrap installs lockfile-resolved Python runtime/dev/Solana/EVM dependencies; `npm ci` installs the separate locked local EVM toolchain. The documented package build uses PEP 517 isolation with exact version constraints for Hatchling and its build toolchain. The doctor checks Python and npm lock consistency, import provenance, required files, local Ganache/solc versions when installed, and optional tool availability. It never probes a public chain or prints secret values.
 
 Use a new empty cache directory to distinguish a fresh attempt from a cached one. For example, set `UV_CACHE_DIR` to an empty temporary directory and pass `--cache` to npm. If registry access is unavailable and a required artifact is absent, record `EXTERNAL_NETWORK_BLOCKER`; do not retry against a global cache and label it fresh.
 
