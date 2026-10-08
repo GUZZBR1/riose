@@ -1,0 +1,10 @@
+{
+  "attempt_count": 0,
+  "attempt_id": null,
+  "chain": "arbitrum-sepolia",
+  "expected_chain_id": 421614,
+  "reason": "DNS_FAILURE, SIGNER_UNAVAILABLE, and no verified deployment config; no signing or submission.",
+  "status": "NOT_ATTEMPTED",
+  "target": "ARBITRUM_SEPOLIA",
+  "transaction_hash": null
+}

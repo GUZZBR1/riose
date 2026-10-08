@@ -1,0 +1,8 @@
+{
+  "commitment_verified": false,
+  "explorer_reference": null,
+  "independent_rpc_query": false,
+  "network_identity_observed": false,
+  "status": "NOT_ATTEMPTED",
+  "transaction_exists": false
+}

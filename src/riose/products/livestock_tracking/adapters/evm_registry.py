@@ -156,6 +156,7 @@ class EVMRegistryAdapter:
         return True
 
     def prepare(self, commitment: PublicCommitmentEnvelope) -> PreparedPublication:
+        self.config.assert_testnet_or_loopback()
         if self.signer is None or self.nonce_coordinator is None or self.publication_id is None:
             raise ValueError("EVM signer and nonce coordination are required to prepare")
         Account, _, _, to_checksum_address, _ = _eth_account()
@@ -259,6 +260,7 @@ class EVMRegistryAdapter:
             raise ValueError("prepared EVM transaction does not match its target")
 
     def submit(self, prepared: PreparedPublication) -> str:
+        self.config.assert_testnet_or_loopback()
         if (type(prepared.transaction_id) is not str or _HASH.fullmatch(prepared.transaction_id) is None
                 or type(prepared.payload) is not bytes
                 or "0x" + _eth_account()[2](prepared.payload).hex() != prepared.transaction_id.lower()):

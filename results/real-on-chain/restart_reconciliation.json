@@ -1,0 +1,14 @@
+{
+  "all_target_bindings_verified": true,
+  "attempt_count": 0,
+  "chain_transaction_reconciliation": "NOT_TESTED_NO_SUBMISSION",
+  "duplicate_queue_request_reused_existing": true,
+  "local_database_reopened": true,
+  "receipt_count": 0,
+  "resubmission": "NOT_APPLICABLE_NO_SIGNED_OR_PERSISTED_CHAIN_ATTEMPT",
+  "target_status_after_restart": {
+    "arbitrum-sepolia": "QUEUED",
+    "base-sepolia": "QUEUED",
+    "solana": "QUEUED"
+  }
+}

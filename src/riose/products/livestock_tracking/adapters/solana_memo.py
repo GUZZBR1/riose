@@ -332,6 +332,11 @@ def load_keypair(path: str):
 
 
 def _read_keypair(path: str, keypair_type: type):
+    # Windows has no O_NOFOLLOW flag; reject an already-present symlink before
+    # opening it while retaining descriptor-based checks where the OS supports
+    # atomic no-follow semantics.
+    if os.name != "posix" and os.path.islink(path):
+        raise ValueError
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
     # Avoid blocking forever if an attacker supplies a FIFO or another special file.
     flags |= getattr(os, "O_NONBLOCK", 0)

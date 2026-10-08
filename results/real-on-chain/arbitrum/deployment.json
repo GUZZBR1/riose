@@ -1,0 +1,13 @@
+{
+  "contract_address": null,
+  "contract_source": "contracts/src/RioseCommitmentRegistry.sol",
+  "contract_source_sha256": "acde20be95cf1ae925de0288adf3cdf13a55ab8655d4849208edefbc976d025e",
+  "deployment_provenance": null,
+  "expected_chain_id": 421614,
+  "observed_chain_id": null,
+  "publisher_address": null,
+  "remote_state": "NOT_QUERIED_DNS_FAILURE",
+  "runtime_code_hash": null,
+  "status": "DEPLOYMENT_MISSING",
+  "target": "ARBITRUM_SEPOLIA"
+}

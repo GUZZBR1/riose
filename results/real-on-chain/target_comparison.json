@@ -1,0 +1,26 @@
+{
+  "canonical_commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+  "cross_chain_commitment_match": "PASS_LOCAL_CANONICAL_OUTBOX",
+  "public_commitment_match": "NOT_FULLY_TESTED",
+  "scope": "same event-level commitment assigned by canonical outbox; no public target reached",
+  "targets": {
+    "ARBITRUM_SEPOLIA": {
+      "independently_verified": false,
+      "local_commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+      "tx_id": null,
+      "verdict": "EXTERNAL_BLOCKED"
+    },
+    "BASE_SEPOLIA": {
+      "independently_verified": false,
+      "local_commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+      "tx_id": null,
+      "verdict": "EXTERNAL_BLOCKED"
+    },
+    "SOLANA_DEVNET": {
+      "independently_verified": false,
+      "local_commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+      "tx_id": null,
+      "verdict": "EXTERNAL_BLOCKED"
+    }
+  }
+}

@@ -94,6 +94,23 @@ class EVMNetworkConfig:
                     f"{self.contract_address.lower()}").encode("ascii")
         return f"evm-{self.chain}-{self.chain_id}-{hashlib.sha256(identity).hexdigest()}"
 
+    def assert_testnet_or_loopback(self) -> None:
+        """Fail closed before signing or sending outside supported testnets."""
+        parsed = urlsplit(self.rpc_url)
+        if (
+            self.chain in {"evm", "local"}
+            and self.chain_id == 31337
+            and parsed.scheme == "http"
+            and parsed.hostname in {"127.0.0.1", "localhost", "::1"}
+        ):
+            return
+        if (self.chain == "base-sepolia" and self.chain_id == 84532) or (
+            self.chain in {"arbitrum", "arbitrum-sepolia"}
+            and self.chain_id == 421614
+        ):
+            return
+        raise ValueError("EVM publication is restricted to Base Sepolia or Arbitrum Sepolia")
+
     @property
     def nonce_scope(self) -> str:
         """Nonce ownership is per EVM chain and sender, not per contract."""

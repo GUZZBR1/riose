@@ -1,0 +1,43 @@
+{
+  "compileall": {
+    "command": "python -m compileall -q src",
+    "result": "PASS"
+  },
+  "ctest": {
+    "command": "make hardware-test",
+    "result": "39 passed, 0 failed"
+  },
+  "focused": {
+    "command": "python -m pytest -q tests/livestock_tracking/test_solana_memo.py tests/livestock_tracking/test_evm_registry.py tests/livestock_tracking/test_evm_local.py tests/livestock_tracking/test_publication_dispatcher.py tests/livestock_tracking/test_publication_outbox.py tests/livestock_tracking/test_evm_nonce.py tests/livestock_tracking/test_commitment_privacy.py tests/livestock_tracking/test_event_contract.py",
+    "result": "132 passed"
+  },
+  "full_python": {
+    "command": "python -m pytest -q",
+    "duration": "92.06s",
+    "exit_code": 0,
+    "result": "888 passed, 7 skipped, 1 existing Starlette/httpx deprecation warning"
+  },
+  "git_diff_check": {
+    "command": "git diff --check",
+    "result": "PASS after evidence finalization"
+  },
+  "npm_dependencies": {
+    "command": "npm ls --depth=0 --prefix contracts",
+    "result": "PASS; ganache 7.9.2 and solc 0.8.37"
+  },
+  "npm_lock": {
+    "result": "NOT_AVAILABLE; contracts/package-lock.json is absent at the selected base SHA; no new lockfile was created"
+  },
+  "python_dependencies": {
+    "command": "python -m pip check",
+    "result": "PASS; no broken requirements found"
+  },
+  "python_lock": {
+    "command": "uv lock --check --offline",
+    "result": "PASS"
+  },
+  "solidity": {
+    "command": "node contracts/test/compile_registry.cjs contracts/src/RioseCommitmentRegistry.sol",
+    "result": "PASS; compiled with installed solc 0.8.37; no deployment performed"
+  }
+}

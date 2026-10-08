@@ -1,0 +1,17 @@
+{
+  "baseline_finding": "loader followed symlinks and did not verify regular-file type or restrictive permissions",
+  "fix": "O_NOFOLLOW where supported; regular-file check; POSIX owner must match effective UID and group/world permissions must be absent; bounded read; sanitized failures; malformed or extra JSON rejected",
+  "focused_tests": "132 passed after the final signer-loader and EVM mainnet-firewall changes",
+  "platform": "Ubuntu WSL; Windows ACL semantics were not independently tested.",
+  "regressions": [
+    "test_solana_memo.py::test_keypair_loader_rejects_nonregular_and_trailing_data",
+    "test_solana_memo.py::test_keypair_loader_rejects_shared_permissions_and_symlinks"
+  ],
+  "sec_solana_001": "CLOSED",
+  "signer_availability": {
+    "evm": "SIGNER_UNAVAILABLE",
+    "secret_material_logged": false,
+    "secret_material_read": false,
+    "solana": "SIGNER_UNAVAILABLE"
+  }
+}

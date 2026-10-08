@@ -470,3 +470,17 @@ def test_keypair_loader_reads_open_descriptor_if_path_is_replaced_after_open(tmp
 
     monkeypatch.setattr(solana_memo.os, "open", replace_path_after_open)
     assert str(solana_memo.load_keypair(str(path)).pubkey()) == expected_pubkey
+
+
+@pytest.mark.skipif(os.name == "posix", reason="O_NOFOLLOW provides atomic POSIX symlink rejection")
+def test_keypair_loader_rejects_existing_non_posix_symlink(tmp_path):
+    from riose.products.livestock_tracking.adapters.solana_memo import load_keypair
+
+    target, _ = _write_synthetic_keypair(tmp_path / "keypair.json")
+    link = tmp_path / "keypair-link.json"
+    try:
+        link.symlink_to(target)
+    except (NotImplementedError, OSError):
+        pytest.skip("this platform does not permit creating symlinks")
+    with pytest.raises(SolanaRpcError, match="invalid or unreadable"):
+        load_keypair(str(link))

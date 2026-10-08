@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "impact": "Remote freshness unverified; no network identity, deployment, balance, transaction, receipt, or explorer verification.",
+      "limitation": "DNS_FAILURE"
+    },
+    {
+      "impact": "No signing, funds check, or transaction submission.",
+      "limitation": "SIGNER_UNAVAILABLE"
+    },
+    {
+      "impact": "Base and Arbitrum deployment address/code/publisher cannot be checked.",
+      "limitation": "DEPLOYMENT_MISSING"
+    },
+    {
+      "impact": "No public transaction attempt exists; local queued state and existing mocked tests only.",
+      "limitation": "CHAIN_RESTART_RECONCILIATION_NOT_TESTED"
+    },
+    {
+      "impact": "No contracts/package-lock.json exists in the selected base; the dependency tree was inspected without generating a new lock file.",
+      "limitation": "NPM_LOCKFILE_ABSENT"
+    },
+    {
+      "impact": "Native Windows ACL-specific signer behavior remains unverified; WSL POSIX ownership and mode behavior was tested.",
+      "limitation": "WINDOWS_ACL_NOT_TESTED"
+    }
+  ]
+}

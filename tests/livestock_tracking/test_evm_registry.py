@@ -590,6 +590,47 @@ def test_network_config_rejects_implicit_or_wrong_deployment():
         )
 
 
+def test_evm_publication_firewall_rejects_mainnets_before_signing_or_sending():
+    signer = Account.create()
+    base_mainnet = replace(
+        _config(signer.address), chain="base", chain_id=8453,
+        rpc_url="https://mainnet.base.org",
+    )
+    adapter = EVMRegistryAdapter(base_mainnet, client=FakeRPC(base_mainnet))
+    with pytest.raises(ValueError, match="restricted to Base Sepolia"):
+        adapter.prepare(build_public_envelope("ab" * 32))
+    with pytest.raises(ValueError, match="restricted to Base Sepolia"):
+        adapter.submit(PreparedPublication("0x" + "1" * 64, b"signed", {}))
+    assert adapter.client.sends == []
+
+    arbitrum_one = replace(
+        _config(signer.address), chain="arbitrum", chain_id=42161,
+        rpc_url="https://arb1.arbitrum.io/rpc",
+    )
+    arbitrum_client = FakeRPC(arbitrum_one)
+    arbitrum_adapter = EVMRegistryAdapter(arbitrum_one, client=arbitrum_client)
+    with pytest.raises(ValueError, match="restricted to Base Sepolia"):
+        arbitrum_adapter.prepare(build_public_envelope("cd" * 32))
+    with pytest.raises(ValueError, match="restricted to Base Sepolia"):
+        arbitrum_adapter.submit(PreparedPublication("0x" + "2" * 64, b"signed", {}))
+    assert arbitrum_client.sends == []
+
+
+def test_evm_publication_firewall_allows_supported_testnets_and_loopback():
+    base = replace(
+        _config("0x" + "2" * 40), chain="base-sepolia", chain_id=84532,
+        rpc_url="https://sepolia.base.org",
+    )
+    arbitrum = replace(
+        _config("0x" + "2" * 40), chain="arbitrum-sepolia", chain_id=421614,
+        rpc_url="https://sepolia-rollup.arbitrum.io/rpc",
+    )
+    _config("0x" + "2" * 40).assert_testnet_or_loopback()
+    replace(_config("0x" + "2" * 40), chain="local").assert_testnet_or_loopback()
+    base.assert_testnet_or_loopback()
+    arbitrum.assert_testnet_or_loopback()
+
+
 def test_arbitrum_sepolia_config_pins_chain_and_full_rpc():
     signer = Account.create()
     values = {

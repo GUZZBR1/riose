@@ -1,0 +1,18 @@
+{
+  "contains_animal_or_tag_identifiers": false,
+  "contains_private_key_or_signer_material": false,
+  "contains_raw_event_or_payload": false,
+  "event_classification": "synthetic",
+  "evm_calldata_hex": "0xe1fa8e847d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+  "evm_commitment_argument_hex": "0x7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+  "evm_method": "register(bytes32)",
+  "public_envelope": {
+    "algorithm": "sha256",
+    "commitment": "7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80",
+    "version": 1
+  },
+  "signed_transaction_created": false,
+  "solana_memo_instruction_data_utf8": "{\"algorithm\":\"sha256\",\"commitment\":\"7d3bf649aa47008d8dd1526ddad2f353635181d63a764f87c807ee7a23c8ef80\",\"version\":1}",
+  "source": "existing Solana Memo adapter serializer and EVM registry ABI encoder; no signing or network submission",
+  "status": "PASS_LOCAL_PAYLOAD_REVIEW"
+}
