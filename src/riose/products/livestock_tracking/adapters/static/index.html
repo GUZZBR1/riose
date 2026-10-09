@@ -7,7 +7,7 @@
   <meta name="description" content="Explore a living RIOSE farm, select an animal, and follow its verifiable record.">
   <link rel="icon" href="data:,">
   <link rel="preload" href="/assets/fonts/sora-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/demo.css?v=20261008-01">
+  <link rel="stylesheet" href="/assets/demo.css?v=20261008-03">
   <title>RIOSE — Guided demo</title>
 </head>
 <body>
@@ -31,7 +31,6 @@
       <div class="farm-column">
         <div class="farm-stage" id="farm-stage">
           <div class="farm-canvas" id="farm-canvas" role="application" aria-label="Isometric farm scene. Select a cow to inspect it; drag with a mouse to move it; use arrow keys to select an animal." tabindex="0"></div>
-          <p class="farm-evidence-label">Illustrative scene · animal movement and location are simulated</p>
           <p class="farm-intro-hint" id="farm-intro-hint" hidden>Select an animal to inspect<span class="farm-intro-hint__mouse-drag"> · drag with mouse to move</span></p>
             <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
           <span id="selected-animal-announcement" class="visually-hidden" aria-live="polite"></span>
@@ -58,20 +57,25 @@
               <section class="animal-journey" id="animal-journey" aria-labelledby="journey-title">
                 <div class="journey-heading">
                   <h3 id="journey-title">A day in the pasture</h3>
-                  <span class="journey-source">Illustrative journey</span>
+                  <span class="journey-source">Illustrative route</span>
                 </div>
                 <ol class="journey-list" id="journey-list" aria-live="polite"></ol>
               </section>
-              <section class="cerrado-profile" id="cerrado-profile" aria-label="Illustrative ranch profile" hidden>
-                <p class="profile-provenance">Illustrative profile</p>
+              <section class="cerrado-profile" id="cerrado-profile" aria-label="Cerrado animal profile" hidden>
+                <p class="profile-provenance">Illustrative demo profile</p>
                 <dl class="cerrado-profile-grid" id="cerrado-profile-grid">
                   <div><dt>Health</dt><dd data-cerrado="health"></dd></div>
-                  <div><dt>Activity</dt><dd data-cerrado="activity"></dd></div>
                   <div class="reproductive-field"><dt>Reproductive status</dt><dd data-cerrado="reproductive"></dd></div>
                   <div><dt>Estimated location</dt><dd data-cerrado="location"></dd></div>
                   <div><dt>Last signal</dt><dd data-cerrado="signal"></dd></div>
-                  <div><dt>Body condition</dt><dd data-cerrado="condition"></dd></div>
                 </dl>
+                <details class="profile-details">
+                  <summary>More animal details</summary>
+                  <dl>
+                    <div><dt>Riose tag</dt><dd data-cerrado="tag"></dd></div>
+                    <div><dt>Body condition</dt><dd data-cerrado="condition"></dd></div>
+                  </dl>
+                </details>
               </section>
               <div class="record-integrity" id="record-verification" role="status" aria-live="polite" data-state="pending">
                 <span class="integrity-dot" aria-hidden="true"></span><span>Checking record integrity…</span>
@@ -79,37 +83,38 @@
               <p class="quiet-status api-state" id="api-state" role="status" aria-live="polite" hidden></p>
             </div>
           </div>
-          <button class="identity-toggle" id="continue-solana" type="button" aria-expanded="false" aria-controls="solana-screen">Open identity preview <span aria-hidden="true">↗</span></button>
+          <button class="identity-toggle" id="continue-solana" type="button" aria-expanded="false" aria-controls="solana-screen">Explore digital identity <span aria-hidden="true">↗</span></button>
         </section>
 
         <section class="context-card solana-panel" id="solana-screen" aria-labelledby="solana-title" aria-hidden="true" inert>
           <header class="solana-panel-heading">
             <div>
               <p class="digital-eyebrow">Digital identity</p>
-              <h2 id="solana-title">Animal identity preview</h2>
+              <h2 id="solana-title">Animal identity</h2>
             </div>
-            <span class="asset-network">Illustrative</span>
+            <span class="asset-network">Solana</span>
           </header>
           <div class="solana-panel-body">
             <img class="identity-art" id="identity-art" data-src="/assets/demo/solana-identity-orb.webp" alt="" width="220" height="220" decoding="async">
             <div class="solana-actions">
-              <p class="solana-lede">Preview a generic digital identity label. This preview creates no asset and publishes no animal data.</p>
+              <ol class="proof-flow" aria-label="Identity proof steps">
+                <li>Farm record</li><li>Digest</li><li>Solana</li><li>Digital identity</li>
+              </ol>
               <div class="asset-preview-card" id="asset-preview-card" hidden aria-live="polite">
                 <img id="asset-preview-portrait" src="/assets/demo/animal-0.webp" alt="" width="48" height="48">
                 <div class="asset-preview-copy">
-                  <span>PUBLIC IDENTITY</span>
                   <strong id="asset-preview-public-name">Animal 0</strong>
-                  <small>Minimal metadata · no farm data</small>
+                  <small id="asset-preview-subtitle">Animal 0 · Riose</small>
                 </div>
               </div>
               <p class="asset-preview-status" id="asset-preview-status" role="status" aria-live="polite" hidden></p>
+              <p class="asset-preview-disclosure" id="asset-preview-disclosure" hidden>Preview only · No transaction is sent.</p>
               <div class="asset-actions">
-                <button class="secondary-button" id="asset-preview-action" type="button">Preview asset</button>
+                <button class="secondary-button" id="asset-preview-action" type="button">Preview identity</button>
               </div>
-              <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset">Preview only · no blockchain transaction.</p>
+              <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset" hidden></p>
             </div>
           </div>
-          <p class="asset-disclosure">Illustrative preview only. RIOSE does not create or verify a public-chain animal identity here.</p>
         </section>
       </aside>
     </section>
@@ -124,7 +129,6 @@
         <div class="farm-column">
           <div class="farm-stage" id="farm-stage-02">
             <div class="farm-canvas" id="farm-canvas-02" role="application" aria-label="Cerrado ranch scene. Select a cow to inspect it; drag with a mouse to move it; use arrow keys to select an animal." tabindex="0"></div>
-            <p class="farm-evidence-label">Illustrative scene · animal movement and location are simulated</p>
             <p class="farm-intro-hint" id="farm-intro-hint-02" hidden>Select an animal to inspect<span class="farm-intro-hint__mouse-drag"> · drag with mouse to move</span></p>
             <button class="farm-sound-toggle" type="button" data-farm-sound aria-pressed="false">Sound off</button>
             <span id="selected-animal-announcement-02" class="visually-hidden" aria-live="polite"></span>
@@ -139,6 +143,6 @@
 
     <footer class="demo-footer"><a href="/">Riose</a><a href="/manifesto">Read the manifesto</a><a href="/simulator">RF simulator</a></footer>
   </main>
-  <script type="module" src="/assets/demo.js?v=20261007-31"></script>
+  <script type="module" src="/assets/demo.js?v=20261009-01"></script>
 </body>
 </html>

@@ -123,7 +123,7 @@ try {
   for (const label of ['Overview', 'Signals', 'Coverage', 'Track', 'Herd overview', '24 animals']) {
     assert.ok(!forbidden.includes(label), `unexpected visible label: ${label}`);
   }
-  assert.match(forbidden, /animal movement and location are simulated/i, 'illustrative animal motion and location are labelled as simulated');
+  assert.doesNotMatch(forbidden, /animal movement and location are simulated/i, 'the page does not show redundant simulator copy');
   assert.equal(await page.locator('#context-rail').getAttribute('aria-hidden'), 'true');
   await page.screenshot({ path: resolve(output, 'farm-demo-desktop.png') });
 
@@ -169,22 +169,24 @@ try {
   assert.match(await page.locator('#record-portrait').getAttribute('src'), /\/assets\/demo\/animal-0\.webp$/);
   assert.ok(await page.locator('#selected-animal-zone').textContent());
   assert.equal(await page.locator('#journey-list .journey-beat').count(), 3);
-  await page.getByText('Illustrative journey').waitFor({ state: 'visible' });
+  await page.getByText('Illustrative route').waitFor({ state: 'visible' });
   await page.waitForFunction(() => document.querySelector('#record-verification')?.textContent.includes('Record integrity'));
   await page.waitForTimeout(450);
   await page.screenshot({ path: resolve(output, 'farm-demo-selected-animal.png') });
 
   assert.equal(await page.evaluate(() => performance.getEntriesByType('resource').some((entry) => entry.name.includes('solana-identity-orb'))), false,
     'the identity preview artwork remains lazy-loaded');
-  await page.getByRole('button', { name: 'Open identity preview' }).click();
+  await page.getByRole('button', { name: /Explore digital identity/ }).click();
   await page.waitForFunction(() => document.querySelector('#solana-screen')?.getAttribute('aria-hidden') === 'false');
   await page.waitForFunction(() => document.querySelector('#identity-art')?.complete && document.querySelector('#identity-art')?.naturalWidth > 0);
   await page.waitForTimeout(500);
   await page.screenshot({ path: resolve(output, 'farm-demo-identity-preview.png') });
-  await page.getByRole('button', { name: 'Preview asset' }).click();
-  await page.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  await page.getByRole('button', { name: 'Preview identity' }).click();
+  await page.getByText('Preview complete', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
   assert.equal(await page.locator('#asset-preview-public-name').textContent(), 'Animal 0');
-  assert.equal(await page.locator('#asset-action').isVisible(), false, 'the preview has no wallet or mint action');
+  assert.equal(await page.locator('#asset-preview-subtitle').textContent(), 'Animal 0 · Riose');
+  assert.equal(await page.locator('#asset-preview-disclosure').textContent(), 'Preview only · No transaction is sent.');
+  assert.equal(await page.locator('#asset-preview-action').textContent(), 'Preview again');
   assert.equal(await page.locator('#farm-canvas canvas').isVisible(), true, 'farm remains visible with both contextual panels open');
   assert.ok(await page.locator('.identity-art').evaluate((image) => image.complete && image.naturalWidth > 0), 'identity preview artwork loads');
   assert.deepEqual(assetMutations, [], 'the local preview makes no asset or wallet requests');
@@ -229,10 +231,12 @@ try {
   assert.match(cerrradoFields, /Estimated location/i);
   assert.match(await page.locator('#selected-animal-tag').textContent(), /Tag #0042/);
   await page.waitForFunction(() => document.querySelector('#record-verification')?.textContent.includes('Record integrity'));
-  await page.getByRole('button', { name: 'Open identity preview' }).click();
-  await page.getByRole('button', { name: 'Preview asset' }).click();
-  await page.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  await page.getByRole('button', { name: /Explore digital identity/ }).click();
+  await page.getByRole('button', { name: 'Preview identity' }).click();
+  await page.getByText('Preview complete', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
   assert.equal(await page.locator('#asset-preview-public-name').textContent(), 'Animal 42');
+  assert.equal(await page.locator('#asset-preview-subtitle').textContent(), 'Animal 42 · Riose');
+  await page.getByText('Illustrative demo profile').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#farm-canvas-02 canvas').isVisible(), true, 'Cerrado scene remains mounted beside identity');
   await page.screenshot({ path: resolve(output, 'cerrado-demo-selected-animal.png') });
   assert.deepEqual(assetMutations.filter((url) => /demo-cerrado/.test(url)), [], 'Cerrado preview must not call asset mutations');
@@ -266,7 +270,7 @@ try {
   await mobilePage.keyboard.press('ArrowRight');
   await mobilePage.waitForFunction(() => document.querySelector('#record-screen')?.getAttribute('aria-hidden') === 'false');
   await mobilePage.waitForTimeout(300);
-  await mobilePage.getByRole('button', { name: 'Open identity preview' }).click();
+  await mobilePage.getByRole('button', { name: /Explore digital identity/ }).click();
   await mobilePage.waitForFunction(() => document.querySelector('#solana-screen')?.getAttribute('aria-hidden') === 'false');
   await mobilePage.locator('#farm-stage-02').scrollIntoViewIfNeeded();
   await mobilePage.locator('#farm-canvas-02 canvas').waitFor({ state: 'visible', timeout: 10000 });
@@ -277,9 +281,9 @@ try {
   await mobilePage.getByText('Choose an animal from a list').last().click();
   await mobilePage.getByRole('button', { name: 'Animal 24', exact: true }).click();
   await mobilePage.waitForFunction(() => document.querySelector('#record-title')?.textContent === 'Animal 24');
-  await mobilePage.getByRole('button', { name: 'Open identity preview' }).click();
-  await mobilePage.getByRole('button', { name: 'Preview asset' }).click();
-  await mobilePage.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  await mobilePage.getByRole('button', { name: /Explore digital identity/ }).click();
+  await mobilePage.getByRole('button', { name: 'Preview identity' }).click();
+  await mobilePage.getByText('Preview complete', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
   await mobilePage.evaluate(() => window.scrollTo(0, 0));
   await mobilePage.screenshot({ path: resolve(output, 'farm-demo-cerrado-mobile.png'), fullPage: true });
   await mobileContext.close();
@@ -295,9 +299,9 @@ try {
   await offlinePage.waitForFunction(() => document.querySelector('#record-screen')?.getAttribute('aria-hidden') === 'false');
   await offlinePage.getByText('Record integrity unavailable').waitFor({ state: 'visible', timeout: 10000 });
   assert.equal(await offlinePage.locator('#farm-canvas canvas').isVisible(), true, 'API failure does not disable the farm');
-  await offlinePage.getByRole('button', { name: 'Open identity preview' }).click();
-  await offlinePage.getByRole('button', { name: 'Preview asset' }).click();
-  await offlinePage.getByText('Preview complete · not created').waitFor({ state: 'visible', timeout: 5000 });
+  await offlinePage.getByRole('button', { name: /Explore digital identity/ }).click();
+  await offlinePage.getByRole('button', { name: 'Preview identity' }).click();
+  await offlinePage.getByText('Preview complete', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
   await offlineContext.close();
 
   // A repeatable, synthetic mobile-network check focused on the actual point
