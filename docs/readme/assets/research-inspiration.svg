@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Research pipeline for a self-powered animal ear tag</title>
+  <desc id="desc">An original conceptual diagram showing energy harvesting, biochemical sensing, and machine-learning interpretation, based on the cited Nature Communications paper.</desc>
+  <rect width="1200" height="360" rx="24" fill="#f3f3f0"/>
+  <text x="48" y="54" fill="#777873" font-family="Arial, sans-serif" font-size="15" letter-spacing="2.5">RESEARCH INSPIRATION · CONCEPTUAL SUMMARY</text>
+
+  <g transform="translate(48 94)">
+    <rect width="310" height="210" rx="18" fill="#fff" stroke="#deded9"/>
+    <circle cx="57" cy="58" r="27" fill="#f4c928"/>
+    <path d="M57 43v29M42 58h30" stroke="#252521" stroke-width="5" stroke-linecap="round"/>
+    <text x="28" y="119" fill="#777873" font-family="Arial, sans-serif" font-size="14" letter-spacing="1.5">01 · POWER</text>
+    <text x="28" y="157" fill="#20211e" font-family="Arial, sans-serif" font-size="25" font-weight="700">Energy harvesting</text>
+    <text x="28" y="185" fill="#62635e" font-family="Arial, sans-serif" font-size="17">Motion + light</text>
+  </g>
+
+  <path d="M376 199h36m-10-10 10 10-10 10" fill="none" stroke="#92938d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g transform="translate(445 94)">
+    <rect width="310" height="210" rx="18" fill="#fff" stroke="#deded9"/>
+    <path d="M31 65c14-26 27 26 41 0s27 26 41 0" fill="none" stroke="#32a67a" stroke-width="4" stroke-linecap="round"/>
+    <text x="28" y="119" fill="#777873" font-family="Arial, sans-serif" font-size="14" letter-spacing="1.5">02 · SENSING</text>
+    <text x="28" y="157" fill="#20211e" font-family="Arial, sans-serif" font-size="25" font-weight="700">Biochemical signals</text>
+    <text x="28" y="185" fill="#62635e" font-family="Arial, sans-serif" font-size="17">pH · K⁺ · Ca²⁺</text>
+  </g>
+
+  <path d="M773 199h36m-10-10 10 10-10 10" fill="none" stroke="#92938d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g transform="translate(842 94)">
+    <rect width="310" height="210" rx="18" fill="#fff" stroke="#deded9"/>
+    <circle cx="48" cy="57" r="5" fill="#5a71dd"/>
+    <circle cx="68" cy="43" r="5" fill="#5a71dd" opacity=".65"/>
+    <circle cx="87" cy="60" r="5" fill="#5a71dd" opacity=".4"/>
+    <path d="m48 57 20-14 19 17" fill="none" stroke="#5a71dd" stroke-width="2"/>
+    <text x="28" y="119" fill="#777873" font-family="Arial, sans-serif" font-size="14" letter-spacing="1.5">03 · INTERPRETATION</text>
+    <text x="28" y="157" fill="#20211e" font-family="Arial, sans-serif" font-size="25" font-weight="700">Machine learning</text>
+    <text x="28" y="185" fill="#62635e" font-family="Arial, sans-serif" font-size="17">Welfare-related states</text>
+  </g>
+</svg>
