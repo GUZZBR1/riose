@@ -54,7 +54,12 @@ A confirmed commitment lets someone compare a known record with its digest. It d
 
 ## Research inspiration
 
-RIOSE's direction is informed by research into animal-specific sensing. One reference is [*Machine learning-assisted self-powered ear tag for animal welfare*](https://www.nature.com/articles/s41467-026-73651-7), published in *Nature Communications* in 2026. That paper explores self-powered biochemical sensing; RIOSE's current software focuses on animal identity, event records, and verifiable commitments.
+One reference is [*Machine learning-assisted self-powered ear tag for animal welfare*](https://www.nature.com/articles/s41467-026-73651-7), published in *Nature Communications*. The paper reports an ear tag combining energy harvesting, microneedle-based monitoring of pH, K⁺ and Ca²⁺, and machine learning to distinguish welfare-related states.
+
+<p align="center">
+  <img src="docs/readme/assets/research-inspiration.svg" alt="Original conceptual summary of the paper's energy harvesting, biochemical sensing and machine-learning pipeline">
+</p>
+<p align="center"><sub>Original visual summary of the cited research—not a RIOSE hardware feature. RIOSE's current software focuses on animal identity, event records, and verifiable commitments.</sub></p>
 
 ## Run the demo
 
