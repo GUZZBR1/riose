@@ -2,49 +2,54 @@
 
 ### Every animal leaves a signal.
 
-RIOSE connects an animal's ear-tag identity to a dependable record of its journey across the farm. When a record needs to be shared, a cryptographic digest can provide a verifiable reference without publishing the animal's private history.
+The product concept starts with an ear tag: a consistent identity for each animal. RIOSE connects that identity to an organized record of events across the farm—and gives each record a path to verifiable digital proof.
 
-[Explore the product demo](#run-the-demo) · [How it works](#from-animal-to-verifiable-record) · [Research inspiration](#research-inspiration)
+<img align="right" width="280" src="docs/readme/assets/ear-tag-cutout.png" alt="RIOSE ear-tag product concept, isolated on a transparent background">
 
-<p align="center">
-  <img src="docs/readme/assets/ear-tag-concept.jpg" width="360" alt="RIOSE ear-tag product concept rendering">
-</p>
-<p align="center"><sub>Ear-tag concept · RIOSE product direction</sub></p>
+[Explore the product demo](#run-the-demo) · [Follow the story](#one-system-across-two-farms) · [Research inspiration](#research-inspiration)
 
-## One system, two farm environments
+<br clear="right">
 
-From a lush pasture to Brazil's open Cerrado, the demo applies the same RIOSE workflow to two different herd environments.
+## One system across two farms
 
-<p align="center">
-  <img src="docs/readme/assets/connected-farms-concept.png" alt="Visual concept connecting a lush livestock farm and a Cerrado ranch">
-</p>
-<p align="center"><sub>Connected-farms concept · an art direction reference, not a live dashboard capture</sub></p>
-
-The browser demo lets you explore the farm scenes, select individual animals, and inspect their profiles. The scene is an interactive product demonstration; its animal movement and location are not a live feed from deployed tags.
+Livestock environments are different. RIOSE is designed to follow the same individual-animal workflow from a lush pasture to Brazil's open Cerrado.
 
 <p align="center">
-  <img src="docs/demo-preview/farm-demo-desktop.png" alt="RIOSE interactive livestock farm demo">
+  <img src="docs/readme/assets/connected-farms-concept.png" alt="RIOSE concept connecting a lush dairy farm and an open Cerrado cattle ranch">
 </p>
-<p align="center"><sub>Interactive farm demo</sub></p>
+<p align="center"><sub>Two farm environments, one product direction</sub></p>
 
-The homepage image below is an early presentation concept for the product experience.
+## Follow an animal through its environment
+
+Open the browser demo, explore the farm, and select an animal. Its contextual profile brings its identity and record into focus while the farm remains in view.
 
 <p align="center">
-  <img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early visual concept for the RIOSE homepage">
+  <img src="docs/demo-preview/farm-demo-desktop.png" alt="RIOSE interactive farm demo with a selected animal and contextual profile">
 </p>
+<p align="center"><sub>The interactive farm experience</sub></p>
 
-## From animal to verifiable record
+The movement and location shown in the browser scene are part of the product demonstration, not a live feed from deployed tags.
 
-1. **Identify** — connect an animal profile to its ear-tag identity.
-2. **Record** — keep an ordered event history in RIOSE's local application.
+<details>
+  <summary>See the early homepage concept</summary>
+  <p>The image below explores how the RIOSE product could be introduced on the website.</p>
+  <p align="center"><img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early visual concept for the RIOSE homepage"></p>
+</details>
+
+## Turn a record into verifiable proof
+
+An animal's story stays in the RIOSE application. When a record needs a shared proof, RIOSE can derive a cryptographic digest and anchor that digest on Solana.
+
+1. **Identify** — associate an animal profile with its ear-tag identity.
+2. **Record** — keep an ordered history of events in the local application.
 3. **Create a digest** — derive a canonical SHA-256 commitment from the record.
-4. **Anchor when needed** — the Solana Memo path can publish the digest; the full event and private farm data remain off-chain.
+4. **Anchor when needed** — publish the digest through the Solana Memo path; the event history and private farm data stay off-chain.
 
-A confirmed on-chain commitment provides a shared reference for comparing a known record with its digest. It does not establish that an event happened, prove physical animal identity, or transfer ownership.
+A confirmed commitment lets someone compare a known record with its digest. It does not establish that an event happened, prove physical animal identity, or transfer ownership.
 
-## Why this direction
+## Research inspiration
 
-RIOSE is inspired by research moving livestock care toward animal-specific sensing. One reference is [*Machine learning-assisted self-powered ear tag for animal welfare*](https://www.nature.com/articles/s41467-026-73651-7), published in *Nature Communications* in 2026. That work explores self-powered biochemical sensing; RIOSE's current software focuses on animal identity, event records, and verifiable commitments.
+RIOSE's direction is informed by research into animal-specific sensing. One reference is [*Machine learning-assisted self-powered ear tag for animal welfare*](https://www.nature.com/articles/s41467-026-73651-7), published in *Nature Communications* in 2026. That paper explores self-powered biochemical sensing; RIOSE's current software focuses on animal identity, event records, and verifiable commitments.
 
 ## Run the demo
 
@@ -55,16 +60,14 @@ Requirements: Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 uv run --locked cattle-rf demo --host 127.0.0.1 --port 8000
 ```
 
-Open <http://127.0.0.1:8000/demo> to explore the farm experience. The local service also exposes the livestock API and RF simulator at the root and `/simulator` routes.
+Open <http://127.0.0.1:8000/demo> to explore the farm experience. The local service also exposes the livestock API at the root and the RF simulator at `/simulator`.
 
-## What is in the repository
+## In the repository
 
 - **Livestock application:** animal profiles, Event V1 history, SQLite persistence, and an offline-first publication outbox.
 - **Farm experience:** two interactive, illustrative farm scenes with selectable animals and contextual profiles.
 - **Ear-tag engineering:** firmware models, RF simulation, localization research, and digital-twin tooling.
 - **Verification software:** canonical commitments, a Solana Memo adapter, and an EVM registry/test harness.
-
-## Current project status
 
 The software paths have local automated coverage. Public-chain publication and physical field validation have not been independently verified; the browser farm and RF outputs are simulations or models. See the [integrated beta evidence](docs/reports/INTEGRATED_BETA_COMPLETION_GATE.md), [multichain evidence](docs/reports/MULTICHAIN_MAIN_RECONCILIATION_DOD.md), and [reproducible validation guide](reproducibility/README.md) for scope and results.
 
