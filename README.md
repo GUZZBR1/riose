@@ -6,9 +6,18 @@ The product concept starts with an ear tag: a consistent identity for each anima
 
 <img align="right" width="280" src="docs/readme/assets/ear-tag-cutout.png" alt="RIOSE ear-tag product concept, isolated on a transparent background">
 
-[Explore the product demo](#run-the-demo) · [Follow the story](#one-system-across-two-farms) · [Research inspiration](#research-inspiration)
+[Explore the product demo](#run-the-demo) · [Follow the story](#a-product-built-around-the-animal) · [Research inspiration](#research-inspiration)
 
 <br clear="right">
+
+## A product built around the animal
+
+RIOSE brings the physical tag, the animal's record, and the farm experience into one product. This early homepage concept shows the intended entry point: start with the animal, then step into its environment.
+
+<p align="center">
+  <img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early RIOSE website cover concept, featuring a cow and the product experience">
+</p>
+<p align="center"><sub>Early RIOSE homepage concept</sub></p>
 
 ## One system across two farms
 
@@ -22,11 +31,6 @@ Livestock environments are different. RIOSE is designed to follow the same indiv
 ## Follow an animal through its environment
 
 The experience is organized around an individual animal, not a dashboard. In the [interactive demo](#run-the-demo), select an animal to bring its identity and record into focus while keeping the farm in view. Animal movement and location in the browser scene are part of the product demonstration, not a live feed from deployed tags.
-
-<p align="center">
-  <img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early RIOSE website cover concept, featuring a cow and the product experience">
-</p>
-<p align="center"><sub>Early RIOSE homepage concept</sub></p>
 
 ## Turn a record into verifiable proof
 
