@@ -57,10 +57,12 @@
               <section class="animal-journey" id="animal-journey" aria-labelledby="journey-title">
                 <div class="journey-heading">
                   <h3 id="journey-title">A day in the pasture</h3>
+                  <span class="journey-source">Illustrative route</span>
                 </div>
                 <ol class="journey-list" id="journey-list" aria-live="polite"></ol>
               </section>
               <section class="cerrado-profile" id="cerrado-profile" aria-label="Cerrado animal profile" hidden>
+                <p class="profile-provenance">Illustrative demo profile</p>
                 <dl class="cerrado-profile-grid" id="cerrado-profile-grid">
                   <div><dt>Health</dt><dd data-cerrado="health"></dd></div>
                   <div class="reproductive-field"><dt>Reproductive status</dt><dd data-cerrado="reproductive"></dd></div>
@@ -102,12 +104,13 @@
                 <img id="asset-preview-portrait" src="/assets/demo/animal-0.webp" alt="" width="48" height="48">
                 <div class="asset-preview-copy">
                   <strong id="asset-preview-public-name">Animal 0</strong>
-                  <small>Animal 0 · Riose</small>
+                  <small id="asset-preview-subtitle">Animal 0 · Riose</small>
                 </div>
               </div>
               <p class="asset-preview-status" id="asset-preview-status" role="status" aria-live="polite" hidden></p>
+              <p class="asset-preview-disclosure" id="asset-preview-disclosure" hidden>Preview only · No transaction is sent.</p>
               <div class="asset-actions">
-                <button class="secondary-button" id="asset-preview-action" type="button">Build identity</button>
+                <button class="secondary-button" id="asset-preview-action" type="button">Preview identity</button>
               </div>
               <p class="asset-state" id="asset-state" role="status" aria-live="polite" data-state="no-asset" hidden></p>
             </div>

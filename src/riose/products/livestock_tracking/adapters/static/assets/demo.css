@@ -133,6 +133,7 @@ button { font: inherit; }
 .journey-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .animal-journey h3 { margin: 0; font-size: 17px; font-weight: 400; letter-spacing: -.035em; }
 .journey-source { flex: none; color: #85867f; font: 8px/1.4 var(--mono); letter-spacing: .02em; }
+.profile-provenance { margin: -3px 0 8px; color: #85867f; font: 8px/1.4 var(--mono); letter-spacing: .02em; }
 .journey-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .journey-beat { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: start; gap: 8px; padding: 8px 10px; border: 1px solid rgb(255 255 255 / 68%); border-radius: 12px; background: rgb(255 255 255 / 34%); transition: background-color 220ms ease, transform 220ms ease; }
 .journey-beat:hover { transform: translateY(-1px); background: rgb(255 255 255 / 56%); }
@@ -189,6 +190,7 @@ button { font: inherit; }
 .asset-preview-copy strong { overflow: hidden; color: #2c2d29; font-size: 14px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .asset-preview-copy small { color: #71726b; font-size: 10px; line-height: 1.35; }
 .asset-preview-status { margin: 0 0 8px; color: #5d684f; font-size: 10px; line-height: 1.4; }
+.asset-preview-disclosure { margin: -4px 0 8px; color: #85867f; font: 8px/1.4 var(--mono); }
 .asset-actions { display: flex; gap: 7px; }
 .primary-button, .secondary-button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 0 15px; border-radius: 12px; font-size: 12px; cursor: pointer; transition: transform 220ms ease, background-color 220ms ease, box-shadow 220ms ease; }
 .primary-button { flex: 1; border: 1px solid #20211f; background: #20211f; color: #f7f7f4; box-shadow: 0 6px 16px rgb(20 20 18 / 8%); }

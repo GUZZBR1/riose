@@ -264,14 +264,16 @@ function resetIdentityCard(profile) {
   state.assetPreviewComplete = false;
   state.assetPreviewRunning = false;
   $('asset-preview-public-name').textContent = profile.name;
+  $('asset-preview-subtitle').textContent = `${profile.name} · Riose`;
   $('asset-preview-portrait').src = profile.image;
   $('asset-preview-card').hidden = true;
   $('asset-preview-card').classList.remove('is-revealed');
   $('asset-preview-status').hidden = true;
   $('asset-preview-status').textContent = '';
+  $('asset-preview-disclosure').hidden = true;
   $('asset-preview-action').hidden = false;
   $('asset-preview-action').disabled = false;
-  $('asset-preview-action').textContent = 'Build identity';
+  $('asset-preview-action').textContent = 'Preview identity';
   $('asset-state').hidden = true;
   updateIdentityToggle();
 }
@@ -282,7 +284,7 @@ function resetRecordState(profile) {
   $('record-portrait').src = profile.image;
   $('record-portrait').alt = `${profile.name}, cattle portrait`;
   $('record-portrait').classList.toggle('is-nelore', profile.farmId === 'farm02');
-  $('animal-panel-body').classList.toggle('is-cerrado', profile.farmId === 'farm02');
+  $('record-screen').querySelector('.animal-panel-body').classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('selected-animal-status').parentElement.classList.toggle('is-cerrado', profile.farmId === 'farm02');
   $('animal-journey').hidden = profile.farmId === 'farm02';
   $('cerrado-profile').hidden = profile.farmId !== 'farm02';
@@ -390,7 +392,7 @@ function publishSceneState(animals) {
 
 async function initFarm() {
   try {
-    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-33');
+    const { mountFarmDemo } = await import('/assets/farm-demo/farm-demo.js?v=20261007-34');
     const requestedCount = Number(new URLSearchParams(window.location.search).get('herd'));
     state.animalCount = Number.isInteger(requestedCount) && requestedCount >= 1 && requestedCount <= 100 ? requestedCount : 24;
 
@@ -528,8 +530,9 @@ async function previewAsset() {
   const button = $('asset-preview-action');
   const card = $('asset-preview-card');
   const status = $('asset-preview-status');
+  const disclosure = $('asset-preview-disclosure');
   button.disabled = true;
-  button.textContent = 'Preparing identity…';
+  button.textContent = 'Preparing preview…';
   card.hidden = false;
   card.classList.remove('is-revealed');
   void card.offsetWidth;
@@ -542,11 +545,12 @@ async function previewAsset() {
   status.textContent = 'Connecting the animal record';
   await waitForPreviewBeat(beat);
   if (requestId !== state.selectionGeneration) return;
-  status.textContent = 'Digital identity ready';
+  status.textContent = 'Preview complete';
+  disclosure.hidden = false;
   state.assetPreviewComplete = true;
   state.assetPreviewRunning = false;
   button.disabled = false;
-  button.textContent = 'Build again';
+  button.textContent = 'Preview again';
   if (!state.assetStatusLoaded) {
     void refreshAsset(requestId);
   }
