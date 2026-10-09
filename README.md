@@ -21,20 +21,12 @@ Livestock environments are different. RIOSE is designed to follow the same indiv
 
 ## Follow an animal through its environment
 
-Open the browser demo, explore the farm, and select an animal. Its contextual profile brings its identity and record into focus while the farm remains in view.
+The experience is organized around an individual animal, not a dashboard. In the [interactive demo](#run-the-demo), select an animal to bring its identity and record into focus while keeping the farm in view. Animal movement and location in the browser scene are part of the product demonstration, not a live feed from deployed tags.
 
 <p align="center">
-  <img src="docs/demo-preview/farm-demo-desktop.png" alt="RIOSE interactive farm demo with a selected animal and contextual profile">
+  <img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early RIOSE website cover concept, featuring a cow and the product experience">
 </p>
-<p align="center"><sub>The interactive farm experience</sub></p>
-
-The movement and location shown in the browser scene are part of the product demonstration, not a live feed from deployed tags.
-
-<details>
-  <summary>See the early homepage concept</summary>
-  <p>The image below explores how the RIOSE product could be introduced on the website.</p>
-  <p align="center"><img src="docs/readme/assets/riose-homepage-concept.jpg" width="820" alt="Early visual concept for the RIOSE homepage"></p>
-</details>
+<p align="center"><sub>Early RIOSE homepage concept</sub></p>
 
 ## Turn a record into verifiable proof
 
