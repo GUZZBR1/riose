@@ -18,6 +18,7 @@ from typing import Any, Iterable, Mapping, Sequence
 
 from ..domain.contracts import EvidenceStatus
 from .feature_schema import (
+    SIGNAL_FEATURE_SCHEMA,
     SYNTHETIC_FEATURE_ORDER,
     SYNTHETIC_FEATURE_SCHEMA,
     validate_registered_feature_schema,
@@ -28,6 +29,12 @@ FEATURE_VERSION = "movement-window-v1"
 MODEL_VERSION = "behavior-baseline-v1"
 ARTIFACT_SCHEMA_VERSION = 1
 KNOWN_BEHAVIORS = ("REST", "WALK", "GRAZE")
+_SIGNAL_WINDOW_CONFIG_KEYS = (
+    "window_duration_s", "window_samples", "overlap_fraction", "stride_samples",
+    "max_jitter_fraction", "source_sample_rate_hz", "resampling_method",
+    "resampling_up", "resampling_down", "resampling_jitter_interpolation",
+    "resampling_filter",
+)
 
 
 @dataclass(frozen=True)
@@ -48,6 +55,7 @@ class BehaviorWindow:
     feature_schema: Mapping[str, Any] | None = None
     source_file_sha256: str | None = None
     source_provenance_attested: bool = False
+    window_config: Mapping[str, Any] | None = None
 
 
 def _validate_windows(windows: Sequence[BehaviorWindow]) -> tuple[str, ...]:
@@ -74,7 +82,7 @@ def _validate_windows(windows: Sequence[BehaviorWindow]) -> tuple[str, ...]:
     if len(feature_versions) != 1 or any(not isinstance(value, str) or not value.strip()
                                          for value in feature_versions):
         raise ValueError("all windows must use one non-empty feature version")
-    acquisition_contracts: set[tuple[str, float | None]] = set()
+    acquisition_contracts: set[tuple[str, float | None, str]] = set()
     for row in windows:
         if row.feature_version != feature_schema["version"]:
             raise ValueError("feature_version must match feature_schema.version")
@@ -99,7 +107,6 @@ def _validate_windows(windows: Sequence[BehaviorWindow]) -> tuple[str, ...]:
         if any(not isinstance(value, str) or not value.strip() for value in
                (row.dataset_id, row.dataset_source, row.dataset_license, row.sensor_position)):
             raise ValueError("dataset ID, source, license and sensor position provenance are required")
-        acquisition_contracts.add((row.sensor_position, row.sample_rate_hz))
         if row.evidence_status not in {status.value for status in EvidenceStatus}:
             raise ValueError(f"unknown evidence status: {row.evidence_status!r}")
         metadata = (row.dataset_source, row.dataset_license)
@@ -115,6 +122,14 @@ def _validate_windows(windows: Sequence[BehaviorWindow]) -> tuple[str, ...]:
                 not isinstance(row.sample_rate_hz, (int, float)) or
                 not math.isfinite(row.sample_rate_hz) or row.sample_rate_hz <= 0):
             raise ValueError("sample_rate_hz must be null when unknown or finite and positive")
+        if feature_schema["schema_id"] == SIGNAL_FEATURE_SCHEMA["schema_id"]:
+            normalized_config = _validate_signal_window_config(row.window_config, row.sample_rate_hz)
+        else:
+            if row.window_config is not None:
+                raise ValueError("synthetic feature windows cannot declare a signal-engine window_config")
+            normalized_config = None
+        acquisition_contracts.add((row.sensor_position, row.sample_rate_hz,
+                                   json.dumps(normalized_config, sort_keys=True)))
         if not isinstance(row.features, Mapping):
             raise ValueError("features must be an ordered feature object")
         if tuple(row.features.keys()) != feature_names:
@@ -123,8 +138,61 @@ def _validate_windows(windows: Sequence[BehaviorWindow]) -> tuple[str, ...]:
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
                 raise ValueError(f"feature {name} must be a finite number")
     if len(acquisition_contracts) > 1:
-        raise ValueError("all windows must share one sensor position and sample rate")
+        raise ValueError("all windows must share one sensor position and sample rate with one window extraction configuration")
     return feature_names
+
+
+def _validate_signal_window_config(config: object, sample_rate_hz: float | None) -> dict[str, Any]:
+    """Validate the signal-engine settings that affect feature-window meaning."""
+    if (not isinstance(config, Mapping) or set(config) != set(_SIGNAL_WINDOW_CONFIG_KEYS) or
+            sample_rate_hz is None):
+        raise ValueError("registered signal features require complete window_config and sample_rate_hz")
+    duration = config["window_duration_s"]
+    overlap = config["overlap_fraction"]
+    jitter = config["max_jitter_fraction"]
+    source_rate = config["source_sample_rate_hz"]
+    samples = config["window_samples"]
+    stride = config["stride_samples"]
+    if (isinstance(duration, bool) or not isinstance(duration, (int, float)) or
+            not math.isfinite(duration) or duration <= 0):
+        raise ValueError("window_config window_duration_s must be finite and positive")
+    if (isinstance(overlap, bool) or not isinstance(overlap, (int, float)) or
+            not math.isfinite(overlap) or not 0 <= overlap < 1):
+        raise ValueError("window_config overlap_fraction must be finite and in [0, 1)")
+    if (isinstance(jitter, bool) or not isinstance(jitter, (int, float)) or
+            not math.isfinite(jitter) or not 0 <= jitter <= 0.5):
+        raise ValueError("window_config max_jitter_fraction must be finite and in [0, 0.5]")
+    if (isinstance(source_rate, bool) or not isinstance(source_rate, (int, float)) or
+            not math.isfinite(source_rate) or source_rate <= 0):
+        raise ValueError("window_config source_sample_rate_hz must be finite and positive")
+    if (isinstance(samples, bool) or not isinstance(samples, int) or samples < 8 or
+            isinstance(stride, bool) or not isinstance(stride, int) or stride < 1):
+        raise ValueError("window_config sample and stride counts are invalid")
+    expected_samples = int(round(duration * sample_rate_hz))
+    expected_stride = max(1, int(round(expected_samples * (1.0 - overlap))))
+    if samples != expected_samples or stride != expected_stride:
+        raise ValueError("window_config counts do not match duration, rate and overlap")
+    if any(not isinstance(config[key], str) or not config[key].strip()
+           for key in ("resampling_method", "resampling_filter")):
+        raise ValueError("window_config resampling metadata must be non-empty strings")
+    if any(isinstance(config[key], bool) or not isinstance(config[key], int) or config[key] < 1
+           for key in ("resampling_up", "resampling_down")):
+        raise ValueError("window_config resampling ratio must use positive integers")
+    if not isinstance(config["resampling_jitter_interpolation"], bool):
+        raise ValueError("window_config resampling_jitter_interpolation must be boolean")
+    return {
+        "window_duration_s": float(duration),
+        "window_samples": samples,
+        "overlap_fraction": float(overlap),
+        "stride_samples": stride,
+        "max_jitter_fraction": float(jitter),
+        "source_sample_rate_hz": float(source_rate),
+        "resampling_method": config["resampling_method"].strip(),
+        "resampling_up": config["resampling_up"],
+        "resampling_down": config["resampling_down"],
+        "resampling_jitter_interpolation": config["resampling_jitter_interpolation"],
+        "resampling_filter": config["resampling_filter"].strip(),
+    }
 
 
 def _matrix(windows: Sequence[BehaviorWindow], feature_names: Sequence[str] | None = None) -> np.ndarray:
@@ -325,6 +393,10 @@ def run_training(windows: Sequence[BehaviorWindow], seed: int = 23) -> tuple[dic
     ]
     validation_rows = [{"model": "majority_baseline", "validation_macro_f1": majority_score}]
     for name, estimator, scale_features in sklearn_models:
+        if name == "logistic_regression" and len(set(y_train)) < 2:
+            validation_rows.append({"model": name, "status": "skipped",
+                                    "reason": "requires at least two training classes"})
+            continue
         candidate_train = x_train if scale_features else _matrix(train, feature_names)
         candidate_validation = x_validation if scale_features else _matrix(validation, feature_names)
         estimator.fit(candidate_train, y_train)
@@ -336,13 +408,14 @@ def run_training(windows: Sequence[BehaviorWindow], seed: int = 23) -> tuple[dic
     # Complexity is an explicit tie-break, independent of test results.
     complexity = {"logistic_regression": 0, "decision_tree": 1, "extra_trees": 2, "majority_baseline": 3}
     selected_name, _, _, selected_score = max(candidates, key=lambda item: (item[3], -complexity[item[0]]))
-    model_labels = sorted({row.label for row in (train if selected_name == "majority_baseline"
-                                                  else train + validation)})
+    model_labels = sorted({row.label for row in train + validation})
     if selected_name == "majority_baseline":
         # Persist an explicit majority model only if validation proves no candidate better.
+        final_training_labels = [row.label for row in train + validation]
         artifact_model = {"kind": "majority", "classes": model_labels,
-                          "label": _majority_label(model_labels, [row.label for row in train]),
-                          "scores": [sum(r.label == label for r in train) / len(train) for label in model_labels]}
+                          "label": _majority_label(model_labels, final_training_labels),
+                          "scores": [final_training_labels.count(label) / len(final_training_labels)
+                                     for label in model_labels]}
         mean, scale = [0.0] * len(feature_names), [1.0] * len(feature_names)
     else:
         final_scaler = StandardScaler().fit(_matrix(train + validation, feature_names))
@@ -375,6 +448,10 @@ def run_training(windows: Sequence[BehaviorWindow], seed: int = 23) -> tuple[dic
                                 for row in sorted(windows, key=lambda item: item.dataset_id)},
             "sensor_positions": [windows[0].sensor_position],
             "sample_rates_hz": [windows[0].sample_rate_hz],
+            "window_config": (
+                _validate_signal_window_config(windows[0].window_config, windows[0].sample_rate_hz)
+                if feature_schema["schema_id"] == SIGNAL_FEATURE_SCHEMA["schema_id"] else None
+            ),
             "evidence_statuses": sorted({row.evidence_status for row in windows}),
             "window_count": len(windows),
             "animal_count": len({row.animal_id for row in windows}),
@@ -509,6 +586,34 @@ def _validate_artifact(payload: Mapping[str, Any]) -> None:
         if rate is not None and (isinstance(rate, bool) or not isinstance(rate, (int, float)) or
                                  not math.isfinite(rate) or rate <= 0):
             raise ValueError("artifact sample-rate provenance is invalid")
+    evidence_statuses = provenance.get("evidence_statuses")
+    valid_evidence_statuses = {status.value for status in EvidenceStatus}
+    if (not isinstance(evidence_statuses, list) or not evidence_statuses or
+            any(status not in valid_evidence_statuses for status in evidence_statuses) or
+            len(set(evidence_statuses)) != len(evidence_statuses)):
+        raise ValueError("artifact evidence status provenance is invalid")
+    if feature_schema["schema_id"] == SIGNAL_FEATURE_SCHEMA["schema_id"]:
+        normalized_config = _validate_signal_window_config(
+            provenance.get("window_config"), provenance["sample_rates_hz"][0]
+        )
+        if normalized_config != provenance["window_config"]:
+            raise ValueError("artifact window_config is not normalized")
+    elif provenance.get("window_config") is not None:
+        raise ValueError("synthetic artifact cannot declare a signal-engine window_config")
+    confidence_semantics = payload.get("confidence_semantics")
+    evidence_interpretation = payload.get("evidence_interpretation")
+    required_interpretation = {
+        "result_status", "source_data_status", "sensor_position_transfer",
+        "scientific_validation", "feature_values", "ear_tag_validation", "clinical_diagnosis",
+    }
+    if (not isinstance(confidence_semantics, str) or not confidence_semantics.strip() or
+            not isinstance(evidence_interpretation, Mapping) or
+            not required_interpretation.issubset(evidence_interpretation) or
+            any(not isinstance(evidence_interpretation[key], str) or not evidence_interpretation[key].strip()
+                for key in required_interpretation - {"ear_tag_validation", "clinical_diagnosis"}) or
+            any(not isinstance(evidence_interpretation[key], bool)
+                for key in ("ear_tag_validation", "clinical_diagnosis"))):
+        raise ValueError("artifact inference metadata is incomplete")
     if model["kind"] == "logistic_regression":
         expected_coefficient_rows = 1 if len(model["classes"]) == 2 else len(model["classes"])
         if (len(model["classes"]) < 2 or
@@ -603,7 +708,8 @@ def load_artifact(path: str | Path) -> dict[str, Any]:
 
 def infer(payload: Mapping[str, Any], features: Mapping[str, float], *,
           feature_schema: Mapping[str, Any], sample_rate_hz: float | None,
-          sensor_position: str, timestamp_s: float | None = None,
+          sensor_position: str, window_config: Mapping[str, Any] | None = None,
+          timestamp_s: float | None = None,
           context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     _validate_artifact(payload)
     if validate_registered_feature_schema(feature_schema, payload["feature_order"]) != payload["feature_schema"]:
@@ -615,6 +721,12 @@ def infer(payload: Mapping[str, Any], features: Mapping[str, float], *,
         raise ValueError("sample_rate_hz is incompatible with training provenance")
     if sensor_position not in payload["provenance"]["sensor_positions"]:
         raise ValueError("sensor_position is incompatible with training provenance")
+    expected_window_config = payload["provenance"]["window_config"]
+    if expected_window_config is None:
+        if window_config is not None:
+            raise ValueError("window_config is incompatible with training provenance")
+    elif (_validate_signal_window_config(window_config, sample_rate_hz) != expected_window_config):
+        raise ValueError("window_config is incompatible with training provenance")
     prediction, score = _predict_payload(payload, features)
     if timestamp_s is not None and (isinstance(timestamp_s, bool) or
             not isinstance(timestamp_s, (int, float)) or not math.isfinite(timestamp_s)):
@@ -625,7 +737,7 @@ def infer(payload: Mapping[str, Any], features: Mapping[str, float], *,
             "confidence_semantics": payload["confidence_semantics"],
             "model_version": payload["model_version"], "timestamp_s": timestamp_s,
             "context": dict(context or {}), "dataset_provenance": payload["provenance"],
-            "evidence_status": ",".join(payload["provenance"]["evidence_statuses"]),
+            "evidence_status": EvidenceStatus.EXPERIMENTAL.value,
             "evidence_interpretation": payload["evidence_interpretation"]}
 
 

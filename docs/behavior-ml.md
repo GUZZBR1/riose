@@ -22,9 +22,12 @@ not a trusted ingestion boundary. External measured-data runs must only use
 feature maps produced by a trusted signal-engine ingestion path; caller-supplied
 maps must be treated as unverified. This limitation is copied into each model
 artifact's evidence interpretation. The pipeline also requires one sensor
-position and sample rate per training run. Labels and other metadata are kept
-outside the feature map. Shareable reports include animal counts and aggregate
-per-animal metrics, not raw animal identifiers.
+position, sample rate, and signal-engine window configuration per training run.
+For registered signal features, windows retain duration, sample and stride
+counts, overlap, jitter tolerance, source rate, and resampling provenance;
+inference must provide the same configuration. Labels and other metadata are
+kept outside the feature map. Shareable reports include animal counts and
+aggregate per-animal metrics, not raw animal identifiers.
 The behavior classifier does not convert sensor values. The signal engine
 converts supported acceleration units to canonical g and emits the registered
 15-feature schema. Its required sample rate is retained as model provenance.
@@ -60,6 +63,9 @@ provided with `source_provenance_attested` is caller-attested metadata; this
 pipeline does not open the source file or verify that digest. A model score is
 not a calibrated confidence. Prediction contracts keep model and input
 provenance attached and define a persistence seam without requiring a database.
+Source evidence statuses remain in model provenance. Each model output is
+marked `EXPERIMENTAL`; source data marked `VALIDATED` does not validate the
+classifier or its prediction.
 UTC prediction creation time must be at or after the UTC input-window end. For
 source-relative windows, callers must establish the causal relation to the UTC
 creation clock outside this contract.

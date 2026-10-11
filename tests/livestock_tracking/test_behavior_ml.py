@@ -19,6 +19,9 @@ from riose.products.livestock_tracking.behavior_ml import (
 from riose.products.livestock_tracking.behavior_ml.pipeline import (
     KNOWN_BEHAVIORS, _majority_label, _model_scores, _portable_model, _validate_artifact,
 )
+from riose.products.livestock_tracking.behavior_ml.feature_schema import (
+    SIGNAL_FEATURE_ORDER, SIGNAL_FEATURE_SCHEMA,
+)
 
 
 @pytest.fixture(scope="module")
@@ -214,6 +217,162 @@ def test_training_rejects_mixed_acquisition_conditions():
         run_training(changed, seed=23)
 
 
+def test_inference_status_describes_experimental_prediction_not_source_evidence():
+    windows = create_synthetic_fixture(seed=33, animals=8, windows_per_behavior=2)
+    changed = [copy.copy(row) for row in windows]
+    for index, row in enumerate(changed):
+        object.__setattr__(row, "dataset_id", "external-evidence-mix")
+        object.__setattr__(row, "evidence_status", "VALIDATED" if index % 2 else "SIMULATED")
+    artifact, _ = run_training(changed, seed=23)
+
+    result = infer(artifact, changed[0].features, feature_schema=artifact["feature_schema"],
+                   sample_rate_hz=None, sensor_position="UNKNOWN_SYNTHETIC")
+
+    assert artifact["provenance"]["evidence_statuses"] == ["SIMULATED", "VALIDATED"]
+    assert result["evidence_status"] == "EXPERIMENTAL"
+    assert result["dataset_provenance"]["evidence_statuses"] == ["SIMULATED", "VALIDATED"]
+
+
+def _signal_window_config(**overrides):
+    config = {
+        "window_duration_s": 4.0,
+        "window_samples": 100,
+        "overlap_fraction": 0.5,
+        "stride_samples": 50,
+        "max_jitter_fraction": 0.15,
+        "source_sample_rate_hz": 25.0,
+        "resampling_method": "none",
+        "resampling_up": 1,
+        "resampling_down": 1,
+        "resampling_jitter_interpolation": False,
+        "resampling_filter": "none",
+    }
+    config.update(overrides)
+    return config
+
+
+def _signal_schema_windows():
+    windows = create_synthetic_fixture(seed=41, animals=8, windows_per_behavior=2)
+    result = []
+    for row in windows:
+        changed = copy.copy(row)
+        object.__setattr__(changed, "dataset_id", "external-signal-window-test")
+        object.__setattr__(changed, "sample_rate_hz", 25.0)
+        object.__setattr__(changed, "sensor_position", "EAR")
+        object.__setattr__(changed, "feature_version", SIGNAL_FEATURE_SCHEMA["version"])
+        object.__setattr__(changed, "feature_schema", SIGNAL_FEATURE_SCHEMA)
+        object.__setattr__(changed, "window_config", _signal_window_config())
+        object.__setattr__(changed, "features", {
+            name: float(index + 1) for index, name in enumerate(SIGNAL_FEATURE_ORDER)
+        })
+        result.append(changed)
+    return result
+
+
+def test_signal_feature_model_is_bound_to_window_configuration():
+    windows = _signal_schema_windows()
+    artifact, _ = run_training(windows, seed=23)
+    result = infer(artifact, windows[0].features, feature_schema=SIGNAL_FEATURE_SCHEMA,
+                   sample_rate_hz=25.0, sensor_position="EAR",
+                   window_config=_signal_window_config())
+
+    assert result["evidence_status"] == "EXPERIMENTAL"
+    with pytest.raises(ValueError, match="window_config is incompatible"):
+        infer(artifact, windows[0].features, feature_schema=SIGNAL_FEATURE_SCHEMA,
+              sample_rate_hz=25.0, sensor_position="EAR",
+              window_config=_signal_window_config(window_duration_s=2.0, window_samples=50,
+                                                  stride_samples=25))
+
+
+def test_training_rejects_mixed_signal_window_configurations():
+    windows = _signal_schema_windows()
+    object.__setattr__(windows[-1], "window_config",
+                       _signal_window_config(window_duration_s=2.0, window_samples=50,
+                                             stride_samples=25))
+    with pytest.raises(ValueError, match="one window extraction configuration"):
+        run_training(windows, seed=23)
+
+
+def test_training_skips_logistic_regression_for_one_class_animal_partition():
+    windows = create_synthetic_fixture(seed=43, animals=12, windows_per_behavior=1)
+    groups = split_by_animal(windows, seed=23)
+    train_animals = {row.animal_id for row in groups["train"]}
+    validation_animals = {row.animal_id for row in groups["validation"]}
+    changed = [copy.copy(row) for row in windows]
+    for row in changed:
+        object.__setattr__(row, "dataset_id", "external-one-class-train")
+        label = ("REST" if row.animal_id in train_animals else
+                 "WALK" if row.animal_id in validation_animals else "GRAZE")
+        object.__setattr__(row, "label", label)
+
+    artifact, _ = run_training(changed, seed=23)
+
+    logistic = next(row for row in artifact["evaluation"]["validation_candidates"]
+                   if row["model"] == "logistic_regression")
+    assert logistic == {"model": "logistic_regression", "status": "skipped",
+                        "reason": "requires at least two training classes"}
+
+
+def test_majority_winner_is_refit_on_train_and_validation(monkeypatch):
+    import sklearn.ensemble
+    import sklearn.tree
+
+    class AlwaysWrongEstimator:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def fit(self, features, labels):
+            self.classes_ = np.unique(labels)
+            return self
+
+        def predict(self, features):
+            return np.asarray(["UNSEEN_PREDICTION"] * len(features))
+
+    monkeypatch.setattr(sklearn.tree, "DecisionTreeClassifier", AlwaysWrongEstimator)
+    monkeypatch.setattr(sklearn.ensemble, "ExtraTreesClassifier", AlwaysWrongEstimator)
+    windows = create_synthetic_fixture(seed=47, animals=12, windows_per_behavior=1)
+    groups = split_by_animal(windows, seed=23)
+    train_animals = {row.animal_id for row in groups["train"]}
+    validation_animals = {row.animal_id for row in groups["validation"]}
+    changed = [copy.copy(row) for row in windows]
+    for row in changed:
+        object.__setattr__(row, "dataset_id", "external-majority-refit")
+        if row.animal_id in train_animals:
+            label = "REST"
+        elif row.animal_id in validation_animals:
+            label = "WALK" if row.label == "WALK" else "REST"
+        else:
+            label = "GRAZE"
+        object.__setattr__(row, "label", label)
+
+    artifact, _ = run_training(changed, seed=23)
+    train_and_validation_animals = train_animals | validation_animals
+    train_and_validation = [row for row in changed if row.animal_id in train_and_validation_animals]
+    final_counts = {label: sum(row.label == label for row in train_and_validation)
+                    for label in sorted({row.label for row in train_and_validation})}
+
+    assert artifact["model_type"] == "majority_baseline"
+    assert artifact["classes"] == sorted(final_counts)
+    assert artifact["model"]["label"] == min(final_counts, key=lambda label: (-final_counts[label], label))
+    assert artifact["model"]["scores"] == [
+        final_counts[label] / len(train_and_validation) for label in artifact["classes"]
+    ]
+
+
+@pytest.mark.parametrize("metadata", [
+    "confidence_semantics", "evidence_interpretation", "evidence_statuses",
+])
+def test_artifact_rejects_missing_metadata_consumed_by_inference(trained, metadata):
+    _, artifact, _, _ = trained
+    malformed = copy.deepcopy(artifact)
+    if metadata == "evidence_statuses":
+        del malformed["provenance"]["evidence_statuses"]
+    else:
+        del malformed[metadata]
+    with pytest.raises(ValueError, match="inference metadata|evidence status provenance"):
+        _validate_artifact(malformed)
+
+
 def test_validation_candidate_scores_do_not_depend_on_test_only_labels():
     windows = create_synthetic_fixture(seed=29, animals=12, windows_per_behavior=2)
     split = split_by_animal(windows, seed=23)
@@ -295,9 +454,20 @@ def test_tree_candidate_json_scores_match_sklearn(estimator):
                            "window_digests": {name: "a" * 64 for name in
                                                ("train", "train_and_validation", "holdout", "full_evaluation_input")},
                            "sensor_positions": ["UNKNOWN_SYNTHETIC"],
-                       "sample_rates_hz": [None]},
+                       "sample_rates_hz": [None], "window_config": None,
+                       "evidence_statuses": ["SIMULATED"]},
         "preprocessing": {"kind": "identity", "mean": [0.0] * len(FEATURE_NAMES),
                           "scale": [1.0] * len(FEATURE_NAMES)},
+        "confidence_semantics": "maximum model score; not a calibrated probability",
+        "evidence_interpretation": {
+            "result_status": "SIMULATED_SOFTWARE_PIPELINE_ONLY",
+            "source_data_status": "NOT_ASSERTED",
+            "sensor_position_transfer": "NOT_VALIDATED",
+            "scientific_validation": "NOT_ASSESSED",
+            "feature_values": "REGISTERED_SCHEMA_ONLY",
+            "ear_tag_validation": False,
+            "clinical_diagnosis": False,
+        },
     }
     _validate_artifact(artifact)
     for row in matrix[:12]:
@@ -353,7 +523,7 @@ artifact = load_artifact(%r)
 features = {'accel_mean_native': 1.0, 'accel_std_native': 0.08, 'accel_rms_native': 1.01}
 result = infer(artifact, features, feature_schema=artifact['feature_schema'],
                sample_rate_hz=None, sensor_position='UNKNOWN_SYNTHETIC')
-assert result['evidence_status'] == 'SIMULATED'
+assert result['evidence_status'] == 'EXPERIMENTAL'
 """ % str(artifact_path)
     subprocess.run([sys.executable, "-c", script], cwd=root, check=True,
                    env={**os.environ, "PYTHONPATH": str(root / "src")})
