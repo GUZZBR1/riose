@@ -170,6 +170,26 @@ def test_dashboard_closes_sqlite_store_on_lifespan_shutdown(tmp_path):
         store.connection.execute("SELECT 1")
 
 
+def test_event_api_rejects_duplicate_json_keys_before_appending(tmp_path):
+    client = TestClient(create_app(tmp_path / "duplicate-event-key.sqlite3"))
+    assert client.post("/api/animals", json={
+        "animal_id": "cow-1", "hardware_id": "tag-1",
+    }).status_code == 201
+    existing_events = client.get("/api/events").json()
+
+    response = client.post(
+        "/api/events",
+        content='{"animal_id":"cow-1","event_type":"WEIGHT_RECORDED",'
+                '"payload":{"weight":1,"weight":2},"timestamp":1}',
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "request JSON must not contain duplicate keys or nonstandard constants"
+    )
+    assert client.get("/api/events").json() == existing_events
+
+
 def test_simulation_rejects_duplicate_or_outside_farm_anchors(tmp_path):
     client = TestClient(create_app(tmp_path / "invalid.sqlite3"))
     common = {"animal_count": 1, "duration_s": 30, "sample_period_s": 30}

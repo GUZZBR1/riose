@@ -11,16 +11,17 @@ from pathlib import Path
 from typing import Any, Literal
 import sqlite3
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..domain.contracts import Anchor, FarmConfig
+from ..domain.behavior import BehaviorObservation
+from ..domain.contracts import Anchor, EvidenceStatus, FarmConfig
 from .persistence import Store
-from ..domain.identity import make_cryptographic_id
+from ..domain.identity import make_cryptographic_id, parse_event_payload_json
 
 
 class AnimalCreate(BaseModel):
@@ -62,6 +63,39 @@ class EventCreate(BaseModel):
             raise ValueError("payload must contain finite JSON-compatible values") from exc
         if len(encoded.encode("utf-8")) > 65536:
             raise ValueError("payload must be at most 64 KiB")
+        return value
+
+
+class BehaviorObservationCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    animal_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    timestamp_s: float = Field(ge=0, allow_inf_nan=False, strict=True)
+    end_timestamp_s: float | None = Field(default=None, ge=0, allow_inf_nan=False, strict=True)
+    behavior: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    confidence: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False, strict=True)
+    model_version: str | None = Field(default=None, min_length=1, max_length=128)
+    source: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:+/-]*$")
+    observation_kind: Literal["PREDICTION", "GROUND_TRUTH", "MANUAL_ANNOTATION"]
+    evidence_status: EvidenceStatus
+    idempotency_key: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+    sensor_position: str | None = Field(
+        default=None, min_length=1, max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+    )
+
+    @field_validator("end_timestamp_s")
+    @classmethod
+    def validate_interval(cls, value: float | None, info: Any) -> float | None:
+        start = info.data.get("timestamp_s")
+        if value is not None and start is not None and value < start:
+            raise ValueError("end_timestamp_s must be >= timestamp_s")
+        return value
+
+    @field_validator("model_version")
+    @classmethod
+    def validate_prediction_model(cls, value: str | None, info: Any) -> str | None:
+        if info.data.get("observation_kind") == "PREDICTION" and not value:
+            raise ValueError("prediction requires model_version")
         return value
 
 
@@ -152,6 +186,15 @@ def estimate_simulation_memory_units(body: SimulationRequest, enabled_anchors: i
 
 
 def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
+    async def validate_event_request_json(request: Request) -> None:
+        try:
+            parse_event_payload_json(await request.body())
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="request JSON must not contain duplicate keys or nonstandard constants",
+            ) from exc
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         try:
@@ -181,7 +224,7 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return JSONResponse(status_code=422, content={"detail": json_safe(exc.errors())})
 
     app.state.store = Store(db_path)
-    app.state.anchors = []
+    app.state.anchors = app.state.store.list_anchors()
     app.state.last_config = None
     app.state.last_ground_truth = None
 
@@ -226,6 +269,44 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         result["trajectory"] = app.state.store.animal_trajectory(animal_id, limit=100)
         return result
 
+    @app.post("/api/animals/{animal_id}/behaviors", status_code=201)
+    def create_behavior_observation(animal_id: str, body: BehaviorObservationCreate) -> Any:
+        if animal_id != body.animal_id:
+            raise HTTPException(status_code=422, detail="path animal_id must match body animal_id")
+        if app.state.store.get_animal(animal_id) is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        try:
+            observation = BehaviorObservation(**body.model_dump())
+            saved, created = app.state.store.save_behavior_observation(observation)
+            return JSONResponse(status_code=201 if created else 200, content=saved)
+        except ValueError as exc:
+            status = 409 if "idempotency_key" in str(exc) else 422
+            raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+    @app.get("/api/animals/{animal_id}/behaviors")
+    def behavior_history(
+        animal_id: str,
+        start_s: float | None = Query(None, ge=0, allow_inf_nan=False),
+        end_s: float | None = Query(None, ge=0, allow_inf_nan=False),
+        behavior: str | None = Query(None, min_length=1, max_length=128),
+        source: str | None = Query(None, min_length=1, max_length=128),
+        model_version: str | None = Query(None, min_length=1, max_length=128),
+        evidence_status: EvidenceStatus | None = None,
+        limit: int = Query(100, ge=1, le=1000),
+        offset: int = Query(0, ge=0, le=1_000_000),
+    ) -> list[dict[str, Any]]:
+        if start_s is not None and end_s is not None and end_s < start_s:
+            raise HTTPException(status_code=422, detail="end_s must be >= start_s")
+        result = app.state.store.behavior_history(
+            animal_id, start_s=start_s, end_s=end_s, behavior=behavior, source=source,
+            model_version=model_version,
+            evidence_status=None if evidence_status is None else evidence_status.value,
+            limit=limit, offset=offset,
+        )
+        if result is None:
+            raise HTTPException(status_code=404, detail="animal not found")
+        return result
+
     @app.get("/api/animals/{animal_id}/trajectory")
     def animal_trajectory(animal_id: str, limit: int = Query(1000, ge=1, le=10000)) -> list[dict[str, Any]]:
         result = app.state.store.animal_trajectory(animal_id, limit)
@@ -260,7 +341,10 @@ def create_app(db_path: str | Path = "data/cattle_rf.sqlite3") -> FastAPI:
         return app.state.store.events(limit)
 
     @app.post("/api/events", status_code=201)
-    def append_animal_event(body: EventCreate) -> dict[str, Any]:
+    def append_animal_event(
+        body: EventCreate,
+        _: None = Depends(validate_event_request_json),
+    ) -> dict[str, Any]:
         if app.state.store.get_animal(body.animal_id) is None:
             raise HTTPException(status_code=404, detail="animal not found")
         try:
