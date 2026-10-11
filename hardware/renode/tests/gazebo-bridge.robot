@@ -1,10 +1,11 @@
 *** Settings ***
-Documentation     Firmware reads Gazebo-derived SIMULATED RESD samples and exposes a boot-only logical TX payload.
+Documentation     Firmware reads SIMULATED RESD samples; wake regression uses a deterministic step fixture.
 
 *** Variables ***
 ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
 ${GAZEBO_RESD}    %{RIOSE_LIS2DW12_GAZEBO_RESD=}
+${WAKE_RESD}      %{RIOSE_LIS2DW12_WAKE_RESD=}
 ${TX_TRACE_OUTPUT}    %{RIOSE_RENODE_TX_TRACE=}
 
 *** Test Cases ***
@@ -178,6 +179,43 @@ Firmware Wakes From Gazebo Motion Comparator And Transmits
         Evaluate    pathlib.Path($tx_trace_output).write_text($trace_json, encoding='utf-8')    modules=pathlib
         Log To Console    SX1262 TX trace exported to ${TX_TRACE_OUTPUT}
     END
+    [Setup]    Create RIOSE Platform
+
+Firmware Wakes From Deterministic Simulated Step And Transmits
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
+    Skip If    '${WAKE_RESD}' == ''    Set RIOSE_LIS2DW12_WAKE_RESD to the deterministic wake-step RESD fixture.
+    Execute Command    sysbus.i2c1.imu DefaultAccelerationZ 1
+    Execute Command    sysbus.i2c1.imu AccelerationZ 1
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    ${initial_tx}=    Execute Command    sysbus.spi1.radio TxCount
+    Should Be Equal As Integers    ${initial_tx}    1
+    Firmware State Should Be    2
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${WAKE_RESD} sampleOffsetTime=-250000000
+    Execute Command    emulation RunFor "0.50"
+    ${tx_count}=    Execute Command    sysbus.spi1.radio TxCount
+    Should Be Equal As Integers    ${tx_count}    2
+    ${tx_done}=    Execute Command    sysbus.spi1.radio TxDoneCount
+    Should Be Equal As Integers    ${tx_done}    2
+    ${wu_events}=    Execute Command    sysbus.i2c1.imu WakeupGeneratedEventCount
+    Should Be Equal As Integers    ${wu_events}    1
+    ${wu_reads}=    Execute Command    sysbus.i2c1.imu WakeupEventReadCount
+    Should Be Equal As Integers    ${wu_reads}    1
+    ${wu_source}=    Execute Command    sysbus.i2c1.imu LastWakeupSourceValue
+    ${wu_source}=    Evaluate    int($wu_source.strip(), 0)
+    Should Be True    ($wu_source & 0x08) != 0
+    Should Be True    ($wu_source & 0x07) != 0
+    ${payload_hex}=    Execute Command    sysbus.spi1.radio LastTxPayloadHex
+    ${packet}=    Evaluate    bytes.fromhex($payload_hex.strip())
+    ${x_mg}=    Evaluate    int.from_bytes($packet[14:16], 'little', signed=True)
+    ${y_mg}=    Evaluate    int.from_bytes($packet[16:18], 'little', signed=True)
+    ${z_mg}=    Evaluate    int.from_bytes($packet[18:20], 'little', signed=True)
+    ${crc_valid}=    Evaluate    binascii.crc_hqx($packet[:22], 0xFFFF) == int.from_bytes($packet[22:24], 'little')    modules=binascii
+    Should Be Equal As Integers    ${x_mg}    575
+    Should Be Equal As Integers    ${y_mg}    793
+    Should Be Equal As Integers    ${z_mg}    0
+    Should Be True    ${crc_valid}
+    Firmware State Should Be    2
     [Setup]    Create RIOSE Platform
 
 *** Keywords ***

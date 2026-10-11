@@ -100,9 +100,18 @@ python hardware/models/lis2dw12/generate_datasets.py --seed 20261002
 uv pip install --python "$(command -v python)" -r hardware/renode/requirements.txt
 python hardware/renode/scripts/dataset_to_resd.py STATIC --output /tmp/static.resd
 python hardware/renode/scripts/dataset_to_resd.py WALK --output /tmp/walk.resd
+python hardware/renode/scripts/dataset_to_resd.py GOLDEN_AXIS_PROBE \
+  --manifest hardware/renode/tests/fixtures/lis2dw12/manifest.json \
+  --output /tmp/golden-axis-probe.resd
+python hardware/renode/scripts/dataset_to_resd.py WAKE_STEP \
+  --manifest hardware/renode/tests/fixtures/wakeup_step/manifest.json \
+  --output /tmp/wake-step.resd
 RIOSE_LIS2DW12_STATIC_RESD=/tmp/static.resd \
 RIOSE_LIS2DW12_WALK_RESD=/tmp/walk.resd \
+RIOSE_LIS2DW12_GOLDEN_RESD=/tmp/golden-axis-probe.resd \
 renode-test hardware/renode/tests/platform-smoke.robot
+RIOSE_LIS2DW12_WAKE_RESD=/tmp/wake-step.resd \
+renode-test hardware/renode/tests/gazebo-bridge.robot
 ```
 
 The converter tests validate the RESD payloads and metadata, and the Robot tests
@@ -230,14 +239,20 @@ not drive the firmware clock during replay.
 
 The firmware's configured wake path is `CTRL4.INT1_WU` plus
 `CTRL7.INTERRUPTS_ENABLE`; it leaves `HP_REF_MODE` and `USR_OFF_ON_WU` clear.
-The `Firmware Wakes From Gazebo Motion Comparator And Transmits` Robot case
-checks that Zephyr is in `SLEEP`, feeds the walking RESD at the modeled ODR,
-and verifies the approximate comparator generates `WAKE_UP_SRC=0x0C`, resumes
-the firmware, and yields sample reads, `ALERT`, and a completed CRC-valid TX.
-After the configured 100 ms RX window, the test also verifies the firmware
-returns to `SLEEP`. The case preserves `CTRL1=0x14`. Its result establishes
-the digital firmware state sequence under the documented comparator
-approximation, not the physical sensor behavior.
+The `Firmware Wakes From Deterministic Simulated Step And Transmits` Robot case
+checks that Zephyr is in `SLEEP`, then feeds the dedicated
+`tests/fixtures/wakeup_step` RESD at the modeled ODR. This SIMULATED fixture
+starts at (0, 0, 1) g and steps to (0.576, 0.793, 0) g. It is separate from
+Gazebo or animal data. The test checks the approximate comparator's wake,
+firmware telemetry axes, CRC, and return to `SLEEP`; it preserves
+`CTRL1=0x14` and explicitly configured ±2 g range. The result establishes
+simulated firmware behavior under the documented comparator approximation,
+not physical sensor behavior. `platform-smoke.robot` also consumes the
+controlled `tests/fixtures/lis2dw12/golden_axis_probe.csv` fixture to check
+sensor-frame axis order and polarity through the existing RESD path.
+
+Renode and synthetic sensor fixtures are simulation evidence and do not
+constitute physical hardware validation.
 
 The [ST LIS2DW12 datasheet](https://www.st.com/resource/en/datasheet/lis2dw12.pdf)
 defines the CTRL1 mode/ODR encoding and 14-bit output scale; [ST application

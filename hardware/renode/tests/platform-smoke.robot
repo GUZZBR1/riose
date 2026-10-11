@@ -8,6 +8,7 @@ ${PLATFORM}       ${CURDIR}/../riose_stm32l0.repl
 ${ELF}            %{RIOSE_ZEPHYR_ELF=}
 ${STATIC_RESD}    %{RIOSE_LIS2DW12_STATIC_RESD=}
 ${WALK_RESD}      %{RIOSE_LIS2DW12_WALK_RESD=}
+${GOLDEN_RESD}    %{RIOSE_LIS2DW12_GOLDEN_RESD=}
 
 *** Test Cases ***
 Loads MCU Surrogate, SX1262 And Native LIS2DW12
@@ -205,6 +206,19 @@ Firmware Reads LIS2DW12 While WALK RESD Is Loaded
     Should Be True    int($reads.strip(), 0) > 0
     Firmware LIS2DW12 Output Should Match RESD First Sample    ${WALK_RESD}
     Log To Console    SIMULATED_WALK_RESD_RAW_Z=${raw_z}
+    [Setup]    Create RIOSE Platform
+
+Firmware Reads Controlled Golden Axis Probe
+    Skip If    '${ELF}' == ''    Set RIOSE_ZEPHYR_ELF to the Renode-profile Zephyr ELF.
+    Skip If    '${GOLDEN_RESD}' == ''    Convert the controlled golden_axis_probe.csv fixture to RESD.
+    Configure LIS2DW12 RESD Playback
+    Execute Command    sysbus.i2c1.imu FeedAccelerationSamplesFromRESD @${GOLDEN_RESD}
+    Execute Command    sysbus LoadELF @${ELF}
+    Execute Command    emulation RunFor "0.25"
+    Firmware State Should Be    2
+    ${reads}=    Execute Command    sysbus.i2c1.imu OutputSampleReadCount
+    Should Be True    int($reads.strip(), 0) > 0
+    Firmware LIS2DW12 Output Should Match RESD First Sample    ${GOLDEN_RESD}
     [Setup]    Create RIOSE Platform
 
 SX1262 Config And FIFO Use SPI Command Bytes

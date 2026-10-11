@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_library(tag_firmware STATIC src/tag_firmware.c src/sx1262.c src/reset_cause.c)
+add_library(tag_firmware STATIC src/tag_firmware.c src/sx1262.c src/reset_cause.c src/lis2dw12.c)
 target_include_directories(tag_firmware PUBLIC include)
 target_compile_options(tag_firmware PRIVATE -Wall -Wextra -Wpedantic -Werror)
 

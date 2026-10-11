@@ -54,3 +54,24 @@ the ARM target image compile successfully; the image has not been flashed.
 Wokwi and custom-chip integration remain experimental future work. A compile
 does not validate pin-level electrical behavior, actual radio output, sleep
 current, or battery life.
+
+## LIS2DW12 sample handling
+
+Upstream already provides the LIS2DW12 register model, Zephyr I²C adapter,
+NUCLEO overlay, Renode peripheral adapter, and modeled wake path. This change
+hardens the existing Zephyr sample decoder and its tests; it does not replace
+that sensor architecture. Firmware explicitly selects `CTRL1=0x14` (14-bit
+high-performance output) and `CTRL6=0x00` (±2 g). The decoder interprets the
+six output bytes as little-endian signed two's-complement words, preserves
+sensor-frame X/Y/Z order, removes the two HP14 alignment bits, then converts
+at 0.244 mg per digit to integer mg, truncating toward zero. Samples do not
+receive a body/world rotation or calibration transform.
+
+Host C tests cover byte order, axis mapping, zero, signed values on both sides
+of zero, HP14 limits, deterministic repeat decoding, and malformed/incomplete
+data. The Renode axis and wake-step inputs are deterministic SIMULATED fixtures;
+they are not measured sensor, animal, or hardware data. Renode and synthetic
+sensor fixtures are simulation evidence and do not constitute physical
+hardware validation.
+
+This PR introduces no blockchain, Web3, Solana, EVM, or multichain functionality.

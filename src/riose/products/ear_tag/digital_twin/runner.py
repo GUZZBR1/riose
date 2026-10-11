@@ -351,12 +351,26 @@ def run_twin(spec_path: Path, output: Path, seed: int = 7) -> dict[str, Any]:
         if datasets_complete:
             robot_env["RIOSE_LIS2DW12_STATIC_RESD"] = dataset_results["STATIC"]["output"]
             robot_env["RIOSE_LIS2DW12_WALK_RESD"] = dataset_results["WALK"]["output"]
+        golden_dir = ROOT / "hardware" / "renode" / "tests" / "fixtures" / "lis2dw12"
+        golden_manifest = golden_dir / "manifest.json"
+        if renode_command and dataset_script.is_file() and golden_manifest.is_file():
+            golden_output = dataset_dir / "golden-axis-probe.resd"
+            golden_conversion = _run_command(
+                "lis2dw12_golden_axis_probe",
+                [sys.executable, str(dataset_script), "GOLDEN_AXIS_PROBE",
+                 "--manifest", str(golden_manifest), "--output", str(golden_output),
+                 "--renode-home", str(Path(renode_command).resolve().parent)],
+                ROOT, timeout_s=120,
+            )
+            if golden_conversion["status"] == "PASSED" and golden_output.is_file():
+                robot_env["RIOSE_LIS2DW12_GOLDEN_RESD"] = str(golden_output)
         check = _run_command("renode_smoke", [env["commands"]["renode-test"], str(robot)], ROOT,
                              timeout_s=180, env=robot_env)
         output_text = check.get("stdout", "") + check.get("stderr", "")
         required_robot_cases = ("Firmware Boots Sleeps Services IRQ And Returns To Sleep",
                                 "Firmware Reads LIS2DW12 While STATIC RESD Is Loaded",
-                                "Firmware Reads LIS2DW12 While WALK RESD Is Loaded")
+                                "Firmware Reads LIS2DW12 While WALK RESD Is Loaded",
+                                "Firmware Reads Controlled Golden Axis Probe")
         robot_cases_passed = all(
             any(case in line and "Finished test" in line and "OK" in line
                 and "skipped" not in line.lower()

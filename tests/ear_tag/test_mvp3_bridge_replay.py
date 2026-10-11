@@ -56,10 +56,17 @@ def test_renode_replay_records_gazebo_derived_wakeup_tx(tmp_path, monkeypatch) -
         "Finished test 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples' in 1.0 seconds with status OK",
         "movement WU evidence: tx=0x00000002 completed=0x00000002 wake_events=0x00000001 source_reads=0x00000001 samples_read=0x00000003 behavior=3 imu_mg=(575,793,0) WU_SRC=12 WU_IRQ=False CRC=True final_state=SLEEP",
         "Finished test 'gazebo-bridge.Firmware Wakes From Gazebo Motion Comparator And Transmits' in 1.0 seconds with status OK",
+        "Finished test 'gazebo-bridge.Firmware Wakes From Deterministic Simulated Step And Transmits' in 1.0 seconds with status OK",
     ))
 
     def fake_run(*args, **kwargs):
+        command = args[0]
+        if "dataset_to_resd.py" in command[1]:
+            with open(command[command.index("--output") + 1], "wb") as stream:
+                stream.write(b"simulated wake fixture")
+            return SimpleNamespace(returncode=0, stdout="fixture converted")
         trace_path = kwargs["env"]["RIOSE_RENODE_TX_TRACE"]
+        assert kwargs["env"]["RIOSE_LIS2DW12_WAKE_RESD"].endswith("wake-step.resd")
         with open(trace_path, "w", encoding="utf-8") as stream:
             json.dump(_sx1262_trace(), stream)
         return SimpleNamespace(returncode=0, stdout=output)
@@ -81,7 +88,7 @@ def test_renode_replay_records_gazebo_derived_wakeup_tx(tmp_path, monkeypatch) -
     result = replay_in_renode(experiment)
 
     assert result["result"] == "PASS"
-    assert result["tests"] == {"passed": 4, "failed": 0, "skipped": 0}
+    assert result["tests"] == {"passed": 5, "failed": 0, "skipped": 0}
     assert result["movement_derived_wakeup"] == "VALIDATED"
     assert result["radio_transmission_from_movement"] == "GAZEBO_DERIVED_WU_COMPARATOR_PATH_VALIDATED"
     path = result["movement_wake_evidence"]
@@ -132,9 +139,18 @@ def test_renode_replay_fails_when_movement_wakeup_evidence_is_missing(tmp_path, 
         "Finished test 'gazebo-bridge.Firmware Startup TX Payload Is Captured' in 1.0 seconds with status OK",
         "Finished test 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples' in 1.0 seconds with status OK",
         "Finished test 'gazebo-bridge.Firmware Wakes From Gazebo Motion Comparator And Transmits' in 1.0 seconds with status OK",
+        "Finished test 'gazebo-bridge.Firmware Wakes From Deterministic Simulated Step And Transmits' in 1.0 seconds with status OK",
     ))
-    monkeypatch.setattr("riose.products.ear_tag.mvp3.bridge.subprocess.run",
-                        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=output))
+
+    def fake_run(*args, **kwargs):
+        command = args[0]
+        if "dataset_to_resd.py" in command[1]:
+            with open(command[command.index("--output") + 1], "wb") as stream:
+                stream.write(b"simulated wake fixture")
+            return SimpleNamespace(returncode=0, stdout="fixture converted")
+        return SimpleNamespace(returncode=0, stdout=output)
+
+    monkeypatch.setattr("riose.products.ear_tag.mvp3.bridge.subprocess.run", fake_run)
 
     try:
         replay_in_renode(experiment)
@@ -163,9 +179,15 @@ def test_renode_replay_preserves_existing_canonical_trace_and_outputs(tmp_path, 
         "Finished test 'gazebo-bridge.LIS2DW12 Accepts Individual Gazebo Acceleration Samples' in 1.0 seconds with status OK",
         "movement WU evidence: tx=0x00000002 completed=0x00000002 wake_events=0x00000001 source_reads=0x00000001 samples_read=0x00000003 behavior=3 imu_mg=(575,793,0) WU_SRC=12 WU_IRQ=False CRC=True final_state=SLEEP",
         "Finished test 'gazebo-bridge.Firmware Wakes From Gazebo Motion Comparator And Transmits' in 1.0 seconds with status OK",
+        "Finished test 'gazebo-bridge.Firmware Wakes From Deterministic Simulated Step And Transmits' in 1.0 seconds with status OK",
     ))
 
     def fake_run(*args, **kwargs):
+        command = args[0]
+        if "dataset_to_resd.py" in command[1]:
+            with open(command[command.index("--output") + 1], "wb") as stream:
+                stream.write(b"simulated wake fixture")
+            return SimpleNamespace(returncode=0, stdout="fixture converted")
         with open(kwargs["env"]["RIOSE_RENODE_TX_TRACE"], "w", encoding="utf-8") as stream:
             json.dump(_sx1262_trace(), stream)
         return SimpleNamespace(returncode=0, stdout=output)

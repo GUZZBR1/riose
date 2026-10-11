@@ -58,6 +58,42 @@ def test_conversion_maps_simulated_g_axes_to_renode_microg(tmp_path):
     assert json.loads(output.with_suffix(".resd.json").read_text())["profile_id"] == metadata["profile_id"]
 
 
+@pytest.mark.parametrize(
+    ("fixture_name", "dataset_name", "expected_samples"),
+    [
+        ("lis2dw12", "GOLDEN_AXIS_PROBE", 4),
+        ("wakeup_step", "WAKE_STEP", 16),
+    ],
+)
+def test_checked_in_sensor_fixture_converts_as_simulated_xyz(
+    tmp_path, fixture_name, dataset_name, expected_samples
+):
+    fixture_dir = Path(__file__).parent / "fixtures" / fixture_name
+    manifest = json.loads((fixture_dir / "manifest.json").read_text())
+    assert manifest["provenance"] == "SIMULATED"
+    dataset = next(item for item in manifest["datasets"] if item["name"] == dataset_name)
+    assert dataset["status"] == "SIMULATED"
+    assert dataset["axes"] == ["x", "y", "z"]
+    assert dataset["unit"] == "g"
+
+    renode = tmp_path / "renode"
+    _write_fake_csv2resd(renode / "tools" / "csv2resd" / "csv2resd.py")
+    output = tmp_path / f"{dataset_name.lower()}.resd"
+    metadata = module.convert_dataset(
+        fixture_dir / "manifest.json", dataset_name, output, renode
+    )
+
+    data = output.read_bytes()
+    metadata_size = struct.unpack_from("<Q", data, 37)[0]
+    samples = [
+        struct.unpack_from("<iii", data, 45 + metadata_size + offset)
+        for offset in range(0, len(data) - 45 - metadata_size, 12)
+    ]
+    assert len(samples) == expected_samples
+    assert metadata["status"] == metadata["provenance"] == "SIMULATED"
+    assert output.with_suffix(".resd.json").exists()
+
+
 def test_conversion_rejects_non_simulated_provenance(tmp_path):
     manifest = {"provenance": "MEASURED", "datasets": []}
     path = tmp_path / "manifest.json"

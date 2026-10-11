@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import re
 import csv
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -81,8 +82,27 @@ def replay_in_renode(experiment: str | Path) -> dict:
     repo_root = Path(__file__).resolve().parents[6]
     result_dir = experiment / "renode"
     result_dir.mkdir(exist_ok=True)
+    wake_resd = result_dir / "wake-step.resd"
+    converter = repo_root / "hardware" / "renode" / "scripts" / "dataset_to_resd.py"
+    wake_manifest = (repo_root / "hardware" / "renode" / "tests" / "fixtures" /
+                     "wakeup_step" / "manifest.json")
+    renode_home = os.environ.get("RENODE_HOME")
+    if not renode_home:
+        renode = shutil.which("renode")
+        if not renode:
+            raise RuntimeError("renode is required to locate its csv2resd fixture converter")
+        renode_home = str(Path(renode).resolve().parent)
+    conversion = subprocess.run(
+        [sys.executable, str(converter), "WAKE_STEP", "--manifest", str(wake_manifest),
+         "--output", str(wake_resd), "--renode-home", renode_home],
+        cwd=repo_root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        timeout=120, check=False,
+    )
+    if conversion.returncode != 0 or not wake_resd.is_file():
+        raise RuntimeError(f"deterministic Renode wake fixture conversion failed: {conversion.stdout[-1200:]}")
     env = os.environ.copy()
     env["RIOSE_LIS2DW12_GAZEBO_RESD"] = str(resd)
+    env["RIOSE_LIS2DW12_WAKE_RESD"] = str(wake_resd)
     configured_tx_trace = os.environ.get("RIOSE_RENODE_TX_TRACE")
     tx_trace = (Path(configured_tx_trace).expanduser().resolve()
                 if configured_tx_trace else experiment / "sx1262_tx_trace.json")
@@ -100,6 +120,7 @@ def replay_in_renode(experiment: str | Path) -> dict:
         "Firmware Startup TX Payload Is Captured",
         "LIS2DW12 Accepts Individual Gazebo Acceleration Samples",
         "Firmware Wakes From Gazebo Motion Comparator And Transmits",
+        "Firmware Wakes From Deterministic Simulated Step And Transmits",
     )
     case_statuses: dict[str, str] = {}
     for case in required_cases:

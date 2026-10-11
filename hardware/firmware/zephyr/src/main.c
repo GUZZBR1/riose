@@ -12,6 +12,7 @@
 #include <zephyr/logging/log.h>
 
 #include "tag_firmware.h"
+#include "tag_lis2dw12.h"
 #include "tag_reset_cause.h"
 
 LOG_MODULE_REGISTER(cattle_tag, LOG_LEVEL_INF);
@@ -162,6 +163,8 @@ static int imu_configure(void)
     if (rc != 0) return rc;
     rc = imu_write_register(0x20, 0x14); /* CTRL1: 12.5 Hz, high-performance 14-bit mode */
     if (rc != 0) return rc;
+    rc = imu_write_register(0x25, 0x00); /* CTRL6: explicitly select the ±2 g full scale */
+    if (rc != 0) return rc;
     rc = imu_write_register(0x34, 0x02); /* WAKE_UP_THS: 62.5 mg at +/-2 g */
     if (rc != 0) return rc;
     rc = imu_write_register(0x35, 0x00); /* WAKE_UP_DUR: no extra debounce */
@@ -192,17 +195,13 @@ static int imu_read_fn(void *context, tag_imu_sample_t *sample)
     int rc = i2c_write_read_dt(&imu_i2c, &reg, sizeof(reg), data, sizeof(data));
     if (rc != 0) return rc;
 
-    for (size_t axis = 0; axis < 3; ++axis) {
-        const int16_t raw16 = (int16_t)((uint16_t)data[axis * 2] |
-                               ((uint16_t)data[axis * 2 + 1] << 8));
-        /* CTRL1 selects high-performance 14-bit output, left-aligned in OUT_x.
-         * At +/-2 g the LIS2DW12 sensitivity is 0.244 mg/LSB. */
-        const int32_t raw14 = raw16 >> 2;
-        const int16_t mg = (int16_t)((raw14 * 244) / 1000);
-        if (axis == 0) sample->x_mg = mg;
-        else if (axis == 1) sample->y_mg = mg;
-        else sample->z_mg = mg;
+    int16_t axes_mg[3];
+    if (!tag_lis2dw12_decode_hp14_axes_mg(data, sizeof(data), axes_mg)) {
+        return -EINVAL;
     }
+    sample->x_mg = axes_mg[0];
+    sample->y_mg = axes_mg[1];
+    sample->z_mg = axes_mg[2];
     uint8_t source_reg = 0x38; /* Reading WAKE_UP_SRC clears the latched WU event. */
     uint8_t wake_source = 0;
     rc = i2c_write_read_dt(&imu_i2c, &source_reg, sizeof(source_reg),
